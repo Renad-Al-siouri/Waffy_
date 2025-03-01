@@ -42,5 +42,15 @@
 
         public string? ContactPhone { get; set; }
 
+        public bool IsPaid { get; set; } = true;
+        public bool HasSurpriseReward { get; set; } = false;
+
+        public DateTime? ExpiryNotifiedAt { get; set; }
+        public int? PaymentId { get; set; }
+        public bool IsFreePost { get; set; } = true;
+        public bool HasBeenRenewed { get; set; } = false;
+        public decimal AmountPaid { get; set; } = 0;
+        public bool RewardReserved { get; set; } = false;
+
     }
 }

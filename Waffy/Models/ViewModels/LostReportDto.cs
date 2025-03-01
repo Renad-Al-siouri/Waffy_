@@ -23,6 +23,7 @@ public class LostReportDto
     public string SecretQuestion { get; set; } = "";
     public string ExpiryDate { get; set; } = "";
 
+
     // ✅ تغيّر: يقبل List<string> بدل string واحدة
     public static LostReportDto FromReport(LostPetReport r, List<string> imageUrls)
     {
