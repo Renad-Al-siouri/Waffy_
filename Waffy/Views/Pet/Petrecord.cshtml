@@ -140,7 +140,7 @@
             </header>
         </div>
     </div>
-
+   
     <main class="details-page">
         <div class="container">
             <section class="record-shell">
@@ -380,28 +380,119 @@
                                 <small>Using the pet from this medical record</small>
                             </div>
                         </div>
+
+                        @* ── Pricing Guide ── *@
+                        <div style="background:linear-gradient(135deg,#f0fdf4,#fefce8);
+            border:1.5px solid #d4e8bc;border-radius:16px;
+            padding:16px 18px;margin-bottom:1.2rem;">
+
+                            <div style="font-family:'Fredoka',sans-serif;font-size:1rem;
+                font-weight:700;color:#2d5a1b;margin-bottom:12px;">
+                                📋 How Lost Pet Posting Works
+                            </div>
+
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+
+                                @* Card 1 — Free Posts *@
+                                <div style="background:#fff;border-radius:12px;padding:12px;
+                    border:1px solid #d4e8bc;">
+                                    <div style="font-size:1.1rem;margin-bottom:4px;">🎁</div>
+                                    <div style="font-weight:900;color:#2d5a1b;font-size:.82rem;">
+                                        Free Posts
+                                    </div>
+                                    <ul style="margin:6px 0 0 14px;padding:0;
+                       color:#444;font-size:.78rem;line-height:1.7;">
+                                        <li>1st post — always <strong>free</strong></li>
+                                        <li>2nd post with reward — <strong>free</strong></li>
+                                    </ul>
+                                </div>
+
+                                @* Card 2 — Paid Posts *@
+                                <div style="background:#fff;border-radius:12px;padding:12px;
+                    border:1px solid #fde68a;">
+                                    <div style="font-size:1.1rem;margin-bottom:4px;">💳</div>
+                                    <div style="font-weight:900;color:#92400e;font-size:.82rem;">
+                                        Paid Posts
+                                    </div>
+                                    <ul style="margin:6px 0 0 14px;padding:0;
+                       color:#444;font-size:.78rem;line-height:1.7;">
+                                        <li>2nd post <strong>no reward</strong> → 5 JOD</li>
+                                        <li>After 2 free posts + reward → 5 JOD</li>
+                                        <li>After 2 free posts + no reward → 10 JOD</li>
+                                    </ul>
+                                </div>
+
+                                @* Card 3 — Renewal *@
+                                <div style="background:#fff;border-radius:12px;padding:12px;
+                    border:1px solid #bfdbfe;">
+                                    <div style="font-size:1.1rem;margin-bottom:4px;">🔄</div>
+                                    <div style="font-weight:900;color:#1e40af;font-size:.82rem;">
+                                        Free Renewal
+                                    </div>
+                                    <ul style="margin:6px 0 0 14px;padding:0;
+                       color:#444;font-size:.78rem;line-height:1.7;">
+                                        <li>Each post can be renewed <strong>once for free</strong></li>
+                                        <li>Available from your Lost Reports page</li>
+                                    </ul>
+                                </div>
+
+                                @* Card 4 — Discount *@
+                                <div style="background:#fff;border-radius:12px;padding:12px;
+                    border:1px solid #fecaca;">
+                                    <div style="font-size:1.1rem;margin-bottom:4px;">🏷️</div>
+                                    <div style="font-weight:900;color:#991b1b;font-size:.82rem;">
+                                        Loyalty Discount
+                                    </div>
+                                    <ul style="margin:6px 0 0 14px;padding:0;
+                       color:#444;font-size:.78rem;line-height:1.7;">
+                                        <li>After renewal + pet still not found</li>
+                                        <li><strong>50% off</strong> your next new post</li>
+                                        <li>One time only 🎯</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div style="margin-top:10px;background:#fff;border-radius:10px;
+                padding:8px 12px;font-size:.76rem;color:#5a6e3a;
+                border:1px dashed #b2dfb2;text-align:center;font-weight:700;">
+                                💡 Adding a reward increases your chances of finding your pet faster!
+                            </div>
+                        </div>
+
                         <div class="adoption-grid" style="margin-top:1rem">
                             <div class="form-group">
                                 <label>Date Lost</label>
                                 <input type="date" name="dateLost" />
                             </div>
+
+
                             <div class="form-group">
-                                <label>City <span style="color:red">*</span></label>
-                                <select name="city" required>
-                                    <option value="">Select city</option>
-                                    <option>Amman</option>
-                                    <option>Zarqa</option>
-                                    <option>Irbid</option>
-                                    <option>Aqaba</option>
-                                    <option>Madaba</option>
-                                    <option>Karak</option>
-                                    <option>Jerash</option>
+                                <label>Governorate <span style="color:red">*</span></label>
+                                <select name="city" id="lostCity"
+                                        onchange="updateDistricts('lostCity','lostArea')"
+                                        required>
+                                    <option value="">— Select governorate —</option>
+                                    @{
+                                        var locs2 = System.Text.Json.JsonSerializer
+                                        .Deserialize<List<System.Text.Json.JsonElement>>(
+                                        ViewBag.LocationsJson as string ?? "[]");
+                                    }
+                                    @foreach (var g in locs2 ?? new())
+                                    {
+                                        <option value="@g.GetProperty("name").GetString()">
+                                            @g.GetProperty("name").GetString()
+                                        </option>
+                                    }
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Area / Neighborhood</label>
-                                <input type="text" name="area" placeholder="Example: Al Rabieh" />
+                                <label>Area / District</label>
+                                <select name="area" id="lostArea">
+                                    <option value="">— Select governorate first —</option>
+                                </select>
                             </div>
+
+
                             <div class="form-group full-width">
                                 <label>Last Seen Location</label>
                                 <textarea name="lastSeenLocation" placeholder="Street, landmark..."></textarea>
@@ -551,7 +642,177 @@
                         </label>
                         <div class="step-actions between-actions">
                             <button type="button" class="action-btn cancel-adoption-btn" onclick="goLostStep(5)">← Back</button>
-                            <button type="submit" class="action-btn lost-btn" onclick="return checkLostAgree()">Publish Lost Ad 📣</button>
+                            <button type="button" class="action-btn lost-btn" onclick="goToPayOrSubmit()">
+                                Publish Lost Ad 📣
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                @* ── STEP 7 — Payment ── *@
+                <div class="lost-step" id="lostStep7">
+                    <div class="box adoption-step-box" style="border:2px solid rgba(226,163,58,.3);">
+                        <div class="step-header">
+                            <div><h3>Payment Summary</h3><span>Step 7 of 7</span></div>
+                            <div class="step-icon">💳</div>
+                        </div>
+
+                        @* ── Auto-switch message ── *@
+                        <div id="autoSwitchMsg"
+                             style="display:none;background:#fff8e1;border:1px solid #fde68a;
+                    border-radius:10px;padding:10px 12px;margin-bottom:12px;
+                    font-size:.8rem;color:#9b6000;font-weight:700;">
+                        </div>
+
+                        @* ── Complete Breakdown ── *@
+                        <div style="background:#f8fdf2;border:1.5px solid #d4e8bc;
+                    border-radius:14px;padding:14px;margin-bottom:1.2rem;">
+
+                            <div style="font-weight:900;color:#2d5a1b;font-size:.86rem;
+                        margin-bottom:10px;">
+                                📊 Payment Breakdown
+                            </div>
+
+                            @* Posting Fee *@
+                            <div id="feeRow" style="display:none;justify-content:space-between;
+                         align-items:baseline;padding:6px 0;
+                         border-bottom:1px solid #e8f0d8;">
+                                <div>
+                                    <span style="font-size:.83rem;font-weight:800;color:#444;">
+                                        📋 Posting Fee
+                                    </span>
+                                    <span id="feeReason"
+                                          style="font-size:.72rem;color:#888;margin-left:4px;"></span>
+                                </div>
+                                <strong id="breakdownFee"
+                                        style="font-size:.9rem;color:#c0392b;">— JOD</strong>
+                            </div>
+
+                            @* Reward Reserve *@
+                            <div id="rewardRow" style="display:none;justify-content:space-between;
+                         align-items:baseline;padding:6px 0;
+                         border-bottom:1px solid #e8f0d8;">
+                                <div>
+                                    <span style="font-size:.83rem;font-weight:800;color:#444;">
+                                        🔒 Reward Reserve
+                                    </span>
+                                    <span style="font-size:.72rem;color:#888;margin-left:4px;">
+                                        (held until finder is verified)
+                                    </span>
+                                </div>
+                                <strong id="breakdownReward"
+                                        style="font-size:.9rem;color:#9b6000;">— JOD</strong>
+                            </div>
+
+                            @* Total *@
+                            <div style="display:flex;justify-content:space-between;
+                        align-items:center;padding:8px 0 4px;">
+                                <span style="font-weight:900;color:#2d5a1b;font-size:.88rem;">
+                                    Total to deduct
+                                </span>
+                                <strong id="breakdownTotal"
+                                        style="font-size:1rem;color:#2d5a1b;">— JOD</strong>
+                            </div>
+
+                            @* Wallet Balance *@
+                            <div style="background:#fff;border-radius:10px;padding:10px;
+                        margin-top:8px;border:1px solid #e8f0d8;">
+                                <div style="display:flex;justify-content:space-between;
+                            font-size:.8rem;font-weight:700;margin-bottom:4px;">
+                                    <span style="color:#555;">Current wallet balance</span>
+                                    <span style="color:#444;">@ViewBag.WalletBalance JOD</span>
+                                </div>
+                                <div id="afterRow" style="display:none;justify-content:space-between;
+                             font-size:.82rem;font-weight:800;">
+                                    <span style="color:#555;">Balance after</span>
+                                    <strong id="breakdownAfter">— JOD</strong>
+                                </div>
+                            </div>
+
+                            @* Insufficient Warning *@
+                            <div id="walletInsufficient"
+                                 style="display:none;background:#fff0f0;border:1px solid #ffb3b3;
+                        border-radius:10px;padding:8px 12px;margin-top:8px;
+                        font-size:.78rem;color:#c0392b;font-weight:700;">
+                                ❌ Wallet balance is insufficient — please use CliQ below
+                            </div>
+                        </div>
+
+                        @* ── اختيار طريقة الدفع ── *@
+                        <div style="display:flex;gap:.8rem;margin-bottom:1.2rem;">
+                            <label style="flex:1;cursor:pointer;" onclick="selectPayMethod('wallet')">
+                                <div id="cardWallet" style="border:2px solid #b2dfb2;border-radius:12px;
+                                            padding:14px;background:#f0fff0;transition:.2s;">
+                                    <div style="font-weight:900;color:#2d7a2d;margin-bottom:.3rem;">
+                                        💰 My Wallet
+                                    </div>
+                                    <div style="font-size:.8rem;color:#555;">
+                                        Balance: <strong>@ViewBag.WalletBalance JOD</strong>
+                                    </div>
+                                </div>
+                            </label>
+                            <label style="flex:1;cursor:pointer;" onclick="selectPayMethod('cliq')">
+                                <div id="cardCliq" style="border:2px solid #c5d0e8;border-radius:12px;
+                                          padding:14px;background:#f5f8ff;transition:.2s;">
+                                    <div style="font-weight:900;color:#1a3a8f;margin-bottom:.3rem;">
+                                        📱 CliQ
+                                    </div>
+                                    <div style="font-size:.8rem;color:#555;">
+                                        Pay via CliQ transfer
+                                    </div>
+                                </div>
+                            </label>
+                        </div>
+
+                        <input type="hidden" name="payChoice" id="payChoiceInput" value="wallet" />
+
+                        @* ── Wallet Section ── *@
+                        <div id="walletSection" style="display:none;">
+                            <div style="background:#f0fff0;border:1px solid #b2dfb2;
+                        border-radius:12px;padding:12px;">
+                                <div style="font-size:.86rem;color:#2d7a2d;font-weight:700;">
+                                    ✅ Confirm to deduct from wallet
+                                </div>
+                            </div>
+                        </div>
+
+                        @* ── CliQ Section ── *@
+                        <div id="cliqSection" style="display:none;">
+                            <div style="background:#f5f8ff;border:1px solid #c5d0e8;
+                        border-radius:12px;padding:14px;">
+                                <div style="font-weight:700;color:#1a3a8f;margin-bottom:.8rem;">
+                                    📱 Enter your CliQ details
+                                </div>
+                                <div style="margin-bottom:.8rem;">
+                                    <label style="font-size:.83rem;font-weight:700;color:#444;">
+                                        Your CliQ Phone Number
+                                    </label>
+                                    <div style="display:flex;align-items:center;gap:8px;margin-top:.3rem;">
+                                        <span style="background:#e8f0fe;padding:8px 12px;
+                                     border-radius:8px;font-weight:700;
+                                     font-size:.9rem;color:#1a3a8f;">+962</span>
+                                        <input type="tel" id="cliqPhone"
+                                               placeholder="7X XXX XXXX"
+                                               style="flex:1;padding:9px 12px;border:1.5px solid #c5d0e8;
+                                      border-radius:8px;font-size:.9rem;outline:none;" />
+                                    </div>
+                                </div>
+                                <div style="background:#fffde7;border:1px solid #ffe082;
+                            border-radius:8px;padding:10px;font-size:.78rem;color:#7a6000;">
+                                    ⏳ Report published after admin verifies your CliQ payment.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="step-actions between-actions" style="margin-top:1.2rem;">
+                            <button type="button" class="action-btn cancel-adoption-btn"
+                                    onclick="goLostStep(6)">
+                                ← Back
+                            </button>
+                            <button type="button" class="action-btn lost-btn"
+                                    onclick="submitPayment()">
+                                Confirm & Publish 💳
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -593,23 +854,35 @@
                             <div class="step-icon">📍</div>
                         </div>
                         <div class="adoption-grid">
+
+
                             <div class="form-group">
-                                <label>City <span style="color:red">*</span></label>
-                                <select name="city" id="adCity" required>
-                                    <option value="">Select city</option>
-                                    <option>Amman</option>
-                                    <option>Zarqa</option>
-                                    <option>Irbid</option>
-                                    <option>Aqaba</option>
-                                    <option>Madaba</option>
-                                    <option>Karak</option>
-                                    <option>Jerash</option>
+                                <label>Governorate <span style="color:red">*</span></label>
+                                <select name="city" id="adCity"
+                                        onchange="updateDistricts('adCity','adArea')"
+                                        required>
+                                    <option value="">— Select governorate —</option>
+                                    @{
+                                        var locs3 = System.Text.Json.JsonSerializer
+                                        .Deserialize<List<System.Text.Json.JsonElement>>(
+                                        ViewBag.LocationsJson as string ?? "[]");
+                                    }
+                                    @foreach (var g in locs3 ?? new())
+                                    {
+                                        <option value="@g.GetProperty("name").GetString()">
+                                            @g.GetProperty("name").GetString()
+                                        </option>
+                                    }
                                 </select>
                             </div>
                             <div class="form-group">
-                                <label>Area</label>
-                                <input type="text" name="area" id="adArea" placeholder="Example: Al Rabieh" />
+                                <label>Area / District</label>
+                                <select name="area" id="adArea">
+                                    <option value="">— Select governorate first —</option>
+                                </select>
                             </div>
+
+
                             <div class="form-group full-width">
                                 <label>Contact Phone <span style="color:red">*</span></label>
                                 <div class="phone-wrap">
@@ -758,118 +1031,283 @@
         </div>
         <div>© 2026 Waffy, all rights reserved.</div>
     </footer>
-
     <script>
-        // ── Adoption Steps ──
-        function goAdoptStep(n) {
-            if (n === 2) {
-                const city  = document.getElementById("adCity")?.value;
-                const phone = document.getElementById("adPhone")?.value.trim();
-                if (!city || !phone) { alert("Please fill in City and Phone first."); return; }
-            }
-            if (n === 4) {
-                const desc   = document.getElementById("adDescription")?.value.trim();
-                const reason = document.querySelector('input[name="reason"]:checked');
-                if (!desc || !reason) { alert("Please complete Description and Reason."); return; }
-                document.getElementById("reviewCity").textContent   = document.getElementById("adCity")?.value || "—";
-                document.getElementById("reviewArea").textContent   = document.getElementById("adArea")?.value || "—";
-                document.getElementById("reviewPhone").textContent  = "+962 " + (document.getElementById("adPhone")?.value || "—");
-                document.getElementById("reviewMethod").textContent = document.querySelector('input[name="contactMethod"]:checked')?.value || "—";
-                document.getElementById("reviewDesc").textContent   = desc;
-                document.getElementById("reviewReason").textContent = reason.value;
-            }
-            document.querySelectorAll(".adoption-step").forEach(s => s.classList.remove("active"));
-            document.getElementById(`adoptStep${n}`)?.classList.add("active");
-            document.querySelector("#adoptionFlow .adoption-modal")?.scrollTo(0, 0);
-        }
-        function checkAdoptAgree() {
-            if (!document.getElementById("agreeAdTerms")?.checked) {
-                alert("Please agree to the terms before submitting."); return false;
-            }
-            return true;
-        }
+    // ── Adoption Steps ──────────────────────────────────────
+    function goAdoptStep(n) {
+    if (n === 2) {
+    const city  = document.getElementById("adCity")?.value;
+    const phone = document.getElementById("adPhone")?.value.trim();
+    if (!city || !phone) { alert("Please fill in City and Phone first."); return; }
+    }
+    if (n === 4) {
+    const desc   = document.getElementById("adDescription")?.value.trim();
+    const reason = document.querySelector('input[name="reason"]:checked');
+    if (!desc || !reason) { alert("Please complete Description and Reason."); return; }
+    document.getElementById("reviewCity").textContent   = document.getElementById("adCity")?.value || "—";
+    document.getElementById("reviewArea").textContent   = document.getElementById("adArea")?.value || "—";
+    document.getElementById("reviewPhone").textContent  = "+962 " + (document.getElementById("adPhone")?.value || "—");
+    document.getElementById("reviewMethod").textContent = document.querySelector('input[name="contactMethod"]:checked')?.value || "—";
+    document.getElementById("reviewDesc").textContent   = desc;
+    document.getElementById("reviewReason").textContent = reason.value;
+    }
+    document.querySelectorAll(".adoption-step").forEach(s => s.classList.remove("active"));
+    document.getElementById(`adoptStep${n}`)?.classList.add("active");
+    document.querySelector("#adoptionFlow .adoption-modal")?.scrollTo(0, 0);
+    }
 
-        // ── Lost Steps ──
-        function goLostStep(n) {
-            if (n === 3) {
-                const desc = document.querySelector('#lostForm textarea[name="description"]')?.value.trim();
-                if (!desc) { alert("Please add a description."); return; }
-            }
-            if (n === 6) {
-                const q = document.querySelector('#lostForm input[name="secretQuestion"]')?.value.trim();
-                const a = document.querySelector('#lostForm input[name="secretAnswer"]')?.value.trim();
-                if (!q || !a) { alert("Please enter the secret question and answer."); return; }
-            }
-            document.querySelectorAll(".lost-step").forEach(s => s.classList.remove("active"));
-            document.getElementById(`lostStep${n}`)?.classList.add("active");
-            document.querySelector("#lostFlowModal .lost-modal")?.scrollTo(0, 0);
-        }
-        function checkLostAgree() {
-            if (!document.getElementById("agreeLostTerms")?.checked) {
-                alert("Please agree to the terms before submitting."); return false;
-            }
-            return true;
-        }
+    function checkAdoptAgree() {
+    if (!document.getElementById("agreeAdTerms")?.checked) {
+    alert("Please agree to the terms before submitting."); return false;
+    }
+    return true;
+    }
 
-        // ── Navbar ──
-        const servicesDropdown    = document.getElementById("servicesDropdown");
-        const servicesToggle      = document.getElementById("servicesToggle");
-        const menuBtn             = document.getElementById("menuBtn");
-        const navLinks            = document.getElementById("navLinks");
-        const mobileServicesBlock  = document.getElementById("mobileServicesBlock");
-        const mobileServicesToggle = document.getElementById("mobileServicesToggle");
+    // ── Lost Steps ───────────────────────────────────────────
+    function goLostStep(n) {
+    if (n === 3) {
+    const desc = document.querySelector('#lostForm textarea[name="description"]')?.value.trim();
+    if (!desc) { alert("Please add a description."); return; }
+    }
+    if (n === 6) {
+    const q = document.querySelector('#lostForm input[name="secretQuestion"]')?.value.trim();
+    const a = document.querySelector('#lostForm input[name="secretAnswer"]')?.value.trim();
+    if (!q || !a) { alert("Please enter the secret question and answer."); return; }
+    }
+    if (n === 7) {
+    updatePaymentBreakdown();
+    autoSelectPayMethod();
+    }
+    document.querySelectorAll(".lost-step").forEach(s => s.classList.remove("active"));
+    document.getElementById(`lostStep${n}`)?.classList.add("active");
+    document.querySelector("#lostFlowModal .lost-modal")?.scrollTo(0, 0);
+    }
 
-        if (servicesToggle && servicesDropdown) {
-            servicesToggle.addEventListener("click", e => { e.stopPropagation(); servicesDropdown.classList.toggle("open"); });
-            document.addEventListener("click", e => { if (!servicesDropdown.contains(e.target)) servicesDropdown.classList.remove("open"); });
-        }
-        if (menuBtn && navLinks) {
-            menuBtn.addEventListener("click", e => { e.stopPropagation(); navLinks.classList.toggle("open"); });
-            document.addEventListener("click", e => { if (!navLinks.contains(e.target) && e.target !== menuBtn) navLinks.classList.remove("open"); });
-        }
-        if (mobileServicesBlock && mobileServicesToggle)
-            mobileServicesToggle.addEventListener("click", () => mobileServicesBlock.classList.toggle("open"));
+    // ── Navbar ───────────────────────────────────────────────
+    const servicesDropdown     = document.getElementById("servicesDropdown");
+    const servicesToggle       = document.getElementById("servicesToggle");
+    const menuBtn              = document.getElementById("menuBtn");
+    const navLinks             = document.getElementById("navLinks");
+    const mobileServicesBlock  = document.getElementById("mobileServicesBlock");
+    const mobileServicesToggle = document.getElementById("mobileServicesToggle");
 
-        // ── Modals ──
-        const adoptionFlow  = document.getElementById("adoptionFlow");
-        const lostFlowModal = document.getElementById("lostFlowModal");
+    if (servicesToggle && servicesDropdown) {
+    servicesToggle.addEventListener("click", e => { e.stopPropagation(); servicesDropdown.classList.toggle("open"); });
+    document.addEventListener("click", e => { if (!servicesDropdown.contains(e.target)) servicesDropdown.classList.remove("open"); });
+    }
+    if (menuBtn && navLinks) {
+    menuBtn.addEventListener("click", e => { e.stopPropagation(); navLinks.classList.toggle("open"); });
+    document.addEventListener("click", e => { if (!navLinks.contains(e.target) && e.target !== menuBtn) navLinks.classList.remove("open"); });
+    }
+    if (mobileServicesBlock && mobileServicesToggle)
+    mobileServicesToggle.addEventListener("click", () => mobileServicesBlock.classList.toggle("open"));
 
-        document.getElementById("openAdoptionFormBtn")?.addEventListener("click", () => { adoptionFlow?.classList.add("show"); goAdoptStep(1); });
-        document.getElementById("closeAdoptionFlowBtn")?.addEventListener("click", () => adoptionFlow?.classList.remove("show"));
-        document.getElementById("openLostFlowBtn")?.addEventListener("click", () => { lostFlowModal?.classList.add("show"); goLostStep(1); });
-        document.getElementById("closeLostFlowModal")?.addEventListener("click", () => lostFlowModal?.classList.remove("show"));
-        window.addEventListener("click", e => {
-            if (e.target === adoptionFlow) adoptionFlow?.classList.remove("show");
-            if (e.target === lostFlowModal) lostFlowModal?.classList.remove("show");
-        });
+    // ── Modals ───────────────────────────────────────────────
+    const adoptionFlow  = document.getElementById("adoptionFlow");
+    const lostFlowModal = document.getElementById("lostFlowModal");
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const hasAdoptMsg = @((TempData.Peek("AdoptSuccess") != null || TempData.Peek("AdoptError") != null) ? "true" : "false");
-            if (hasAdoptMsg) adoptionFlow?.classList.add("show");
-            const hasLostMsg = @((TempData.Peek("LostSuccess") != null || TempData.Peek("LostError") != null) ? "true" : "false");
-            if (hasLostMsg) lostFlowModal?.classList.add("show");
-        });
-
-        // ── Photo slot preview ──
-document.querySelectorAll('.photo-slot input[type="file"]').forEach(input => {
-    input.addEventListener('change', function () {
-        const file = this.files[0];
-        if (!file) return;
-        const label = this.closest('.photo-slot');
-        const reader = new FileReader();
-        reader.onload = e => {
-            label.style.backgroundImage  = `url('${e.target.result}')`;
-            label.style.backgroundSize   = 'cover';
-            label.style.backgroundPosition = 'center';
-            label.style.border = '2px solid #5a9e2f';
-            // إخفاء الأيقونة والنص
-            label.querySelector('.slot-icon').style.display = 'none';
-            label.querySelector('.slot-label').style.display = 'none';
-        };
-        reader.readAsDataURL(file);
+    document.getElementById("openAdoptionFormBtn")?.addEventListener("click", () => { adoptionFlow?.classList.add("show"); goAdoptStep(1); });
+    document.getElementById("closeAdoptionFlowBtn")?.addEventListener("click", () => adoptionFlow?.classList.remove("show"));
+    document.getElementById("openLostFlowBtn")?.addEventListener("click", () => { lostFlowModal?.classList.add("show"); goLostStep(1); });
+    document.getElementById("closeLostFlowModal")?.addEventListener("click", () => lostFlowModal?.classList.remove("show"));
+    window.addEventListener("click", e => {
+    if (e.target === adoptionFlow) adoptionFlow?.classList.remove("show");
+    if (e.target === lostFlowModal) lostFlowModal?.classList.remove("show");
     });
-});
 
+    document.addEventListener("DOMContentLoaded", () => {
+    const hasAdoptMsg = @((TempData.Peek("AdoptSuccess") != null || TempData.Peek("AdoptError") != null) ? "true" : "false");
+    if (hasAdoptMsg) adoptionFlow?.classList.add("show");
+    const hasLostMsg = @((TempData.Peek("LostSuccess") != null || TempData.Peek("LostError") != null) ? "true" : "false");
+    if (hasLostMsg) lostFlowModal?.classList.add("show");
+    });
+
+    // ── Photo slot preview ───────────────────────────────────
+    document.querySelectorAll('.photo-slot input[type="file"]').forEach(input => {
+    input.addEventListener('change', function () {
+    const file = this.files[0];
+    if (!file) return;
+    const label = this.closest('.photo-slot');
+    const reader = new FileReader();
+    reader.onload = e => {
+    label.style.backgroundImage    = `url('${e.target.result}')`;
+    label.style.backgroundSize     = 'cover';
+    label.style.backgroundPosition = 'center';
+    label.style.border             = '2px solid #5a9e2f';
+    label.querySelector('.slot-icon').style.display  = 'none';
+    label.querySelector('.slot-label').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+    });
+    });
+
+    // ── Payment Variables ────────────────────────────────────
+    const needsPayment = @((bool)(ViewBag.NeedsPayment ?? false) ? "true" : "false");
+
+    // ── goToPayOrSubmit ──────────────────────────────────────
+    function goToPayOrSubmit() {
+    if (!document.getElementById("agreeLostTerms")?.checked) {
+    alert("Please agree to the terms before submitting.");
+    return;
+    }
+    const currentReward = parseFloat(
+    document.querySelector('input[name="rewardAmount"]:checked')?.value ?? '0'
+    );
+    if (needsPayment || currentReward > 0) {
+    goLostStep(7);
+    } else {
+    document.getElementById("lostForm").submit();
+    }
+    }
+
+    // ── calcAmounts — مصدر الحقيقة الوحيد ───────────────────
+    function calcAmounts() {
+    const reward    = parseFloat(
+    document.querySelector('input[name="rewardAmount"]:checked')?.value ?? '0');
+    const freeUsed  = @((int)(ViewBag.FreePostsUsed ?? 0));
+    const noRewUsed = @((int)(ViewBag.FreeNoRewardUsed ?? 0));
+    const walletBal = @((decimal)(ViewBag.WalletBalance ?? 0));
+
+    let fee = 0, feeReason = "";
+    if (freeUsed >= 2) {
+    fee       = reward > 0 ? 5 : 10;
+    feeReason = "exceeded free posts quota";
+    } else if (reward === 0 && noRewUsed >= 1) {
+    fee       = 5;
+    feeReason = "2nd post without reward";
+    }
+
+    return { fee, reward, feeReason, total: fee + reward, walletBal };
+    }
+
+    // ── updatePaymentBreakdown ───────────────────────────────
+    function updatePaymentBreakdown() {
+    const { fee, reward, feeReason, total, walletBal } = calcAmounts();
+    const after  = walletBal - total;
+    const enough = walletBal >= total;
+
+    const feeRow = document.getElementById('feeRow');
+    if (feeRow) feeRow.style.display = fee > 0 ? 'flex' : 'none';
+    const feeEl = document.getElementById('breakdownFee');
+    if (feeEl) feeEl.textContent = fee.toFixed(2) + ' JOD';
+    const feeReasonEl = document.getElementById('feeReason');
+    if (feeReasonEl) feeReasonEl.textContent = fee > 0 ? `(${feeReason})` : '';
+
+    const rewRow = document.getElementById('rewardRow');
+    if (rewRow) rewRow.style.display = reward > 0 ? 'flex' : 'none';
+    const rewEl = document.getElementById('breakdownReward');
+    if (rewEl) rewEl.textContent = reward.toFixed(2) + ' JOD';
+
+    const totEl = document.getElementById('breakdownTotal');
+    if (totEl) totEl.textContent = total.toFixed(2) + ' JOD';
+
+    const aftEl  = document.getElementById('breakdownAfter');
+    const aftRow = document.getElementById('afterRow');
+    if (aftEl) {
+    aftEl.textContent = after.toFixed(2) + ' JOD';
+    aftEl.style.color = enough ? '#2d7a2d' : '#c0392b';
+    }
+    if (aftRow) aftRow.style.display = 'flex';
+
+    const warnEl = document.getElementById('walletInsufficient');
+    if (warnEl) warnEl.style.display = !enough ? 'block' : 'none';
+    }
+
+    // ── autoSelectPayMethod ──────────────────────────────────
+    function autoSelectPayMethod() {
+    const { total, walletBal } = calcAmounts();
+
+    if (total === 0) {
+    document.getElementById("lostForm").submit();
+    return;
+    }
+
+    if (walletBal >= total) {
+    selectPayMethod('wallet');
+    const msg = document.getElementById('autoSwitchMsg');
+    if (msg) msg.style.display = 'none';
+    } else {
+    selectPayMethod('cliq');
+    const msg = document.getElementById('autoSwitchMsg');
+    if (msg) {
+    msg.style.display = 'block';
+    msg.textContent =
+    `⚠️ Wallet balance (${walletBal.toFixed(2)} JOD) is insufficient ` +
+    `for total amount (${total.toFixed(2)} JOD). Switched to CliQ.`;
+    }
+    }
+    }
+
+    // ── selectPayMethod ──────────────────────────────────────
+    function selectPayMethod(method) {
+    document.getElementById("payChoiceInput").value = method;
+    const cardWallet = document.getElementById("cardWallet");
+    const cardCliq   = document.getElementById("cardCliq");
+
+    if (method === "wallet") {
+    cardWallet.style.border     = "2px solid #2d7a2d";
+    cardWallet.style.background = "#e6ffed";
+    cardCliq.style.border       = "2px solid #c5d0e8";
+    cardCliq.style.background   = "#f5f8ff";
+    document.getElementById("walletSection").style.display = "block";
+    document.getElementById("cliqSection").style.display   = "none";
+    } else {
+    cardCliq.style.border       = "2px solid #1a3a8f";
+    cardCliq.style.background   = "#e8f0fe";
+    cardWallet.style.border     = "2px solid #c5d0e8";
+    cardWallet.style.background = "#f0fff0";
+    document.getElementById("cliqSection").style.display   = "block";
+    document.getElementById("walletSection").style.display = "none";
+    }
+    }
+
+    // ── submitPayment ────────────────────────────────────────
+    function submitPayment() {
+    const method = document.getElementById("payChoiceInput").value;
+
+    if (method === "cliq") {
+    const phone = document.getElementById("cliqPhone")?.value.trim();
+    if (!phone || phone.length < 9) {
+    alert("Please enter a valid CliQ phone number.");
+    return;
+    }
+    let inp = document.getElementById("cliqPhoneHidden");
+    if (!inp) {
+    inp = document.createElement("input");
+    inp.type = "hidden";
+    inp.name = "cliqPhone";
+    inp.id   = "cliqPhoneHidden";
+    document.getElementById("lostForm").appendChild(inp);
+    }
+    inp.value = phone;
+    }
+
+    document.getElementById("lostForm").submit();
+    }
+
+    // ── عند تغيير المكافأة (مرة واحدة فقط) ──────────────────
+    document.querySelectorAll('input[name="rewardAmount"]')
+    .forEach(r => r.addEventListener('change', () => {
+    updatePaymentBreakdown();
+    autoSelectPayMethod();
+    }));
+
+    // ── Location Cascade ─────────────────────────────────────
+    const _locations = @Html.Raw(ViewBag.LocationsJson ?? "[]");
+
+    function updateDistricts(cityId, areaId) {
+    const city = document.getElementById(cityId)?.value;
+    const sel  = document.getElementById(areaId);
+    if (!sel) return;
+        sel.innerHTML = '<option value="">— Select area —</option>';
+    const gov = _locations.find(g => g.name === city);
+    if (!gov) return;
+    gov.districts.forEach(d => {
+    const opt       = document.createElement('option');
+    opt.value       = d;
+    opt.textContent = d;
+    sel.appendChild(opt);
+    });
+    }
     </script>
 </body>
 </html>

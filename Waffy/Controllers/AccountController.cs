@@ -16,6 +16,7 @@ namespace Waffy.Controllers
         private readonly IClinicRepository _clinicRepository;
         private readonly IClinicDocumentRepository _clinicDocumentRepository;
         private readonly IPetRepository _petRepository;
+        private readonly ILocationRepository _locationRepo;
 
         public AccountController(
             IUserRepository userRepository,
@@ -23,7 +24,8 @@ namespace Waffy.Controllers
             IStoreDocumentRepository documentRepository,
             IClinicRepository clinicRepository,
             IClinicDocumentRepository clinicDocumentRepository,
-            IPetRepository petRepository)
+            IPetRepository petRepository,
+            ILocationRepository locationRepo)
         {
             _userRepository = userRepository;
             _storeRepository = storeRepository;
@@ -31,6 +33,7 @@ namespace Waffy.Controllers
             _clinicRepository = clinicRepository;
             _clinicDocumentRepository = clinicDocumentRepository;
             _petRepository = petRepository;
+            _locationRepo = locationRepo;
         }
 
         // ══════════════════════════════════════════════════════════
@@ -209,13 +212,18 @@ namespace Waffy.Controllers
         // ══════════════════════════════════════════════════════════
 
         [HttpGet]
-        public IActionResult user_signup() => View();
+        public async Task<IActionResult> user_signup()
+        {
+            await LoadLocationsToViewBag();
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> user_signup(
             string fullName, string email, string password,
-            string confirmPassword, string phone, string city)
+            string confirmPassword, string phone, 
+            string city, string? area)
         {
             if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(email) ||
                 string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(confirmPassword) ||
@@ -250,10 +258,12 @@ namespace Waffy.Controllers
                 PasswordHash = password,
                 Phone = phone,
                 City = city,
+                Area = area,
                 IsPhoneVerified = false,
                 IsEmailVerified = false,
                 AccountStatus = "Active"
             };
+
 
             await _userRepository.AddNormalUserAsync(user);
             TempData["SignupSuccess"] = "Account created successfully. Please log in.";
@@ -592,6 +602,27 @@ namespace Waffy.Controllers
 
         [HttpGet]
         public IActionResult Clinic_success() => View();
+
+
+
+        private async Task LoadLocationsToViewBag()
+        {
+            var governorates = (await _locationRepo.GetAllGovernoratesAsync()).ToList();
+            var districts = (await _locationRepo.GetAllDistrictsAsync()).ToList();
+
+            ViewBag.LocationsJson = System.Text.Json.JsonSerializer.Serialize(
+                governorates.Select(g => new
+                {
+                    id = g.Id,
+                    name = g.NameEn,
+                    districts = districts
+                        .Where(d => d.GovernorateId == g.Id)
+                        .OrderBy(d => d.NameEn)
+                        .Select(d => d.NameEn)
+                        .ToList()
+                })
+            );
+        }
 
         // ══════════════════════════════════════════════════════════
         // FORGOT PASSWORD / OTP / RESET
