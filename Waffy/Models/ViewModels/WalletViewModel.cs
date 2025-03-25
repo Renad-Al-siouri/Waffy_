@@ -15,6 +15,7 @@ namespace Waffy.Models.ViewModels
 
         // ✅ للـ Rewards — مكافآت الـ finder
         public List<FoundPetClaim> FinderRewards { get; set; } = new();
+        public List<RewardLogDto> SurpriseRewards { get; set; } = new();
 
         // ✅ للـ Timeline
         public List<TimelineEvent> TimelineEvents { get; set; } = new();

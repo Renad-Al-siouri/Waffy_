@@ -23,6 +23,9 @@ namespace Waffy.Controllers
         private readonly IOrderRepository _orderRepo;
         private readonly IOrderItemRepository _orderItemRepo;
         private readonly IPostFlagRepository _flagRepo;
+        private readonly ILocationRepository _locationRepo;
+        private readonly IRewardLogRepository _rewardLogRepo;
+        private readonly INotificationRepository _notifRepo;
 
         public ProfileController(
             IUserRepository userRepository,
@@ -39,7 +42,10 @@ namespace Waffy.Controllers
             IWalletRepository walletRepo,
             IOrderRepository orderRepo,
             IOrderItemRepository orderItemRepo,
-            IPostFlagRepository flagRepo)
+            IPostFlagRepository flagRepo,
+                IRewardLogRepository rewardLogRepo,
+                INotificationRepository notifRepo,
+            ILocationRepository locationRepo)
         {
             _userRepository = userRepository;
             _petRepo = petRepo;
@@ -56,6 +62,9 @@ namespace Waffy.Controllers
             _orderRepo = orderRepo;
             _orderItemRepo = orderItemRepo;
             _flagRepo = flagRepo;
+            _locationRepo = locationRepo;
+            _rewardLogRepo = rewardLogRepo;
+            _notifRepo = notifRepo;
         }
 
         // ── helper: تجلب المستخدم من Session أو ترجع null ──
@@ -137,6 +146,7 @@ namespace Waffy.Controllers
         {
             var user = await GetCurrentUserAsync();
             if (user == null) return RedirectToAction("Login", "Account");
+            await LoadLocationsToViewBag();
             return View(user);
         }
 
@@ -260,10 +270,11 @@ namespace Waffy.Controllers
             var user = await GetCurrentUserAsync();
             if (user == null) return RedirectToAction("Login", "Account");
 
-            // ✅ مكافآت الـ finder من FoundPetClaim
             var finderRewards = (await _claimRepo.GetByUserIdAsync(user.UserId))
                 .Where(c => c.Status == "Confirmed" && c.RewardAmount > 0)
                 .ToList();
+
+            var surpriseRewards = (await _rewardLogRepo.GetByUserIdAsync(user.UserId)).ToList();
 
             var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
             var transactions = (await _walletRepo.GetTransactionsByUserIdAsync(user.UserId)).ToList();
@@ -273,7 +284,8 @@ namespace Waffy.Controllers
                 User = user,
                 Wallet = wallet,
                 Transactions = transactions,
-                FinderRewards = finderRewards
+                FinderRewards = finderRewards,
+                SurpriseRewards = surpriseRewards    // ← جديد
             });
         }
         public IActionResult Appointments() => View();
@@ -448,22 +460,246 @@ namespace Waffy.Controllers
             });
         }
 
-        // ════════════════════════════════════════════════════
-        // CLOSE LOST REPORT — POST
-        // ════════════════════════════════════════════════════
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CloseLostReport(int reportId)
+        public async Task<IActionResult> RenewReport(int reportId, string duration)
         {
             var user = await GetCurrentUserAsync();
             if (user == null) return RedirectToAction("Login", "Account");
 
-            await _lostPetRepo.CloseReportAsync(reportId);
+            var canRenew = await _lostPetRepo.CanRenewAsync(reportId);
+            if (!canRenew)
+            {
+                TempData["LostSuccess"] = "⚠️ This report cannot be renewed.";
+                return RedirectToAction("Lost_Reports");
+            }
 
+            int days = duration switch
+            {
+                "7 Days" => 7,
+                "30 Days" => 30,
+                _ => 14
+            };
+
+            await _lostPetRepo.RenewReportAsync(
+                reportId,
+                DateTime.UtcNow.AddDays(days));
+
+            TempData["LostSuccess"] =
+                $"✅ Report renewed for {days} days — FREE! If your pet is still not found, " +
+                "you'll get a 50% discount on your next post.";
+            return RedirectToAction("Lost_Reports");
+        }
+
+        // ════════════════════════════════════════════════════
+        // CLOSE LOST REPORT — POST
+        // ════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> CloseLostReport(int reportId)
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+            var report = await _lostPetRepo.GetByIdAsync(reportId);
+
+            // ✅ إرجاع المكافأة إذا كانت محجوزة
+            if (report?.RewardReserved == true
+    && report.RewardAmount > 0
+    && report.RewardStatus != "Released")
+            {
+                var wallet = await _walletRepo.GetByUserIdAsync(user!.UserId);
+                if (wallet != null)
+                {
+                    await _walletRepo.AddBalanceAsync(
+                        wallet.IdWallet, report.RewardAmount.Value);
+
+                    await _walletRepo.AddTransactionAsync(new WalletTransaction
+                    {
+                        IdWallet = wallet.IdWallet,
+                        TransactionCode = $"RET-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                        Type = "RewardReturn",
+                        Amount = report.RewardAmount.Value, // ← موجب (إرجاع)
+                        PaymentMethod = "Wallet",
+                        Status = "Completed",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
+
+            await _lostPetRepo.CloseReportAsync(reportId);
             TempData["LostSuccess"] = "Report marked as found.";
             return RedirectToAction("Lost_Reports");
         }
 
+
+        // ════════════════════════════════════════════════════
+        // CONFIRM FOUND PET — POST
+        // المالك يؤكد أن هذا الشخص وجد حيوانه
+        // ════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmFoundPet(int claimId)
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            // ── جلب الـ Claim والـ Report ──────────────────────
+            var claim = await _claimRepo.GetByIdAsync(claimId);
+            if (claim == null)
+            {
+                TempData["LostSuccess"] = "⚠️ Claim not found.";
+                return RedirectToAction("Lost_Reports");
+            }
+
+            var report = await _lostPetRepo.GetByIdAsync(claim.IdLostReport);
+            if (report == null || report.IdUser != user.UserId)
+            {
+                TempData["LostSuccess"] = "⚠️ You are not authorized.";
+                return RedirectToAction("Lost_Reports");
+            }
+
+            // ── تأكيد الـ Claim ─────────────────────────────
+            await _claimRepo.ConfirmClaimAsync(claimId);
+
+            // ── نقل المكافأة إذا كانت محجوزة ────────────────
+            if (report.RewardAmount > 0
+                && report.RewardReserved
+                && report.RewardStatus != "Released"
+                && claim.IdUser.HasValue)
+            {
+                var finderId = claim.IdUser.Value;
+
+                // جلب أو إنشاء محفظة الـ Finder
+                var finderWallet = await _walletRepo.GetByUserIdAsync(finderId);
+                if (finderWallet == null)
+                {
+                    await _walletRepo.CreateWalletAsync(finderId);
+                    finderWallet = await _walletRepo.GetByUserIdAsync(finderId);
+                }
+
+                if (finderWallet != null)
+                {
+                    // ✅ أضف المكافأة لمحفظة الـ Finder
+                    await _walletRepo.AddBalanceAsync(
+                        finderWallet.IdWallet, report.RewardAmount.Value);
+
+                    await _walletRepo.AddTransactionAsync(new WalletTransaction
+                    {
+                        IdWallet = finderWallet.IdWallet,
+                        TransactionCode = $"RWD-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                        Type = "FinderReward",
+                        Amount = report.RewardAmount.Value,
+                        PaymentMethod = "Waffy Reward",
+                        Status = "Completed",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                // ✅ سجّل في محفظة المالك كـ "تم تحرير المكافأة"
+                var ownerWallet = await _walletRepo.GetByUserIdAsync(user.UserId);
+                if (ownerWallet != null)
+                {
+                    await _walletRepo.AddTransactionAsync(new WalletTransaction
+                    {
+                        IdWallet = ownerWallet.IdWallet,
+                        TransactionCode = $"REL-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                        Type = "RewardRelease",
+                        Amount = -report.RewardAmount.Value,   // سالب = خرج من المحفظة
+                        PaymentMethod = "Waffy Reward",
+                        Status = "Completed",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                // ✅ حدّث RewardStatus = "Released"
+                await _lostPetRepo.UpdateRewardStatusAsync(report.IdLostReport, "Released");
+
+                // ✅ إشعار للـ Finder بالمكافأة
+                var finder = await _userRepository.GetByIdAsync(finderId);
+                await _notifRepo.AddAsync(new Notification
+                {
+                    IdUser = finderId,
+                    Type = "RewardTransferred",
+                    Title = "🎁 Reward received!",
+                    Message = $"Congratulations! {report.RewardAmount:F2} JOD has been added to your wallet " +
+                              $"as a reward for finding {report.PetName}. Thank you! 🐾",
+                    IsRead = false,
+                    RelatedEntityType = "LostPetReport",
+                    RelatedEntityId = report.IdLostReport,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            // ── أغلق البوست ──────────────────────────────────
+            await _lostPetRepo.CloseReportAsync(report.IdLostReport);
+
+            // ── إشعار للمالك نفسه ─────────────────────────────
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = user.UserId,
+                Type = "PetFound",
+                Title = "✅ Pet confirmed as found!",
+                Message = $"You confirmed that {report.PetName} has been found. " +
+                          (report.RewardAmount > 0
+                              ? $"The reward of {report.RewardAmount:F2} JOD has been transferred to the finder."
+                              : "Thank you for using Waffy! 🐾"),
+                IsRead = false,
+                RelatedEntityType = "LostPetReport",
+                RelatedEntityId = report.IdLostReport,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["LostSuccess"] = report.RewardAmount > 0
+                ? $"✅ Finder confirmed! {report.RewardAmount:F2} JOD reward transferred."
+                : "✅ Finder confirmed! Report closed.";
+
+            return RedirectToAction("Lost_Reports");
+        }
+
+        // ════════════════════════════════════════════════════
+        // REJECT CLAIM — POST
+        // المالك يرفض هذا الشخص (ليس هو من وجد الحيوان)
+        // ════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectClaim(int claimId)
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var claim = await _claimRepo.GetByIdAsync(claimId);
+            if (claim == null)
+            {
+                TempData["LostSuccess"] = "⚠️ Claim not found.";
+                return RedirectToAction("Lost_Reports");
+            }
+
+            var report = await _lostPetRepo.GetByIdAsync(claim.IdLostReport);
+            if (report == null || report.IdUser != user.UserId)
+            {
+                TempData["LostSuccess"] = "⚠️ You are not authorized.";
+                return RedirectToAction("Lost_Reports");
+            }
+
+            await _claimRepo.RejectClaimAsync(claimId);
+
+            // ✅ أبلغ الـ Finder بالرفض
+            if (claim.IdUser.HasValue)
+            {
+                await _notifRepo.AddAsync(new Notification
+                {
+                    IdUser = claim.IdUser.Value,
+                    Type = "ClaimRejected",
+                    Title = "❌ Claim not confirmed",
+                    Message = $"The owner of {report.PetName} could not verify your claim. " +
+                              "If you believe this is an error, please contact support.",
+                    IsRead = false,
+                    RelatedEntityType = "LostPetReport",
+                    RelatedEntityId = report.IdLostReport,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            TempData["LostSuccess"] = "❌ Claim rejected and finder notified.";
+            return RedirectToAction("Lost_Reports");
+        }
         // ════════════════════════════════════════════════════
         // TIMELINE — GET
         // ════════════════════════════════════════════════════
@@ -530,10 +766,13 @@ namespace Waffy.Controllers
                 });
             }
 
-            // ✅ 5 — Wallet Transactions
             // ✅ 5 — Wallet Transactions (بدون Donation لأنها ستظهر بشكل منفصل)
             var transactions = await _walletRepo.GetTransactionsByUserIdAsync(user.UserId);
-            foreach (var t in transactions.Where(t => t.Type != "Donation"))
+            foreach (var t in transactions.Where(t =>
+     t.Type != "Donation" &&
+     t.Type != "LostPetFee" &&
+     t.Type != "RewardHold" &&
+     t.Type != "RewardReturn"))
             {
                 events.Add(new TimelineEvent
                 {
@@ -544,6 +783,44 @@ namespace Waffy.Controllers
                     Description = t.PaymentMethod ?? t.Type ?? "",
                     Date = t.CreatedAt ?? DateTime.UtcNow,
                     Color = t.Amount > 0 ? "#2d7a2d" : "#b91c1c"
+                });
+            }
+
+            // ✅ Lost Pet Fee Transactions
+            foreach (var t in transactions.Where(t => t.Type == "LostPetFee"))
+            {
+                events.Add(new TimelineEvent
+                {
+                    Icon = "💳",
+                    Title = "Lost Pet Posting Fee",
+                    Description = $"{Math.Abs(t.Amount):F2} JOD deducted · Wallet",
+                    Date = t.CreatedAt ?? DateTime.UtcNow,
+                    Color = "#b91c1c"
+                });
+            }
+
+            // ✅ Reward Hold Transactions
+            foreach (var t in transactions.Where(t => t.Type == "RewardHold"))
+            {
+                events.Add(new TimelineEvent
+                {
+                    Icon = "🔒",
+                    Title = "Reward Reserved",
+                    Description = $"{Math.Abs(t.Amount):F2} JOD held in wallet for finder reward",
+                    Date = t.CreatedAt ?? DateTime.UtcNow,
+                    Color = "#9b6000"
+                });
+            }
+
+            foreach (var t in transactions.Where(t => t.Type == "RewardReturn"))
+            {
+                events.Add(new TimelineEvent
+                {
+                    Icon = "↩️",
+                    Title = "Reward Returned",
+                    Description = $"+{t.Amount:F2} JOD returned — pet not found via finder",
+                    Date = t.CreatedAt ?? DateTime.UtcNow,
+                    Color = "#2d7a2d"
                 });
             }
 
@@ -601,6 +878,30 @@ namespace Waffy.Controllers
                     Date = comp.CreatedAt ?? DateTime.UtcNow,
                     Color = comp.Priority == "High" || comp.Priority == "Urgent"
                                     ? "#dc2626" : "#b36d2c"
+                });
+            }
+
+            // ✅ Surprise Rewards من الأدمن
+            var surpriseRewards = (await _rewardLogRepo.GetByUserIdAsync(user.UserId)).ToList();
+            foreach (var sr in surpriseRewards)
+            {
+                var icon = sr.RewardType switch
+                {
+                    "WalletCredit" => "💰",
+                    "StoreDiscount" => "🏪",
+                    "ClinicSession" => "🏥",
+                    "DeliveryVoucher" => "🚚",
+                    _ => "🎁"
+                };
+                events.Add(new TimelineEvent
+                {
+                    Icon = icon,
+                    Title = $"Surprise Reward — {sr.RewardTitle}",
+                    Description = $"{sr.GiftTypeLabel} · {sr.ReasonCategory}" +
+                                  (sr.ReasonNote != null ? $" · {sr.ReasonNote}" : "") +
+                                  $" | {sr.RewardDisplay}",
+                    Date = sr.CreatedAt,
+                    Color = "#9b6000"
                 });
             }
 
@@ -789,6 +1090,27 @@ namespace Waffy.Controllers
 
             TempData["SecuritySuccess"] = "Password updated successfully!";
             return RedirectToAction("Security");
+        }
+
+
+        // ── helper: Load cities and areas for dropdowns ──
+        private async Task LoadLocationsToViewBag()
+        {
+            var governorates = (await _locationRepo.GetAllGovernoratesAsync()).ToList();
+            var districts = (await _locationRepo.GetAllDistrictsAsync()).ToList();
+
+            ViewBag.LocationsJson = System.Text.Json.JsonSerializer.Serialize(
+                governorates.Select(g => new
+                {
+                    id = g.Id,
+                    name = g.NameEn,
+                    districts = districts
+                        .Where(d => d.GovernorateId == g.Id)
+                        .OrderBy(d => d.NameEn)
+                        .Select(d => d.NameEn)
+                        .ToList()
+                })
+            );
         }
     }
 }
