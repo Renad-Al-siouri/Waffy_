@@ -1,0 +1,737 @@
+﻿@{
+    Layout = null;
+    var report = ViewBag.Report as Waffy.Models.LostPetReport;
+    var cityUsers = ViewBag.CityUsers as List<Waffy.Models.ViewModels.UserCityDto>
+                    ?? new List<Waffy.Models.ViewModels.UserCityDto>();
+    var userCount = (int)(ViewBag.UserCount ?? 0);
+
+    var sameArea = cityUsers.Where(u => u.ProximityRank == 1).ToList();
+    var sameCity = cityUsers.Where(u => u.ProximityRank == 2).ToList();
+
+    var icon = report?.AnimalType?.ToLower() == "cat" ? "🐈" :
+               report?.AnimalType?.ToLower() == "dog" ? "🐕" :
+               report?.AnimalType?.ToLower() == "bird" ? "🐦" : "🐾";
+
+    var defaultMsg = $"🚨 Lost pet alert: {report?.PetName} ({report?.AnimalType}" +
+                     (string.IsNullOrEmpty(report?.Breed) ? "" : $" · {report?.Breed}") +
+                     $") was lost near {report?.Area}, {report?.City}." +
+                     $" Report code: {report?.ReportCode}." +
+                     $" Contact owner: {ViewBag.OwnerPhone}";
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waffy — Send Emergency Alert</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+    <style>
+        /* ── User Checkbox Cards ── */
+        .user-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 10px;
+            max-height: 380px;
+            overflow-y: auto;
+            padding: 4px 2px;
+        }
+
+        .user-card {
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: border-color .15s, background .15s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #fff;
+        }
+
+            .user-card:hover {
+                border-color: var(--brand);
+                background: var(--brand-xlight);
+            }
+
+            .user-card input[type=checkbox] {
+                width: 17px;
+                height: 17px;
+                accent-color: var(--brand);
+                flex-shrink: 0;
+                cursor: pointer;
+            }
+
+            .user-card.selected {
+                border-color: var(--brand);
+                background: var(--brand-xlight);
+            }
+
+        .user-av {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--brand-ghost);
+            border: 1px solid var(--brand-light);
+            display: grid;
+            place-items: center;
+            font-size: .82rem;
+            font-weight: 900;
+            color: var(--brand-dark);
+            flex-shrink: 0;
+        }
+
+        .user-info-name {
+            font-size: .82rem;
+            font-weight: 800;
+            color: var(--brand-dark);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-info-sub {
+            font-size: .72rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-top: 1px;
+        }
+
+        /* ── Counter Badge ── */
+        #selectedCount {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--brand);
+            color: #fff;
+            border-radius: 20px;
+            padding: 1px 10px;
+            font-size: .78rem;
+            font-weight: 900;
+            min-width: 28px;
+            transition: background .2s;
+        }
+
+            #selectedCount.zero {
+                background: var(--border);
+                color: var(--text-muted);
+            }
+
+        /* ── Priority Radio Buttons ── */
+        .priority-wrap {
+            display: flex;
+            gap: 10px;
+        }
+
+        .priority-opt {
+            flex: 1;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            cursor: pointer;
+            text-align: center;
+            transition: border-color .15s, background .15s;
+        }
+
+            .priority-opt:hover {
+                border-color: var(--brand);
+            }
+
+            .priority-opt input[type=radio] {
+                display: none;
+            }
+
+            .priority-opt.checked {
+                border-color: var(--brand);
+                background: var(--brand-xlight);
+            }
+
+            .priority-opt .p-emoji {
+                font-size: 1.3rem;
+            }
+
+            .priority-opt .p-label {
+                font-size: .78rem;
+                font-weight: 900;
+                color: var(--brand-dark);
+                margin-top: 4px;
+            }
+
+            .priority-opt .p-sub {
+                font-size: .68rem;
+                color: var(--text-muted);
+                margin-top: 2px;
+            }
+
+        /* ── Scrollbar styling ── */
+        .user-grid::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .user-grid::-webkit-scrollbar-track {
+            background: var(--surface-2);
+            border-radius: 10px;
+        }
+
+        .user-grid::-webkit-scrollbar-thumb {
+            background: var(--brand-light);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
+    <div class="wa-shell" id="waShell">
+
+        <!-- ══ Sidebar ══ -->
+        <aside class="wa-sb" id="waSb">
+            <div class="sb-logo">
+                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
+                <div class="sb-wordmark">
+                    <div class="sb-wm-name">Waffy</div>
+                    <div class="sb-wm-tag">Super Admin</div>
+                </div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
+                        <span class="sb-lbl">Dashboard</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Management</div>
+                    <div>
+                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
+                            <span class="sb-lbl">Users</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-users">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Users">
+                                    <span class="sb-dot"></span><span class="sb-child-lbl">All Users</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
+                            <span class="sb-lbl">Clinics</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-clinics">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_C"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
+                            <span class="sb-lbl">Shop</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-shop">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_S"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_S"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                            <span class="sb-lbl">Adoption</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-adopt">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Listings"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Adopted_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_A"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* ── Reports — open + active ── *@
+                    <div>
+                        <button class="sb-row open active" id="t-rep" onclick="acc('g-rep','t-rep')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
+                            <span class="sb-lbl">Reports</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub open" id="g-rep" style="height:auto;">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Lost_Pets">
+                                    <span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span>
+                                </a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Donations"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="System_Complaints"><span class="sb-dot"></span><span class="sb-child-lbl">System Complaints</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Laws_Regulations"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Tools</div>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Map">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span>
+                        <span class="sb-lbl">Map</span>
+                    </a>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
+                        <span class="sb-lbl">Notifications</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row">
+                    <div class="sb-av">@ViewBag.AdminInitials</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">@ViewBag.AdminName</div>
+                        <div class="sb-user-role">Super Admin</div>
+                    </div>
+                </div>
+                <form method="post" asp-controller="Account" asp-action="Logout" style="margin:0">
+                    @Html.AntiForgeryToken()
+                    <button class="sb-logout" type="submit">
+                        <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                        <span class="sb-logout-lbl">Sign Out</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- ══ Topnav ══ -->
+        <header class="wa-tn" id="waTn">
+            <button class="tn-toggle" onclick="toggleSb()" type="button">
+                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24">
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+            </button>
+            <nav class="tn-bread">
+                <a asp-controller="SuperAdmin" asp-action="Lost_Pets"
+                   style="color:var(--text-muted);text-decoration:none;">Lost Pets</a>
+                <span>/</span>
+                <b>Emergency Alert</b>
+            </nav>
+            <div class="tn-center">
+                <div class="tn-center-main">🚨 Emergency Alert</div>
+                <div class="tn-center-sub">@report?.City — @report?.PetName</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-profile">
+                    <div class="tn-av">@ViewBag.AdminInitials</div>
+                    <div>
+                        <div class="tn-pname">@ViewBag.AdminName</div>
+                        <div class="tn-prole">Super Admin</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ══ Main ══ -->
+        <main class="wa-main" id="waMain">
+
+            @if (ViewBag.Error != null)
+            {
+                <div style="margin:16px 24px 0;background:var(--danger-soft);
+                            border:1px solid rgba(220,38,38,.2);color:var(--danger);
+                            padding:12px 16px;border-radius:var(--r);font-weight:800;font-size:.86rem;">
+                    @ViewBag.Error
+                </div>
+            }
+
+            <section class="page-hero">
+                <div>
+                    <h1>🚨 Send Emergency Alert</h1>
+                    <p>Select recipients and customize the message for @report?.City</p>
+                </div>
+                <a asp-action="Lost_Pets" asp-controller="SuperAdmin"
+                   class="btn btn-outline btn-sm">← Back</a>
+            </section>
+
+            <div class="page-body">
+                <form method="post"
+                      asp-action="SendAlert"
+                      asp-controller="SuperAdmin"
+                      id="alertForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="reportId" value="@report?.IdLostReport" />
+
+                    <div style="display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start;">
+
+                        <!-- ══ Left Column ══ -->
+                        <div style="display:flex;flex-direction:column;gap:16px;">
+
+                            <!-- Report Summary Card -->
+                            <div class="inner-card" style="margin:0;">
+                                <div class="inner-card-head">
+                                    <div class="inner-card-title">📋 Report Being Alerted</div>
+                                </div>
+                                <div class="inner-card-body" style="padding:16px;">
+                                    <div style="display:flex;align-items:center;gap:14px;">
+                                        <div style="width:52px;height:52px;border-radius:14px;
+                                                background:var(--brand-xlight);
+                                                border:1px solid var(--brand-light);
+                                                display:grid;place-items:center;
+                                                font-size:1.6rem;flex-shrink:0;">
+                                            @icon
+                                        </div>
+                                        <div style="flex:1;">
+                                            <div style="font-family:'Fredoka',sans-serif;font-size:1.1rem;
+                                                    font-weight:700;color:var(--brand-dark);">
+                                                @report?.PetName
+                                                @if (!string.IsNullOrEmpty(report?.Breed))
+                                                {
+                                                    <span style="font-size:.82rem;color:var(--text-muted);
+                                                                 font-family:'Nunito',sans-serif;">
+                                                        · @report.Breed
+                                                    </span>
+                                                }
+                                            </div>
+                                            <div style="font-size:.8rem;color:var(--text-muted);font-weight:700;margin-top:2px;">
+                                                📍 @report?.Area, @report?.City
+                                                &nbsp;·&nbsp;
+                                                📞 @ViewBag.OwnerPhone
+                                            </div>
+                                        </div>
+                                        <div style="font-family:monospace;font-size:.74rem;
+                                                background:var(--surface-2);
+                                                border:1px solid var(--border);
+                                                border-radius:8px;padding:4px 10px;
+                                                color:var(--brand-dark);font-weight:900;">
+                                            @report?.ReportCode
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+
+                           <!-- Recipients -->
+<div class="inner-card" style="margin:0;">
+    <div class="inner-card-head">
+        <div class="inner-card-title">
+            👥 Recipients in @report?.City
+            <span id="selectedCount" class="zero" style="margin-left:8px;">0</span>
+            <span style="font-size:.72rem;color:var(--text-muted);
+                     font-weight:600;margin-left:4px;">
+                / @userCount users
+            </span>
+        </div>
+        <div style="display:flex;gap:8px;">
+            <button type="button" class="btn btn-outline btn-xs"
+                    onclick="toggleAll(true)">☑ All</button>
+            <button type="button" class="btn btn-outline btn-xs"
+                    onclick="toggleGroup(1)">📍 Area Only</button>
+            <button type="button" class="btn btn-outline btn-xs"
+                    onclick="toggleAll(false)">☐ Clear</button>
+        </div>
+    </div>
+    <div class="inner-card-body" style="padding:14px;">
+
+        @if (!cityUsers.Any())
+        {
+            <div style="text-align:center;padding:24px;
+                        color:var(--text-muted);font-weight:700;">
+                No active users found in @report?.City
+            </div>
+        }
+        else
+        {
+            @* ── نفس المنطقة ── *@
+                                        @* ── Same Area / Same City ── *@
+            @if (sameArea.Any())
+            {
+                <div style="font-size:.72rem;font-weight:900;color:var(--brand-dark);
+                            text-transform:uppercase;letter-spacing:.5px;
+                            margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+                    <span style="background:#dc2626;color:#fff;
+                                 border-radius:6px;padding:2px 10px;font-size:.7rem;">
+                        📍 Same Area — @report?.Area
+                    </span>
+                    <span style="color:var(--text-muted);font-weight:600;">
+                        @sameArea.Count users
+                    </span>
+                </div>
+                <div class="user-grid" style="margin-bottom:16px;">
+                    @foreach (var u in sameArea)
+                    {
+                        var initials = u.FullName.Split(' ')
+                            .Where(p => p.Length > 0).Take(2)
+                            .Select(p => p[0].ToString().ToUpper())
+                            .Aggregate("", (a, b) => a + b);
+                        <label class="user-card" id="card_@u.UserId" data-rank="1"
+                               style="border-color:rgba(220,38,38,.25);
+                                      background:#fff5f5;">
+                            <input type="checkbox" name="selectedUserIds"
+                                   value="@u.UserId"
+                                   onchange="onCheck(this,'@u.UserId')" />
+                            <div class="user-av"
+                                 style="background:#fee2e2;
+                                        border-color:rgba(220,38,38,.2);
+                                        color:#dc2626;">
+                                @initials
+                            </div>
+                            <div style="min-width:0;">
+                                <div class="user-info-name">@u.FullName</div>
+                                <div class="user-info-sub">📍 @(u.Area ?? u.City)</div>
+                            </div>
+                        </label>
+                    }
+                </div>
+            }
+
+            @* ── نفس المدينة ── *@
+            @if (sameCity.Any())
+            {
+                <div style="font-size:.72rem;font-weight:900;color:var(--brand-dark);
+                            text-transform:uppercase;letter-spacing:.5px;
+                            margin-bottom:8px;display:flex;align-items:center;gap:6px;">
+                    <span style="background:var(--surface-2);color:var(--text-muted);
+                                 border:1px solid var(--border);
+                                 border-radius:6px;padding:2px 10px;font-size:.7rem;">
+                        🏙 Same City — @report?.City
+                    </span>
+                    <span style="color:var(--text-muted);font-weight:600;">
+                        @sameCity.Count users
+                    </span>
+                </div>
+                <div class="user-grid">
+                    @foreach (var u in sameCity)
+                    {
+                        var initials = u.FullName.Split(' ')
+                            .Where(p => p.Length > 0).Take(2)
+                            .Select(p => p[0].ToString().ToUpper())
+                            .Aggregate("", (a, b) => a + b);
+                        <label class="user-card" id="card_@u.UserId" data-rank="2">
+                            <input type="checkbox" name="selectedUserIds"
+                                   value="@u.UserId"
+                                   onchange="onCheck(this,'@u.UserId')" />
+                            <div class="user-av">@initials</div>
+                            <div style="min-width:0;">
+                                <div class="user-info-name">@u.FullName</div>
+                                <div class="user-info-sub">📍 @(u.Area ?? u.City)</div>
+                            </div>
+                        </label>
+                    }
+                </div>
+            }
+        }
+
+    </div>
+</div>
+
+                        </div>
+
+                        <!-- ══ Right Column ══ -->
+                        <div style="display:flex;flex-direction:column;gap:16px;">
+
+                            <!-- Priority -->
+                            <div class="inner-card" style="margin:0;">
+                                <div class="inner-card-head">
+                                    <div class="inner-card-title">⚡ Alert Priority</div>
+                                </div>
+                                <div class="inner-card-body" style="padding:14px;">
+                                    <div class="priority-wrap">
+                                        <label class="priority-opt checked" id="opt-normal"
+                                               onclick="setPriority('Normal')">
+                                            <input type="radio" name="priority"
+                                                   value="Normal" checked />
+                                            <div class="p-emoji">🔔</div>
+                                            <div class="p-label">Normal</div>
+                                            <div class="p-sub">Standard notification</div>
+                                        </label>
+                                        <label class="priority-opt" id="opt-urgent"
+                                               onclick="setPriority('Urgent')">
+                                            <input type="radio" name="priority" value="Urgent" />
+                                            <div class="p-emoji">🚨</div>
+                                            <div class="p-label">Urgent</div>
+                                            <div class="p-sub">High-priority alert</div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Message -->
+                            <div class="inner-card" style="margin:0;">
+                                <div class="inner-card-head">
+                                    <div class="inner-card-title">📝 Alert Message</div>
+                                    <button type="button" class="btn btn-outline btn-xs"
+                                            onclick="resetMessage()">
+                                        ↺ Reset
+                                    </button>
+                                </div>
+                                <div class="inner-card-body" style="padding:14px;">
+                                    <textarea name="message"
+                                              id="alertMessage"
+                                              style="width:100%;min-height:140px;resize:vertical;
+                                                 border:1.5px solid var(--border);
+                                                 border-radius:10px;padding:10px 12px;
+                                                 font-size:.83rem;font-family:'Nunito',sans-serif;
+                                                 font-weight:700;outline:none;
+                                                 line-height:1.6;color:var(--brand-dark);"
+                                              required>@defaultMsg</textarea>
+                                    <div style="font-size:.72rem;color:var(--text-muted);
+                                            margin-top:6px;font-weight:600;">
+                                        Tip: Include pet name, area, and owner contact for best results.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Summary -->
+                            <div style="background:var(--surface-2);border:1px solid var(--border);
+                                    border-radius:var(--r);padding:14px;">
+                                <div style="font-size:.78rem;font-weight:900;
+                                        color:var(--brand-dark);margin-bottom:10px;">
+                                    📊 Summary
+                                </div>
+                                <div style="display:flex;flex-direction:column;gap:7px;">
+                                    <div style="display:flex;justify-content:space-between;
+                                            font-size:.8rem;font-weight:700;">
+                                        <span style="color:var(--text-muted);">City</span>
+                                        <strong>@report?.City</strong>
+                                    </div>
+                                    <div style="display:flex;justify-content:space-between;
+                                            font-size:.8rem;font-weight:700;">
+                                        <span style="color:var(--text-muted);">Total users available</span>
+                                        <strong>@userCount</strong>
+                                    </div>
+                                    <div style="display:flex;justify-content:space-between;
+        font-size:.8rem;font-weight:700;">
+                                        <span style="color:#dc2626;">📍 Same area</span>
+                                        <strong style="color:#dc2626;">@((int)(ViewBag.SameAreaCount ?? 0))</strong>
+                                    </div>
+                                    <div style="display:flex;justify-content:space-between;
+        font-size:.8rem;font-weight:700;">
+                                        <span style="color:var(--text-muted);">🏙 Same city only</span>
+                                        <strong>@((int)(ViewBag.SameCityCount ?? 0))</strong>
+                                    </div>
+                                    <div style="display:flex;justify-content:space-between;
+                                            font-size:.8rem;font-weight:700;">
+                                        <span style="color:var(--text-muted);">Selected</span>
+                                        <strong id="summaryCount" style="color:var(--brand-dark);">0</strong>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Submit -->
+                            <button type="submit"
+                                    id="sendBtn"
+                                    class="btn btn-danger btn-sm"
+                                    style="width:100%;padding:14px;font-size:.92rem;
+                                       border-radius:14px;"
+                                    disabled
+                                    onclick="return confirmSend()">
+                                🚨 Send Alert
+                                (<span id="btnCount">0</span> recipients)
+                            </button>
+
+                            <a asp-action="Lost_Pets" asp-controller="SuperAdmin"
+                               class="btn btn-outline btn-sm"
+                               style="width:100%;text-align:center;">
+                                Cancel
+                            </a>
+
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </main>
+    </div>
+
+    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
+    <script>
+        const defaultMessage = @Html.Raw(
+                        System.Text.Json.JsonSerializer.Serialize(defaultMsg));
+
+        let selected = 0;
+        const total  = @userCount;
+
+        // ── checkbox change ──────────────────────────────────
+        function onCheck(cb, userId) {
+            const card = document.getElementById('card_' + userId);
+            if (cb.checked) { selected++; card.classList.add('selected'); }
+            else            { selected--; card.classList.remove('selected'); }
+            updateUI();
+        }
+
+        // ── select all / clear ───────────────────────────────
+              
+        const areaTotal = @((int)(ViewBag.SameAreaCount ?? 0));
+
+        // ── select all / clear ───────────────────────────────
+        function toggleAll(state) {
+            document.querySelectorAll('.user-card input[type=checkbox]')
+                .forEach(cb => {
+                    cb.checked = state;
+                    const card = document.getElementById('card_' + cb.value);
+                    if (state) card.classList.add('selected');
+                    else       card.classList.remove('selected');
+                });
+            selected = state ? total : 0;
+            updateUI();
+        }
+
+        // ── area only ────────────────────────────────────────
+        function toggleGroup(rank) {
+            let count = 0;
+            document.querySelectorAll('.user-card').forEach(card => {
+                const cb     = card.querySelector('input[type=checkbox]');
+                const isRank = card.dataset.rank == rank;
+                cb.checked   = isRank;
+                card.classList.toggle('selected', isRank);
+                if (isRank) count++;
+            });
+            selected = count;
+            updateUI();
+        }
+
+        // ── priority toggle ──────────────────────────────────
+        function setPriority(val) {
+            document.getElementById('opt-normal').classList.toggle('checked', val === 'Normal');
+            document.getElementById('opt-urgent').classList.toggle('checked', val === 'Urgent');
+            document.querySelector(`input[value="${val}"]`).checked = true;
+        }
+
+        // ── reset message ────────────────────────────────────
+        function resetMessage() {
+            document.getElementById('alertMessage').value = defaultMessage;
+        }
+
+        // ── update UI ────────────────────────────────────────
+        function updateUI() {
+            const el = document.getElementById('selectedCount');
+            el.textContent = selected;
+            el.classList.toggle('zero', selected === 0);
+
+            document.getElementById('summaryCount').textContent = selected;
+            document.getElementById('btnCount').textContent     = selected;
+
+            const btn = document.getElementById('sendBtn');
+            btn.disabled = selected === 0;
+            btn.style.opacity = selected === 0 ? '.5' : '1';
+        }
+
+        // ── confirm before send ──────────────────────────────
+        function confirmSend() {
+            return confirm(`Send alert to ${selected} user(s) in @report?.City?`);
+        }
+    </script>
+</body>
+</html>
