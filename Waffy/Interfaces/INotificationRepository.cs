@@ -9,5 +9,8 @@ namespace Waffy.Interfaces
         Task AddAsync(Notification notification);
         Task MarkAsReadAsync(int notificationId);
         Task MarkAllAsReadAsync(int userId);
+
+        Task AddBulkAsync(IEnumerable<int> userIds, string type,
+    string title, string message, string? relatedEntityType, int? relatedEntityId);
     }
 }

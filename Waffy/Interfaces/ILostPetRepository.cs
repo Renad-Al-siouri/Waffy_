@@ -1,4 +1,5 @@
 ﻿using Waffy.Models;
+using Waffy.Models.ViewModels;
 
 namespace Waffy.Interfaces
 {
@@ -30,5 +31,20 @@ namespace Waffy.Interfaces
         Task<int> GetActiveTotalCountAsync();
 
         Task CloseReportAsync(int reportId);
+
+        Task<IEnumerable<LostPetAdminDto>> GetAllAsync();
+        Task<int> GetUserPostCountAsync(int userId);
+        Task ExpireOldReportsAsync();
+        Task<IEnumerable<LostPetReport>> GetExpiringSoonAsync();
+        Task MarkExpiryNotifiedAsync(int reportId);
+        Task UpdatePaymentStatusAsync(int reportId, bool isPaid, int paymentId);
+        Task UpdateAmountPaidAsync(int reportId, decimal amount);
+        Task<int> GetFreePostsCountAsync(int userId);
+        Task<int> GetFreeNoRewardPostsCountAsync(int userId);
+        Task RenewReportAsync(int reportId, DateTime newExpiryDate);
+        Task<bool> CanRenewAsync(int reportId);
+        Task<bool> HasRenewedExpiredPostAsync(int userId);
+        Task MarkRewardReservedAsync(int reportId);
+        Task UpdateRewardStatusAsync(int reportId, string status);
     }
 }

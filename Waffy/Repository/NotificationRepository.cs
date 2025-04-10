@@ -67,5 +67,39 @@ namespace Waffy.Repository
             using var conn = new SqlConnection(_connectionString);
             await conn.ExecuteAsync(sql, new { UserId = userId });
         }
+        public async Task AddBulkAsync(
+    IEnumerable<int> userIds, string type,
+    string title, string message,
+    string? relatedEntityType, int? relatedEntityId)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            await conn.OpenAsync();
+
+            var maxId = await conn.ExecuteScalarAsync<int>(
+                "SELECT ISNULL(MAX(Id), 0) FROM Notification");
+
+            int counter = 1;
+            foreach (var uid in userIds)
+            {
+                await conn.ExecuteAsync(@"
+            INSERT INTO Notification
+                (Id, IdUser, Type, Title, Message, IsRead,
+                 RelatedEntityType, RelatedEntityId, CreatedAt)
+            VALUES
+                (@Id, @IdUser, @Type, @Title, @Message, 0,
+                 @RelatedEntityType, @RelatedEntityId, GETUTCDATE())",
+                    new
+                    {
+                        Id = maxId + counter++,
+                        IdUser = uid,
+                        Type = type,
+                        Title = title,
+                        Message = message,
+                        RelatedEntityType = relatedEntityType,
+                        RelatedEntityId = relatedEntityId
+                    });
+            }
+        }
+
     }
 }
