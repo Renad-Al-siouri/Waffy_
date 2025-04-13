@@ -1,4 +1,5 @@
 ﻿using Waffy.Models;
+using Waffy.Models.ViewModels;
 
 namespace Waffy.Interfaces
 {
@@ -10,5 +11,10 @@ namespace Waffy.Interfaces
         Task<FoundPetClaim?> GetByIdAsync(int claimId);
         Task ConfirmAsync(int claimId);
         Task RejectAsync(int claimId);
+        Task<IEnumerable<FoundClaimAdminDto>> GetAllWithDetailsAsync();
+        Task<IEnumerable<TopFinderDto>> GetTopFindersAsync();
+        Task CancelRewardAsync(int claimId);
+        Task ConfirmClaimAsync(int claimId);
+        Task RejectClaimAsync(int claimId);
     }
 }
