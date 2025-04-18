@@ -197,29 +197,44 @@
                     <div class="s-card-head"><span class="s-card-title">&#128205; Location</span></div>
                     <div class="s-card-body">
                         <div class="form-grid">
-                            <div class="field">
-                                <label>City</label>
-                                <select name="city">
-                                    @{
-                                        var cities = new[] { "Amman", "Zarqa", "Irbid", "Aqaba", "Salt", "Madaba", "Jerash", "Ajloun", "Mafraq", "Karak" };
-                                        foreach (var c in cities)
+
+<div class="field">
+    <label>Governorate</label>
+    <select name="city" id="contactCity"
+            onchange="updateDistricts('contactCity','contactArea')">
+        <option value="">— Select governorate —</option>
+        @{
+            var locs = System.Text.Json.JsonSerializer
+                .Deserialize<List<System.Text.Json.JsonElement>>(
+                    ViewBag.LocationsJson as string ?? "[]");
+        }
+                                    @foreach (var g in locs ?? new())
+                                    {
+                                        var gName = g.GetProperty("name").GetString();
+                                        @if (gName == Model.City)
                                         {
-                                            if (c == Model.City)
-                                            {
-                                                <option selected>@c</option>
-                                            }
-                                            else
-                                            {
-                                                <option>@c</option>
-                                            }
+                                            <option value="@gName" selected="selected">@gName</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@gName">@gName</option>
                                         }
                                     }
-                                </select>
-                            </div>
-                            <div class="field">
-                                <label>Area</label>
-                                <input name="area" value="@Model.Area" placeholder="Neighborhood...">
-                            </div>
+    </select>
+</div>
+<div class="field">
+    <label>Area / District</label>
+    <select name="area" id="contactArea">
+        <option value="">— Select governorate first —</option>
+        @* نملأها بـ JS — لكن نعرض القيمة الحالية إذا موجودة *@
+        @if (!string.IsNullOrEmpty(Model.Area))
+        {
+            <option value="@Model.Area" selected>@Model.Area</option>
+        }
+    </select>
+</div>
+
+
                             <div class="field full">
                                 <label>Full Address</label>
                                 <input name="addressDetail" value="@Model.AddressDetail" placeholder="Street, Building...">
@@ -310,6 +325,51 @@
             if (mt && mb) mt.addEventListener("click", () => mb.classList.toggle("open"));
         });
         function showToast(msg, duration = 3000) { const t = document.getElementById("toast"); if (!t) return; t.textContent = msg; t.classList.add("show"); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove("show"), duration); }
-    </script>
+
+
+                const _locations = @Html.Raw(ViewBag.LocationsJson ?? "[]");
+
+        function updateDistricts(cityId, areaId) {
+            const city = document.getElementById(cityId)?.value;
+            const sel  = document.getElementById(areaId);
+            if (!sel) return;
+
+            sel.innerHTML = '<option value="">— Select area —</option>';
+
+            const gov = _locations.find(g => g.name === city);
+            if (!gov) return;
+
+            gov.districts.forEach(d => {
+                const opt       = document.createElement('option');
+                opt.value       = d;
+                opt.textContent = d;
+                sel.appendChild(opt);
+            });
+        }
+
+        // ── عند تحميل الصفحة: إذا كان للمستخدم city محفوظة
+        // نملأ الـ area dropdown ونحدد القيمة الحالية تلقائياً
+        document.addEventListener('DOMContentLoaded', function () {
+            const currentCity = '@Html.Raw(Model.City ?? "")';
+            const currentArea = '@Html.Raw(Model.Area ?? "")';
+
+            if (!currentCity) return;
+
+            const gov = _locations.find(g => g.name === currentCity);
+            if (!gov) return;
+
+            const sel = document.getElementById('contactArea');
+            sel.innerHTML = '<option value="">— Select area —</option>';
+
+            gov.districts.forEach(d => {
+                const opt       = document.createElement('option');
+                opt.value       = d;
+                opt.textContent = d;
+                if (d === currentArea) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        });
+        
+        </script>
 </body>
 </html>

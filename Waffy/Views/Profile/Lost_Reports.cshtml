@@ -59,13 +59,12 @@
                                 <a href="/Profile/Edit_Profile" class="profile-btn">
                                     <img src="~/Images/user.jpg" alt="Profile">
                                 </a>
-                                <a href="/Account/Logout" class="nav-link login-btn">Log out</a>
+                                <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
                             <div class="mobile-nav-wrap">
                                 <button class="menu-btn" id="menuBtn" type="button">&#9776;</button>
                                 <div class="nav-links" id="navLinks">
                                     <div class="mobile-menu-logo"><img src="~/Images/logo.png" alt="Waffy"></div>
-
                                     <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                                     <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
@@ -84,7 +83,6 @@
                                             <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                                     <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
@@ -106,11 +104,11 @@
                         <input type="file" id="avatarFile" accept="image/*" hidden onchange="changeAvatar(this)">
                     </div>
                     <div class="sb-profile-text">
-                        <div class="sb-name" id="sidebarName">@Model.User.FullName</div>
-                        <div class="sb-email" id="sidebarEmail">@Model.User.Email</div>
+                        <div class="sb-name">@Model.User.FullName</div>
+                        <div class="sb-email">@Model.User.Email</div>
                         <div class="sb-wallet-mini">
                             <span>&#128155; Wallet</span>
-                            <strong id="sidebarBalance">100.50 JOD</strong>
+                            <strong>JOD</strong>
                         </div>
                     </div>
                 </div>
@@ -119,277 +117,358 @@
                 <div class="sb-nav-label">Account</div>
                 <a href="/Profile/Edit_Profile" class="sb-item"><i class="fa-solid fa-user"></i> Edit Profile</a>
                 <a href="/Profile/Contact_Info" class="sb-item"><i class="fa-solid fa-address-card"></i> Contact Info</a>
-                <a href="/Profile/My_Wallet" class="sb-item"><i class="fa-solid fa-wallet"></i> My Wallet<span class="sb-badge">32.50</span></a>
-                <a href="/Profile/Rewards" class="sb-item"><i class="fa-solid fa-gift"></i> Rewards<span class="sb-badge">3</span></a>
-
+                <a href="/Profile/My_Wallet" class="sb-item"><i class="fa-solid fa-wallet"></i> My Wallet</a>
+                <a href="/Profile/Rewards" class="sb-item"><i class="fa-solid fa-gift"></i> Rewards</a>
                 <div class="sb-nav-label">Pets &amp; Services</div>
-                <a href="/Profile/Appointments" class="sb-item"><i class="fa-solid fa-calendar-check"></i> Appointments<span class="sb-badge">2</span></a>
-                <a href="/Profile/Orders" class="sb-item"><i class="fa-solid fa-box"></i> Orders<span class="sb-badge">3</span></a>
-                <a href="/Profile/Lost_Reports" class="sb-item active"><i class="fa-solid fa-magnifying-glass"></i> Lost Reports<span class="sb-badge red">1</span></a>
-                <a href="/Profile/Adoption_Ads" class="sb-item"><i class="fa-solid fa-paw"></i> Adoption Ads<span class="sb-badge">1</span></a>
+                <a href="/Profile/Appointments" class="sb-item"><i class="fa-solid fa-calendar-check"></i> Appointments</a>
+                <a href="/Profile/Orders" class="sb-item"><i class="fa-solid fa-box"></i> Orders</a>
+                <a href="/Profile/Lost_Reports" class="sb-item active"><i class="fa-solid fa-magnifying-glass"></i> Lost Reports<span class="sb-badge red">@Model.Reports.Count</span></a>
+                <a href="/Profile/Adoption_Ads" class="sb-item"><i class="fa-solid fa-paw"></i> Adoption Ads</a>
                 <a asp-controller="Profile" asp-action="My_Donations" class="sb-item"><i class="fa-solid fa-heart"></i> My Donations</a>
                 <a asp-controller="Profile" asp-action="My_Danger_Reports" class="sb-item">
-    <i class="fa-solid fa-triangle-exclamation"></i> Danger Reports
-</a>
+                    <i class="fa-solid fa-triangle-exclamation"></i> Danger Reports
+                </a>
                 <div class="sb-nav-label">History</div>
                 <a href="/Profile/Timeline" class="sb-item"><i class="fa-solid fa-clock-rotate-left"></i> Timeline</a>
                 <a href="/Profile/Complaints" class="sb-item"><i class="fa-solid fa-triangle-exclamation"></i> Complaints</a>
-
                 <div class="sb-nav-label">Settings</div>
                 <a href="/Profile/Security" class="sb-item"><i class="fa-solid fa-lock"></i> Security</a>
             </nav>
         </aside>
 
         <main class="main-content">
+
             <div class="page-header">
-    <div>
-        <h2>Lost Reports 🔍</h2>
-        <p>Active and resolved lost pet ads</p>
-    </div>
-    <a asp-controller="Account" asp-action="Profile"
-       class="btn btn-primary">
-        + New Report
-    </a>
-</div>
-
-@* رسائل *@
-@if (TempData["LostSuccess"] != null)
-{
-    <div style="background:#f0fff0;border:1px solid #b2dfb2;color:#2d7a2d;
-                padding:.8rem 1rem;border-radius:10px;margin-bottom:1rem;font-weight:700">
-        ✅ @TempData["LostSuccess"]
-    </div>
-}
-
-<div class="s-card">
-    <div class="s-card-head">
-        <span class="s-card-title">My Lost Pet Ads</span>
-    </div>
-    <div class="s-card-body">
-
-
-        @if (!Model.Reports.Any())
-        {
-            <p style="color:#6b7c5a;text-align:center;padding:2rem">
-                No lost reports yet.
-            </p>
-        }
-
-        @foreach (var r in Model.Reports)
-        {
-
-            var isActive = r.Status == "Active";
-            var claims = Model.Finders.ContainsKey(r.IdLostReport)
-                         ? Model.Finders[r.IdLostReport]
-                         : new List<Waffy.Models.FoundPetClaim>();
-            var pendingClaims = claims.Where(c => c.Status == "Pending").ToList();
-
-            <div class="report-row" style="opacity:@(isActive ? "1" : ".65")">
-
-                <div class="report-icon lost"
-                     style="opacity:@(isActive ? "1" : ".5")">🔍</div>
-
-                <div class="report-info">
-                    <h4>@r.PetName — @r.Breed</h4>
-                    <p>
-                        Lost near @r.Area, @r.City ·
-                        @r.CreatedAt.ToString("MMM dd, yyyy") ·
-                        @(r.RewardAmount > 0 ? $"Reward: {r.RewardAmount} JOD" : "No reward")
-                    </p>
-                    <small>Code: @r.ReportCode</small>
+                <div>
+                    <h2>Lost Reports 🔍</h2>
+                    <p>Active and resolved lost pet ads</p>
                 </div>
-
-                <div style="text-align:right;display:flex;flex-direction:column;
-                            gap:6px;align-items:flex-end">
-
-                    @if (isActive)
-                    {
-                        <span class="badge badge-orange">Active</span>
-
-                        <form method="post"
-                              asp-controller="Profile"
-                              asp-action="CloseLostReport"
-                              onsubmit="return confirm('Mark as found and close?')">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="reportId" value="@r.IdLostReport" />
-                            <button type="submit" class="btn btn-danger btn-sm">
-                                Close Ad
-                            </button>
-                        </form>
-                    }
-                    else
-                    {
-                        <span class="badge badge-green">Found ✓</span>
-                    }
-                </div>
+                <a asp-controller="Pet" asp-action="Petrecord" class="btn btn-primary">
+                    + New Report
+                </a>
             </div>
 
-            <hr style="border:none;border-top:1px solid #e8f0d8;margin:0.5rem 0">
-
- 
-
-@if (pendingClaims.Any())
-{
-    <div style="background:#f8fdf2;border:1px solid #d4e8bc;
-                border-radius:12px;padding:1rem;margin:.5rem 0 1rem">
-        <h4 style="font-family:'Fredoka',sans-serif;color:#59652a;margin-bottom:.8rem">
-            🔍 @pendingClaims.Count Person@(pendingClaims.Count > 1 ? "s" : "") Found Your Pet
-        </h4>
-
-        @foreach (var claim in pendingClaims.OrderByDescending(c => c.IsVerified))
-        {
-            <div style="background:#fff;
-                        border:1px solid @(claim.IsVerified ? "#b2dfb2" : "#ffe082");
-                        border-radius:10px;padding:.8rem 1rem;margin-bottom:.6rem">
-                <div style="display:flex;justify-content:space-between;
-                            align-items:start;flex-wrap:wrap;gap:.5rem">
-                    <div>
-                        @if (claim.IsVerified)
-                        {
-                            <span style="background:#e8f5e9;color:#2d7a2d;padding:.2rem .6rem;
-                                          border-radius:999px;font-size:.75rem;font-weight:800">
-                                ✅ Verified — Answered correctly
-                            </span>
-                        }
-                        else
-                        {
-                            <span style="background:#fff8e1;color:#e65100;padding:.2rem .6rem;
-                                          border-radius:999px;font-size:.75rem;font-weight:800">
-                                ⚠️ Unverified — Wrong answer
-                            </span>
-                        }
-                        <br />
-                        <strong>@claim.FinderName</strong>
-                        <span style="color:#7b6c58;font-size:.82rem;margin-left:.4rem">
-                            📞 @claim.FinderPhone
-                        </span>
-                        <br />
-                        <small style="color:#9e8e77">
-                            @claim.CreatedAt?.ToString("MMM dd, yyyy · hh:mm tt")
-                        </small>
-
-                        @if (!claim.IsVerified)
-                        {
-                            <div style="background:#fff8e1;border:1px solid #ffe082;
-                                         border-radius:8px;padding:.4rem .6rem;
-                                         margin-top:.4rem;font-size:.78rem;color:#92400e">
-                                ⚠️ Wrong secret answer. Confirm only if you spoke with this person.
-                            </div>
-                        }
-
-                        @if (r.RewardAmount > 0)
-                        {
-                            <div style="margin-top:.4rem;font-size:.8rem;color:#2d7a2d;font-weight:700">
-                                🎁 Confirming will send @r.RewardAmount JOD to finder's wallet
-                            </div>
-                        }
-                    </div>
-
-                    <div style="display:flex;gap:.5rem;flex-direction:column">
-                        <form method="post"
-                              asp-controller="FoundPetClaim"
-                              asp-action="ConfirmFound"
-                              onsubmit="return confirm('Confirm this person found your pet?')">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="claimId" value="@claim.IdClaim" />
-                            <button type="submit" class="btn btn-primary btn-sm">
-                                ✅ Confirm Found
-                            </button>
-                        </form>
-
-                        <form method="post"
-                              asp-controller="FoundPetClaim"
-                              asp-action="RejectClaim"
-                              onsubmit="return confirm('Reject this claim?')">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="claimId" value="@claim.IdClaim" />
-                            <button type="submit" class="btn btn-danger btn-sm">
-                                ❌ Reject
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        }
-    </div>
-}
-        }
-
-
-
-
-    </div>
-</div>
-
-@* ══════════════════════════════════════ *@
-@* قسم 2 — My Finder Claims (تتبع العملية) *@
-@* ══════════════════════════════════════ *@
-@if (Model.MyClaims.Any())
-{
-    <div class="s-card" style="margin-top:1.5rem">
-        <div class="s-card-head">
-            <span class="s-card-title">🔍 My Found Pet Claims</span>
-            <span class="badge badge-blue">@Model.MyClaims.Count Claim@(Model.MyClaims.Count > 1 ? "s" : "")</span>
-        </div>
-        <div class="s-card-body">
-            @foreach (var claim in Model.MyClaims)
+            @* ── Flash Messages ── *@
+            @if (TempData["LostSuccess"] != null)
             {
-                <div class="report-row" style="flex-wrap:wrap;gap:1rem">
-                    <div class="report-icon lost">🐾</div>
+                <div style="background:#f0fff0;border:1px solid #b2dfb2;color:#2d7a2d;
+                            padding:.8rem 1rem;border-radius:10px;margin-bottom:1rem;font-weight:700">
+                    ✅ @TempData["LostSuccess"]
+                </div>
+            }
 
-                    <div class="report-info" style="flex:1;min-width:200px">
-                        <h4>@(claim.PetName ?? "Unknown Pet")</h4>
-                        <p>Submitted @claim.CreatedAt?.ToString("MMM dd, yyyy")</p>
+            @* ══════════════════════════════════════ *@
+            @* قسم 1 — My Lost Pet Reports           *@
+            @* ══════════════════════════════════════ *@
+            <div class="s-card">
+                <div class="s-card-head">
+                    <span class="s-card-title">My Lost Pet Ads</span>
+                </div>
+                <div class="s-card-body">
 
-                        @* ✅ badge التحقق *@
-                        @if (claim.IsVerified)
+                    @if (!Model.Reports.Any())
+                    {
+                        <p style="color:#6b7c5a;text-align:center;padding:2rem">
+                            No lost reports yet.
+                        </p>
+                    }
+
+                    @foreach (var r in Model.Reports)
+                    {
+                        var isActive      = r.Status == "Active";
+                        var claims        = Model.Finders.ContainsKey(r.IdLostReport)
+                                            ? Model.Finders[r.IdLostReport]
+                                            : new List<Waffy.Models.FoundPetClaim>();
+                        var pendingClaims = claims.Where(c => c.Status == "Pending").ToList();
+                        var confirmedClaim= claims.FirstOrDefault(c => c.Status == "Confirmed");
+
+                        <div class="report-row" style="opacity:@(isActive ? "1" : ".65")">
+
+                            <div class="report-icon lost" style="opacity:@(isActive ? "1" : ".5")">🔍</div>
+
+                            <div class="report-info">
+                                <h4>@r.PetName — @r.Breed</h4>
+                                <p>
+                                    Lost near @r.Area, @r.City ·
+                                    @r.CreatedAt.ToString("MMM dd, yyyy") ·
+                                    @(r.RewardAmount > 0 ? $"Reward: {r.RewardAmount} JOD" : "No reward")
+                                </p>
+                                <small>Code: @r.ReportCode</small>
+                            </div>
+
+                            <div style="text-align:right;display:flex;flex-direction:column;
+                                        gap:6px;align-items:flex-end">
+
+                                @* ── Active ── *@
+                                @if (isActive)
+                                {
+                                    <span class="badge badge-orange">Active</span>
+
+                                    @* Close only if no confirmed finder *@
+                                    @if (confirmedClaim == null)
+                                    {
+                                        <form method="post"
+                                              asp-controller="Profile"
+                                              asp-action="CloseLostReport"
+                                              onsubmit="return confirmClose(@(r.RewardAmount ?? 0))">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="reportId" value="@r.IdLostReport" />
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                ✅ Mark as Found
+                                            </button>
+                                        </form>
+                                    }
+                                }
+                                @* ── Expired — can renew ── *@
+                                else if (r.Status == "Expired" && !r.HasBeenRenewed)
+                                {
+                                    <span class="badge badge-orange">Expired</span>
+
+                                    <details style="margin-top:6px;">
+                                        <summary style="font-size:.78rem;color:#1a56db;
+                                                        cursor:pointer;font-weight:700;list-style:none;">
+                                            🔄 Renew for Free
+                                        </summary>
+                                        <form method="post"
+                                              asp-controller="Profile"
+                                              asp-action="RenewReport"
+                                              style="margin-top:8px;padding:10px;
+                                                     background:#f0f9ff;border-radius:10px;
+                                                     border:1px solid #bfdbfe;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="reportId" value="@r.IdLostReport" />
+                                            <div style="font-size:.78rem;color:#444;
+                                                        margin-bottom:8px;font-weight:700;">
+                                                Choose renewal duration:
+                                            </div>
+                                            <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+                                                <label style="cursor:pointer;font-size:.78rem;">
+                                                    <input type="radio" name="duration" value="7 Days" /> 7 Days
+                                                </label>
+                                                <label style="cursor:pointer;font-size:.78rem;">
+                                                    <input type="radio" name="duration" value="14 Days" checked /> 14 Days
+                                                </label>
+                                                <label style="cursor:pointer;font-size:.78rem;">
+                                                    <input type="radio" name="duration" value="30 Days" /> 30 Days
+                                                </label>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary btn-sm"
+                                                    onclick="return confirm('Renew this report for free?')">
+                                                🔄 Renew — FREE
+                                            </button>
+                                        </form>
+                                    </details>
+                                }
+                                @* ── Expired — already renewed ── *@
+                                else if (r.Status == "Expired" && r.HasBeenRenewed)
+                                {
+                                    <span class="badge badge-orange">Expired</span>
+                                    <span style="font-size:.74rem;color:#6b7280;font-weight:700;
+                                                 margin-top:4px;display:block;">
+                                        ✓ Free renewal used
+                                    </span>
+                                }
+                                @* ── Found / Closed ── *@
+                                else
+                                {
+                                    <span class="badge badge-green">Found ✓</span>
+                                }
+
+                            </div>
+                        </div>
+
+                        <hr style="border:none;border-top:1px solid #e8f0d8;margin:0.5rem 0">
+
+                        @* ── Confirmed Finder ── *@
+                        @if (confirmedClaim != null)
                         {
-                            <span style="background:#e8f5e9;color:#2d7a2d;padding:.2rem .6rem;
-                                          border-radius:999px;font-size:.75rem;font-weight:800">
-                                ✅ Verified Answer
-                            </span>
+                            <div style="background:#e8f5e9;border:1px solid rgba(46,125,50,.2);
+                                        border-radius:12px;padding:1rem;margin:.5rem 0 1rem">
+                                <div style="display:flex;align-items:center;gap:10px;">
+                                    <span style="font-size:1.2rem;">🏅</span>
+                                    <div>
+                                        <div style="font-weight:900;color:#2d7a2d;font-size:.9rem;">
+                                            ✅ Confirmed Finder: @confirmedClaim.FinderName
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(confirmedClaim.FinderPhone))
+                                        {
+                                            <div style="font-size:.78rem;color:#555;font-weight:700;">
+                                                📞 @confirmedClaim.FinderPhone
+                                            </div>
+                                        }
+                                        @if (r.RewardAmount > 0 && r.RewardStatus == "Released")
+                                        {
+                                            <div style="font-size:.78rem;color:#2d7a2d;font-weight:900;margin-top:4px;">
+                                                💰 @r.RewardAmount?.ToString("F2") JOD reward transferred ✅
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
                         }
-                        else
+
+                        @* ── Pending Claims ── *@
+                        @if (pendingClaims.Any())
                         {
-                            <span style="background:#fff8e1;color:#e65100;padding:.2rem .6rem;
-                                          border-radius:999px;font-size:.75rem;font-weight:800">
-                                ⚠️ Unverified Answer
-                            </span>
+                            <div style="background:#f8fdf2;border:1px solid #d4e8bc;
+                                        border-radius:12px;padding:1rem;margin:.5rem 0 1rem">
+                                <h4 style="font-family:'Fredoka',sans-serif;color:#59652a;margin-bottom:.8rem">
+                                    🔍 @pendingClaims.Count Person@(pendingClaims.Count > 1 ? "s" : "") Found Your Pet
+                                </h4>
+
+                                @foreach (var claim in pendingClaims.OrderByDescending(c => c.IsVerified))
+                                {
+                                    <div style="background:#fff;
+                                                border:1px solid @(claim.IsVerified ? "#b2dfb2" : "#ffe082");
+                                                border-radius:10px;padding:.8rem 1rem;margin-bottom:.6rem">
+                                        <div style="display:flex;justify-content:space-between;
+                                                    align-items:start;flex-wrap:wrap;gap:.5rem">
+                                            <div>
+                                                @if (claim.IsVerified)
+                                                {
+                                                    <span style="background:#e8f5e9;color:#2d7a2d;padding:.2rem .6rem;
+                                                                  border-radius:999px;font-size:.75rem;font-weight:800">
+                                                        ✅ Verified — Answered correctly
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span style="background:#fff8e1;color:#e65100;padding:.2rem .6rem;
+                                                                  border-radius:999px;font-size:.75rem;font-weight:800">
+                                                        ⚠️ Unverified — Wrong answer
+                                                    </span>
+                                                }
+                                                <br />
+                                                <strong>@claim.FinderName</strong>
+                                                <span style="color:#7b6c58;font-size:.82rem;margin-left:.4rem">
+                                                    📞 @claim.FinderPhone
+                                                </span>
+                                                <br />
+                                                <small style="color:#9e8e77">
+                                                    @claim.CreatedAt?.ToString("MMM dd, yyyy · hh:mm tt")
+                                                </small>
+
+                                                @if (!claim.IsVerified)
+                                                {
+                                                    <div style="background:#fff8e1;border:1px solid #ffe082;
+                                                                 border-radius:8px;padding:.4rem .6rem;
+                                                                 margin-top:.4rem;font-size:.78rem;color:#92400e">
+                                                        ⚠️ Wrong secret answer. Confirm only if you spoke with this person.
+                                                    </div>
+                                                }
+
+                                                @if (r.RewardAmount > 0)
+                                                {
+                                                    <div style="margin-top:.4rem;font-size:.8rem;
+                                                                color:#2d7a2d;font-weight:700">
+                                                        💰 Confirming will send @r.RewardAmount JOD to finder's wallet
+                                                    </div>
+                                                }
+                                            </div>
+
+                                            @* ── Confirm / Reject Buttons ── *@
+                                            <div style="display:flex;gap:.5rem;flex-direction:column">
+
+                                                @* ✅ Confirm → ProfileController.ConfirmFoundPet *@
+                                                <form method="post"
+                                                      asp-controller="Profile"
+                                                      asp-action="ConfirmFoundPet"
+                                                      onsubmit="return confirmFinder('@(claim.FinderName?.Replace("'","\\'")??"Anonymous")', @(r.RewardAmount ?? 0))">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="claimId" value="@claim.IdClaim" />
+                                                    <button type="submit" class="btn btn-primary btn-sm">
+                                                        ✅ Confirm Found
+                                                    </button>
+                                                </form>
+
+                                                @* ❌ Reject → ProfileController.RejectClaim *@
+                                                <form method="post"
+                                                      asp-controller="Profile"
+                                                      asp-action="RejectClaim"
+                                                      onsubmit="return confirm('Reject this claim?')">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="claimId" value="@claim.IdClaim" />
+                                                    <button type="submit" class="btn btn-danger btn-sm">
+                                                        ❌ Reject
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
                         }
+                    }
+
+                </div>
+            </div>
+
+            @* ══════════════════════════════════════ *@
+            @* قسم 2 — My Finder Claims              *@
+            @* ══════════════════════════════════════ *@
+            @if (Model.MyClaims.Any())
+            {
+                <div class="s-card" style="margin-top:1.5rem">
+                    <div class="s-card-head">
+                        <span class="s-card-title">🔍 My Found Pet Claims</span>
+                        <span class="badge badge-blue">@Model.MyClaims.Count Claim@(Model.MyClaims.Count > 1 ? "s" : "")</span>
                     </div>
+                    <div class="s-card-body">
+                        @foreach (var claim in Model.MyClaims)
+                        {
+                            <div class="report-row" style="flex-wrap:wrap;gap:1rem">
+                                <div class="report-icon lost">🐾</div>
 
-                    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+                                <div class="report-info" style="flex:1;min-width:200px">
+                                    <h4>@(claim.PetName ?? "Unknown Pet")</h4>
+                                    <p>Submitted @claim.CreatedAt?.ToString("MMM dd, yyyy")</p>
 
-                        @* ✅ badge الحالة *@
-                        @if (claim.Status == "Pending")
-                        {
-                            <span class="badge badge-orange">⏳ Pending</span>
-                            <small style="color:#7b6c58;font-size:.78rem">
-                                Waiting for owner confirmation
-                            </small>
-                        }
-                        else if (claim.Status == "Confirmed")
-                        {
-                            <span class="badge badge-green">🎉 Confirmed!</span>
-                            @if (claim.RewardAmount > 0)
-                            {
-                                <span style="color:#2d7a2d;font-size:.85rem;font-weight:800">
-                                    🎁 +@claim.RewardAmount JOD added to wallet
-                                </span>
-                            }
-                        }
-                        else
-                        {
-                            <span class="badge badge-grey">❌ Rejected</span>
+                                    @if (claim.IsVerified)
+                                    {
+                                        <span style="background:#e8f5e9;color:#2d7a2d;padding:.2rem .6rem;
+                                                      border-radius:999px;font-size:.75rem;font-weight:800">
+                                            ✅ Verified Answer
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span style="background:#fff8e1;color:#e65100;padding:.2rem .6rem;
+                                                      border-radius:999px;font-size:.75rem;font-weight:800">
+                                            ⚠️ Unverified Answer
+                                        </span>
+                                    }
+                                </div>
+
+                                <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+                                    @if (claim.Status == "Pending")
+                                    {
+                                        <span class="badge badge-orange">⏳ Pending</span>
+                                        <small style="color:#7b6c58;font-size:.78rem">
+                                            Waiting for owner confirmation
+                                        </small>
+                                    }
+                                    else if (claim.Status == "Confirmed")
+                                    {
+                                        <span class="badge badge-green">🎉 Confirmed!</span>
+                                        @if (claim.RewardAmount > 0)
+                                        {
+                                            <span style="color:#2d7a2d;font-size:.85rem;font-weight:800">
+                                                🎁 +@claim.RewardAmount JOD added to wallet
+                                            </span>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-grey">❌ Rejected</span>
+                                    }
+                                </div>
+                            </div>
+                            <hr style="border:none;border-top:1px solid #e8f0d8;margin:.5rem 0">
                         }
                     </div>
                 </div>
-                <hr style="border:none;border-top:1px solid #e8f0d8;margin:.5rem 0">
             }
-        </div>
-    </div>
-}
-            
+
         </main>
     </div>
 
@@ -399,7 +478,8 @@
         <a href="/Profile/My_Wallet" class="mb-nav-item"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
         <a href="/Profile/Appointments" class="mb-nav-item"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></a>
         <a href="/Profile/Orders" class="mb-nav-item"><i class="fa-solid fa-box"></i><span>Orders</span></a>
-        <button type="button" class="mb-nav-item mb-more-btn" id="mbMoreBtn" aria-expanded="false" aria-controls="mbMoreDrawer">
+        <button type="button" class="mb-nav-item mb-more-btn" id="mbMoreBtn"
+                aria-expanded="false" aria-controls="mbMoreDrawer">
             <i class="fa-solid fa-grid-2"></i><span>More</span>
         </button>
     </div>
@@ -408,7 +488,8 @@
     <div class="mb-more-drawer" id="mbMoreDrawer" aria-hidden="true">
         <div class="mb-more-head">
             <h3>More Pages</h3>
-            <button type="button" class="mb-more-close" id="mbMoreClose" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" class="mb-more-close" id="mbMoreClose"
+                    aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="mb-more-grid">
             <a href="/Profile/Contact_Info" class="mb-more-link"><i class="fa-solid fa-address-card"></i><span>Contact Info</span></a>
@@ -435,37 +516,82 @@
     </footer>
 
     <script>
+        // ── Confirm Finder — مع تحذير المكافأة ──────────────────
+        function confirmFinder(name, reward) {
+            if (reward > 0) {
+                return confirm(
+                    'Confirm "' + name + '" as the finder?\n\n' +
+                    '⚠️ This will immediately transfer ' + parseFloat(reward).toFixed(2) +
+                    ' JOD to their wallet.\n\nThis cannot be undone.'
+                );
+            }
+            return confirm('Confirm "' + name + '" as the finder of your pet?');
+        }
+
+        // ── Close Without Finder — مع إرجاع المكافأة ────────────
+        function confirmClose(reward) {
+            if (reward > 0) {
+                return confirm(
+                    'Mark as found without a finder?\n\n' +
+                    '↩️ The reserved reward of ' + parseFloat(reward).toFixed(2) +
+                    ' JOD will be returned to your wallet.\n\nContinue?'
+                );
+            }
+            return confirm('Mark this report as found?');
+        }
+
+        // ── Mobile menu ──────────────────────────────────────────
         document.addEventListener('DOMContentLoaded', function () {
-          const moreBtn = document.getElementById('mbMoreBtn'); const moreDrawer = document.getElementById('mbMoreDrawer'); const moreOverlay = document.getElementById('mbMoreOverlay'); const moreClose = document.getElementById('mbMoreClose');
-          if (!moreBtn || !moreDrawer || !moreOverlay) return;
-          function openMoreDrawer() { moreDrawer.classList.add('open'); moreOverlay.classList.add('open'); moreBtn.setAttribute('aria-expanded','true'); moreDrawer.setAttribute('aria-hidden','false'); document.body.classList.add('mb-menu-open'); }
-          function closeMoreDrawer() { moreDrawer.classList.remove('open'); moreOverlay.classList.remove('open'); moreBtn.setAttribute('aria-expanded','false'); moreDrawer.setAttribute('aria-hidden','true'); document.body.classList.remove('mb-menu-open'); }
-          function toggleMoreDrawer() { moreDrawer.classList.contains('open') ? closeMoreDrawer() : openMoreDrawer(); }
-          moreBtn.addEventListener('click', toggleMoreDrawer);
-          if (moreClose) moreClose.addEventListener('click', closeMoreDrawer);
-          moreOverlay.addEventListener('click', closeMoreDrawer);
-          document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMoreDrawer(); });
-          window.addEventListener('resize', () => { if (window.innerWidth >= 768) closeMoreDrawer(); });
+            const moreBtn     = document.getElementById('mbMoreBtn');
+            const moreDrawer  = document.getElementById('mbMoreDrawer');
+            const moreOverlay = document.getElementById('mbMoreOverlay');
+            const moreClose   = document.getElementById('mbMoreClose');
+            if (!moreBtn || !moreDrawer || !moreOverlay) return;
+            function openMoreDrawer()  { moreDrawer.classList.add('open'); moreOverlay.classList.add('open'); moreBtn.setAttribute('aria-expanded','true'); moreDrawer.setAttribute('aria-hidden','false'); document.body.classList.add('mb-menu-open'); }
+            function closeMoreDrawer() { moreDrawer.classList.remove('open'); moreOverlay.classList.remove('open'); moreBtn.setAttribute('aria-expanded','false'); moreDrawer.setAttribute('aria-hidden','true'); document.body.classList.remove('mb-menu-open'); }
+            function toggleMoreDrawer() { moreDrawer.classList.contains('open') ? closeMoreDrawer() : openMoreDrawer(); }
+            moreBtn.addEventListener('click', toggleMoreDrawer);
+            if (moreClose) moreClose.addEventListener('click', closeMoreDrawer);
+            moreOverlay.addEventListener('click', closeMoreDrawer);
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMoreDrawer(); });
+            window.addEventListener('resize', () => { if (window.innerWidth >= 768) closeMoreDrawer(); });
+
+            // Services dropdown
+            const sd = document.getElementById('servicesDropdown');
+            const st = document.getElementById('servicesToggle');
+            if (sd && st) {
+                st.addEventListener('click', e => { e.stopPropagation(); sd.classList.toggle('open'); });
+                document.addEventListener('click', () => sd.classList.remove('open'));
+            }
+            // Mobile menu
+            const menuBtn  = document.getElementById('menuBtn');
+            const navLinks = document.getElementById('navLinks');
+            if (menuBtn && navLinks) {
+                menuBtn.addEventListener('click', e => { e.stopPropagation(); navLinks.classList.toggle('open'); });
+                document.addEventListener('click', e => { if (!navLinks.contains(e.target) && e.target !== menuBtn) navLinks.classList.remove('open'); });
+            }
+            const mt = document.getElementById('mobileServicesToggle');
+            const mb = document.getElementById('mobileServicesBlock');
+            if (mt && mb) mt.addEventListener('click', () => mb.classList.toggle('open'));
         });
-        function showToast(msg, duration = 3000) { const t = document.getElementById("toast"); if (!t) return; t.textContent = msg; t.classList.add("show"); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove("show"), duration); }
-        document.addEventListener("DOMContentLoaded", () => {
-          const menuBtn = document.getElementById("menuBtn"); const navLinks = document.getElementById("navLinks");
-          if (menuBtn && navLinks) { menuBtn.addEventListener("click", e => { e.stopPropagation(); navLinks.classList.toggle("open"); }); document.addEventListener("click", e => { if (!navLinks.contains(e.target) && e.target !== menuBtn) navLinks.classList.remove("open"); }); }
-          const sd = document.getElementById("servicesDropdown"); const st = document.getElementById("servicesToggle");
-          if (sd && st) { st.addEventListener("click", e => { e.stopPropagation(); sd.classList.toggle("open"); }); document.addEventListener("click", () => sd.classList.remove("open")); }
-          const mt = document.getElementById("mobileServicesToggle"); const mb = document.getElementById("mobileServicesBlock");
-          if (mt && mb) mt.addEventListener("click", () => mb.classList.toggle("open"));
-        });
-        function changeAvatar(input) { if (input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { const sb = document.getElementById("sidebarAvatar"); if (sb) sb.innerHTML = `<img src="${e.target.result}" alt="Profile">`; const big = document.getElementById("bigAvatar"); if (big) big.innerHTML = `<img src="${e.target.result}" alt="Profile">`; }; r.readAsDataURL(input.files[0]); } }
-        function closeReport() {
-          if (!confirm("Mark as found and close this ad?")) return;
-          const r = document.getElementById("activeReport");
-          r.querySelector(".badge-orange").className = "badge badge-green";
-          r.querySelector(".badge-green").textContent = "Found ✓";
-          r.querySelector("button").remove();
-          r.querySelector(".report-info").style.opacity = ".6";
-          r.querySelector(".report-icon").style.opacity = ".5";
-          showToast("✓ Report closed");
+
+        function changeAvatar(input) {
+            if (input.files && input.files[0]) {
+                const r = new FileReader();
+                r.onload = e => {
+                    const sb = document.getElementById('sidebarAvatar');
+                    if (sb) sb.innerHTML = `<img src="${e.target.result}" alt="Profile">`;
+                };
+                r.readAsDataURL(input.files[0]);
+            }
+        }
+        function showToast(msg, duration = 3000) {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => t.classList.remove('show'), duration);
         }
     </script>
 </body>
