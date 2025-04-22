@@ -15,19 +15,30 @@ namespace Waffy.Controllers
         private readonly IAdoptionRepository _adoptionRepo;
         private readonly ILostPetRepository _lostPetRepo;
         private readonly IPostFlagRepository _flagRepo;
-
+        private readonly IWalletRepository _walletRepo;
+        private readonly IPendingPaymentRepository _paymentRepo;
+        private readonly INotificationRepository _notifRepo;
+        private readonly ILocationRepository _locationRepo;
         public PetController(
             IPetRepository petRepo,
             IUserRepository userRepo,
             IAdoptionRepository adoptionRepo,
             ILostPetRepository lostPetRepo,
-            IPostFlagRepository flagRepo)
+            IPostFlagRepository flagRepo,
+            IWalletRepository walletRepo,
+            IPendingPaymentRepository paymentRepo,
+            INotificationRepository notifRepo,
+            ILocationRepository locationRepo)
         {
             _petRepo = petRepo;
             _userRepo = userRepo;
             _adoptionRepo = adoptionRepo;
             _lostPetRepo = lostPetRepo;
             _flagRepo = flagRepo;
+            _walletRepo = walletRepo;
+            _paymentRepo = paymentRepo;
+            _notifRepo = notifRepo;
+            _locationRepo = locationRepo;
         }
 
         // ════════════════════════════════════════════════════
@@ -135,7 +146,6 @@ namespace Waffy.Controllers
         // ════════════════════════════════════════════════════
         // PET RECORD
         // ════════════════════════════════════════════════════
-
         [HttpGet]
         public async Task<IActionResult> Petrecord(int petId)
         {
@@ -156,7 +166,40 @@ namespace Waffy.Controllers
                 pet = userPets.First();
             }
 
+            var freePostsUsed = await _lostPetRepo.GetFreePostsCountAsync(userId.Value);
+            var freeNoRewardUsed = await _lostPetRepo.GetFreeNoRewardPostsCountAsync(userId.Value);
+            var wallet = await _walletRepo.GetByUserIdAsync(userId.Value);
+            var walletBalance = wallet?.Balance ?? 0;
+
+            ViewBag.NeedsPayment = freePostsUsed >= 2 || freeNoRewardUsed >= 1;
+            ViewBag.CanPayFromWallet = walletBalance >= 5;
+            ViewBag.WalletBalance = walletBalance;
+            ViewBag.FreePostsUsed = freePostsUsed;
+            ViewBag.FreeNoRewardUsed = freeNoRewardUsed;
+            // ✅ أضيفي هذا:
+            await LoadLocationsToViewBag();
+
             return View(pet);
+        }
+
+        // ✅ أضيفي هذا الـ helper في نهاية الـ class:
+        private async Task LoadLocationsToViewBag()
+        {
+            var governorates = (await _locationRepo.GetAllGovernoratesAsync()).ToList();
+            var districts = (await _locationRepo.GetAllDistrictsAsync()).ToList();
+
+            ViewBag.LocationsJson = System.Text.Json.JsonSerializer.Serialize(
+                governorates.Select(g => new
+                {
+                    id = g.Id,
+                    name = g.NameEn,
+                    districts = districts
+                        .Where(d => d.GovernorateId == g.Id)
+                        .OrderBy(d => d.NameEn)
+                        .Select(d => d.NameEn)
+                        .ToList()
+                })
+            );
         }
 
         // ════════════════════════════════════════════════════
@@ -603,7 +646,6 @@ namespace Waffy.Controllers
         // SUBMIT LOST REPORT
         // ════════════════════════════════════════════════════
 
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequestSizeLimit(52_428_800)]
@@ -612,8 +654,9 @@ namespace Waffy.Controllers
             int petId, string city, string? area, string? lastSeenLocation,
             string? dateLost, string description, string? specialMarks,
             string secretQuestion, string secretAnswer, string contactPhone,
-            decimal rewardAmount, string expiryDays)
-        // ✅ حذفنا List<IFormFile>? photos — نقرأها مباشرة من Request
+            decimal rewardAmount, string expiryDays,
+            string? payChoice = null,
+            string? cliqPhone = null)
         {
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
@@ -632,7 +675,13 @@ namespace Waffy.Controllers
                 TempData["LostError"] = errors.First();
                 return RedirectToAction("Petrecord", new { petId });
             }
+            // ── 0. جلب المحفظة ──────────────────────────────────────
+            var wallet = await _walletRepo.GetByUserIdAsync(userId.Value);
+            decimal walletBal = wallet?.Balance ?? 0;
 
+            // ── 1. حساب رسوم النشر ──────────────────────────────────
+            bool hasSurprise = rewardAmount == 0;
+            bool hasReward = rewardAmount > 0;
             int days = expiryDays switch
             {
                 "7 Days" => 7,
@@ -640,6 +689,100 @@ namespace Waffy.Controllers
                 _ => 14
             };
 
+            var freePostsUsed = await _lostPetRepo.GetFreePostsCountAsync(userId.Value);
+            var freeNoRewardUsed = await _lostPetRepo.GetFreeNoRewardPostsCountAsync(userId.Value);
+            var user = await _userRepo.GetByIdAsync(userId.Value);
+            var hasRenewalDiscount = await _lostPetRepo.HasRenewedExpiredPostAsync(userId.Value)
+                                     && !(user?.HasUsedRenewalDiscount ?? false);
+
+            decimal requiredAmount;
+            bool isFreePost;
+
+            if (freePostsUsed >= 2)
+            {
+                requiredAmount = hasReward ? 5m : 10m;
+                isFreePost = false;
+            }
+            else if (!hasReward && freeNoRewardUsed >= 1)
+            {
+                requiredAmount = 5m;
+                isFreePost = false;
+            }
+            else
+            {
+                requiredAmount = 0m;
+                isFreePost = true;
+            }
+
+            if (requiredAmount > 0 && hasRenewalDiscount)
+            {
+                requiredAmount = Math.Round(requiredAmount * 0.5m, 2);
+                await _userRepo.UpdateRenewalDiscountAsync(userId.Value);
+            }
+
+            bool needsPay = requiredAmount > 0;
+            bool paidByWallet = false;
+            decimal amountPaid = needsPay ? requiredAmount : 0;
+            bool rewardReserved = false;
+
+            // ── 2. إذا كانت المحفظة لا تكفي للإجمالي → تحويل تلقائي لـ CliQ ──
+            decimal totalNeeded = requiredAmount + rewardAmount;
+            if (payChoice == "wallet" && walletBal < totalNeeded)
+            {
+                payChoice = "cliq"; // ✅ تحويل تلقائي — بدون redirect
+            }
+
+            // ── 3. دفع رسوم النشر (Wallet) ───────────────────────────
+            if (needsPay && payChoice == "wallet" && wallet != null)
+            {
+                await _walletRepo.DeductBalanceAsync(wallet.IdWallet, requiredAmount);
+                await _walletRepo.AddTransactionAsync(new WalletTransaction
+                {
+                    IdWallet = wallet.IdWallet,
+                    TransactionCode = $"FEE-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                    Type = "LostPetFee",
+                    Amount = -requiredAmount,
+                    PaymentMethod = "Wallet",
+                    Status = "Completed",
+                    CreatedAt = DateTime.UtcNow
+                });
+                paidByWallet = true;
+                walletBal -= requiredAmount;
+            }
+
+            // ── 4. حجز المكافأة ──────────────────────────────────────
+            if (rewardAmount > 0)
+            {
+                if (payChoice == "wallet" && wallet != null && walletBal >= rewardAmount)
+                {
+                    // ✅ محفظة كافية → خصم فوري
+                    await _walletRepo.DeductBalanceAsync(wallet.IdWallet, rewardAmount);
+                    await _walletRepo.AddTransactionAsync(new WalletTransaction
+                    {
+                        IdWallet = wallet.IdWallet,
+                        TransactionCode = $"HOLD-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                        Type = "RewardHold",
+                        Amount = -rewardAmount,
+                        PaymentMethod = "Wallet",
+                        Status = "Completed",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    rewardReserved = true;
+                }
+                else if (payChoice == "cliq")
+                {
+                    // ✅ CliQ → المكافأة تُحجز عند تأكيد الأدمن
+                    rewardReserved = false; // سيُحدَّث عند التأكيد
+                }
+            }
+            // ✅ الصحيح — يحسب الـ CliQ المعلق (رسوم أو مكافأة)
+            bool pendingCliQ = payChoice == "cliq" &&
+                               (needsPay || (rewardAmount > 0 && !rewardReserved));
+
+            bool isPaid = !pendingCliQ && (!needsPay || paidByWallet);
+            string status = isPaid ? LostPetStatus.Active.ToString() : "PendingPayment";
+
+            // ── 6. إنشاء التقرير ─────────────────────────────────────
             var report = new LostPetReport
             {
                 IdUser = userId.Value,
@@ -659,17 +802,22 @@ namespace Waffy.Controllers
                 SecretAnswerHash = HashAnswer(secretAnswer),
                 RewardAmount = rewardAmount > 0 ? rewardAmount : null,
                 RewardStatus = rewardAmount > 0
-                                   ? RewardStatus.Reserved.ToString()
-                                   : RewardStatus.None.ToString(),
-                Status = LostPetStatus.Active.ToString(),
+                                    ? RewardStatus.Reserved.ToString()
+                                    : RewardStatus.None.ToString(),
+                Status = status,
                 ExpiryDate = DateTime.UtcNow.AddDays(days),
                 ReportCode = GenerateCode("L"),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                IsPaid = isPaid,
+                HasSurpriseReward = hasSurprise,
+                IsFreePost = isFreePost,
+                AmountPaid = amountPaid,       // ✅ wallet و CliQ كلاهما
+                RewardReserved = rewardReserved    // ✅ هل تم حجز المكافأة
             };
 
             var newReportId = await _lostPetRepo.AddAsync(report);
 
-            // ✅ قراءة الصور مباشرة من Request.Form.Files — أكثر موثوقية من model binding
+            // ── 7. صور ───────────────────────────────────────────────
             var photoFiles = Request.Form.Files.GetFiles("photos");
             foreach (var photo in photoFiles.Where(f => f.Length > 0).Take(5))
             {
@@ -678,11 +826,60 @@ namespace Waffy.Controllers
                     await _lostPetRepo.AddImageAsync(newReportId, url);
             }
 
-            TempData["LostSuccess"] = $"Lost ad published! Code: {report.ReportCode}";
+            // ── 8. رسائل النتيجة ─────────────────────────────────────
+            if (pendingCliQ)
+            {
+                // ✅ المبلغ الكلي = رسوم النشر + المكافأة
+                decimal cliqTotal = requiredAmount + rewardAmount;
+
+
+                await _paymentRepo.AddAsync(new PendingPayment
+                {
+                    IdUser = userId.Value,
+                    Amount = cliqTotal,          // ← رسوم + مكافأة
+                    Purpose = "LostPetPost",
+                    RelatedId = newReportId,
+                    PaymentMethod = "Cliq",
+                    AdminNote = $"Fee: {requiredAmount} JOD" +
+                                    (rewardAmount > 0 ? $" | Reward: {rewardAmount} JOD" : "") +
+                                    (cliqPhone != null ? $" | CliQ: {cliqPhone}" : ""),
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                await _notifRepo.AddAsync(new Notification
+                {
+                    IdUser = userId.Value,
+                    Type = "Payment",
+                    Title = "⏳ Payment under review",
+                    Message = $"Your CliQ payment of {cliqTotal:F2} JOD is being verified." +
+              (rewardAmount > 0 ? $" Includes {rewardAmount:F2} JOD reward reservation." : ""),
+                    IsRead = false,
+                    RelatedEntityType = "LostPetReport",
+                    RelatedEntityId = newReportId,
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                TempData["LostSuccess"] =
+      $"✅ Report submitted! CliQ payment ({cliqTotal:F2} JOD) under review." +
+      (rewardAmount > 0 ? $" Includes {rewardAmount:F2} JOD reward." : "");
+            }
+            else if (needsPay && paidByWallet)
+            {
+                TempData["LostSuccess"] =
+                    $"✅ Lost report published! {amountPaid:F2} JOD fee deducted." +
+                    (rewardReserved ? $" {rewardAmount} JOD reward reserved. Code: {report.ReportCode}" : $" Code: {report.ReportCode}");
+            }
+            else
+            {
+                TempData["LostSuccess"] =
+                    $"✅ Lost ad published!" +
+                    (rewardReserved ? $" {rewardAmount} JOD reward reserved from wallet. Code: {report.ReportCode}" : $" Code: {report.ReportCode}");
+            }
+
             return RedirectToAction("Petrecord", new { petId });
         }
 
-        [HttpPost]
+            [HttpPost]
         public async Task<IActionResult> ToggleLike(int postId)
         {
             var userId = GetCurrentUserId();
@@ -734,8 +931,7 @@ namespace Waffy.Controllers
             }
         }
 
-       
-
+        
         private static List<string> ValidatePetInput(string? name, string? species)
         {
             var e = new List<string>();

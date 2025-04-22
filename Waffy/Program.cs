@@ -64,6 +64,10 @@ builder.Services.AddScoped<IStoreImageRepository, StoreImageRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
 builder.Services.AddScoped<IPostFlagRepository, PostFlagRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<ISurpriseRewardRepository, SurpriseRewardRepository>();
+builder.Services.AddScoped<IPendingPaymentRepository, PendingPaymentRepository>();
+builder.Services.AddScoped<ILocationRepository, LocationRepository>();
+builder.Services.AddScoped<IRewardLogRepository, RewardLogRepository>();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

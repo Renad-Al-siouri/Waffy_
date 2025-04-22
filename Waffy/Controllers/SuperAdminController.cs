@@ -25,7 +25,13 @@ namespace Waffy.Controllers
         private readonly IReservationRepository _reservationRepo;
         private readonly IPostFlagRepository _flagRepo;
         private readonly INotificationRepository _notifRepo;
-
+        private readonly ISurpriseRewardRepository _surpriseRepo;
+        private readonly IPendingPaymentRepository _paymentRepo;
+        private readonly ILostPetRepository _lostRepo;
+        private readonly IFoundPetClaimRepository _foundClaimRepo;
+        private readonly IRewardLogRepository _rewardLogRepo;
+        private readonly IWalletRepository _walletRepo;
+        private readonly IClinicRepository _clinicRepo;
         public SuperAdminController(
             IUserRepository userRepo,
             IStoreRepository storeRepo,
@@ -41,7 +47,14 @@ namespace Waffy.Controllers
             IAdoptionRepository adoptionRepo,
             IReservationRepository reservationRepo,
             IPostFlagRepository flagRepo,
-            INotificationRepository notifRepo)
+            INotificationRepository notifRepo,
+            ISurpriseRewardRepository surpriseRepo,
+            ILostPetRepository lostRepo,
+            IFoundPetClaimRepository foundClaimRepo,
+            IRewardLogRepository rewardLogRepo,
+            IWalletRepository walletRepo,
+            IClinicRepository clinicRepo,
+            IPendingPaymentRepository paymentRepo)  
         {
             _userRepo = userRepo;
             _storeRepo = storeRepo;
@@ -58,6 +71,13 @@ namespace Waffy.Controllers
             _reservationRepo = reservationRepo;
             _flagRepo = flagRepo;
             _notifRepo = notifRepo;
+            _surpriseRepo = surpriseRepo;
+            _paymentRepo = paymentRepo;
+            _lostRepo = lostRepo;
+            _foundClaimRepo = foundClaimRepo;
+            _rewardLogRepo = rewardLogRepo;
+            _walletRepo = walletRepo;
+            _clinicRepo = clinicRepo;
         }
 
         // ── Guards ───────────────────────────────────────────────
@@ -1067,6 +1087,731 @@ namespace Waffy.Controllers
             return RedirectToAction("Flagged");
         }
 
+
+        // ════════════════════════════════════════════════════════
+        // Lost_Pets — GET
+        // ════════════════════════════════════════════════════════
+        public async Task<IActionResult> Lost_Pets(string statusFilter = "All")
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            // Auto-expire أولاً
+            await _lostRepo.ExpireOldReportsAsync();
+
+            // إرسال إشعارات الانتهاء القريب
+            var expiringSoon = (await _lostRepo.GetExpiringSoonAsync()).ToList();
+            foreach (var rep in expiringSoon)
+            {
+                await _notifRepo.AddAsync(new Notification
+                {
+                    IdUser = rep.IdUser,
+                    Type = "LostPetExpiry",
+                    Title = "⚠️ Your lost pet report is expiring soon",
+                    Message = $"Your report for {rep.PetName} expires in 3 days. Close it if found, or it will expire automatically.",
+                    IsRead = false,
+                    RelatedEntityType = "LostPetReport",
+                    RelatedEntityId = rep.IdLostReport,
+                    CreatedAt = DateTime.UtcNow
+                });
+                await _lostRepo.MarkExpiryNotifiedAsync(rep.IdLostReport);
+            }
+
+            var allReports = (await _lostRepo.GetAllAsync()).ToList();
+            var pendingPayments = (await _paymentRepo.GetAllPendingAsync()).ToList();
+
+            // ── فلتر "No Reward + Confirmed Finder" ──────────────────
+            IEnumerable<LostPetAdminDto> filtered;
+            if (statusFilter == "NoRewardConfirmed")
+            {
+                // بوستات Found + بدون مكافأة + يوجد Finder مؤكد
+                filtered = allReports.Where(r =>
+                    r.Status == "Found" &&
+                    (r.RewardAmount == null || r.RewardAmount == 0) &&
+                    r.ConfirmedClaimCount > 0);
+            }
+            else if (statusFilter == "All")
+            {
+                filtered = allReports;
+            }
+            else
+            {
+                filtered = allReports.Where(r => r.Status == statusFilter);
+            }
+
+            var vm = new SuperAdminLostViewModel
+            {
+                Reports = filtered.ToList(),
+                TotalCount = allReports.Count,
+                ActiveCount = allReports.Count(r => r.Status == "Active"),
+                FoundCount = allReports.Count(r => r.Status == "Found"),
+                ExpiredCount = allReports.Count(r => r.Status == "Expired"),
+                PendingPaymentCount = allReports.Count(r => !r.IsPaid),
+                NoRewardConfirmedCount = allReports.Count(r =>          
+                    r.Status == "Found" &&
+                    (r.RewardAmount == null || r.RewardAmount == 0) &&
+                    r.ConfirmedClaimCount > 0),
+                StatusFilter = statusFilter
+            };
+
+            var approvedStores = (await _storeRepo.GetAllAsync())
+    .Where(s => s.VerificationStatus == "Approved")
+    .Select(s => new { id = s.IdStore, name = s.Name ?? "" })
+    .ToList();
+
+            var approvedClinics = (await _clinicRepo.GetAllAsync())
+                .Where(c => c.VerificationStatus == "Approved")
+                .Select(c => new { id = c.IdClinic, name = c.Name ?? "" })
+                .ToList();
+
+            ViewBag.ApprovedStores = approvedStores;
+            ViewBag.ApprovedClinics = approvedClinics;
+
+            ViewBag.PendingPayments = pendingPayments;
+            ViewBag.SurprisePool = (await _surpriseRepo.GetAllAsync()).ToList();
+
+            if (TempData["LostSuccess"] != null) ViewBag.Success = TempData["LostSuccess"];
+            if (TempData["LostError"] != null) ViewBag.Error = TempData["LostError"];
+
+            return View(vm);
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // ── 2. DeliverRewardAsync — تسليم تلقائي حسب النوع ────────
+        // ══════════════════════════════════════════════════════════
+        private async Task DeliverRewardAsync(
+            SurpriseRewardPool reward,
+            int recipientId,
+            string recipientName,
+            string reasonCategory)
+        {
+            string title, message;
+
+            switch (reward.RewardType)
+            {
+                case "WalletCredit":
+                    // ✅ أضف للمحفظة مباشرة
+                    var wallet = await _walletRepo.GetByUserIdAsync(recipientId);
+                    if (wallet == null)
+                    {
+                        // أنشئ محفظة إذا لم تكن موجودة
+                        await _walletRepo.CreateWalletAsync(recipientId);
+                        wallet = await _walletRepo.GetByUserIdAsync(recipientId);
+                    }
+                    if (wallet != null && reward.Value.HasValue)
+                    {
+                        await _walletRepo.AddBalanceAsync(wallet.IdWallet, reward.Value.Value);
+                        await _walletRepo.AddTransactionAsync(new WalletTransaction
+                        {
+                            IdWallet = wallet.IdWallet,
+                            TransactionCode = $"GIFT-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                            Type = "SurpriseGift",
+                            Amount = reward.Value.Value,
+                            PaymentMethod = "Waffy Gift",
+                            Status = "Completed",
+                            CreatedAt = DateTime.UtcNow
+                        });
+                    }
+                    title = "🎁 You received a Waffy gift!";
+                    message = $"{reward.Value:F2} JOD has been added to your wallet. " +
+                              $"Reason: {reasonCategory}";
+                    break;
+
+                case "StoreDiscount":
+                    title = "🏪 You received a store discount!";
+                    message = $"{reward.Title}" +
+                              (reward.PartnerName != null ? $" at {reward.PartnerName}" : "") +
+                              (reward.DiscountPercent.HasValue ? $" — {reward.DiscountPercent}% off" : "") +
+                              (reward.CouponCode != null ? $" | Code: {reward.CouponCode}" : "") +
+                              $" | Reason: {reasonCategory}";
+                    break;
+
+                case "DeliveryVoucher":
+                    title = "🚚 You received a delivery voucher!";
+                    message = $"{reward.Title}" +
+                              (reward.CouponCode != null ? $" | Code: {reward.CouponCode}" : "") +
+                              $" | Reason: {reasonCategory}";
+                    break;
+
+                case "ClinicSession":
+                    title = "🏥 You received a free clinic session!";
+                    message = $"{reward.Title}" +
+                              (reward.PartnerName != null ? $" | Contact {reward.PartnerName} to book." : "") +
+                              $" | Reason: {reasonCategory}";
+                    break;
+
+                default:
+                    title = "🎁 You received a special reward!";
+                    message = $"{reward.Title} | Reason: {reasonCategory}";
+                    break;
+            }
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = recipientId,
+                Type = "SurpriseReward",
+                Title = title,
+                Message = message,
+                IsRead = false,
+                CreatedAt = DateTime.UtcNow
+            });
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // ── 3. AssignRewardModal — GET ─────────────────────────────
+        // ══════════════════════════════════════════════════════════
+        public async Task<IActionResult> AssignRewardModal(int reportId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var report = await _lostRepo.GetByIdAsync(reportId);
+            if (report == null) return NotFound();
+
+            // البوست يجب أن يكون بدون مكافأة
+            if (report.RewardAmount > 0)
+            {
+                TempData["LostError"] = "This report already has a reward.";
+                return RedirectToAction("Lost_Pets");
+            }
+
+            // جلب الـ Claim المؤكد فقط
+            var allClaims = (await _foundClaimRepo.GetByReportIdAsync(reportId)).ToList();
+            var confirmedClaim = allClaims.FirstOrDefault(c => c.Status == "Confirmed");
+
+            if (confirmedClaim == null)
+            {
+                TempData["LostError"] = "No confirmed finder for this report yet.";
+                return RedirectToAction("Lost_Pets");
+            }
+
+            var finder = confirmedClaim.IdUser.HasValue
+                          ? await _userRepo.GetByIdAsync(confirmedClaim.IdUser.Value)
+                          : null;
+            var owner = await _userRepo.GetByIdAsync(report.IdUser);
+            var pool = (await _surpriseRepo.GetAllAsync())
+                          .Where(r => !r.IsUsed)
+                          .ToList();
+
+            bool hasRecentReward = finder != null &&
+                await _rewardLogRepo.HasRecentRewardAsync(finder.UserId);
+
+            ViewBag.Report = report;
+            ViewBag.OwnerName = owner?.FullName ?? "—";
+            ViewBag.OwnerPhone = owner?.Phone ?? "—";
+            ViewBag.Finder = finder;
+            ViewBag.FoundClaim = confirmedClaim;
+            ViewBag.Pool = pool;
+            ViewBag.HasRecentReward = hasRecentReward;
+            ViewBag.RewardHistory = finder != null
+                ? (await _rewardLogRepo.GetByUserIdAsync(finder.UserId)).ToList()
+                : new List<RewardLogDto>();
+
+            if (TempData["RewardError"] != null) ViewBag.Error = TempData["RewardError"];
+            return View();
+        }
+
+        // ── AssignReward — POST ────────────────────────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> AssignReward(
+            int reportId, int claimId, int recipientId,
+            int rewardId, string reasonCategory, string? reasonNote)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            var adminId = HttpContext.Session.GetInt32("UserId") ?? 0;
+
+            var reward = await _surpriseRepo.GetByIdAsync(rewardId);
+            var recipient = await _userRepo.GetByIdAsync(recipientId);
+
+            if (reward == null || reward.IsUsed)
+            {
+                TempData["RewardError"] = "⚠️ This reward is no longer available.";
+                return RedirectToAction("AssignRewardModal", new { reportId });
+            }
+
+            // تسليم المكافأة تلقائياً
+            await DeliverRewardAsync(reward, recipientId, recipient?.FullName ?? "", reasonCategory);
+
+            // تعليم المكافأة كمستخدمة
+            await _surpriseRepo.MarkAsUsedAsync(rewardId, recipientId);
+
+            // سجّل في RewardLog
+            await _rewardLogRepo.AddAsync(new RewardLog
+            {
+                IdReward = rewardId,
+                IdRecipient = recipientId,
+                IdAdminGiver = adminId,
+                IdLostReport = reportId,
+                IdFoundClaim = claimId,
+                GiftType = "FinderReward",
+                ReasonCategory = reasonCategory,
+                ReasonNote = reasonNote,
+                DeliveryStatus = "Delivered",
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["LostSuccess"] =
+                $"🎁 Reward '{reward.Title}' assigned to {recipient?.FullName} successfully!";
+            return RedirectToAction("Lost_Pets");
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // ── 4. GiveRewardModal — GET ───────────────────────────────
+        // ══════════════════════════════════════════════════════════
+        public async Task<IActionResult> GiveRewardModal(int userId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var recipient = await _userRepo.GetByIdAsync(userId);
+            if (recipient == null) return NotFound();
+
+            var pool = (await _surpriseRepo.GetAllAsync())
+                                  .Where(r => !r.IsUsed).ToList();
+            var rewardHistory = (await _rewardLogRepo.GetByUserIdAsync(userId)).ToList();
+            bool hasRecentReward = await _rewardLogRepo.HasRecentRewardAsync(userId);
+
+            ViewBag.Recipient = recipient;
+            ViewBag.Pool = pool;
+            ViewBag.RewardHistory = rewardHistory;
+            ViewBag.HasRecentReward = hasRecentReward;
+
+            if (TempData["RewardError"] != null) ViewBag.Error = TempData["RewardError"];
+            return View();
+        }
+
+        // ── GiveReward — POST ──────────────────────────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> GiveReward(
+            int recipientId, int rewardId,
+            string reasonCategory, string? reasonNote)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            var adminId = HttpContext.Session.GetInt32("UserId") ?? 0;
+
+            var reward = await _surpriseRepo.GetByIdAsync(rewardId);
+            var recipient = await _userRepo.GetByIdAsync(recipientId);
+
+            if (reward == null || reward.IsUsed)
+            {
+                TempData["RewardError"] = "⚠️ This reward is no longer available.";
+                return RedirectToAction("GiveRewardModal", new { userId = recipientId });
+            }
+
+            await DeliverRewardAsync(reward, recipientId, recipient?.FullName ?? "", reasonCategory);
+            await _surpriseRepo.MarkAsUsedAsync(rewardId, recipientId);
+
+            await _rewardLogRepo.AddAsync(new RewardLog
+            {
+                IdReward = rewardId,
+                IdRecipient = recipientId,
+                IdAdminGiver = adminId,
+                GiftType = "ManualGift",
+                ReasonCategory = reasonCategory,
+                ReasonNote = reasonNote,
+                DeliveryStatus = "Delivered",
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["SuccessMessage"] =
+                $"🎁 '{reward.Title}' given to {recipient?.FullName} successfully!";
+            return RedirectToAction("Details_U", new { id = recipientId });
+        }
+
+        public async Task<IActionResult> RewardLog(
+    string? search, string? typeFilter = "All")
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var allLogs = (await _rewardLogRepo.GetAllAsync()).ToList();
+
+            // ── فلتر النوع ──
+            if (typeFilter != "All")
+                allLogs = allLogs.Where(l => l.GiftType == typeFilter).ToList();
+
+            // ── فلتر البحث ──
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var q = search.ToLower();
+                allLogs = allLogs.Where(l =>
+                    (l.RecipientName?.ToLower().Contains(q) == true) ||
+                    (l.RecipientEmail?.ToLower().Contains(q) == true) ||
+                    (l.RewardTitle?.ToLower().Contains(q) == true) ||
+                    (l.ReasonCategory?.ToLower().Contains(q) == true)
+                ).ToList();
+            }
+
+            // ── KPI ──
+            ViewBag.TotalCount = allLogs.Count;
+            ViewBag.TotalWallet = allLogs
+                .Where(l => l.RewardType == "WalletCredit")
+                .Sum(l => l.RewardValue ?? 0);
+            ViewBag.FinderCount = allLogs.Count(l => l.GiftType == "FinderReward");
+            ViewBag.ManualCount = allLogs.Count(l => l.GiftType == "ManualGift");
+            ViewBag.TypeFilter = typeFilter ?? "All";
+            ViewBag.SearchQuery = search ?? "";
+            ViewBag.Logs = allLogs;
+
+            return View();
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetRewardForEdit(int rewardId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            var reward = await _surpriseRepo.GetByIdAsync(rewardId);
+            if (reward == null || reward.IsUsed)
+                return Json(new { success = false });
+
+            return Json(new
+            {
+                success = true,
+                idReward = reward.IdReward,
+                rewardType = reward.RewardType,
+                title = reward.Title,
+                value = reward.Value,
+                discountPercent = reward.DiscountPercent,
+                partnerName = reward.PartnerName,
+                couponCode = reward.CouponCode,
+                expiryDate = reward.ExpiryDate?.ToString("yyyy-MM-dd")
+            });
+        }
+
+        // POST — يحفظ التعديل
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditSurpriseReward(
+            int idReward,
+            string rewardType,
+            string title,
+            decimal? value,
+            int? discountPercent,
+            string? partnerName,
+            string? couponCode,
+            DateTime? expiryDate)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            await _surpriseRepo.UpdateAsync(new SurpriseRewardPool
+            {
+                IdReward = idReward,
+                RewardType = rewardType,
+                Title = title,
+                Value = value,
+                DiscountPercent = discountPercent,
+                PartnerName = partnerName,
+                CouponCode = couponCode,
+                ExpiryDate = expiryDate
+            });
+
+            TempData["LostSuccess"] = "✅ Reward updated successfully.";
+            return RedirectToAction("Lost_Pets");
+        }
+
+        // ════════════════════════════════════════════════════════
+        // Found_Pets — GET
+        // ════════════════════════════════════════════════════════
+        public async Task<IActionResult> Found_Pets(string statusFilter = "All")
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var allClaims = (await _foundClaimRepo.GetAllWithDetailsAsync()).ToList();
+            var filtered = statusFilter == "All"
+                ? allClaims
+                : allClaims.Where(c => c.Status == statusFilter).ToList();
+            var topFinders = (await _foundClaimRepo.GetTopFindersAsync()).ToList();
+
+            var vm = new SuperAdminFoundViewModel
+            {
+                Claims = filtered,
+                TopFinders = topFinders,
+                TotalClaims = allClaims.Count,
+                PendingCount = allClaims.Count(c => c.Status == "Pending"),
+                ConfirmedCount = allClaims.Count(c => c.Status == "Confirmed"),
+                TotalRewardsIssued = allClaims
+                    .Where(c => c.Status == "Confirmed")
+                    .Sum(c => c.RewardAmount ?? 0),
+                StatusFilter = statusFilter
+            };
+
+            if (TempData["FoundSuccess"] != null) ViewBag.Success = TempData["FoundSuccess"];
+            if (TempData["FoundError"] != null) ViewBag.Error = TempData["FoundError"];
+            ViewBag.RewardedClaimIds = await _rewardLogRepo.GetRewardedClaimIdsAsync();
+
+            return View(vm);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> CloseSuspiciousReport(
+            int reportId, string reason, string adminMessage)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            var report = await _lostRepo.GetByIdAsync(reportId);
+            if (report != null)
+            {
+                await _lostRepo.UpdateStatusAsync(reportId, "Closed");
+                await _notifRepo.AddAsync(new Notification
+                {
+                    IdUser = report.IdUser,
+                    Type = "Warning",
+                    Title = "⚠️ Your lost pet report was closed by admin",
+                    Message = $"Reason: {reason}. {adminMessage}",
+                    IsRead = false,
+                    RelatedEntityType = "LostPetReport",
+                    RelatedEntityId = reportId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+            TempData["LostSuccess"] = "🔒 Report closed and owner notified.";
+            return RedirectToAction("Lost_Pets");
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendEmergencyAlert(int reportId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            var report = await _lostRepo.GetByIdAsync(reportId);
+            if (report == null)
+            {
+                TempData["LostError"] = "Report not found.";
+                return RedirectToAction("Lost_Pets");
+            }
+
+            var userIds = (await _userRepo.GetUserIdsByCityAsync(report.City))
+                .Where(id => id != report.IdUser)
+                .ToList();
+
+            if (userIds.Any())
+            {
+                await _notifRepo.AddBulkAsync(
+                    userIds,
+                    type: "EmergencyAlert",
+                    title: $"🚨 Emergency: Lost pet in {report.City}",
+                    message: $"{report.PetName} ({report.AnimalType}) was lost near {report.Area}, {report.City}. Can you help?",
+                    relatedEntityType: "LostPetReport",
+                    relatedEntityId: reportId
+                );
+            }
+
+            TempData["LostSuccess"] = $"🚨 Emergency alert sent to {userIds.Count} users in {report.City}.";
+            return RedirectToAction("Lost_Pets");
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmPayment(int paymentId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            var adminId = HttpContext.Session.GetInt32("UserId") ?? 0;
+
+            var payment = await _paymentRepo.GetByIdAsync(paymentId);
+            if (payment != null)
+            {
+                await _paymentRepo.ConfirmAsync(paymentId, adminId);
+
+                if (payment.RelatedId.HasValue)
+                {
+                    // فعّل البوست
+                    await _lostRepo.UpdatePaymentStatusAsync(
+                        payment.RelatedId.Value, true, paymentId);
+
+                    // حدّث AmountPaid برسوم النشر فقط
+                    var report = await _lostRepo.GetByIdAsync(payment.RelatedId.Value);
+                    if (report != null)
+                    {
+                        decimal feeAmount = payment.Amount - (report.RewardAmount ?? 0);
+                        await _lostRepo.UpdateAmountPaidAsync(
+                            payment.RelatedId.Value, feeAmount > 0 ? feeAmount : payment.Amount);
+
+                        // ✅ حجز المكافأة إذا كانت موجودة
+                        if (report.RewardAmount > 0 && !report.RewardReserved)
+                        {
+                            await _lostRepo.MarkRewardReservedAsync(payment.RelatedId.Value);
+                        }
+                    }
+                }
+
+                await _notifRepo.AddAsync(new Notification
+                {
+                    IdUser = payment.IdUser,
+                    Type = "Payment",
+                    Title = "✅ Payment confirmed",
+                    Message = $"Your payment of {payment.Amount:F2} JOD confirmed. " +
+                                        "Your lost pet report is now live!",
+                    IsRead = false,
+                    RelatedEntityType = "LostPetReport",
+                    RelatedEntityId = payment.RelatedId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            TempData["LostSuccess"] = "✅ Payment confirmed and report activated.";
+            return RedirectToAction("Lost_Pets");
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectPayment(int paymentId, string reason)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            var adminId = HttpContext.Session.GetInt32("UserId") ?? 0;
+
+            var payment = await _paymentRepo.GetByIdAsync(paymentId);
+            if (payment != null)
+            {
+                await _paymentRepo.RejectAsync(paymentId, adminId, reason);
+
+                // ✅ غيّري الـ Report Status لـ Rejected
+                if (payment.RelatedId.HasValue)
+                    await _lostRepo.UpdateStatusAsync(payment.RelatedId.Value, "Rejected");
+
+                await _notifRepo.AddAsync(new Notification
+                {
+                    IdUser = payment.IdUser,
+                    Type = "Payment",
+                    Title = "❌ Payment rejected",
+                    Message = $"Your CliQ payment was rejected. Reason: {reason}. Please contact support.",
+                    IsRead = false,
+                    RelatedEntityType = "LostPetReport",
+                    RelatedEntityId = payment.RelatedId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            TempData["LostError"] = "❌ Payment rejected and user notified.";
+            return RedirectToAction("Lost_Pets");
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelReward(int claimId, string reason)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            var claim = await _foundClaimRepo.GetByIdAsync(claimId);
+            if (claim != null)
+            {
+                await _foundClaimRepo.CancelRewardAsync(claimId);
+
+                if (claim.IdUser.HasValue)
+                {
+                    await _notifRepo.AddAsync(new Notification
+                    {
+                        IdUser = claim.IdUser.Value,
+                        Type = "Warning",
+                        Title = "🚫 Your reward has been cancelled",
+                        Message = $"Reason: {reason}",
+                        IsRead = false,
+                        RelatedEntityType = "FoundPetClaim",
+                        RelatedEntityId = claimId,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
+
+            TempData["FoundSuccess"] = "🚫 Reward cancelled and finder notified.";
+            return RedirectToAction("Found_Pets");
+        }
+
+        // ── Surprise Reward Pool Management ──────────────────────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddSurpriseReward(
+            string rewardType, string title, string? description,
+            decimal? value, int? discountPercent,
+            string? partnerName, string? couponCode, DateTime? expiryDate)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            await _surpriseRepo.AddAsync(new SurpriseRewardPool
+            {
+                RewardType = rewardType,
+                Title = title,
+                Description = description,
+                Value = value,
+                DiscountPercent = discountPercent,
+                PartnerName = partnerName,
+                CouponCode = couponCode,
+                ExpiryDate = expiryDate
+            });
+
+            TempData["LostSuccess"] = "🎁 Surprise reward added to pool.";
+            return RedirectToAction("Lost_Pets");
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteSurpriseReward(int rewardId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _surpriseRepo.DeleteAsync(rewardId);
+            TempData["LostSuccess"] = "🗑 Reward removed from pool.";
+            return RedirectToAction("Lost_Pets");
+        }
+
+
+        // ── GET ─────────────────────────────────────────────
+        public async Task<IActionResult> AlertModal(int reportId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var report = await _lostRepo.GetByIdAsync(reportId);
+            if (report == null) return NotFound();
+
+            var owner = await _userRepo.GetByIdAsync(report.IdUser);
+
+            // ✅ نمرر report.Area للحصول على ProximityRank
+            var users = (await _userRepo.GetUsersByCityAsync(report.City, report.Area))
+                        .Where(u => u.UserId != report.IdUser)
+                        .ToList();
+
+            ViewBag.Report = report;
+            ViewBag.OwnerPhone = owner?.Phone ?? "—";
+            ViewBag.OwnerName = owner?.FullName ?? "—";
+            ViewBag.CityUsers = users;
+            ViewBag.UserCount = users.Count;
+            ViewBag.SameAreaCount = users.Count(u => u.ProximityRank == 1);
+            ViewBag.SameCityCount = users.Count(u => u.ProximityRank == 2);
+
+            if (TempData["AlertError"] != null) ViewBag.Error = TempData["AlertError"];
+            return View();
+        }
+
+        // ── POST ────────────────────────────────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendAlert(
+            int reportId,
+            int[]? selectedUserIds,
+            string message,
+            string priority = "Normal")
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            var report = await _lostRepo.GetByIdAsync(reportId);
+            if (report == null) return NotFound();
+
+            if (selectedUserIds == null || selectedUserIds.Length == 0)
+            {
+                TempData["AlertError"] = "Please select at least one user.";
+                return RedirectToAction("AlertModal", new { reportId });
+            }
+
+            await _notifRepo.AddBulkAsync(
+                selectedUserIds,
+                type: "EmergencyAlert",
+                title: priority == "Urgent"
+                                       ? "🚨 Urgent Alert!"
+                                       : "🔔 Lost Pet Alert",
+                message: message,
+                relatedEntityType: "LostPetReport",
+                relatedEntityId: reportId
+            );
+
+            TempData["LostSuccess"] =
+                $"🚨 Alert sent to {selectedUserIds.Length} user(s) in {report.City}.";
+            return RedirectToAction("Lost_Pets");
+        }
+
         // ════════════════════════════════════════════════════════
         // Stubs
         // ════════════════════════════════════════════════════════
@@ -1074,8 +1819,6 @@ namespace Waffy.Controllers
         public IActionResult Details_C() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Analytics_C() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Analytics_A() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
-        public IActionResult Lost_Pets() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
-        public IActionResult Found_Pets() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Map() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Notifications() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
     }

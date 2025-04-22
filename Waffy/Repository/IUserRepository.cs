@@ -1,5 +1,6 @@
 ﻿using Waffy.Models;
 using Waffy.Models.DTOs;
+using Waffy.Models.ViewModels;
 
 namespace Waffy.Interfaces
 {
@@ -36,5 +37,9 @@ namespace Waffy.Interfaces
         Task<LoginUserResult?> LoginAsync(string email, string passwordHash);
 
         Task<string> GetRoleNameByIdAsync(int roleId);
+        Task<IEnumerable<int>> GetUserIdsByCityAsync(string city);
+
+        Task UpdateRenewalDiscountAsync(int userId);
+        Task<IEnumerable<UserCityDto>> GetUsersByCityAsync(string city, string? area = null);
     }
 }

@@ -33,7 +33,8 @@
 
         public DateTime CreatedAt { get; set; }
         public DateTime? LastActiveAt { get; set; }
-        
-       
+
+        public bool HasUsedRenewalDiscount { get; set; } = false;
+
     }
 }

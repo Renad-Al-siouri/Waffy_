@@ -13,15 +13,23 @@ namespace Waffy.Controllers
         private readonly IFoundPetClaimRepository _claimRepo;
         private readonly ILostPetRepository _lostRepo;
         private readonly IConfiguration _config;
+        private readonly ISurpriseRewardRepository _surpriseRepo;
+        private readonly INotificationRepository _notifRepo;
 
         public FoundPetClaimController(
             IFoundPetClaimRepository claimRepo,
             ILostPetRepository lostRepo,
-            IConfiguration config)
+            IConfiguration config,
+            ISurpriseRewardRepository surpriseRepo,
+INotificationRepository notificationRepo
+            )
         {
             _claimRepo = claimRepo;
             _lostRepo = lostRepo;
             _config = config;
+            _surpriseRepo = surpriseRepo;
+            _notifRepo = notificationRepo;
+
         }
 
         private int? GetCurrentUserId() =>
@@ -81,8 +89,7 @@ namespace Waffy.Controllers
         // ════════════════════════════════════════════════════
         // CONFIRM FOUND — POST من Lost_Reports
         // ════════════════════════════════════════════════════
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> ConfirmFound(int claimId)
         {
             var userId = GetCurrentUserId();
@@ -97,28 +104,64 @@ namespace Waffy.Controllers
                 return RedirectToAction("Lost_Reports", "Profile");
             }
 
-            // ✅ 1 — تأكيد الـ claim
             await _claimRepo.ConfirmAsync(claimId);
-
-            // ✅ 2 — أغلق التقرير
             await _lostRepo.CloseReportAsync(report.IdLostReport);
 
-            // ✅ 3 — أرفض باقي الـ claims
             var others = await _claimRepo.GetByReportIdAsync(report.IdLostReport);
             foreach (var other in others.Where(c => c.IdClaim != claimId && c.Status == "Pending"))
                 await _claimRepo.RejectAsync(other.IdClaim);
 
-            // ✅ 4 — أضف المكافأة للمحفظة لو كانت مالية
+            string successMsg;
+
+            // مكافأة من المالك
             if (report.RewardAmount > 0 && claim.IdUser.HasValue)
             {
                 await AddRewardToWalletAsync(claim.IdUser.Value, report.RewardAmount.Value);
                 await UpdateRewardStatusAsync(report.IdLostReport, "Released");
+
+                successMsg = $"🎉 Pet returned! {report.RewardAmount} JOD sent to finder's wallet.";
+            }
+            // مكافأة مفاجأة من Waffy
+            else if (claim.IdUser.HasValue)
+            {
+                var surprise = await _surpriseRepo.GetAvailableAsync();
+                if (surprise != null)
+                {
+                    await _surpriseRepo.MarkAsUsedAsync(surprise.IdReward, claim.IdUser.Value);
+
+                    // إضافة رصيد للمحفظة لو النوع WalletCredit
+                    if (surprise.RewardType == "WalletCredit" && surprise.Value.HasValue)
+                        await AddRewardToWalletAsync(claim.IdUser.Value, surprise.Value.Value);
+
+                    await _notifRepo.AddAsync(new Notification
+                    {
+                        IdUser = claim.IdUser.Value,
+                        Type = "Reward",
+                        Title = "🎁 Surprise! You got a reward from Waffy",
+                        Message = surprise.RewardType == "WalletCredit"
+                            ? $"🎉 {surprise.Title} — {surprise.Value} JOD added to your wallet!"
+                            : $"🎉 {surprise.Title}" +
+                              (surprise.CouponCode != null ? $" — Code: {surprise.CouponCode}" : "") +
+                              (surprise.PartnerName != null ? $" at {surprise.PartnerName}" : ""),
+                        IsRead = false,
+                        RelatedEntityType = "FoundPetClaim",
+                        RelatedEntityId = claimId,
+                        CreatedAt = DateTime.UtcNow
+                    });
+
+                    successMsg = "✅ Pet returned! Finder received a Waffy surprise reward.";
+                }
+                else
+                {
+                    successMsg = "✅ Pet returned successfully!";
+                }
+            }
+            else
+            {
+                successMsg = "✅ Pet returned successfully!";
             }
 
-            TempData["LostSuccess"] = report.RewardAmount > 0
-                ? $"🎉 Pet returned! {report.RewardAmount} JOD reward sent to finder's wallet."
-                : "✅ Pet returned successfully!";
-
+            TempData["LostSuccess"] = successMsg;
             return RedirectToAction("Lost_Reports", "Profile");
         }
 

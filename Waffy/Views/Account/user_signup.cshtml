@@ -91,20 +91,31 @@
                                 </div>
                                 <div class="fg">
                                     <div class="f">
-                                        <label class="lbl">City <span class="req">*</span></label>
-                                        <select class="inp" name="city" id="city" oninput="ce(this)">
-                                            <option value="">Select your city</option>
-                                            <option>Amman</option>
-                                            <option>Zarqa</option>
-                                            <option>Irbid</option>
-                                            <option>Aqaba</option>
-                                            <option>Salt</option>
-                                            <option>Madaba</option>
-                                            <option>Karak</option>
-                                            <option>Jerash</option>
-                                            <option>Other</option>
+                                        <label class="lbl">Governorate <span class="req">*</span></label>
+                                        <select class="inp" name="city" id="regCity"
+                                                onchange="updateDistricts('regCity','regArea')"
+                                                oninput="ce(this)" required>
+                                            <option value="">— Select governorate —</option>
+                                            @{
+                                                var locs = System.Text.Json.JsonSerializer
+                                                .Deserialize<List<System.Text.Json.JsonElement>>(
+                                                ViewBag.LocationsJson as string ?? "[]");
+                                            }
+                                            @foreach (var g in locs ?? new())
+                                            {
+                                                <option value="@g.GetProperty("name").GetString()">
+                                                    @g.GetProperty("name").GetString()
+                                                </option>
+                                            }
                                         </select>
-                                        <div class="ferr" id="e-city">Please select your city.</div>
+                                        <div class="ferr" id="e-city">Please select your governorate.</div>
+                                    </div>
+
+                                    <div class="f">
+                                        <label class="lbl">Area / District</label>
+                                        <select class="inp" name="area" id="regArea">
+                                            <option value="">— Select governorate first —</option>
+                                        </select>
                                     </div>
 
 
@@ -157,5 +168,24 @@
     </div>
 
     <script src="~/js/user-signup.js"></script>
+    <script>
+        const _locations = @Html.Raw(ViewBag.LocationsJson ?? "[]");
+
+        function updateDistricts(cityId, areaId) {
+            const city = document.getElementById(cityId).value;
+            const sel  = document.getElementById(areaId);
+            sel.innerHTML = '<option value="">— Select area —</option>';
+
+            const gov = _locations.find(g => g.name === city);
+            if (!gov) return;
+
+            gov.districts.forEach(d => {
+                const opt = document.createElement('option');
+                opt.value       = d;
+                opt.textContent = d;
+                sel.appendChild(opt);
+            });
+        }
+    </script>
 </body>
 </html>

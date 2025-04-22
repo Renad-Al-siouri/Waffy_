@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using Waffy.Interfaces;
 using Waffy.Models;
 using Waffy.Models.DTOs;
+using Waffy.Models.ViewModels;
 
 namespace Waffy.Repositories
 {
@@ -297,6 +298,46 @@ namespace Waffy.Repositories
             var sql = "SELECT RoleName FROM Roles WHERE RoleId = @RoleId";
             using var conn = new SqlConnection(_connectionString);
             return await conn.QueryFirstOrDefaultAsync<string>(sql, new { RoleId = roleId }) ?? "User";
+        }
+        public async Task<IEnumerable<int>> GetUserIdsByCityAsync(string city)
+        {
+            const string sql = @"
+        SELECT UserId FROM Users
+        WHERE City = @City AND AccountStatus = 'Active'";
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<int>(sql, new { City = city });
+        }
+        public async Task<IEnumerable<UserCityDto>> GetUsersByCityAsync(
+    string city, string? area = null)
+        {
+            const string sql = @"
+        SELECT
+            UserId,
+            FullName,
+            Phone,
+            City,
+            Area,
+            CASE
+                WHEN @Area IS NOT NULL AND Area = @Area THEN 1
+                ELSE 2
+            END AS ProximityRank
+        FROM   Users
+        WHERE  City          = @City
+          AND  AccountStatus = 'Active'
+        ORDER BY ProximityRank, FullName";
+
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<UserCityDto>(
+                sql, new { City = city, Area = area });
+        }
+
+        public async Task UpdateRenewalDiscountAsync(int userId)
+        {
+            const string sql = @"
+        UPDATE Users SET HasUsedRenewalDiscount = 1
+        WHERE UserId = @UserId";
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(sql, new { UserId = userId });
         }
 
     } 
