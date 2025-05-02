@@ -1,13 +1,21 @@
-﻿// Models/ViewModels/UserDetailViewModel.cs
-using Waffy.Models.DTOs;
-
+﻿using Waffy.Models.DTOs;
 namespace Waffy.Models.ViewModels
 {
     public class UserDetailViewModel
     {
         public UserAdminDto User { get; set; } = null!;
 
-        // Counts — يُملأ لاحقاً من الـ repos المقابلة
+        // ── Lists — تُملأ من الـ repos ──────────────────
+        public List<Pet> Pets { get; set; } = new();
+        public List<LostPetReport> LostReports { get; set; } = new();
+        public List<AdoptionPost> AdoptionPosts { get; set; } = new();
+        public List<RewardLogDto> SurpriseRewards { get; set; } = new(); 
+        public List<WalletTransaction> Transactions { get; set; } = new();  
+        public Wallet? Wallet { get; set; }
+        public List<Order> Orders { get; set; } = new();
+        public int TotalFlagsCount { get; set; }
+
+        // ── Counts — Mini Stats ──────────────────────────
         public int PetsCount { get; set; }
         public int AppointmentsCount { get; set; }
         public int OrdersCount { get; set; }
@@ -15,7 +23,7 @@ namespace Waffy.Models.ViewModels
         public int AdoptionCount { get; set; }
         public int CouponsCount { get; set; }
 
-        // للـ PRG — إرجاع نفس الحالة بعد action
+        // ── PRG return params ────────────────────────────
         public string? ReturnSearch { get; set; }
         public string? ReturnStatus { get; set; }
         public string? ReturnRole { get; set; }

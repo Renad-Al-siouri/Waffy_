@@ -32,6 +32,7 @@ namespace Waffy.Controllers
         private readonly IRewardLogRepository _rewardLogRepo;
         private readonly IWalletRepository _walletRepo;
         private readonly IClinicRepository _clinicRepo;
+        private readonly IPetRepository _petRepo;
         public SuperAdminController(
             IUserRepository userRepo,
             IStoreRepository storeRepo,
@@ -54,6 +55,7 @@ namespace Waffy.Controllers
             IRewardLogRepository rewardLogRepo,
             IWalletRepository walletRepo,
             IClinicRepository clinicRepo,
+            IPetRepository petRepo,
             IPendingPaymentRepository paymentRepo)  
         {
             _userRepo = userRepo;
@@ -78,6 +80,7 @@ namespace Waffy.Controllers
             _rewardLogRepo = rewardLogRepo;
             _walletRepo = walletRepo;
             _clinicRepo = clinicRepo;
+            _petRepo = petRepo;
         }
 
         // ── Guards ───────────────────────────────────────────────
@@ -193,21 +196,59 @@ namespace Waffy.Controllers
         // User Details — GET
         // ════════════════════════════════════════════════════════
         public async Task<IActionResult> Details_U(
-            int id,
-            string? returnSearch, string? returnStatus,
-            string? returnRole, int returnPage = 1)
+     int id,
+     string? returnSearch, string? returnStatus,
+     string? returnRole, int returnPage = 1)
         {
             if (!IsAdmin()) return NotAdmin();
 
             var user = await _userRepo.GetByIdForAdminAsync(id);
             if (user == null) return NotFound();
 
+            var pets = (await _petRepo.GetByUserIdAsync(id)).ToList();
+            var lostReports = (await _lostRepo.GetByUserIdAsync(id)).ToList();
+            var adoptionPosts = (await _adoptionRepo.GetByUserIdAsync(id)).ToList();
+            var surpriseRewards = (await _rewardLogRepo.GetByUserIdAsync(id)).ToList();
+            var wallet = await _walletRepo.GetByUserIdAsync(id);
+            var transactions = wallet != null
+                                  ? (await _walletRepo.GetTransactionsByUserIdAsync(id)).ToList()
+                                  : new List<WalletTransaction>();
+            var orders = (await _orderRepo.GetByUserIdAsync(id)).ToList();
+            var postIds = adoptionPosts.Select(p => p.IdPost);
+            var flagCounts = await _flagRepo.GetFlagCountsForPostsAsync(postIds);
+            var totalFlags = flagCounts.Values.Sum();
+
+            // ── أسماء المتاجر ─────────────────────────────────
+            var storeNames = new Dictionary<int, string>();
+            foreach (var o in orders)
+            {
+                if (!storeNames.ContainsKey(o.IdStore))
+                {
+                    var store = await _storeRepo.GetByIdAsync(o.IdStore);
+                    storeNames[o.IdStore] = store?.Name ?? "—";
+                }
+            }
+            ViewBag.StoreNames = storeNames;
+
             var vm = new UserDetailViewModel
             {
                 User = user,
+                Pets = pets,
+                LostReports = lostReports,
+                AdoptionPosts = adoptionPosts,
+                SurpriseRewards = surpriseRewards,
+                Wallet = wallet,
+                Transactions = transactions,
+                Orders = orders,
+                PetsCount = pets.Count,
+                LostReportsCount = lostReports.Count,
+                AdoptionCount = adoptionPosts.Count,
+                CouponsCount = surpriseRewards.Count,
+                OrdersCount = orders.Count,
                 ReturnSearch = returnSearch,
                 ReturnStatus = returnStatus,
                 ReturnRole = returnRole,
+                TotalFlagsCount = totalFlags,
                 ReturnPage = returnPage
             };
 
@@ -217,6 +258,47 @@ namespace Waffy.Controllers
 
             return View(vm);
         }
+
+
+
+
+
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> WarnUser(
+    int userId, string warningType, string message,
+    string? returnSearch, string? returnStatus,
+    string? returnRole, int returnPage = 1)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            // ── إرسال إشعار حقيقي للمستخدم ──────────────────
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = userId,
+                Type = "Warning",
+                Title = $"⚠️ {warningType}",
+                Message = message,
+                IsRead = false,
+                RelatedEntityType = "AdminAction",
+                CreatedAt = DateTime.UtcNow
+            });
+
+            // ── زيادة عداد التحذيرات ──────────────────────────
+            await _userRepo.IncrementWarningCountAsync(userId);
+
+            TempData["SuccessMessage"] = "⚠️ Warning sent successfully.";
+            return RedirectToAction("Details_U", new
+            {
+                id = userId,
+                returnSearch,
+                returnStatus,
+                returnRole,
+                returnPage
+            });
+        }
+
+
 
         // ════════════════════════════════════════════════════════
         // SuspendUser — POST

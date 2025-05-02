@@ -1,4 +1,4 @@
-﻿// Models/DTOs/UserAdminDto.cs
+﻿
 namespace Waffy.Models.DTOs
 {
     public class UserAdminDto
@@ -15,6 +15,11 @@ namespace Waffy.Models.DTOs
         public string AccountStatus { get; set; } = "";
         public string RoleName { get; set; } = "";
         public DateTime? CreatedAt { get; set; }
+        public string? SuspensionReason { get; set; }
+
+        // ── جديد ────────────────────────────────────────────
+        public DateTime? LastActiveAt { get; set; }
+        public int WarningCount { get; set; }
 
         // ── Display Helpers ──────────────────────────────────
         public string StatusBadgeClass => AccountStatus switch
@@ -50,6 +55,10 @@ namespace Waffy.Models.DTOs
         public string JoinedLabel => CreatedAt.HasValue
             ? CreatedAt.Value.ToString("MMM yyyy")
             : "—";
+
+        public string LastActiveLabel => LastActiveAt.HasValue
+            ? LastActiveAt.Value.ToString("dd MMM yyyy")
+            : "Never";
 
         public string AvatarInitials
         {

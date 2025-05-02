@@ -218,13 +218,14 @@ namespace Waffy.Repositories
         {
             using var conn = new SqlConnection(_connectionString);
             return await conn.QueryFirstOrDefaultAsync<UserAdminDto>(@"
-                SELECT u.UserId, u.FullName, u.Email, u.Phone,
-                       u.City, u.Area, u.Gender, u.Bio,
-                       u.ProfileImage, u.AccountStatus, u.CreatedAt,
-                       r.RoleName
-                FROM   Users u
-                JOIN   Roles r ON u.RoleId = r.RoleId
-                WHERE  u.UserId = @UserId",
+        SELECT u.UserId, u.FullName, u.Email, u.Phone,
+               u.City, u.Area, u.Gender, u.Bio,
+               u.ProfileImage, u.AccountStatus, u.CreatedAt,
+               u.LastActiveAt, u.WarningCount, u.SuspensionReason,
+               r.RoleName
+        FROM   Users u
+        JOIN   Roles r ON u.RoleId = r.RoleId
+        WHERE  u.UserId = @UserId",
                 new { UserId = userId });
         }
 
@@ -338,6 +339,13 @@ namespace Waffy.Repositories
         WHERE UserId = @UserId";
             using var conn = new SqlConnection(_connectionString);
             await conn.ExecuteAsync(sql, new { UserId = userId });
+        }
+        public async Task IncrementWarningCountAsync(int userId)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(
+                "UPDATE Users SET WarningCount = WarningCount + 1 WHERE UserId = @UserId",
+                new { UserId = userId });
         }
 
     } 

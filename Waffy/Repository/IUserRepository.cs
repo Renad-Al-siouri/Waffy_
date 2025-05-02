@@ -41,5 +41,6 @@ namespace Waffy.Interfaces
 
         Task UpdateRenewalDiscountAsync(int userId);
         Task<IEnumerable<UserCityDto>> GetUsersByCityAsync(string city, string? area = null);
+        Task IncrementWarningCountAsync(int userId);
     }
 }
