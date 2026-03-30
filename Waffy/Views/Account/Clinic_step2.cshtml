@@ -1,0 +1,147 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waffy - Clinic Registration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&family=Readex+Pro:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/clinic.css" />
+</head>
+<body>
+    <div id="clinicWizardContainer" dir="ltr" lang="en">
+        <div class="cw-bg"></div>
+
+        <div id="userWizardContainer">
+            <div class="topbar">
+                <div class="logo">Waffy</div>
+                <div class="topbar-right">
+                    <a href="signup.html" class="top-signup-link">← Back to Sign Up</a>
+                </div>
+            </div>
+
+            <div class="prog-line"><div class="prog-fill" style="width:40%"></div></div>
+
+            <div class="cw-wrap">
+                <aside class="cw-left">
+                    <div class="cw-info-card" id="cwStepsCard">
+                        <div class="cw-info-title">📋 Registration Steps</div>
+
+                    </div>
+
+                    <div class="cw-info-card">
+                        <div class="cw-info-title">✨ Why Waffy?</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">📅</span>Smart appointment management</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">📉</span>Reduce no-shows by 87%</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">🐾</span>Digital medical records</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">⭐</span>Better ratings & visibility</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">💰</span>Low commission from 3%</div>
+                    </div>
+                </aside>
+
+                <div class="cw-form-outer">
+                    <div class="cw-step-form show" id="cwClinicForm">
+                        <div class="cw-prog-wrap">
+                            <div class="cw-prog-header">
+                                <div class="cw-prog-title">🏥 New Clinic Registration</div>
+                                <div class="cw-prog-counter" id="cwClinicCounter">Step 2 of 5</div>
+                            </div>
+
+                            <div class="cw-indicators" id="cwClinicIndicators">
+                                <div class="cw-ind done"><div class="cw-dot">✓</div><div class="cw-ind-label">Clinic</div></div>
+                                <div class="cw-ind active"><div class="cw-dot">2</div><div class="cw-ind-label">Schedule</div></div>
+                                <div class="cw-ind"><div class="cw-dot">3</div><div class="cw-ind-label">Plan</div></div>
+                                <div class="cw-ind"><div class="cw-dot">4</div><div class="cw-ind-label">Documents</div></div>
+                                <div class="cw-ind"><div class="cw-dot">5</div><div class="cw-ind-label">Manager</div></div>
+                            </div>
+                        </div>
+
+                        <div class="cw-content" id="cc-2">
+                            <div class="cw-content-title">Working Hours & Services</div>
+                            <div class="cw-content-sub">Set your availability and the services you offer</div>
+
+                            <div class="cw-field">
+                                <label class="cw-label"><span class="req">*</span>Working Days</label>
+                                <div class="cw-days">
+                                    <button class="cw-day active" onclick="this.classList.toggle('active')">Sun</button>
+                                    <button class="cw-day active" onclick="this.classList.toggle('active')">Mon</button>
+                                    <button class="cw-day active" onclick="this.classList.toggle('active')">Tue</button>
+                                    <button class="cw-day active" onclick="this.classList.toggle('active')">Wed</button>
+                                    <button class="cw-day active" onclick="this.classList.toggle('active')">Thu</button>
+                                    <button class="cw-day" onclick="this.classList.toggle('active')">Fri</button>
+                                    <button class="cw-day" onclick="this.classList.toggle('active')">Sat</button>
+                                </div>
+                            </div>
+
+                            <div class="cw-grid">
+                                <div class="cw-field">
+                                    <label class="cw-label"><span class="req">*</span>Opening Time</label>
+                                    <input class="cw-input" type="time" value="09:00">
+                                </div>
+
+                                <div class="cw-field">
+                                    <label class="cw-label"><span class="req">*</span>Closing Time</label>
+                                    <input class="cw-input" type="time" value="18:00">
+                                </div>
+                            </div>
+
+                            <div class="cw-field">
+                                <div class="cw-toggle-row">
+                                    <div>
+                                        <div class="cw-toggle-label">🚨 Emergency Service</div>
+                                        <div class="cw-toggle-sub">Available for urgent cases outside working hours</div>
+                                    </div>
+                                    <button class="cw-toggle" onclick="this.classList.toggle('on')"></button>
+                                </div>
+                            </div>
+
+                            <div class="cw-field">
+                                <label class="cw-label"><span class="req">*</span>Available Services</label>
+                                <div class="cw-services">
+                                    <div class="cw-service active" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">💉</div><div class="cw-svc-name">Vaccines</div></div>
+                                    <div class="cw-service active" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">🔬</div><div class="cw-svc-name">Check-up</div></div>
+                                    <div class="cw-service" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">🔪</div><div class="cw-svc-name">Surgery</div></div>
+                                    <div class="cw-service" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">🦷</div><div class="cw-svc-name">Dental</div></div>
+                                    <div class="cw-service" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">✂️</div><div class="cw-svc-name">Grooming</div></div>
+                                    <div class="cw-service" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">🧪</div><div class="cw-svc-name">Lab Tests</div></div>
+                                    <div class="cw-service" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">📷</div><div class="cw-svc-name">X-Ray</div></div>
+                                    <div class="cw-service" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">🏠</div><div class="cw-svc-name">Home Visit</div></div>
+                                    <div class="cw-service" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">🚨</div><div class="cw-svc-name">Emergency</div></div>
+                                </div>
+                            </div>
+
+                            <div class="cw-field">
+                                <label class="cw-label">Clinic Photos <span class="cw-opt-badge">Optional — up to 8</span></label>
+                                <div class="cw-hint" style="margin-bottom:.6rem">💡 Storefront, interior, equipment</div>
+                                <div class="cw-img-grid" id="cwClinicImgGrid">
+                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
+                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
+                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
+                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
+                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
+                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
+                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
+                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
+                                </div>
+                            </div>
+
+                            <div class="cw-submit-wrap">
+                                <button class="cw-btn-back" onclick="window.location.href='clinic-step1.html'">← Previous</button>
+                                <button class="cw-btn-next" onclick="window.location.href='clinic-step3.html'">Next — Subscription Plan →</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="~/js/clinic.js"></script>
+</body>
+</html>

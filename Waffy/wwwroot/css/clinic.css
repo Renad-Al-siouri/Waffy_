@@ -1,0 +1,1379 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+}
+
+:root {
+  --bg: #f8efea;
+  --section: #fbf6f1;
+  --white: #ffffff;
+
+  --olive: #97ad4d;
+  --olive-dark: #59652a;
+  --olive-light: #bccc7e;
+
+  --text: #564632;
+  --muted: #7b6c58;
+  --line: #ddd1bf;
+
+  --brown: #5b3f1c;
+  --brown-dark: #452f14;
+
+  --shadow: 0 10px 28px rgba(90, 75, 49, 0.10);
+
+  --radius-xl: 22px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --pill: 999px;
+
+  --olive-soft: rgba(151, 173, 77, 0.12);
+  --olive-soft-2: rgba(151, 173, 77, 0.18);
+  --olive-border: rgba(89, 101, 42, 0.20);
+  --olive-border-strong: rgba(89, 101, 42, 0.32);
+
+  --red: #dc2626;
+  --red-pale: #fef2f2;
+  --orange: #d97706;
+  --blue: #2563eb;
+  --blue-pale: #eff6ff;
+
+  --fs-title-xl: 1.5rem;
+  --fs-title-lg: 1.28rem;
+  --fs-title-md: 1.05rem;
+  --fs-body: 0.92rem;
+  --fs-small: 0.82rem;
+  --fs-xs: 0.74rem;
+}
+
+body {
+  font-family: "Nunito", "Tajawal", sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  background:
+   linear-gradient(rgba(248, 239, 234, 0.075), rgba(248, 239, 234, 0.377)),
+    url('../images/Gemini_Generated_Image_94fo4k94fo4k94fo.png') center center / cover no-repeat fixed;
+  background-color: var(--bg);
+  color: var(--text);
+}
+
+/* ══════════════════════════════════════
+   CLINIC WIZARD
+══════════════════════════════════════ */
+#clinicWizardContainer {
+  position: relative;
+  min-height: 100vh;
+  overflow-y: auto;
+  font-family: "Nunito", "Tajawal", sans-serif;
+  background: transparent;
+  color: var(--text);
+}
+
+#clinicWizardContainer * {
+  box-sizing: border-box;
+}
+
+/* Background */
+#clinicWizardContainer .cw-bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+#clinicWizardContainer .cw-bg::before,
+#clinicWizardContainer .cw-bg::after {
+  display: none !important;
+}
+
+/* Topbar */
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 24px;
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  backdrop-filter: blur(10px);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: "Fredoka", "Fredoka One", cursive;
+  font-size: 1.35rem;
+  color: var(--olive-dark);
+}
+
+.logo-ico {
+  font-size: 1.3rem;
+}
+
+.top-signup-link {
+  color: var(--olive-dark);
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 0.95rem;
+  transition: 0.2s ease;
+}
+
+.top-signup-link:hover {
+  color: var(--brown);
+}
+
+/* Progress */
+.prog-line {
+  width: 100%;
+  height: 8px;
+  background: #e7ddd0;
+}
+
+.prog-fill {
+  height: 100%;
+  width: 8%;
+  background: linear-gradient(90deg, var(--olive-dark), var(--olive));
+  transition: width 0.3s ease;
+}
+#clinicWizardContainer .cw-back-link {
+  color: var(--olive-dark);
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 0.95rem;
+  transition: 0.2s ease;
+  background: transparent;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+  font-family: "Nunito", "Tajawal", sans-serif;
+  cursor: pointer;
+}
+
+#clinicWizardContainer .cw-back-link:hover {
+  color: var(--brown);
+  background: transparent;
+  border: none;
+}
+
+/* Wrap */
+#clinicWizardContainer .cw-wrap {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  min-height: calc(100vh - 62px);
+  padding: 2rem 1rem 3rem;
+  gap: 2rem;
+}
+
+/* Left */
+#clinicWizardContainer .cw-left {
+  width: 300px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+#clinicWizardContainer .cw-info-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  padding: 1.35rem;
+  box-shadow: var(--shadow);
+}
+
+#clinicWizardContainer .cw-info-title {
+  font-family: "Fredoka", "Fredoka One", cursive;
+  font-size: var(--fs-title-md);
+  font-weight: 800;
+  color: var(--olive-dark);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#clinicWizardContainer .cw-step-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(86, 70, 50, 0.10);
+}
+
+#clinicWizardContainer .cw-step-item:last-child {
+  border-bottom: none;
+}
+
+#clinicWizardContainer .cw-step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 7px;
+  flex-shrink: 0;
+  background: var(--olive-soft);
+  color: var(--olive-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+#clinicWizardContainer .cw-step-num.done {
+  background: var(--olive-dark);
+  color: white;
+}
+
+#clinicWizardContainer .cw-step-num.active {
+  background: var(--olive);
+  color: white;
+  box-shadow: 0 2px 8px rgba(151, 173, 77, 0.28);
+}
+
+#clinicWizardContainer .cw-step-text {
+  font-size: 0.83rem;
+  color: var(--text);
+  font-weight: 700;
+  padding-top: 2px;
+}
+
+#clinicWizardContainer .cw-benefit {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.83rem;
+  color: var(--text);
+  padding: 6px 0;
+}
+
+#clinicWizardContainer .cw-benefit-icon {
+  font-size: 1rem;
+  width: 22px;
+  text-align: center;
+}
+
+/* Outer */
+#clinicWizardContainer .cw-form-outer {
+  flex: 1;
+  max-width: 640px;
+  min-width: 0;
+}
+
+/* Role selector */
+#clinicWizardContainer .cw-role-selector {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  box-shadow: var(--shadow);
+  animation: cwUp 0.4s ease;
+}
+
+@keyframes cwUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+#clinicWizardContainer .cw-form-logo {
+  text-align: center;
+  margin-bottom: 1.8rem;
+}
+
+#clinicWizardContainer .cw-form-logo-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  margin: 0 auto 10px;
+  background: linear-gradient(135deg, var(--olive-dark), var(--olive));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.8rem;
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(151, 173, 77, 0.20);
+}
+
+#clinicWizardContainer .cw-form-logo-name {
+  font-family: "Fredoka", "Fredoka One", cursive;
+  font-size: 1.55rem;
+  font-weight: 800;
+  color: var(--olive-dark);
+}
+
+#clinicWizardContainer .cw-form-logo-sub {
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin-top: 4px;
+}
+
+#clinicWizardContainer .cw-section-title {
+  font-size: var(--fs-title-md);
+  font-weight: 800;
+  color: var(--olive-dark);
+  margin-bottom: 1rem;
+  text-align: center;
+  font-family: "Fredoka", "Fredoka One", cursive;
+}
+
+#clinicWizardContainer .cw-sub-role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+#clinicWizardContainer .cw-sub-role-card {
+  border: 2px solid var(--olive-border);
+  border-radius: var(--radius-md);
+  padding: 1.3rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.25s;
+  background: var(--section);
+  position: relative;
+}
+
+#clinicWizardContainer .cw-sub-role-card:hover {
+  border-color: var(--olive);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+#clinicWizardContainer .cw-sub-role-card.selected {
+  border-color: var(--olive-dark);
+  background: rgba(151, 173, 77, 0.10);
+}
+
+#clinicWizardContainer .cw-src-icon {
+  font-size: 2.4rem;
+  margin-bottom: 8px;
+}
+
+#clinicWizardContainer .cw-src-title {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--olive-dark);
+  font-family: "Fredoka", "Fredoka One", cursive;
+}
+
+#clinicWizardContainer .cw-src-desc {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 5px;
+  line-height: 1.6;
+}
+
+#clinicWizardContainer .cw-src-badge {
+  position: absolute;
+  top: -8px;
+  right: 50%;
+  transform: translateX(50%);
+  background: var(--olive-dark);
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 10px;
+  border-radius: 50px;
+}
+
+/* Step form */
+#clinicWizardContainer .cw-step-form {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  animation: cwUp 0.4s ease;
+  display: none;
+}
+
+#clinicWizardContainer .cw-step-form.show {
+  display: block;
+}
+
+/* Progress */
+#clinicWizardContainer .cw-prog-wrap {
+  background: transparent;
+  padding: 1.4rem 2rem 0;
+}
+
+#clinicWizardContainer .cw-prog-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+#clinicWizardContainer .cw-prog-title {
+  font-family: "Fredoka", "Fredoka One", cursive;
+  font-size: 1.08rem;
+  font-weight: 800;
+  color: var(--olive-dark);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#clinicWizardContainer .cw-prog-counter {
+  font-size: 0.82rem;
+  color: var(--muted);
+  font-weight: 700;
+  background: var(--olive-soft);
+  border: 1px solid rgba(151, 173, 77, 0.24);
+  border-radius: var(--pill);
+  padding: 4px 12px;
+}
+
+#clinicWizardContainer .cw-indicators {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 1.2rem;
+}
+
+#clinicWizardContainer .cw-ind {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  position: relative;
+}
+
+#clinicWizardContainer .cw-ind::after {
+  content: '';
+  position: absolute;
+  top: 14px;
+  left: -50%;
+  width: 100%;
+  height: 2px;
+  background: rgba(86, 70, 50, 0.12);
+  z-index: 0;
+}
+
+#clinicWizardContainer .cw-ind:last-child::after {
+  display: none;
+}
+
+#clinicWizardContainer .cw-ind.done::after {
+  background: var(--olive);
+}
+
+#clinicWizardContainer .cw-dot {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgba(151, 173, 77, 0.24);
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--muted);
+  z-index: 1;
+  transition: all 0.3s;
+}
+
+#clinicWizardContainer .cw-ind.active .cw-dot {
+  border-color: var(--olive-dark);
+  background: var(--olive-dark);
+  color: white;
+  box-shadow: 0 2px 10px rgba(89, 101, 42, 0.22);
+}
+
+#clinicWizardContainer .cw-ind.done .cw-dot {
+  border-color: var(--olive);
+  background: var(--olive);
+  color: white;
+  font-size: 0.9rem;
+}
+
+#clinicWizardContainer .cw-ind-label {
+  font-size: 0.68rem;
+  color: var(--muted);
+  margin-top: 5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+#clinicWizardContainer .cw-ind.active .cw-ind-label {
+  color: var(--olive-dark);
+}
+
+/* Content */
+#clinicWizardContainer .cw-content {
+  padding: 1.8rem 2rem;
+}
+
+#clinicWizardContainer .cw-content.hidden {
+  display: none;
+}
+
+#clinicWizardContainer .cw-content-title {
+  font-family: "Fredoka", "Fredoka One", cursive;
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--olive-dark);
+  margin-bottom: 0.3rem;
+}
+
+#clinicWizardContainer .cw-content-sub {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 1.4rem;
+  line-height: 1.6;
+}
+
+/* Fields */
+#clinicWizardContainer .cw-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+#clinicWizardContainer .cw-field-full {
+  grid-column: 1 / -1;
+}
+
+#clinicWizardContainer .cw-field {
+  margin-bottom: 1rem;
+}
+
+#clinicWizardContainer .cw-label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+#clinicWizardContainer .cw-label .req {
+  color: var(--red);
+  margin-right: 2px;
+}
+
+#clinicWizardContainer .cw-opt-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: var(--pill);
+  background: #f1eee7;
+  color: var(--muted);
+  font-size: 0.72rem;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+#clinicWizardContainer .cw-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  font-family: "Nunito", "Tajawal", sans-serif;
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--section);
+  transition: all 0.2s;
+}
+
+#clinicWizardContainer .cw-input:focus {
+  outline: none;
+  border-color: var(--olive);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(151, 173, 77, 0.12);
+}
+
+#clinicWizardContainer .cw-input::placeholder {
+  color: var(--muted);
+}
+
+#clinicWizardContainer .cw-input.error {
+  border-color: var(--red);
+  background: var(--red-pale);
+}
+
+#clinicWizardContainer select.cw-input {
+  cursor: pointer;
+}
+
+#clinicWizardContainer textarea.cw-input {
+  resize: vertical;
+  min-height: 90px;
+}
+
+#clinicWizardContainer .cw-hint {
+  font-size: 0.74rem;
+  color: var(--muted);
+  margin-top: 5px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.5;
+}
+
+/* Days */
+#clinicWizardContainer .cw-days {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+#clinicWizardContainer .cw-day {
+  padding: 7px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  border: 1.5px solid var(--line);
+  background: white;
+  font-family: "Nunito", "Tajawal", sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+
+#clinicWizardContainer .cw-day.active {
+  background: var(--olive-dark);
+  color: white;
+  border-color: var(--olive-dark);
+}
+
+#clinicWizardContainer .cw-day:hover:not(.active) {
+  border-color: var(--olive);
+  color: var(--olive-dark);
+}
+
+/* Services */
+#clinicWizardContainer .cw-services {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+#clinicWizardContainer .cw-service {
+  padding: 10px 8px;
+  border-radius: 12px;
+  cursor: pointer;
+  border: 1.5px solid var(--line);
+  background: var(--section);
+  text-align: center;
+  transition: all 0.2s;
+}
+
+#clinicWizardContainer .cw-service:hover {
+  border-color: var(--olive);
+}
+
+#clinicWizardContainer .cw-service.active {
+  border-color: var(--olive-dark);
+  background: rgba(151, 173, 77, 0.10);
+  box-shadow: 0 0 0 2px rgba(151, 173, 77, 0.10);
+}
+
+#clinicWizardContainer .cw-svc-icon {
+  font-size: 1.4rem;
+  margin-bottom: 4px;
+}
+
+#clinicWizardContainer .cw-svc-name {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Toggle */
+#clinicWizardContainer .cw-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line);
+  background: var(--section);
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+#clinicWizardContainer .cw-toggle-label {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#clinicWizardContainer .cw-toggle-sub {
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+#clinicWizardContainer .cw-toggle {
+  width: 44px;
+  height: 24px;
+  border-radius: 50px;
+  background: rgba(123, 108, 88, 0.22);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.3s;
+  flex-shrink: 0;
+  border: none;
+}
+
+#clinicWizardContainer .cw-toggle.on {
+  background: var(--olive);
+}
+
+#clinicWizardContainer .cw-toggle::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  transition: transform 0.3s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+#clinicWizardContainer .cw-toggle.on::after {
+  transform: translateX(-20px);
+}
+
+/* Plans */
+#clinicWizardContainer .cw-plans {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+
+#clinicWizardContainer .cw-plan {
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  padding: 1.2rem;
+  cursor: pointer;
+  transition: all 0.25s;
+  background: var(--section);
+  position: relative;
+  text-align: center;
+}
+
+#clinicWizardContainer .cw-plan:hover {
+  border-color: var(--olive);
+  transform: translateY(-2px);
+}
+
+#clinicWizardContainer .cw-plan.active {
+  border-color: var(--olive-dark);
+  background: rgba(151, 173, 77, 0.10);
+}
+
+#clinicWizardContainer .cw-plan-popular {
+  position: absolute;
+  top: -10px;
+  right: 50%;
+  transform: translateX(50%);
+  background: var(--olive-dark);
+  color: white;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 3px 12px;
+  border-radius: 50px;
+}
+
+#clinicWizardContainer .cw-plan-icon {
+  font-size: 1.8rem;
+  margin-bottom: 6px;
+}
+
+#clinicWizardContainer .cw-plan-name {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--olive-dark);
+  font-family: "Fredoka", "Fredoka One", cursive;
+}
+
+#clinicWizardContainer .cw-plan-price {
+  font-family: "Fredoka", "Fredoka One", cursive;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--olive-dark);
+  margin: 6px 0 2px;
+}
+
+#clinicWizardContainer .cw-plan-commission {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+#clinicWizardContainer .cw-plan-features {
+  margin-top: 10px;
+  text-align: right;
+}
+
+#clinicWizardContainer .cw-plan-feature {
+  font-size: 0.75rem;
+  color: var(--text);
+  padding: 2px 0;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+/* Map */
+#clinicWizardContainer .cw-map {
+  height: 160px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #eef5df, #dce8bd);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--line);
+  position: relative;
+  cursor: pointer;
+}
+
+#clinicWizardContainer .cw-map-pin {
+  font-size: 2rem;
+  animation: cwBounce 2s ease-in-out infinite;
+}
+
+@keyframes cwBounce {
+  0%,100% { transform: translateY(0); }
+  50%     { transform: translateY(-8px); }
+}
+
+#clinicWizardContainer .cw-map-label {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--olive-dark);
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 50px;
+}
+
+/* Invite */
+#clinicWizardContainer .cw-invite-box {
+  background: linear-gradient(135deg, rgba(151, 173, 77, 0.10), var(--section));
+  border: 2px solid rgba(151, 173, 77, 0.20);
+  border-radius: 14px;
+  padding: 1.4rem;
+  text-align: center;
+  margin-bottom: 1.2rem;
+}
+
+#clinicWizardContainer .cw-invite-icon {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+#clinicWizardContainer .cw-invite-title {
+  font-weight: 800;
+  font-size: 1rem;
+  color: var(--olive-dark);
+  margin-bottom: 4px;
+  font-family: "Fredoka", "Fredoka One", cursive;
+}
+
+#clinicWizardContainer .cw-invite-sub {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-bottom: 1rem;
+  line-height: 1.6;
+}
+
+#clinicWizardContainer .cw-invite-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+#clinicWizardContainer .cw-invite-input {
+  flex: 1;
+  min-width: 220px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 2px solid var(--line);
+  background: white;
+  font-family: "Nunito", sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  text-align: center;
+  letter-spacing: 2px;
+  color: var(--olive-dark);
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+#clinicWizardContainer .cw-invite-input:focus {
+  outline: none;
+  border-color: var(--olive-dark);
+  box-shadow: 0 0 0 3px rgba(151, 173, 77, 0.12);
+}
+
+#clinicWizardContainer .cw-invite-input.error {
+  border-color: var(--red);
+}
+
+#clinicWizardContainer .cw-invite-btn {
+  padding: 12px 20px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--olive-dark), var(--olive));
+  color: white;
+  border: none;
+  font-family: "Nunito", "Tajawal", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+#clinicWizardContainer .cw-invite-btn:hover {
+  background: linear-gradient(135deg, #697836, #a7bd61);
+}
+
+#clinicWizardContainer .cw-invite-success {
+  display: none;
+  background: rgba(151, 173, 77, 0.10);
+  border: 1.5px solid var(--olive-light);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--olive-dark);
+  align-items: center;
+  gap: 8px;
+}
+
+#clinicWizardContainer .cw-invite-success.show {
+  display: flex;
+}
+
+/* Review */
+#clinicWizardContainer .cw-review {
+  background: var(--section);
+  border-radius: 12px;
+  padding: 1.2rem;
+  margin-bottom: 10px;
+  border: 1px solid var(--line);
+}
+
+#clinicWizardContainer .cw-review-title {
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--olive-dark);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#clinicWizardContainer .cw-review-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
+  font-size: 0.84rem;
+  border-bottom: 1px solid rgba(86, 70, 50, 0.10);
+  gap: 16px;
+}
+
+#clinicWizardContainer .cw-review-item:last-child {
+  border-bottom: none;
+}
+
+#clinicWizardContainer .cw-review-key {
+  color: var(--muted);
+}
+
+#clinicWizardContainer .cw-review-val {
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* Consent */
+#clinicWizardContainer .cw-consent {
+  background: var(--blue-pale);
+  border: 1.5px solid rgba(37,99,235,0.2);
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  margin-bottom: 1rem;
+  font-size: 0.82rem;
+  color: #1d4ed8;
+  line-height: 1.7;
+}
+
+#clinicWizardContainer .cw-consent-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 10px;
+  cursor: pointer;
+}
+
+#clinicWizardContainer .cw-consent-check input {
+  margin-top: 3px;
+  accent-color: var(--olive-dark);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Buttons */
+#clinicWizardContainer .cw-submit-wrap {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+#clinicWizardContainer .cw-btn-next {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--olive-dark), var(--olive));
+  color: white;
+  border: none;
+  font-family: "Nunito", "Tajawal", sans-serif;
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.25s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+#clinicWizardContainer .cw-btn-next:hover {
+  background: linear-gradient(135deg, #697836, #a7bd61);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 20px rgba(151, 173, 77, 0.18);
+}
+
+#clinicWizardContainer .cw-btn-back {
+  padding: 14px 20px;
+  border-radius: 12px;
+  background: white;
+  color: var(--olive-dark);
+  border: 1.5px solid var(--line);
+  font-family: "Nunito", "Tajawal", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#clinicWizardContainer .cw-btn-back:hover {
+  border-color: var(--olive);
+  color: var(--olive-dark);
+  background: var(--section);
+}
+
+/* Success */
+#clinicWizardContainer .cw-success {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-xl);
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: var(--shadow);
+  display: none;
+  animation: cwUp 0.5s ease;
+}
+
+#clinicWizardContainer .cw-success.show {
+  display: block;
+}
+
+#clinicWizardContainer .cw-s-anim {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: cwPop 0.5s cubic-bezier(0.68,-0.55,0.265,1.55);
+}
+
+@keyframes cwPop {
+  0% { transform: scale(0); }
+  100% { transform: scale(1); }
+}
+
+#clinicWizardContainer .cw-s-title {
+  font-family: "Fredoka", "Fredoka One", cursive;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--olive-dark);
+  margin-bottom: 8px;
+}
+
+#clinicWizardContainer .cw-s-sub {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.7;
+  max-width: 400px;
+  margin: 0 auto 1.5rem;
+}
+
+#clinicWizardContainer .cw-s-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 380px;
+  margin: 0 auto 1.5rem;
+  text-align: right;
+}
+
+#clinicWizardContainer .cw-s-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--section);
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+
+/* Note */
+#clinicWizardContainer .cw-note {
+  background: #f3ece2;
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  font-size: 0.83rem;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+#clinicWizardContainer .cw-note-title {
+  font-weight: 800;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--olive-dark);
+}
+
+#clinicWizardContainer .cw-note p {
+  line-height: 1.7;
+}
+
+/* Shared Upload */
+.wf-upload-box {
+  border: 2px dashed rgba(151, 173, 77, 0.34);
+  border-radius: 14px;
+  padding: 1.2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all .2s;
+  background: var(--section);
+}
+
+.wf-upload-box:hover {
+  border-color: var(--olive);
+  background: rgba(151, 173, 77, 0.08);
+}
+
+.wf-upload-ico {
+  font-size: 1.8rem;
+  margin-bottom: .35rem;
+}
+
+.wf-upload-txt {
+  font-size: .78rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.wf-upload-txt strong {
+  color: var(--olive-dark);
+}
+
+#clinicWizardContainer .cw-upload-prev {
+  display: none;
+  align-items: center;
+  gap: .75rem;
+  background: rgba(151, 173, 77, 0.10);
+  border: 1px solid rgba(151, 173, 77, 0.24);
+  border-radius: 10px;
+  padding: .7rem 1rem;
+  margin-top: .5rem;
+}
+
+#clinicWizardContainer .cw-upload-prev.show {
+  display: flex;
+}
+
+#clinicWizardContainer .cw-prev-name {
+  font-size: .82rem;
+  font-weight: 700;
+  color: var(--olive-dark);
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#clinicWizardContainer .cw-prev-rm {
+  background: none;
+  border: none;
+  color: var(--red);
+  cursor: pointer;
+  font-size: .8rem;
+  font-weight: 700;
+  font-family: inherit;
+}
+
+/* Image Grid */
+#clinicWizardContainer .cw-img-grid {
+  display: grid;
+  grid-template-columns: repeat(4,1fr);
+  gap: .6rem;
+  margin-top: .6rem;
+}
+
+#clinicWizardContainer .cw-img-thumb {
+  aspect-ratio: 1;
+  background: rgba(151, 173, 77, 0.10);
+  border: 1px solid rgba(151, 173, 77, 0.24);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  cursor: pointer;
+  transition: all .2s;
+  overflow: hidden;
+  position: relative;
+}
+
+#clinicWizardContainer .cw-img-thumb:hover {
+  border-color: var(--olive);
+}
+
+#clinicWizardContainer .cw-img-thumb.filled {
+  border-color: var(--olive-dark);
+}
+
+#clinicWizardContainer .cw-img-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#clinicWizardContainer .cw-img-thumb .cw-thumb-rm {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  background: rgba(220,38,38,.85);
+  border-radius: 50%;
+  color: #fff;
+  font-size: .65rem;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: none;
+  font-weight: 900;
+}
+
+#clinicWizardContainer .cw-img-thumb:hover .cw-thumb-rm {
+  display: flex;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  #clinicWizardContainer .cw-left {
+    display: none;
+  }
+
+  #clinicWizardContainer .cw-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #clinicWizardContainer .cw-plans {
+    grid-template-columns: 1fr;
+  }
+
+  #clinicWizardContainer .cw-services {
+    grid-template-columns: repeat(2,1fr);
+  }
+
+  #clinicWizardContainer .cw-sub-role-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  #clinicWizardContainer .cw-topbar {
+    padding: 16px 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  #clinicWizardContainer .cw-topbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 16px 14px;
+  }
+
+  #clinicWizardContainer .cw-wrap {
+    padding: 1rem 0.75rem 2rem;
+  }
+
+  #clinicWizardContainer .cw-content {
+    padding: 1.2rem 1rem;
+  }
+
+  #clinicWizardContainer .cw-prog-wrap {
+    padding: 1rem 1rem 0;
+  }
+
+  #clinicWizardContainer .cw-submit-wrap {
+    flex-direction: column;
+  }
+
+  #clinicWizardContainer .cw-btn-next,
+  #clinicWizardContainer .cw-btn-back {
+    width: 100%;
+  }
+
+  #clinicWizardContainer .cw-invite-row {
+    flex-direction: column;
+  }
+
+  #clinicWizardContainer .cw-invite-input,
+  #clinicWizardContainer .cw-invite-btn {
+    width: 100%;
+  }
+
+  #clinicWizardContainer .cw-img-grid {
+    grid-template-columns: repeat(3,1fr);
+  }
+}

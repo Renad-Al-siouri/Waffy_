@@ -1,0 +1,62 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;  
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waffy – OTP Verification</title>
+
+    <link rel="stylesheet" href="~/css/OTPVer.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+</head>
+<body>
+
+    <div class="page">
+        <div class="logo-wrap">
+            <div class="logo-box">
+                <img src="../Images/logo.png" alt="Waffy Logo" class="logo-img" />
+            </div>
+        </div>
+
+        <div class="card otp-card">
+            <div class="card-title">Verification Code</div>
+
+            <div class="card-sub">
+                Enter the 4-digit code sent to your email address
+            </div>
+
+            <form id="otpForm" novalidate>
+                <div class="otp-group">
+                    <input type="text" maxlength="1" class="otp-input" inputmode="numeric" />
+                    <input type="text" maxlength="1" class="otp-input" inputmode="numeric" />
+                    <input type="text" maxlength="1" class="otp-input" inputmode="numeric" />
+                    <input type="text" maxlength="1" class="otp-input" inputmode="numeric" />
+                </div>
+
+                <button type="submit" class="btn-verify">Verify</button>
+
+                <div class="success" id="successMsg">
+                    Code verified successfully!
+                </div>
+            </form>
+
+            <div class="bottom-text">
+                Didn’t receive the code?
+                <a href="#" class="resend-link disabled" id="resendCode">Resend in 30s</a>
+            </div>
+
+            <div class="bottom-text back-row">
+                <a href="forgotPass.html" class="back-link">Back</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/js/OTPVer.js"></script>
+</body>
+</html>

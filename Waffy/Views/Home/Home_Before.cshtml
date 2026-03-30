@@ -1,0 +1,819 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waffy - Home</title>
+
+    <link rel="stylesheet" href="~/css/home-before.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+
+    <div class="top-hero-area">
+        <div class="top-hero-shell">
+            <header class="topbar">
+                <div class="header-shell">
+                    <nav class="navbar">
+
+                        <div class="left-nav desktop-nav">
+                            <a href="home-before.html" class="nav-link active">Home</a>
+                            <a href="veterinary.html" class="nav-link">Clinics</a>
+                            <a href="product.html" class="nav-link">Stores</a>
+                            <a href="adapt.html" class="nav-link">Adoption</a>
+                        </div>
+
+                        <div class="logo-center">
+                            <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
+                        </div>
+
+                        <div class="right-nav desktop-nav">
+                            <a href="lost.html" class="nav-link">Lost Pets</a>
+                            <a href="gps.html" class="nav-link">Map</a>
+
+                            <div class="services-dropdown" id="servicesDropdown">
+                                <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
+                                    Services
+                                    <span class="dropdown-arrow">▼</span>
+                                </button>
+
+                                <div class="dropdown-menu" id="servicesMenu">
+                                    <a href="veterinary.html" class="dropdown-link">Clinics</a>
+                                    <a href="product.html" class="dropdown-link">Stores</a>
+                                    <a href="adapt.html" class="dropdown-link">Adoption</a>
+                                    <a href="lost.html" class="dropdown-link">Lost Pets</a>
+                                    <a href="gps.html" class="dropdown-link">Map</a>
+                                    <a href="money.html" class="dropdown-link">Donations</a>
+                                    <a href="law.html" class="dropdown-link">Law</a>
+                                    <a href="dangerousAnimal.html" class="dropdown-link">Dangerous Animal</a>
+                                    <a href="support.html" class="dropdown-link">Technical Support</a>
+                                    <a href="faq.html" class="dropdown-link">FAQ</a>
+                                </div>
+                            </div>
+
+                            <a href="about.html" class="nav-link">About Us</a>
+                            <a href="login.html" class="nav-link login-btn">Login</a>
+                        </div>
+
+                        <div class="mobile-nav-wrap">
+                            <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+
+                            <div class="nav-links" id="navLinks">
+                                <div class="mobile-menu-logo">
+                                    <img src="../Images/logo.png" alt="Waffy Logo">
+                                </div>
+
+                                <a href="home-before.html" class="nav-link active">Home</a>
+                                <a href="veterinary.html" class="nav-link">Clinics</a>
+                                <a href="product.html" class="nav-link">Stores</a>
+                                <a href="adapt.html" class="nav-link">Adoption</a>
+                                <a href="lost.html" class="nav-link">Lost Pets</a>
+                                <a href="gps.html" class="nav-link">Map</a>
+
+                                <div class="mobile-services-block" id="mobileServicesBlock">
+                                    <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
+                                        <span>Services</span>
+                                        <span class="dropdown-arrow">▼</span>
+                                    </button>
+
+                                    <div class="mobile-services-menu" id="mobileServicesMenu">
+                                        <a href="veterinary.html" class="dropdown-link">Clinics</a>
+                                        <a href="product.html" class="dropdown-link">Stores</a>
+                                        <a href="adapt.html" class="dropdown-link">Adoption</a>
+                                        <a href="lost.html" class="dropdown-link">Lost Pets</a>
+                                        <a href="gps.html" class="dropdown-link">Map</a>
+                                        <a href="money.html" class="dropdown-link">Donations</a>
+                                        <a href="law.html" class="dropdown-link">Law</a>
+                                        <a href="dangerousAnimal.html" class="dropdown-link">Dangerous Animal</a>
+                                        <a href="support.html" class="dropdown-link">Technical Support</a>
+                                        <a href="faq.html" class="dropdown-link">FAQ</a>
+                                    </div>
+                                </div>
+
+                                <a href="about.html" class="nav-link">About Us</a>
+                                <a href="login.html" class="nav-link login-btn">Login</a>
+                            </div>
+                        </div>
+
+                    </nav>
+                </div>
+            </header>
+
+            <section class="hero-section">
+                <div class="hero-box">
+                    <img src="../Images/home.png" alt="Hero Background" class="hero-bg-image">
+
+                    <div class="hero-content">
+                        <h1>Welcome to Waffy!</h1>
+                        <p>Your Friendly Pet Care Hub</p>
+
+                        <div class="hero-buttons">
+                            <a href="signup.html" class="btn btn-primary">Sign up</a>
+                            <a href="login.html" class="btn btn-secondary">Log in</a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stats">
+                    <div class="stat">
+                        <strong>+4,250</strong>
+                        <span>Pet Owners</span>
+                    </div>
+                    <div class="stat">
+                        <strong>150</strong>
+                        <span>Clinics</span>
+                    </div>
+                    <div class="stat">
+                        <strong>200</strong>
+                        <span>Stores</span>
+                    </div>
+                    <div class="stat">
+                        <strong>70</strong>
+                        <span>Adoptions</span>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div class="main-sections">
+        <main class="container">
+
+            <section class="section-box">
+                <div class="section-inner">
+                    <div class="section-head">
+                        <div>
+                            <div class="section-title-wrap">
+                                <span>🐾</span>
+                                <h2 class="section-title">What We Offer to Your Pet</h2>
+                            </div>
+                            <p class="section-sub">From medical support to shopping, reports, and smart tools for daily pet care.</p>
+                        </div>
+                    </div>
+
+                    <div class="services-grid">
+                        <article class="service-card">
+                            <img src="../Images/Animals/clinic1.png" alt="Clinic Service">
+                            <div>
+                                <h3>Find a Clinic</h3>
+                                <p>Locate trusted veterinary clinics near your area.</p>
+                                <a href="veterinary.html" class="mini-btn">Find now</a>
+                            </div>
+                        </article>
+
+                        <article class="service-card">
+                            <img src="../Images/Animals/product.png" alt="Store Service">
+                            <div>
+                                <h3>Shop Supplies</h3>
+                                <p>Browse pet food, toys, grooming, and health items.</p>
+                                <a href="product.html" class="mini-btn">Shop now</a>
+                            </div>
+                        </article>
+
+                        <article class="service-card">
+                            <img src="../Images/Animals/Adopt a Friend.jpg" alt="Adoption Service">
+                            <div>
+                                <h3>Adopt a Friend</h3>
+                                <p>Discover pets that are looking for a loving family.</p>
+                                <a href="adapt.html" class="mini-btn">See list</a>
+                            </div>
+                        </article>
+
+                        <article class="service-card">
+                            <img src="../Images/Animals/lost.png" alt="Lost Pets Service">
+                            <div>
+                                <h3>Lost Pet</h3>
+                                <p>Help missing pets return safely to their owners.</p>
+                                <a href="lost.html" class="mini-btn">View reports</a>
+                            </div>
+                        </article>
+
+                        <article class="service-card">
+                            <img src="../Images/Animals/donate.png" alt="Donation Service">
+                            <div>
+                                <h3>Donate</h3>
+                                <p>Donate to pets and infected animals.</p>
+                                <a href="money.html" class="mini-btn">Check now</a>
+                            </div>
+                        </article>
+
+                        <article class="service-card">
+                            <img src="../Images/Animals/map.png" alt="Map Service">
+                            <div>
+                                <h3>Map</h3>
+                                <p>Open a live map to search clinics and pet stores nearby.</p>
+                                <a href="gps.html" class="mini-btn">Open map</a>
+                            </div>
+                        </article>
+
+                        <article class="service-card">
+                            <img src="../Images/Animals/map.png" alt="Dangerous Animal">
+                            <div>
+                                <h3>Dangerous Animal</h3>
+                                <p>View helpful information related to dangerous animals.</p>
+                                <a href="dangerousAnimal.html" class="mini-btn">Open</a>
+                            </div>
+                        </article>
+
+                        <article class="service-card">
+                            <img src="../Images/Animals/map.png" alt="Law">
+                            <div>
+                                <h3>Law</h3>
+                                <p>Read the related pet and animal rules and regulations.</p>
+                                <a href="law.html" class="mini-btn">Open</a>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-box" id="adoption">
+                <div class="section-inner">
+                    <div class="section-head">
+                        <div>
+                            <div class="section-title-wrap">
+                                <span>🐾</span>
+                                <h2 class="section-title">Our Newest Friend Is Waiting for a Family</h2>
+                            </div>
+                            <p class="section-sub">Meet newcomers looking for a warm home and a loving heart.</p>
+                        </div>
+                    </div>
+
+                    <div class="animals-grid">
+                        <article class="animal-card">
+                            <img src="../Images/Animals/cat1.png" alt="Max">
+                            <div>
+                                <strong>Max</strong>
+                                <ul>
+                                    <li>Breed: Golden Retriever</li>
+                                    <li>Age: 3 years</li>
+                                    <li>Size: Medium</li>
+                                    <li>Temperament: Friendly, Energetic</li>
+                                </ul>
+                            </div>
+                        </article>
+
+                        <article class="animal-card">
+                            <img src="../Images/Animals/rabbit1.png" alt="Rocky">
+                            <div>
+                                <strong>Rocky</strong>
+                                <ul>
+                                    <li>Breed: German Shepherd</li>
+                                    <li>Age: 4 years</li>
+                                    <li>Size: Large</li>
+                                    <li>Temperament: Loyal, Protective</li>
+                                </ul>
+                            </div>
+                        </article>
+
+                        <article class="animal-card">
+                            <img src="../Images/Animals/dog1.png" alt="Bella">
+                            <div>
+                                <strong>Bella</strong>
+                                <ul>
+                                    <li>Breed: Labrador Mix</li>
+                                    <li>Age: 2 years</li>
+                                    <li>Size: Medium</li>
+                                    <li>Temperament: Calm, Gentle</li>
+                                </ul>
+                            </div>
+                        </article>
+
+                        <article class="animal-card">
+                            <img src="../Images/Animals/bird.png" alt="Luna">
+                            <div>
+                                <strong>Luna</strong>
+                                <ul>
+                                    <li>Breed: Persian Mix</li>
+                                    <li>Age: 1 year</li>
+                                    <li>Size: Small</li>
+                                    <li>Temperament: Quiet, Affectionate</li>
+                                </ul>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div class="center-btn">
+                        <a href="adapt.html" class="btn btn-primary">View All Adoption List</a>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-box lost-section" id="lost">
+                <div class="section-inner lost-inner">
+                    <div class="lost-section-top">
+                        <div class="lost-heading">
+                            <div class="section-title-wrap">
+                                <span>🐾</span>
+                                <h2 class="section-title">Lost Pets</h2>
+                            </div>
+                            <p class="section-sub">Help reunite pets with their families through fast community support.</p>
+                        </div>
+
+                        <a href="lost.html" class="lost-main-btn">View All Cases</a>
+                    </div>
+
+                    <div class="lost-grid compact-lost-grid">
+                        <article class="lost-card compact featured">
+                            <div class="lost-media">
+                                <img src="../Images/Animals/cat2.png" alt="Coco">
+                            </div>
+
+                            <div class="lost-content">
+                                <div class="lost-card-top">
+                                    <strong>Coco</strong>
+                                    <span class="lost-type">Bird</span>
+                                </div>
+
+                                <p>Small green parrot lost near Al Rabieh.</p>
+
+                                <div class="lost-details">
+                                    <span>📍 Amman</span>
+                                    <span>🕒 2 days ago</span>
+                                </div>
+
+                                <div class="lost-card-actions">
+                                    <span class="phone-pill">0798765432</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="lost-card compact">
+                            <div class="lost-media">
+                                <img src="../Images/Animals/rabbit2.png" alt="Milo">
+                            </div>
+
+                            <div class="lost-content">
+                                <div class="lost-card-top">
+                                    <strong>Milo</strong>
+                                    <span class="lost-type">Rabbit</span>
+                                </div>
+
+                                <p>Brown rabbit lost in a residential area.</p>
+
+                                <div class="lost-details">
+                                    <span>📍 Amman</span>
+                                    <span>🕒 1 day ago</span>
+                                </div>
+
+                                <div class="lost-card-actions">
+                                    <span class="phone-pill">0791234567</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="lost-card compact">
+                            <div class="lost-media">
+                                <img src="../Images/Animals/dog3.png" alt="Lulu">
+                            </div>
+
+                            <div class="lost-content">
+                                <div class="lost-card-top">
+                                    <strong>Lulu</strong>
+                                    <span class="lost-type">Duck</span>
+                                </div>
+
+                                <p>Yellow duck disappeared from a family garden.</p>
+
+                                <div class="lost-details">
+                                    <span>📍 Amman</span>
+                                    <span>🕒 3 days ago</span>
+                                </div>
+
+                                <div class="lost-card-actions">
+                                    <span class="phone-pill">0795566778</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="lost-card compact">
+                            <div class="lost-media">
+                                <img src="../Images/Animals/cat4.png" alt="Kiwi">
+                            </div>
+
+                            <div class="lost-content">
+                                <div class="lost-card-top">
+                                    <strong>Kiwi</strong>
+                                    <span class="lost-type">Bird</span>
+                                </div>
+
+                                <p>Small green bird seen near a balcony area.</p>
+
+                                <div class="lost-details">
+                                    <span>📍 Amman</span>
+                                    <span>🕒 4 days ago</span>
+                                </div>
+
+                                <div class="lost-card-actions">
+                                    <span class="phone-pill">0793344556</span>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-box" id="shop">
+                <div class="section-inner">
+                    <div class="section-head">
+                        <div class="section-title-wrap">
+                            <span>🐾</span>
+                            <h2 class="section-title">Featured Products</h2>
+                        </div>
+                        <a href="product.html" class="view-all">View All Products</a>
+                    </div>
+
+                    <div class="products-toolbar">
+                        <div class="search-box">
+                            <span>🔍</span>
+                            <input type="text" id="productSearch" placeholder="Search product...">
+                        </div>
+
+                        <div class="chips">
+                            <button class="chip active">Food</button>
+                            <button class="chip">Toys</button>
+                            <button class="chip">Grooming</button>
+                            <button class="chip">Health</button>
+                        </div>
+                    </div>
+
+                    <div class="products-grid" id="productsGrid">
+                        <article class="product-card">
+                            <div class="product-thumb"><img src="../Images/Animals/p4.png" alt="Premium Cat Food"></div>
+                            <div class="product-body">
+                                <div class="product-title">Premium Cat Food</div>
+                                <div class="meta-row"><span>15.99 $</span></div>
+                            </div>
+                        </article>
+
+                        <article class="product-card">
+                            <div class="product-thumb"><img src="../Images/Animals/p1.png" alt="Plush Mouse"></div>
+                            <div class="product-body">
+                                <div class="product-title">Plush Mouse</div>
+                                <div class="meta-row"><span>6.50 $</span></div>
+                            </div>
+                        </article>
+
+                        <article class="product-card">
+                            <div class="product-thumb"><img src="../Images/Animals/p7.png" alt="Interactive Scratching"></div>
+                            <div class="product-body">
+                                <div class="product-title">Interactive Scratching</div>
+                                <div class="meta-row"><span>29.99 $</span></div>
+                            </div>
+                        </article>
+
+                        <article class="product-card">
+                            <div class="product-thumb"><img src="../Images/Animals/p2.png" alt="Pet Shampoo"></div>
+                            <div class="product-body">
+                                <div class="product-title">Pet Shampoo</div>
+                                <div class="meta-row"><span>9.99 $</span></div>
+                            </div>
+                        </article>
+
+                        <article class="product-card">
+                            <div class="product-thumb"><img src="../Images/Animals/p3.png" alt="Healthy Bites"></div>
+                            <div class="product-body">
+                                <div class="product-title">Healthy Bites</div>
+                                <div class="meta-row"><span>11.50 $</span></div>
+                            </div>
+                        </article>
+
+                        <article class="product-card">
+                            <div class="product-thumb"><img src="../Images/Animals/p5.png" alt="Pet Brush"></div>
+                            <div class="product-body">
+                                <div class="product-title">Pet Brush</div>
+                                <div class="meta-row"><span>8.75 $</span></div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-box" id="clinics">
+                <div class="section-inner">
+                    <div class="section-head">
+                        <div class="section-title-wrap">
+                            <span>🐾</span>
+                            <h2 class="section-title">Nearby Clinics</h2>
+                        </div>
+                        <a href="veterinary.html" class="view-all">View All Clinics</a>
+                    </div>
+
+                    <div class="clinics-grid">
+                        <article class="clinic-card">
+                            <div class="clinic-thumb"><img src="../Images/Animals/clinic2.png" alt="Paws & Claws Veterinary"></div>
+                            <div class="clinic-body">
+                                <div class="clinic-title">Paws & Claws Veterinary</div>
+                                <div class="meta-row">
+                                    <span>📍 1.5 km</span>
+                                    <span>⏱ Open now</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="clinic-card">
+                            <div class="clinic-thumb"><img src="../Images/Animals/clinic3.png" alt="Happy Tail Clinic"></div>
+                            <div class="clinic-body">
+                                <div class="clinic-title">Happy Tail Clinic</div>
+                                <div class="meta-row">
+                                    <span>📍 2.1 km</span>
+                                    <span>⏱ Open now</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="clinic-card">
+                            <div class="clinic-thumb"><img src="../Images/Animals/clinic4.png" alt="Pet Care Center"></div>
+                            <div class="clinic-body">
+                                <div class="clinic-title">Pet Care Center</div>
+                                <div class="meta-row">
+                                    <span>📍 2.8 km</span>
+                                    <span>⏱ Open now</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="clinic-card">
+                            <div class="clinic-thumb"><img src="../Images/Animals/clinic5.png" alt="Healthy Paws"></div>
+                            <div class="clinic-body">
+                                <div class="clinic-title">Healthy Paws</div>
+                                <div class="meta-row">
+                                    <span>📍 3.0 km</span>
+                                    <span>⏱ Open now</span>
+                                </div>
+                            </div>
+                        </article>
+
+                        <article class="clinic-card">
+                            <div class="clinic-thumb"><img src="../Images/Animals/clinic1.png" alt="Animal Wellness Hub"></div>
+                            <div class="clinic-body">
+                                <div class="clinic-title">Animal Wellness Hub</div>
+                                <div class="meta-row">
+                                    <span>📍 3.3 km</span>
+                                    <span>⏱ Open now</span>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+
+                    <div class="section-head" id="mapSection" style="margin-top:10px;">
+                        <div class="section-title-wrap">
+                            <span>🐾</span>
+                            <h2 class="section-title">Map</h2>
+                        </div>
+                        <a href="gps.html" class="view-all">View All</a>
+                    </div>
+
+                    <div class="map-wrap">
+                        <div id="map"></div>
+
+                        <div class="map-panel">
+                            <h3>Find a clinic or store</h3>
+
+                            <div class="map-item" data-lat="31.9539" data-lng="35.9106" data-title="Waffy Vet Center">
+                                <div>
+                                    <strong>Waffy Vet Center</strong>
+                                    <span>Amman • Nearby Clinic</span>
+                                </div>
+                                <span class="map-badge">clinic</span>
+                            </div>
+
+                            <div class="map-item" data-lat="31.9565" data-lng="35.9182" data-title="Paws Pet Shop">
+                                <div>
+                                    <strong>Paws Pet Shop</strong>
+                                    <span>Amman • Pet Store</span>
+                                </div>
+                                <span class="map-badge">shop</span>
+                            </div>
+
+                            <div class="map-item" data-lat="31.9497" data-lng="35.9239" data-title="Happy Tail Clinic">
+                                <div>
+                                    <strong>Happy Tail Clinic</strong>
+                                    <span>Amman • Checkups</span>
+                                </div>
+                                <span class="map-badge">open</span>
+                            </div>
+
+                            <div class="map-item" data-lat="31.9614" data-lng="35.8993" data-title="Emergency Pet Care">
+                                <div>
+                                    <strong>Emergency Pet Care</strong>
+                                    <span>Amman • 24/7</span>
+                                </div>
+                                <span class="map-badge">24/7</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="section-box">
+                <div class="section-inner">
+                    <div class="section-head">
+                        <div class="section-title-wrap">
+                            <span>🐾</span>
+                            <h2 class="section-title">Success Stories</h2>
+                        </div>
+                    </div>
+
+                    <div class="stories-grid">
+                        <article class="story-card">
+                            <div class="story-thumb"><img src="../Images/Animals/help1.png" alt="Story"></div>
+                            <div class="story-body">
+                                <h3>Found our match!</h3>
+                            </div>
+                        </article>
+
+                        <article class="story-card">
+                            <div class="story-thumb"><img src="../Images/Animals/help2.png" alt="Story"></div>
+                            <div class="story-body">
+                                <h3>Waffy made adoption easy.</h3>
+                            </div>
+                        </article>
+
+                        <article class="story-card">
+                            <div class="story-thumb"><img src="../Images/Animals/help3.png" alt="Story"></div>
+                            <div class="story-body">
+                                <h3>Our family is complete.</h3>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </section>
+
+            <div class="footer-wrap" id="contact">
+                <footer class="footer">
+                    <div class="footer-grid">
+                        <div class="footer-col footer-brand-col">
+                            <div class="footer-brand">
+                                <img src="../Images/logo.png" alt="Footer Logo">
+                                <div class="footer-contact">
+                                    <h4>Contact Info</h4>
+                                    <p>+224 556 8939</p>
+                                    <p>email@waffy.com</p>
+                                    <p>Pet Street, Amman, Jordan</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="footer-col footer-links-col">
+                            <div class="footer-links-columns">
+                                <div>
+                                    <h4>Quick Links</h4>
+                                    <ul>
+                                        <li><a href="product.html">Shop</a></li>
+                                        <li><a href="veterinary.html">Clinics</a></li>
+                                        <li><a href="gps.html">Map</a></li>
+                                    </ul>
+                                </div>
+
+                                <div>
+                                    <h4>Explore</h4>
+                                    <ul>
+                                        <li><a href="adapt.html">Adoption</a></li>
+                                        <li><a href="about.html">About</a></li>
+                                        <li><a href="faq.html">FAQ</a></li>
+                                        <li><a href="support.html">Support</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="footer-col footer-social-col">
+                            <div class="socials">
+                                <a href="#">f</a>
+                                <a href="#">t</a>
+                                <a href="#">i</a>
+                            </div>
+                            <div class="copy">Copyright © 2026 Waffy. All rights reserved.</div>
+                        </div>
+                    </div>
+                </footer>
+            </div>
+
+        </main>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        const menuBtn = document.getElementById("menuBtn");
+        const navLinks = document.getElementById("navLinks");
+        const servicesToggle = document.getElementById("servicesToggle");
+        const servicesDropdown = document.getElementById("servicesDropdown");
+        const mobileServicesToggle = document.getElementById("mobileServicesToggle");
+        const mobileServicesBlock = document.getElementById("mobileServicesBlock");
+
+        if (menuBtn && navLinks) {
+          menuBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            navLinks.classList.toggle("open");
+          });
+        }
+
+        if (servicesToggle && servicesDropdown) {
+          servicesToggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            servicesDropdown.classList.toggle("open");
+          });
+        }
+
+        if (mobileServicesToggle && mobileServicesBlock) {
+          mobileServicesToggle.addEventListener("click", (e) => {
+            e.stopPropagation();
+            mobileServicesBlock.classList.toggle("open");
+          });
+        }
+
+        document.querySelectorAll(".nav-links .nav-link, .nav-links .dropdown-link").forEach(link => {
+          link.addEventListener("click", () => {
+            if (window.innerWidth <= 1188) {
+              navLinks.classList.remove("open");
+              mobileServicesBlock.classList.remove("open");
+            }
+          });
+        });
+
+        document.addEventListener("click", (e) => {
+          if (servicesDropdown && !servicesDropdown.contains(e.target)) {
+            servicesDropdown.classList.remove("open");
+          }
+
+          if (navLinks && menuBtn && !navLinks.contains(e.target) && !menuBtn.contains(e.target)) {
+            navLinks.classList.remove("open");
+            mobileServicesBlock.classList.remove("open");
+          }
+        });
+
+        window.addEventListener("resize", () => {
+          if (window.innerWidth > 1188) {
+            navLinks.classList.remove("open");
+            mobileServicesBlock.classList.remove("open");
+          }
+        });
+
+        document.querySelectorAll(".chip").forEach(chip => {
+          chip.addEventListener("click", () => {
+            document.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+            chip.classList.add("active");
+          });
+        });
+
+        const searchInput = document.getElementById("productSearch");
+        const productCards = document.querySelectorAll("#productsGrid .product-card");
+
+        if (searchInput) {
+          searchInput.addEventListener("input", () => {
+            const value = searchInput.value.toLowerCase().trim();
+
+            productCards.forEach(card => {
+              const title = card.querySelector(".product-title").textContent.toLowerCase();
+              card.style.display = title.includes(value) ? "" : "none";
+            });
+          });
+        }
+
+        const map = L.map("map").setView([31.9539, 35.9106], 12);
+
+        L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+          maxZoom: 19,
+          attribution: "&copy; OpenStreetMap contributors"
+        }).addTo(map);
+
+        const locations = [
+          { title: "Waffy Vet Center", lat: 31.9539, lng: 35.9106, text: "Nearby Clinic" },
+          { title: "Paws Pet Shop", lat: 31.9565, lng: 35.9182, text: "Pet Store" },
+          { title: "Happy Tail Clinic", lat: 31.9497, lng: 35.9239, text: "Checkups & Vaccines" },
+          { title: "Emergency Pet Care", lat: 31.9614, lng: 35.8993, text: "24/7 Services" }
+        ];
+
+        const markers = {};
+
+        locations.forEach(loc => {
+          const marker = L.marker([loc.lat, loc.lng])
+            .addTo(map)
+            .bindPopup(`<strong>${loc.title}</strong><br>${loc.text}`);
+          markers[loc.title] = marker;
+        });
+
+        document.querySelectorAll(".map-item").forEach(item => {
+          item.addEventListener("click", () => {
+            const lat = parseFloat(item.dataset.lat);
+            const lng = parseFloat(item.dataset.lng);
+            const title = item.dataset.title;
+
+            map.setView([lat, lng], 15, { animate: true });
+
+            if (markers[title]) {
+              markers[title].openPopup();
+            }
+          });
+        });
+    </script>
+</body>
+</html>

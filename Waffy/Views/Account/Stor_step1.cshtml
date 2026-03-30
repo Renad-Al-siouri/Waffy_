@@ -1,0 +1,159 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waffy - Store Registration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;500;600;700;800&family=Readex+Pro:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/store.css" />
+</head>
+<body class="store-step-1">
+
+    <div id="storeWizardContainer" dir="ltr" lang="en">
+        <div id="userWizardContainer">
+            <div class="topbar">
+                <div class="logo"><span class="logo-ico"></span> Waffy</div>
+                <div class="topbar-right">
+                    <a href="signup.html" class="top-signup-link">← Back to Sign Up</a>
+                </div>
+            </div>
+
+            <div class="prog-line"><div class="prog-fill" style="width:20%"></div></div>
+
+            <div class="sw-wrap">
+                <aside class="sw-sidebar">
+                    <div class="sw-sb-brand">
+                        <div class="sw-sb-brand-title">🏪 Store Registration</div>
+                        <div class="sw-sb-brand-sub">
+                            Join Waffy and start selling to thousands of pet owners across Jordan
+                        </div>
+                    </div>
+
+                    <div class="sw-sb-steps">
+                        <div class="sw-sb-lbl">Registration Steps</div>
+                        <div id="swSbSteps">
+                            <div class="sw-si active">
+                                <div class="sw-si-num">1</div>
+                                <div>
+                                    <div class="sw-si-title">👤 Account Owner</div>
+                                    <div class="sw-si-sub">Step 1</div>
+                                </div>
+                            </div>
+                            <div class="sw-si">
+                                <div class="sw-si-num">2</div>
+                                <div>
+                                    <div class="sw-si-title">🏪 Store Information</div>
+                                    <div class="sw-si-sub">Step 2</div>
+                                </div>
+                            </div>
+                            <div class="sw-si">
+                                <div class="sw-si-num">3</div>
+                                <div>
+                                    <div class="sw-si-title">📍 Contact & Location</div>
+                                    <div class="sw-si-sub">Step 3</div>
+                                </div>
+                            </div>
+                            <div class="sw-si">
+                                <div class="sw-si-num">4</div>
+                                <div>
+                                    <div class="sw-si-title">🖼 Media & Payments</div>
+                                    <div class="sw-si-sub">Step 4</div>
+                                </div>
+                            </div>
+                            <div class="sw-si">
+                                <div class="sw-si-num">5</div>
+                                <div>
+                                    <div class="sw-si-title">📄 Business & Docs</div>
+                                    <div class="sw-si-sub">Step 5</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aside>
+
+                <div class="sw-fwrap">
+                    <div class="sw-dots" id="swDots">
+                        <div class="sw-dot active"></div>
+                        <div class="sw-dot"></div>
+                        <div class="sw-dot"></div>
+                        <div class="sw-dot"></div>
+                        <div class="sw-dot"></div>
+                    </div>
+
+                    <div class="sw-screen on" id="sw-s1">
+                        <div class="sw-card">
+                            <div class="sw-card-hd">
+                                <div class="sw-card-ico">👤</div>
+                                <div>
+                                    <div class="sw-card-title">Account Owner Information</div>
+                                    <div class="sw-card-sub">Your personal login credentials for this store account</div>
+                                </div>
+                            </div>
+
+                            <div class="sw-fg">
+                                <div class="sw-f">
+                                    <label class="sw-lbl">First Name <span class="sw-req">*</span></label>
+                                    <input class="sw-inp" id="sw-fn" placeholder="e.g. Ahmad" oninput="swCe(this)">
+                                    <div class="sw-ferr" id="sw-e-fn">⚠ This field is required</div>
+                                </div>
+
+                                <div class="sw-f">
+                                    <label class="sw-lbl">Last Name <span class="sw-req">*</span></label>
+                                    <input class="sw-inp" id="sw-ln" placeholder="e.g. Al-Omari" oninput="swCe(this)">
+                                    <div class="sw-ferr" id="sw-e-ln">⚠ This field is required</div>
+                                </div>
+
+                                <div class="sw-f sw-fw">
+                                    <label class="sw-lbl">Email Address <span class="sw-req">*</span></label>
+                                    <input class="sw-inp" id="sw-oemail" type="email" placeholder="owner@store.com" oninput="swCe(this)">
+                                    <div class="sw-ferr" id="sw-e-oemail">⚠ Please enter a valid email address</div>
+                                </div>
+
+                                <div class="sw-f sw-fw">
+                                    <label class="sw-lbl">Phone Number <span class="sw-req">*</span></label>
+                                    <div class="sw-ph-wrap">
+                                        <span class="sw-ph-pre">🇯🇴 +962</span>
+                                        <input class="sw-inp" id="sw-ophone" type="tel" placeholder="7X XXX XXXX" oninput="swCe(this)" style="flex:1">
+                                    </div>
+                                    <div class="sw-ferr" id="sw-e-ophone">⚠ Please enter a valid phone number</div>
+                                </div>
+
+                                <div class="sw-f sw-fw">
+                                    <label class="sw-lbl">Password <span class="sw-req">*</span></label>
+                                    <input class="sw-inp" id="sw-opwd" type="password" placeholder="••••••••" oninput="swPwdStr(this)" autocomplete="new-password">
+                                    <div class="sw-pwd-str" id="sw-ps">
+                                        <div class="sw-pb" id="sw-pb1"></div>
+                                        <div class="sw-pb" id="sw-pb2"></div>
+                                        <div class="sw-pb" id="sw-pb3"></div>
+                                        <span class="sw-pl" id="sw-pl">Enter a password</span>
+                                    </div>
+                                </div>
+
+                                <div class="sw-f sw-fw">
+                                    <label class="sw-lbl">Confirm Password <span class="sw-req">*</span></label>
+                                    <input class="sw-inp" id="sw-opwd2" type="password" placeholder="••••••••" oninput="swCe(this)" autocomplete="new-password">
+                                    <div class="sw-ferr" id="sw-e-opwd2">⚠ Passwords do not match</div>
+                                    <div class="sw-hint">💡 At least 8 characters with numbers recommended</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="sw-fnav">
+                            <div></div>
+                            <button class="sw-btn sw-btn-p" onclick="window.location.href='store-step2.html'">Next →</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/js/store.js"></script>
+</body>
+</html>

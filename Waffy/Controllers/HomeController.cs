@@ -22,6 +22,15 @@ namespace Waffy.Controllers
         {
             return View();
         }
+        public IActionResult Home_Before()
+        {
+            return View();
+        }
+
+        public IActionResult Home_After()
+        {
+            return View();
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

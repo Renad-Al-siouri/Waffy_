@@ -1,0 +1,143 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waffy - User Registration</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/user-signup.css" />
+</head>
+<body class="user-step-1">
+    <div id="userWizardContainer">
+        <div class="topbar">
+            <div class="logo"><span class="logo-ico"></span> Waffy</div>
+            <div class="topbar-right">
+                <a href="signup.html" class="top-signup-link">← Back to Sign Up</a>
+            </div>
+        </div>
+
+        <div class="prog-line"><div class="prog-fill" id="pf"></div></div>
+
+        <div class="wrap">
+            <aside class="sidebar">
+                <div class="sb-hero">
+                    <div class="sb-hero-title">Welcome to Waffy</div>
+                    <div class="sb-hero-sub">
+                        Complete your profile and enjoy all pet services in one place.
+                    </div>
+                </div>
+
+                <div class="sb-perks">
+                    <div class="sb-perks-title">What do you get?</div>
+                    <div class="perk"><div class="perk-ico">📅</div><span>Easy clinic appointments</span></div>
+                    <div class="perk"><div class="perk-ico">🗂</div><span>Pet medical records</span></div>
+                    <div class="perk"><div class="perk-ico">🛒</div><span>Pet shopping & services</span></div>
+                    <div class="perk"><div class="perk-ico">🐾</div><span>Adoption and pet tracking</span></div>
+                    <div class="perk"><div class="perk-ico">👛</div><span>Waffy wallet rewards</span></div>
+                </div>
+
+
+            </aside>
+
+            <div class="fwrap">
+
+
+                <section class="screen on" id="s1">
+                    <div class="card">
+                        <div class="card-hd">
+                            <div class="card-ico">👤</div>
+                            <div>
+                                <div class="card-title">Account Information</div>
+                                <div class="card-sub">Review and complete your main account information.</div>
+                            </div>
+                        </div>
+
+                        <div class="social-btns">
+                            <button type="button" class="social-btn google"><i class="fa-brands fa-google"></i> Continue with Google</button>
+                            <button type="button" class="social-btn facebook"><i class="fa-brands fa-facebook-f"></i> Continue with Facebook</button>
+                        </div>
+
+                        <div class="divider"><span>Or create a new account</span></div>
+
+                        <div class="fg">
+                            <div class="f fw">
+                                <label class="lbl">Full Name <span class="req">*</span></label>
+                                <input class="inp" id="fullName" type="text" oninput="ce(this)" />
+                                <div class="ferr" id="e-fullName">Please enter your full name.</div>
+                            </div>
+
+                            <div class="f fw">
+                                <label class="lbl">Email Address <span class="req">*</span></label>
+                                <input class="inp" id="email" type="email" oninput="ce(this)" />
+                                <div class="ferr" id="e-email">Please enter a valid email.</div>
+                            </div>
+                            <div class="f fw">
+                                <label class="lbl">Phone Number <span class="req">*</span></label>
+                                <div class="ph-wrap">
+                                    <span class="ph-pre">+962</span>
+                                    <input class="inp" id="phone" type="tel" placeholder="7X XXX XXXX" oninput="ce(this)" />
+                                </div>
+                                <div class="ferr" id="e-phone">Please enter a valid phone number.</div>
+                            </div>
+                            <div class="fg">
+                                <div class="f">
+                                    <label class="lbl">City <span class="req">*</span></label>
+                                    <select class="inp" id="city" oninput="ce(this)">
+                                        <option value="">Select your city</option>
+                                        <option>Amman</option>
+                                        <option>Zarqa</option>
+                                        <option>Irbid</option>
+                                        <option>Aqaba</option>
+                                        <option>Salt</option>
+                                        <option>Madaba</option>
+                                        <option>Karak</option>
+                                        <option>Jerash</option>
+                                        <option>Other</option>
+                                    </select>
+                                    <div class="ferr" id="e-city">Please select your city.</div>
+                                </div>
+
+
+                            </div>
+                            <div class="f fw">
+                                <label class="lbl">Password <span class="req">*</span></label>
+                                <input class="inp" id="pwd" type="password" oninput="ce(this);pwdStr(this)" />
+                                <div class="pwd-str" id="pwdStr">
+                                    <div class="pb"></div>
+                                    <div class="pb"></div>
+                                    <div class="pb"></div>
+                                    <div class="pl" id="pwdLbl">Enter a password</div>
+                                </div>
+                            </div>
+
+                            <div class="f fw">
+                                <label class="lbl">Confirm Password <span class="req">*</span></label>
+                                <input class="inp" id="pwd2" type="password" oninput="ce(this)" />
+                                <div class="ferr" id="e-pwd2">Passwords do not match.</div>
+                                <div class="hint">At least 8 characters with numbers recommended.</div>
+                            </div>
+
+
+                        </div>
+                    </div>
+
+                    <div class="fnav">
+                        <div class="bottom-corner-link">Already have an account? <a href="login.html">Log in</a></div>
+                        <button type="button" class="btn btn-p" onclick="n1()">Create My Account</button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/js/user-signup.js"></script>
+</body>
+</html>

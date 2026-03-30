@@ -1,0 +1,146 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waffy - Clinic Registration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&family=Readex+Pro:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/clinic.css" />
+</head>
+<body>
+    <div id="clinicWizardContainer" dir="ltr" lang="en">
+        <div class="cw-bg"></div>
+
+        <div id="userWizardContainer">
+            <div class="topbar">
+                <div class="logo">Waffy</div>
+                <div class="topbar-right">
+                    <a href="signup.html" class="top-signup-link">← Back to Sign Up</a>
+                </div>
+            </div>
+
+            <div class="prog-line"><div class="prog-fill" style="width:60%"></div></div>
+
+            <div class="cw-wrap">
+                <aside class="cw-left">
+                    <div class="cw-info-card" id="cwStepsCard">
+                        <div class="cw-info-title">📋 Registration Steps</div>
+
+                    </div>
+
+                    <div class="cw-info-card">
+                        <div class="cw-info-title">✨ Why Waffy?</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">📅</span>Smart appointment management</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">📉</span>Reduce no-shows by 87%</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">🐾</span>Digital medical records</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">⭐</span>Better ratings & visibility</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">💰</span>Low commission from 3%</div>
+                    </div>
+                </aside>
+
+                <div class="cw-form-outer">
+                    <div class="cw-step-form show" id="cwClinicForm">
+                        <div class="cw-prog-wrap">
+                            <div class="cw-prog-header">
+                                <div class="cw-prog-title">🏥 New Clinic Registration</div>
+                                <div class="cw-prog-counter" id="cwClinicCounter">Step 3 of 5</div>
+                            </div>
+
+                            <div class="cw-indicators" id="cwClinicIndicators">
+                                <div class="cw-ind done"><div class="cw-dot">✓</div><div class="cw-ind-label">Clinic</div></div>
+                                <div class="cw-ind done"><div class="cw-dot">✓</div><div class="cw-ind-label">Schedule</div></div>
+                                <div class="cw-ind active"><div class="cw-dot">3</div><div class="cw-ind-label">Plan</div></div>
+                                <div class="cw-ind"><div class="cw-dot">4</div><div class="cw-ind-label">Documents</div></div>
+                                <div class="cw-ind"><div class="cw-dot">5</div><div class="cw-ind-label">Manager</div></div>
+                            </div>
+                        </div>
+
+                        <div class="cw-content" id="cc-3">
+                            <div class="cw-content-title">Choose Your Subscription Plan</div>
+                            <div class="cw-content-sub">You can change your plan anytime from your dashboard</div>
+
+                            <div class="cw-plans" style="margin-bottom:1.2rem">
+                                <div class="cw-plan" onclick="cwSelectPlan(this,'free')">
+                                    <div class="cw-plan-icon">🌱</div>
+                                    <div class="cw-plan-name">Free</div>
+                                    <div class="cw-plan-price">0 JOD</div>
+                                    <div class="cw-plan-commission">15% commission</div>
+                                    <div class="cw-plan-features">
+                                        <div class="cw-plan-feature">✓ Up to 20 appts/month</div>
+                                        <div class="cw-plan-feature">✓ 1 doctor</div>
+                                    </div>
+                                </div>
+
+                                <div class="cw-plan active" onclick="cwSelectPlan(this,'basic')">
+                                    <span class="cw-plan-popular">Most Popular</span>
+                                    <div class="cw-plan-icon">⭐</div>
+                                    <div class="cw-plan-name">Basic</div>
+                                    <div class="cw-plan-price">25 JOD</div>
+                                    <div class="cw-plan-commission">8% commission</div>
+                                    <div class="cw-plan-features">
+                                        <div class="cw-plan-feature">✓ Unlimited appointments</div>
+                                        <div class="cw-plan-feature">✓ Up to 3 doctors</div>
+                                    </div>
+                                </div>
+
+                                <div class="cw-plan" onclick="cwSelectPlan(this,'pro')">
+                                    <div class="cw-plan-icon">🚀</div>
+                                    <div class="cw-plan-name">Pro</div>
+                                    <div class="cw-plan-price">60 JOD</div>
+                                    <div class="cw-plan-commission">3% commission only</div>
+                                    <div class="cw-plan-features">
+                                        <div class="cw-plan-feature">✓ Everything unlimited</div>
+                                        <div class="cw-plan-feature">✓ Priority support</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="cwPaymentDetails">
+                                <div class="cw-field">
+                                    <label class="cw-label">Payment Method</label>
+                                    <select class="cw-input">
+                                        <option>Credit Card / Visa / Mastercard</option>
+                                        <option>Bank Transfer</option>
+                                        <option>CliQ</option>
+                                    </select>
+                                </div>
+
+                                <div class="cw-grid">
+                                    <div class="cw-field cw-field-full">
+                                        <label class="cw-label">Card Number</label>
+                                        <input class="cw-input" type="text" placeholder="XXXX XXXX XXXX XXXX">
+                                    </div>
+
+                                    <div class="cw-field">
+                                        <label class="cw-label">Expiry Date</label>
+                                        <input class="cw-input" type="text" placeholder="MM / YY">
+                                    </div>
+
+                                    <div class="cw-field">
+                                        <label class="cw-label">CVV</label>
+                                        <input class="cw-input" type="text" placeholder="XXX">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="cw-submit-wrap">
+                                <button class="cw-btn-back" onclick="window.location.href='clinic-step2.html'">← Previous</button>
+                                <button class="cw-btn-next" onclick="window.location.href='clinic-step4.html'">Next — Documents →</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="~/js/clinic.js"></script>
+</body>
+</html>

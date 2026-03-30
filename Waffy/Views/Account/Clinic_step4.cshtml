@@ -1,0 +1,138 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waffy - Clinic Registration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&family=Readex+Pro:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/clinic.css" />
+</head>
+<body>
+    <div id="clinicWizardContainer" dir="ltr" lang="en">
+        <div class="cw-bg"></div>
+
+        <div id="userWizardContainer">
+            <div class="topbar">
+                <div class="logo">Waffy</div>
+                <div class="topbar-right">
+                    <a href="signup.html" class="top-signup-link">← Back to Sign Up</a>
+                </div>
+            </div>
+
+            <div class="prog-line"><div class="prog-fill" style="width:80%"></div></div>
+
+            <div class="cw-wrap">
+                <aside class="cw-left">
+                    <div class="cw-info-card" id="cwStepsCard">
+                        <div class="cw-info-title">📋 Registration Steps</div>
+
+                    </div>
+
+                    <div class="cw-info-card">
+                        <div class="cw-info-title">✨ Why Waffy?</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">📅</span>Smart appointment management</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">📉</span>Reduce no-shows by 87%</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">🐾</span>Digital medical records</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">⭐</span>Better ratings & visibility</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">💰</span>Low commission from 3%</div>
+                    </div>
+                </aside>
+
+                <div class="cw-form-outer">
+                    <div class="cw-step-form show" id="cwClinicForm">
+                        <div class="cw-prog-wrap">
+                            <div class="cw-prog-header">
+                                <div class="cw-prog-title">🏥 New Clinic Registration</div>
+                                <div class="cw-prog-counter" id="cwClinicCounter">Step 4 of 5</div>
+                            </div>
+
+                            <div class="cw-indicators" id="cwClinicIndicators">
+                                <div class="cw-ind done"><div class="cw-dot">✓</div><div class="cw-ind-label">Clinic</div></div>
+                                <div class="cw-ind done"><div class="cw-dot">✓</div><div class="cw-ind-label">Schedule</div></div>
+                                <div class="cw-ind done"><div class="cw-dot">✓</div><div class="cw-ind-label">Plan</div></div>
+                                <div class="cw-ind active"><div class="cw-dot">4</div><div class="cw-ind-label">Documents</div></div>
+                                <div class="cw-ind"><div class="cw-dot">5</div><div class="cw-ind-label">Manager</div></div>
+                            </div>
+                        </div>
+
+                        <div class="cw-content" id="cc-4">
+                            <div class="cw-content-title">Official Documents</div>
+                            <div class="cw-content-sub">Required for clinic verification — reviewed within 24 hours</div>
+
+                            <div class="cw-field">
+                                <label class="cw-label"><span class="req">*</span>Municipal License</label>
+                                <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-municipal')">
+                                    <input type="file" id="cw-doc-municipal" accept=".pdf,image/*" style="display:none" onchange="cwPreviewFile(this,'cw-doc-municipal-p','cw-doc-municipal-n')">
+                                    <div class="wf-upload-ico">🏛</div>
+                                    <div class="wf-upload-txt"><strong>Upload Municipal License</strong><br>Must be currently valid — PDF, JPG, PNG — max 10MB</div>
+                                </div>
+                                <div class="cw-upload-prev" id="cw-doc-municipal-p">
+                                    <span>🏛</span>
+                                    <span class="cw-prev-name" id="cw-doc-municipal-n"></span>
+                                    <button class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-municipal','cw-doc-municipal-p','cw-doc-municipal-n')">✕ Remove</button>
+                                </div>
+                            </div>
+
+                            <div class="cw-field">
+                                <label class="cw-label"><span class="req">*</span>Veterinary Practice License</label>
+                                <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-vet')">
+                                    <input type="file" id="cw-doc-vet" accept=".pdf,image/*" style="display:none" onchange="cwPreviewFile(this,'cw-doc-vet-p','cw-doc-vet-n')">
+                                    <div class="wf-upload-ico">⚕️</div>
+                                    <div class="wf-upload-txt"><strong>Upload Practice License</strong><br>Issued by the Jordan Veterinary Association — PDF, JPG, PNG — max 10MB</div>
+                                </div>
+                                <div class="cw-upload-prev" id="cw-doc-vet-p">
+                                    <span>⚕️</span>
+                                    <span class="cw-prev-name" id="cw-doc-vet-n"></span>
+                                    <button class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-vet','cw-doc-vet-p','cw-doc-vet-n')">✕ Remove</button>
+                                </div>
+                            </div>
+
+                            <div class="cw-field">
+                                <label class="cw-label"><span class="req">*</span>Clinic Manager National ID</label>
+                                <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-id')">
+                                    <input type="file" id="cw-doc-id" accept=".pdf,image/*" style="display:none" onchange="cwPreviewFile(this,'cw-doc-id-p','cw-doc-id-n')">
+                                    <div class="wf-upload-ico">🪪</div>
+                                    <div class="wf-upload-txt"><strong>Upload National ID Photo</strong><br>Both front and back sides — JPG, PNG — max 5MB</div>
+                                </div>
+                                <div class="cw-upload-prev" id="cw-doc-id-p">
+                                    <span>🪪</span>
+                                    <span class="cw-prev-name" id="cw-doc-id-n"></span>
+                                    <button class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-id','cw-doc-id-p','cw-doc-id-n')">✕ Remove</button>
+                                </div>
+                            </div>
+
+                            <div class="cw-field">
+                                <label class="cw-label">Clinic Logo <span class="cw-opt-badge">Optional</span></label>
+                                <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-logo')">
+                                    <input type="file" id="cw-doc-logo" accept="image/*,.svg" style="display:none" onchange="cwPreviewFile(this,'cw-doc-logo-p','cw-doc-logo-n')">
+                                    <div class="wf-upload-ico">🎨</div>
+                                    <div class="wf-upload-txt"><strong>Upload Clinic Logo</strong><br>Appears on your clinic page and reports — PNG, SVG — max 2MB</div>
+                                </div>
+                                <div class="cw-upload-prev" id="cw-doc-logo-p">
+                                    <span>🎨</span>
+                                    <span class="cw-prev-name" id="cw-doc-logo-n"></span>
+                                    <button class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-logo','cw-doc-logo-p','cw-doc-logo-n')">✕ Remove</button>
+                                </div>
+                            </div>
+
+                            <div class="cw-submit-wrap">
+                                <button class="cw-btn-back" onclick="window.location.href='clinic-step3.html'">← Previous</button>
+                                <button class="cw-btn-next" onclick="window.location.href='clinic-step5.html'">Next — Manager Info →</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="~/js/clinic.js"></script>
+</body>
+</html>

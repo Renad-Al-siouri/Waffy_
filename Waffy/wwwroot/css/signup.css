@@ -1,0 +1,383 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #f8efea;
+  --section: #fbf6f1;
+  --white: #ffffff;
+
+  --olive: #97ad4d;
+  --olive-dark: #59652a;
+  --olive-light: #bccc7e;
+
+  --text: #564632;
+  --muted: #7b6c58;
+  --line: #ddd1bf;
+
+  --brown: #5b3f1c;
+  --brown-dark: #452f14;
+
+  --shadow: 0 10px 28px rgba(90, 75, 49, 0.10);
+
+  --radius-xl: 22px;
+  --radius-lg: 18px;
+  --radius-md: 14px;
+  --pill: 999px;
+
+  --olive-soft: rgba(151, 173, 77, 0.12);
+  --olive-soft-2: rgba(151, 173, 77, 0.18);
+  --olive-border: rgba(89, 101, 42, 0.22);
+  --olive-border-strong: rgba(89, 101, 42, 0.34);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  font-family: "Nunito", sans-serif;
+  color: var(--text);
+  overflow-x: hidden;
+  background:
+    linear-gradient(rgba(248, 239, 234, 0.075), rgba(248, 239, 234, 0.377)),
+    url("../images/Gemini_Generated_Image_94fo4k94fo4k94fo.png") center/cover no-repeat fixed;
+  }
+
+.page {
+  width: 100%;
+  min-height: 100vh;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 36px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.logo-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.logo-img {
+  width: 180px;
+  max-width: 72%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(91, 63, 28, 0.14));
+}
+
+.pet-paw-icon{
+  font-size: 1.6rem;
+  color: var(--muted);
+}
+.card {
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1.5px solid var(--line);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow);
+  padding: 26px 24px 22px;
+}
+
+.card-title {
+  font-family: "Fredoka", "Fredoka One", cursive;
+  color: var(--olive-dark);
+  text-align: center;
+  font-size: 1.45rem;
+  line-height: 1.3;
+  margin-bottom: 8px;
+}
+
+.card-sub {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin-bottom: 20px;
+  max-width: 720px;
+  margin-inline: auto;
+}
+
+.signup-role-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.signup-select-card {
+  background: var(--white);
+  border: 1.5px solid var(--olive-border);
+  border-radius: var(--radius-lg);
+  padding: 18px 16px;
+  cursor: pointer;
+  transition: 0.25s ease;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(91, 63, 28, 0.04);
+}
+
+.signup-select-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgba(91, 63, 28, 0.12);
+  border-color: var(--olive);
+}
+
+.signup-select-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    120deg,
+    transparent,
+    rgba(188, 204, 126, 0.14),
+    transparent
+  );
+  opacity: 0;
+  transition: 0.3s;
+  pointer-events: none;
+}
+
+.signup-select-card:hover::after {
+  opacity: 1;
+}
+.store-card,
+.clinic-card,
+.user-card {
+  border-left: 4px solid var(--olive);
+}
+
+
+.signup-select-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.45rem;
+  margin: 0 auto 12px;
+  transition: 0.25s ease;
+}
+
+.signup-select-card:hover .signup-select-icon {
+  transform: scale(1.05);
+}
+.clinic-icon,
+.store-icon,
+.user-icon {
+  color: var(--muted);
+  background: rgba(151, 173, 77, 0.14);
+}
+
+
+
+.signup-select-title {
+  font-family: "Fredoka", "Fredoka One", cursive;
+  color: var(--olive-dark);
+  font-size: 1.08rem;
+  margin-bottom: 6px;
+  
+}
+
+.signup-select-text {
+  font-size: 0.86rem;
+  color: var(--muted);
+  line-height: 1.65;
+  margin-bottom: 12px;
+}
+
+.signup-select-btn {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--olive-dark), var(--olive));
+  color: #fff;
+  padding: 12px;
+  font-family: inherit;
+  font-weight: 800;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: 0.22s ease;
+  box-shadow: 0 8px 18px rgba(151, 173, 77, 0.16);
+}
+
+.signup-select-btn:hover {
+  transform: translateY(-1px);
+  background: linear-gradient(135deg, #697836, #a7bd61);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  margin: 18px 0;
+  color: var(--muted);
+  font-size: 0.83rem;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--line);
+}
+
+.social-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.social-btn {
+  flex: 1;
+  min-width: 0;
+  border: 1.5px solid var(--line);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 11px 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.9rem;
+  transition: 0.2s;
+}
+
+.social-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--olive);
+  background: var(--section);
+}
+
+.fa-google {
+  color: #db4437;
+}
+
+.fa-facebook-f {
+  color: #4267b2;
+}
+
+.fa-apple {
+  color: #000;
+}
+
+.login-row {
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
+
+.login-row a {
+  color: var(--olive-dark);
+  text-decoration: none;
+  font-weight: 800;
+  transition: 0.2s ease;
+}
+
+.login-row a:hover {
+  color: var(--brown);
+}
+
+/* Tablet */
+@media (min-width: 768px) {
+  .signup-role-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .signup-select-card {
+    text-align: center;
+    padding: 20px 18px;
+    min-height: 100%;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .page {
+    padding: 24px 14px;
+  }
+
+  .card {
+    padding: 20px 16px 18px;
+  }
+
+  .card-title {
+    font-size: 1.28rem;
+  }
+
+  .card-sub {
+    font-size: 0.9rem;
+  }
+
+  .social-group {
+    flex-direction: column;
+  }
+  .signup-select-title ,
+  .signup-select-text 
+  {
+    
+    display: flex;
+  align-items: center;
+  justify-content: center;
+    
+  }
+}
+
+/* Small mobile */
+@media (max-width: 520px) {
+  .page {
+    padding: 18px 12px;
+  }
+
+  .card {
+    padding: 18px 14px;
+    border-radius: 18px;
+  }
+
+  .logo-img {
+    width: 155px;
+    max-width: 78%;
+  }
+
+  .signup-select-card {
+    padding: 16px 14px;
+  }
+
+  .signup-select-icon {
+    width: 54px;
+    height: 54px;
+    font-size: 1.3rem;
+  }
+.signup-select-text ,
+  .signup-select-title {
+    font-size: 1rem;
+    display: flex;
+  align-items: center;
+  justify-content: center;
+    
+  }
+
+  .signup-select-text {
+    font-size: 0.82rem;
+  }
+
+  .signup-select-btn,
+  .social-btn {
+    font-size: 0.85rem;
+  }
+}

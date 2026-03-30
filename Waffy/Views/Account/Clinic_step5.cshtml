@@ -1,0 +1,134 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waffy - Clinic Registration</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&family=Readex+Pro:wght@400;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/clinic.css" />
+</head>
+<body>
+    <div id="clinicWizardContainer" dir="ltr" lang="en">
+        <div class="cw-bg"></div>
+
+        <div id="userWizardContainer">
+            <div class="topbar">
+                <div class="logo">Waffy</div>
+                <div class="topbar-right">
+                    <a href="signup.html" class="top-signup-link">← Back to Sign Up</a>
+                </div>
+            </div>
+
+            <div class="prog-line"><div class="prog-fill" style="width:100%"></div></div>
+
+            <div class="cw-wrap">
+                <aside class="cw-left">
+                    <div class="cw-info-card" id="cwStepsCard">
+                        <div class="cw-info-title">📋 Registration Steps</div>
+
+                    </div>
+
+                    <div class="cw-info-card">
+                        <div class="cw-info-title">✨ Why Waffy?</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">📅</span>Smart appointment management</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">📉</span>Reduce no-shows by 87%</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">🐾</span>Digital medical records</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">⭐</span>Better ratings & visibility</div>
+                        <div class="cw-benefit"><span class="cw-benefit-icon">💰</span>Low commission from 3%</div>
+                    </div>
+                </aside>
+
+                <div class="cw-form-outer">
+                    <div class="cw-step-form show" id="cwClinicForm">
+                        <div class="cw-prog-wrap">
+                            <div class="cw-prog-header">
+                                <div class="cw-prog-title">🏥 New Clinic Registration</div>
+                                <div class="cw-prog-counter" id="cwClinicCounter">Step 5 of 5</div>
+                            </div>
+
+                            <div class="cw-indicators" id="cwClinicIndicators">
+                                <div class="cw-ind done"><div class="cw-dot">✓</div><div class="cw-ind-label">Clinic</div></div>
+                                <div class="cw-ind done"><div class="cw-dot">✓</div><div class="cw-ind-label">Schedule</div></div>
+                                <div class="cw-ind done"><div class="cw-dot">✓</div><div class="cw-ind-label">Plan</div></div>
+                                <div class="cw-ind done"><div class="cw-dot">✓</div><div class="cw-ind-label">Documents</div></div>
+                                <div class="cw-ind active"><div class="cw-dot">5</div><div class="cw-ind-label">Manager</div></div>
+                            </div>
+                        </div>
+
+                        <div class="cw-content" id="cc-5">
+                            <div class="cw-content-title">Your Personal Information</div>
+                            <div class="cw-content-sub">These will be your login credentials as clinic manager</div>
+
+                            <div class="cw-grid">
+                                <div class="cw-field">
+                                    <label class="cw-label"><span class="req">*</span>Full Name</label>
+                                    <input class="cw-input" type="text" placeholder="Full name">
+                                </div>
+
+                                <div class="cw-field">
+                                    <label class="cw-label"><span class="req">*</span>Phone Number</label>
+                                    <input class="cw-input" type="tel" placeholder="07XXXXXXXX">
+                                </div>
+
+                                <div class="cw-field cw-field-full">
+                                    <label class="cw-label"><span class="req">*</span>Email Address</label>
+                                    <input class="cw-input" type="email" placeholder="manager@clinic.jo">
+                                </div>
+
+                                <div class="cw-field">
+                                    <label class="cw-label"><span class="req">*</span>Password</label>
+                                    <input class="cw-input" type="password" placeholder="At least 8 characters">
+                                </div>
+
+                                <div class="cw-field">
+                                    <label class="cw-label"><span class="req">*</span>Confirm Password</label>
+                                    <input class="cw-input" type="password" placeholder="Re-enter password">
+                                </div>
+                            </div>
+
+                            <div style="height:1px;background:rgba(90,143,56,0.18);margin:1.2rem 0;"></div>
+
+                            <div class="cw-content-title" style="margin-bottom:0.8rem">📋 Review Your Details</div>
+
+                            <div class="cw-review">
+                                <div class="cw-review-title">🏥 Clinic</div>
+                                <div class="cw-review-item"><span class="cw-review-key">Name</span><span class="cw-review-val" id="cwReviewName">—</span></div>
+                                <div class="cw-review-item"><span class="cw-review-key">City</span><span class="cwReviewCity" id="cwReviewCity">—</span></div>
+                                <div class="cw-review-item"><span class="cw-review-key">Phone</span><span class="cw-review-val" id="cwReviewPhone">—</span></div>
+                            </div>
+
+                            <div class="cw-review">
+                                <div class="cw-review-title">💳 Subscription</div>
+                                <div class="cw-review-item"><span class="cw-review-key">Plan</span><span class="cw-review-val" id="cwReviewPlan" style="color:#3d6b27">Basic — 25 JOD/month</span></div>
+                                <div class="cw-review-item"><span class="cw-review-key">Commission</span><span class="cw-review-val">8%</span></div>
+                            </div>
+
+                            <div class="cw-consent">
+                                By registering with Waffy you agree to the Privacy Policy and Terms of Use.
+                                <label class="cw-consent-check">
+                                    <input type="checkbox" id="cwClinicConsent">
+                                    <span>I agree to the Terms of Use and Privacy Policy</span>
+                                </label>
+                            </div>
+
+                            <div class="cw-submit-wrap">
+                                <button class="cw-btn-back" onclick="window.location.href='clinic-step4.html'">← Previous</button>
+                                <button class="cw-btn-next" onclick="window.location.href='clinic-success.html'"><span>🚀</span> Submit for Review</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="~/js/clinic.js"></script>
+</body>
+</html>
