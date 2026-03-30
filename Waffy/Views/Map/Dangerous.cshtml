@@ -1,0 +1,290 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dangerous Animals Report - Waffy</title>
+
+    <link rel="stylesheet" href="~/css/dangerous-animals.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+    <div class="top-hero-area">
+        <div class="top-hero-shell">
+            <header class="topbar">
+                <div class="header-shell">
+                    <nav class="navbar">
+
+                        <div class="left-nav desktop-nav desktop-links">
+                            <a href="home-after.html" class="nav-link">Home</a>
+                            <a href="veterinary.html" class="nav-link">Clinics</a>
+                            <a href="product.html" class="nav-link">Stores</a>
+                            <a href="adapt.html" class="nav-link">Adoption</a>
+                            <a href="lost.html" class="nav-link">Lost Pets</a>
+                        </div>
+
+                        <div class="logo-center">
+                            <a href="home-after.html">
+                                <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
+                            </a>
+                        </div>
+
+                        <div class="right-nav">
+                            <div class="desktop-nav desktop-links desktop-right-links">
+                                <div class="services-dropdown" id="servicesDropdown">
+                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
+                                        Services
+                                        <span class="dropdown-arrow">▼</span>
+                                    </button>
+
+                                    <div class="dropdown-menu" id="servicesMenu">
+                                        <a href="veterinary.html" class="dropdown-link">Clinics</a>
+                                        <a href="product.html" class="dropdown-link">Stores</a>
+                                        <a href="adapt.html" class="dropdown-link">Adoption</a>
+                                        <a href="lost.html" class="dropdown-link">Lost Pets</a>
+                                        <a href="gps.html" class="dropdown-link">Map</a>
+                                        <a href="money.html" class="dropdown-link">Donations</a>
+                                        <a href="law.html" class="dropdown-link">Law</a>
+                                        <a href="dangerous-animals.html" class="dropdown-link active-link">Dangerous Animals</a>
+                                        <a href="support.html" class="dropdown-link">Technical Support</a>
+                                        <a href="faq.html" class="dropdown-link">FAQ</a>
+                                    </div>
+                                </div>
+
+                                <a href="about.html" class="nav-link">About Us</a>
+                            </div>
+
+                            <div class="nav-actions">
+                                <a href="cart.html" class="nav-icon" aria-label="Cart">
+                                    <i class="fa-solid fa-cart-shopping"></i>
+                                    <span id="cartCount" class="cart-badge">0</span>
+                                </a>
+
+                                <a href="#" class="nav-icon" aria-label="Notifications">
+                                    <i class="fa-solid fa-bell"></i>
+                                </a>
+
+                                <a href="profile.html" class="profile-btn" aria-label="Profile">
+                                    <img src="../Images/user.jpg" alt="Profile">
+                                </a>
+
+                                <a href="logout.html" class="nav-link login-btn">Log out</a>
+                            </div>
+
+                            <div class="mobile-nav-wrap">
+                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+
+                                <div class="nav-links" id="navLinks">
+                                    <div class="mobile-menu-logo">
+                                        <img src="../Images/logo.png" alt="Waffy Logo">
+                                    </div>
+
+                                    <a href="home-after.html" class="nav-link">Home</a>
+                                    <a href="veterinary.html" class="nav-link">Clinics</a>
+                                    <a href="product.html" class="nav-link">Stores</a>
+                                    <a href="adapt.html" class="nav-link">Adoption</a>
+                                    <a href="lost.html" class="nav-link">Lost Pets</a>
+                                    <a href="gps.html" class="nav-link">Map</a>
+                                    <a href="dangerous-animals.html" class="nav-link active">Dangerous Animals</a>
+
+                                    <div class="mobile-services-block" id="mobileServicesBlock">
+                                        <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
+                                            <span>Services</span>
+                                            <span class="dropdown-arrow">▼</span>
+                                        </button>
+
+                                        <div class="mobile-services-menu" id="mobileServicesMenu">
+                                            <a href="money.html" class="dropdown-link">Donations</a>
+                                            <a href="law.html" class="dropdown-link">Law</a>
+                                            <a href="support.html" class="dropdown-link">Technical Support</a>
+                                            <a href="faq.html" class="dropdown-link">FAQ</a>
+                                        </div>
+                                    </div>
+
+                                    <a href="about.html" class="nav-link">About Us</a>
+                                    <a href="logout.html" class="nav-link login-btn">Log out</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </nav>
+                </div>
+            </header>
+        </div>
+    </div>
+    <main class="container danger-page">
+        <section class="danger-hero">
+            <h1>Report a Dangerous Animal</h1>
+            <p>Help nearby users and clinics by reporting the exact location and condition clearly.</p>
+        </section>
+
+        <section class="danger-card">
+            <div class="alert-banner">
+                <div class="alert-icon">🚨</div>
+                <div>
+                    <h3>Area Alert</h3>
+                    <p>Your report will notify nearby clinics and users in the area.</p>
+                </div>
+            </div>
+
+            <section class="report-section">
+                <div class="report-head">
+                    <h2>Animal Type & Problem</h2>
+                    <p>Select the type of animal and the issue you noticed.</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <label class="field-label">Animal Type</label>
+                <div class="animal-type-grid">
+                    <button class="choice-btn" data-animal="dog">🐕<span>Dog</span></button>
+                    <button class="choice-btn" data-animal="cat">🐈<span>Cat</span></button>
+                    <button class="choice-btn" data-animal="monkey">🐒<span>Monkey</span></button>
+                    <button class="choice-btn" data-animal="reptile">🦎<span>Reptile</span></button>
+                    <button class="choice-btn" data-animal="other">❓<span>Other</span></button>
+                </div>
+
+                <label class="field-label">Problem Type</label>
+                <div class="problem-grid">
+                    <button class="choice-btn problem-btn" data-problem="aggressive">😡 Aggressive animal</button>
+                    <button class="choice-btn problem-btn" data-problem="injured">😿 Injured animal</button>
+                    <button class="choice-btn problem-btn" data-problem="stray">🚷 Stray animal</button>
+                    <button class="choice-btn problem-btn" data-problem="noise">🔊 Noise / disturbing</button>
+                    <button class="choice-btn problem-btn" data-problem="sick">😷 Sick animal</button>
+                    <button class="choice-btn problem-btn" data-problem="hazard">⚠️ Safety hazard</button>
+                </div>
+
+                <label class="field-label">Severity Level</label>
+                <div class="severity-grid">
+                    <button class="severity-btn" data-severity="high">
+                        <span class="dot red"></span>
+                        <strong>High</strong>
+                        <small>Danger / urgent</small>
+                    </button>
+
+                    <button class="severity-btn active" data-severity="medium">
+                        <span class="dot orange"></span>
+                        <strong>Medium</strong>
+                        <small>Needs action</small>
+                    </button>
+
+                    <button class="severity-btn" data-severity="low">
+                        <span class="dot green"></span>
+                        <strong>Low</strong>
+                        <small>Monitor only</small>
+                    </button>
+                </div>
+            </section>
+
+            <section class="report-section">
+                <div class="report-head">
+                    <h2>Location & Description</h2>
+                    <p>Add the exact area details and describe the situation clearly.</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="form-grid two">
+                    <label>
+                        <span>City</span>
+                        <select id="cityInput">
+                            <option value="">Choose the city</option>
+                            <option>Amman</option>
+                            <option>Irbid</option>
+                            <option>Zarqa</option>
+                            <option>Aqaba</option>
+                            <option>Salt</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Area / Street</span>
+                        <input id="streetInput" type="text" placeholder="Example: near school, King St..." />
+                    </label>
+                </div>
+
+                <div class="form-grid one map-only">
+                    <label>
+                        <span>Exact Location</span>
+                        <div class="map-field-wrap">
+                            <div id="reportMap"></div>
+                        </div>
+                        <small>Click on the map to select the exact location.</small>
+                    </label>
+                </div>
+
+                <div class="form-grid one">
+                    <label>
+                        <span>Description</span>
+                        <textarea id="descriptionInput" placeholder="Example: A large aggressive dog attacking children near the school this morning..."></textarea>
+                    </label>
+                </div>
+
+                <div class="form-grid one">
+                    <label>
+                        <span>Photos / Video</span>
+                        <input id="mediaInput" type="file" accept="image/png,image/jpeg,image/jpg,video/mp4" />
+                        <small>PNG, JPG, MP4 — important for verifying the report.</small>
+                    </label>
+                </div>
+            </section>
+
+            <section class="report-section">
+                <div class="report-head">
+                    <h2>Reporter Information</h2>
+                    <p>Optional information for follow-up if needed.</p>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="form-grid phone-report-grid">
+                    <label>
+                        <span>Name</span>
+                        <input id="reporterName" type="text" placeholder="Your name" />
+                    </label>
+
+                    <h1></h1>
+                    <h1></h1>
+                    <label>
+                        <span>Country Code</span>
+                        <select id="reporterCode">
+                            <option value="+962">JO +962</option>
+                            <option value="+966">SA +966</option>
+                            <option value="+971">UAE +971</option>
+                            <option value="+20">EG +20</option>
+                            <option value="+970">PS +970</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Phone</span>
+                        <input id="reporterPhone" type="text" placeholder="7X XXX XXXX" />
+                    </label>
+                </div>
+
+                <div class="info-blue">
+                    ℹ️ Your personal information will not be shared publicly. It will only be used when needed for safety follow-up.
+                </div>
+            </section>
+
+            <div class="report-actions">
+
+                <button id="submitReportBtn" class="submit-report-btn" type="button">Submit Report</button>
+            </div>
+        </section>
+    </main>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/js/dangerous-animals.js"></script>
+</body>
+</html>

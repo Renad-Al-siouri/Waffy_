@@ -1,0 +1,497 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Donate - Waffy</title>
+
+    <link rel="stylesheet" href="~/css/money.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+
+    <div class="top-hero-area">
+        <div class="top-hero-shell">
+            <header class="topbar">
+                <div class="header-shell">
+                    <nav class="navbar">
+
+                        <div class="left-nav desktop-nav desktop-links">
+                            <a href="home-after.html" class="nav-link">Home</a>
+                            <a href="veterinary.html" class="nav-link">Clinics</a>
+                            <a href="product.html" class="nav-link">Stores</a>
+                            <a href="adapt.html" class="nav-link">Adoption</a>
+                            <a href="lost.html" class="nav-link">Lost Pets</a>
+                        </div>
+
+                        <div class="logo-center">
+                            <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
+                        </div>
+
+                        <div class="right-nav">
+                            <div class="desktop-nav desktop-links desktop-right-links">
+                                <div class="services-dropdown" id="servicesDropdown">
+                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
+                                        Services
+                                        <span class="dropdown-arrow">▼</span>
+                                    </button>
+
+                                    <div class="dropdown-menu" id="servicesMenu">
+                                        <a href="veterinary.html" class="dropdown-link">Clinics</a>
+                                        <a href="product.html" class="dropdown-link">Stores</a>
+                                        <a href="adapt.html" class="dropdown-link">Adoption</a>
+                                        <a href="lost.html" class="dropdown-link">Lost Pets</a>
+                                        <a href="gps.html" class="dropdown-link">Map</a>
+                                        <a href="money.html" class="dropdown-link active-link">Donations</a>
+                                        <a href="law.html" class="dropdown-link">Law</a>
+                                        <a href="dangerousAnimal.html" class="dropdown-link">Dangerous Animal</a>
+                                        <a href="support.html" class="dropdown-link">Technical Support</a>
+                                        <a href="faq.html" class="dropdown-link">FAQ</a>
+                                    </div>
+                                </div>
+
+                                <a href="about.html" class="nav-link">About Us</a>
+                            </div>
+
+                            <div class="nav-actions">
+                                <a href="cart.html" class="nav-icon" aria-label="Cart">
+                                    <i class="fa-solid fa-cart-shopping"></i>
+                                    <span id="cartCount" class="cart-badge">0</span>
+                                </a>
+
+                                <a href="#" class="nav-icon" aria-label="Notifications">
+                                    <i class="fa-solid fa-bell"></i>
+                                </a>
+
+                                <a href="profile.html" class="profile-btn" aria-label="Profile">
+                                    <img src="../Images/user.jpg" alt="Profile">
+                                </a>
+
+                                <a href="logout.html" class="nav-link login-btn">Log out</a>
+                            </div>
+
+                            <div class="mobile-nav-wrap">
+                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+
+                                <div class="nav-links" id="navLinks">
+                                    <div class="mobile-menu-logo">
+                                        <img src="../Images/logo.png" alt="Waffy Logo">
+                                    </div>
+
+                                    <a href="home-after.html" class="nav-link">Home</a>
+                                    <a href="veterinary.html" class="nav-link">Clinics</a>
+                                    <a href="product.html" class="nav-link">Stores</a>
+                                    <a href="adapt.html" class="nav-link">Adoption</a>
+                                    <a href="lost.html" class="nav-link">Lost Pets</a>
+                                    <a href="gps.html" class="nav-link">Map</a>
+
+                                    <div class="mobile-services-block" id="mobileServicesBlock">
+                                        <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
+                                            <span>Services</span>
+                                            <span class="dropdown-arrow">▼</span>
+                                        </button>
+
+                                        <div class="mobile-services-menu" id="mobileServicesMenu">
+                                            <a href="money.html" class="dropdown-link">Donations</a>
+                                            <a href="law.html" class="dropdown-link">Law</a>
+                                            <a href="support.html" class="dropdown-link">Technical Support</a>
+                                            <a href="faq.html" class="dropdown-link">FAQ</a>
+                                        </div>
+                                    </div>
+
+                                    <a href="about.html" class="nav-link">About Us</a>
+                                    <a href="money.html" class="nav-link active">Donations</a>
+                                    <a href="logout.html" class="nav-link login-btn">Log out</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </nav>
+                </div>
+            </header>
+        </div>
+    </div>
+
+    <main class="container donate-page">
+        <section class="donate-hero fade-up">
+            <div class="hero-text">
+                <h1>Give a Little, Help a Lot ♡</h1>
+                <p>
+                    Your donation can provide food, medicine, care, and hope for animals who need kindness the most.
+                </p>
+            </div>
+
+            <div class="hero-image-box">
+                <img src="../Images/money.png" alt="Human hugging animals" class="hero-image" />
+            </div>
+        </section>
+
+        <section class="donation-form-wrap fade-up">
+            <div class="form-card">
+
+                <section class="form-section">
+                    <div class="section-head">
+                        <h2>Donation Type</h2>
+                        <span>❤</span>
+                    </div>
+
+                    <div class="type-grid">
+                        <button class="type-card" type="button" data-type="supplies">
+                            <div class="type-icon">📦</div>
+                            <div class="type-title">Supplies</div>
+                        </button>
+
+                        <button class="type-card" type="button" data-type="medicine">
+                            <div class="type-icon">💊</div>
+                            <div class="type-title">Medicine</div>
+                        </button>
+
+                        <button class="type-card" type="button" data-type="food">
+                            <div class="type-icon">🍖</div>
+                            <div class="type-title">Food</div>
+                        </button>
+
+                        <button class="type-card active" type="button" data-type="money">
+                            <div class="type-icon">💵</div>
+                            <div class="type-title">Money</div>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="form-section" id="moneySection">
+                    <div class="section-head">
+                        <h2>Donation Amount</h2>
+                        <span>💵</span>
+                    </div>
+
+                    <label class="mini-label">Choose Amount</label>
+                    <div class="amount-grid">
+                        <button class="amount-btn" type="button" data-amount="custom">Custom</button>
+                        <button class="amount-btn" type="button" data-amount="50">50 JD</button>
+                        <button class="amount-btn" type="button" data-amount="25">25 JD</button>
+                        <button class="amount-btn active" type="button" data-amount="10">10 JD</button>
+                        <button class="amount-btn" type="button" data-amount="5">5 JD</button>
+                    </div>
+
+                    <div id="customAmountWrap" class="hidden input-row">
+                        <input id="customAmountInput" type="number" min="1" placeholder="Enter custom amount" />
+                    </div>
+
+                    <label class="mini-label">Payment Method</label>
+                    <div class="payment-grid">
+                        <button class="payment-card" type="button" data-payment="cliq">
+                            <strong>CliQ</strong>
+                            <small>Instant payment</small>
+                        </button>
+
+                        <button class="payment-card" type="button" data-payment="card">
+                            <strong>Card</strong>
+                            <small>Visa / Mastercard</small>
+                        </button>
+
+                        <button class="payment-card active" type="button" data-payment="wallet">
+                            <strong>Waffy Wallet</strong>
+                            <small>Use your balance</small>
+                        </button>
+                    </div>
+
+                    <div id="walletBox" class="payment-box">
+                        <div class="wallet-line"><strong>Waffy Wallet</strong> <span>25.00 JD</span></div>
+                        <div class="wallet-line">Selected donation <span id="walletSelectedAmount">10 JD</span></div>
+                        <div class="wallet-line muted-line">Remaining after donation <span id="walletRemainingAmount">15 JD</span></div>
+                    </div>
+
+                    <div id="cardBox" class="payment-box hidden">
+                        <div class="form-grid two">
+                            <label>
+                                <span>Card Number</span>
+                                <input type="text" placeholder="1234 5678 9012 3456" />
+                            </label>
+
+                            <label>
+                                <span>Cardholder Name</span>
+                                <input type="text" placeholder="FIRSTNAME LASTNAME" />
+                            </label>
+                        </div>
+
+                        <div class="form-grid two">
+                            <label>
+                                <span>Expiry</span>
+                                <input type="text" placeholder="MM / YY" />
+                            </label>
+
+                            <label>
+                                <span>CVV</span>
+                                <input type="text" placeholder="..." />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="cliqBox" class="payment-box hidden">
+                        <div class="form-grid two">
+                            <label>
+                                <span>Phone Number</span>
+                                <input type="text" placeholder="7X XXX XXXX" />
+                            </label>
+
+                            <label>
+                                <span>Country Code</span>
+                                <select>
+                                    <option>JO +962</option>
+                                    <option>SA +966</option>
+                                    <option>UAE +971</option>
+                                    <option>EG +20</option>
+                                </select>
+                            </label>
+                        </div>
+                        <p class="payment-note">A verification notice can be sent to your phone.</p>
+                    </div>
+                </section>
+
+                <section class="form-section hidden" id="foodSection">
+                    <div class="section-head">
+                        <h2>Food Donation Details</h2>
+                        <span>🍖</span>
+                    </div>
+
+                    <div class="form-grid two">
+                        <label>
+                            <span>Food Type</span>
+                            <select id="foodType">
+                                <option value="">Choose food type</option>
+                                <option>Dry Food</option>
+                                <option>Wet Food</option>
+                                <option>Treats</option>
+                                <option>Special Diet Food</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            <span>Brand / Product Name</span>
+                            <input id="foodName" type="text" placeholder="Example: Royal Canin / Pedigree" />
+                        </label>
+                    </div>
+
+                    <div class="form-grid two">
+                        <label>
+                            <span>Quantity / Weight</span>
+                            <input id="foodWeight" type="text" placeholder="Example: 5 kg / 10 packs" />
+                        </label>
+
+                        <label>
+                            <span>Target Animal</span>
+                            <select id="foodAnimal">
+                                <option value="">Choose animal</option>
+                                <option>Dog</option>
+                                <option>Cat</option>
+                                <option>Bird</option>
+                                <option>Rabbit</option>
+                                <option>Mixed Shelter Animals</option>
+                            </select>
+                        </label>
+                    </div>
+                </section>
+
+                <section class="form-section hidden" id="medicineSection">
+                    <div class="section-head">
+                        <h2>Medicine Donation Details</h2>
+                        <span>💊</span>
+                    </div>
+
+                    <div class="form-grid two">
+                        <label>
+                            <span>Medicine Name</span>
+                            <input id="medicineName" type="text" placeholder="Enter medicine name" />
+                        </label>
+
+                        <label>
+                            <span>Medicine Type</span>
+                            <select id="medicineType">
+                                <option value="">Choose type</option>
+                                <option>Antibiotic</option>
+                                <option>Pain Relief</option>
+                                <option>Skin Treatment</option>
+                                <option>Eye / Ear Drops</option>
+                                <option>Vitamins</option>
+                                <option>Other</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="form-grid two">
+                        <label>
+                            <span>Target Animal</span>
+                            <select id="medicineAnimal">
+                                <option value="">Choose animal</option>
+                                <option>Dog</option>
+                                <option>Cat</option>
+                                <option>Bird</option>
+                                <option>Rabbit</option>
+                                <option>Any animal in need</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            <span>Quantity</span>
+                            <input id="medicineQty" type="text" placeholder="Example: 3 boxes / 2 bottles" />
+                        </label>
+                    </div>
+                </section>
+
+                <section class="form-section hidden" id="suppliesSection">
+                    <div class="section-head">
+                        <h2>Supplies Donation Details</h2>
+                        <span>📦</span>
+                    </div>
+
+                    <div class="form-grid two">
+                        <label>
+                            <span>Supply Name</span>
+                            <input id="supplyName" type="text" placeholder="Example: blanket / carrier / bowl" />
+                        </label>
+
+                        <label>
+                            <span>Supply Category</span>
+                            <select id="supplyCategory">
+                                <option value="">Choose category</option>
+                                <option>Bedding</option>
+                                <option>Carrier / Cage</option>
+                                <option>Bowls / Feeding</option>
+                                <option>Cleaning Supplies</option>
+                                <option>Toys</option>
+                                <option>Other</option>
+                            </select>
+                        </label>
+                    </div>
+
+                    <div class="form-grid two">
+                        <label>
+                            <span>Target Animal</span>
+                            <select id="supplyAnimal">
+                                <option value="">Choose animal</option>
+                                <option>Dog</option>
+                                <option>Cat</option>
+                                <option>Bird</option>
+                                <option>Rabbit</option>
+                                <option>General Shelter Use</option>
+                            </select>
+                        </label>
+
+                        <label>
+                            <span>Quantity</span>
+                            <input id="supplyQty" type="text" placeholder="Example: 4 pieces / 2 sets" />
+                        </label>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <div class="section-head">
+                        <h2>Donate to Specific Animal</h2>
+                        <span>🎯</span>
+                    </div>
+
+                    <div class="animal-note">
+                        You can choose a specific animal from our rescue cases if you want your donation to go directly to them.
+                    </div>
+
+                    <div class="specific-grid">
+                        <button class="animal-card" type="button" data-animal-card="Loki">
+                            <strong>Loki — Injured Dog</strong>
+                            <span>Needs medicine and food</span>
+                        </button>
+
+                        <button class="animal-card" type="button" data-animal-card="Milo">
+                            <strong>Milo — Sick Cat</strong>
+                            <span>Needs medicine support</span>
+                        </button>
+
+                        <button class="animal-card" type="button" data-animal-card="Sandy">
+                            <strong>Sandy — Shelter Dog</strong>
+                            <span>Needs food donation</span>
+                        </button>
+
+                        <button class="animal-card" type="button" data-animal-card="Bella">
+                            <strong>Bella — Rescue Rabbit</strong>
+                            <span>Needs supplies and care</span>
+                        </button>
+                    </div>
+                </section>
+
+                <section class="form-section">
+                    <div class="section-head">
+                        <h2>Contact Information</h2>
+                        <span>📞</span>
+                    </div>
+
+                    <div class="form-grid two">
+                        <label>
+                            <span>Name</span>
+                            <input id="donorName" type="text" placeholder="Your full name" />
+                        </label>
+
+                        <label>
+                            <span>Phone</span>
+                            <div class="phone-wrap">
+                                <select id="donorCode" class="small-code">
+                                    <option>+962</option>
+                                    <option>+966</option>
+                                    <option>+971</option>
+                                    <option>+20</option>
+                                </select>
+                                <input id="donorPhone" type="text" placeholder="7X XXX XXXX" />
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="form-grid one">
+                        <label>
+                            <span>Email</span>
+                            <input id="donorEmail" type="email" placeholder="email@example.com" />
+                        </label>
+                    </div>
+
+                    <div class="form-grid one">
+                        <label>
+                            <span>Additional Note</span>
+                            <textarea id="donorNote" placeholder="Write any message you want us to know..."></textarea>
+                        </label>
+                    </div>
+                </section>
+
+                <div class="submit-row">
+                    <button id="cancelBtn" class="cancel-btn" type="button">Cancel</button>
+                    <button id="submitDonationBtn" class="submit-btn" type="button">❤ Send Donation</button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="about.html">About Us</a>
+            <span>|</span>
+            <a href="about.html">Contact</a>
+            <span>|</span>
+            <a href="faq.html">FAQ</a>
+            <span>|</span>
+            <div class="social-inline">
+                <span>f</span>
+                <span>🐦</span>
+                <span>◎</span>
+            </div>
+        </div>
+        <div>© 2026 Waffy, all rights reserved.</div>
+    </footer>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="~/js/money.js"></script>
+</body>
+</html>

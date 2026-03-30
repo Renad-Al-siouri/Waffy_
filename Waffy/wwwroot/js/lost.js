@@ -1,0 +1,491 @@
+const cartCount = document.getElementById("cartCount");
+const viewMoreBtn = document.getElementById("viewMoreBtn");
+const petsGrid = document.getElementById("petsGrid");
+
+const flowModal = document.getElementById("flowModal");
+const abuseModal = document.getElementById("abuseModal");
+const flowSteps = document.querySelectorAll(".flow-step");
+
+const verifyAnswerBtn = document.getElementById("verifyAnswerBtn");
+const checkCodeBtn = document.getElementById("checkCodeBtn");
+const reportCancelBtn = document.getElementById("reportCancelBtn");
+const submitAbuseBtn = document.getElementById("submitAbuseBtn");
+const reportAnotherBtn = document.getElementById("reportAnotherBtn");
+const viewWalletBtn = document.getElementById("viewWalletBtn");
+const attemptsLeftEl = document.getElementById("attemptsLeft");
+const countdownText = document.getElementById("countdownText");
+const toast = document.getElementById("toast");
+
+const servicesDropdown = document.getElementById("servicesDropdown");
+const servicesToggle = document.getElementById("servicesToggle");
+const menuBtn = document.getElementById("menuBtn");
+const navLinks = document.getElementById("navLinks");
+const mobileServicesBlock = document.getElementById("mobileServicesBlock");
+const mobileServicesToggle = document.getElementById("mobileServicesToggle");
+
+let map;
+let marker;
+let selectedLatLng = null;
+let currentPetId = null;
+let attemptsLeft = 4;
+let countdownInterval = null;
+
+const extraPets = [
+  {
+    name: "Milo",
+    status: "Done",
+    details: ["Golden Mix, Male", "Friendly and active", "1.5 years old", "Blue collar"],
+    location: "📍 Dabouq, Amman",
+    phone: "📞 0791112233",
+    image: "../Images/lost/Golden.png"
+  },
+  {
+    name: "Nina",
+    status: "Done",
+    details: ["Small Cat, Female", "White and gray", "2 years old", "Very calm"],
+    location: "📍 Abdoun, Amman",
+    phone: "📞 0793332211",
+    image: "../Images/lost/Small.png"
+  }
+];
+
+let shownExtra = false;
+
+function getCart() {
+  return JSON.parse(localStorage.getItem("waffyCart") || "[]");
+}
+
+function updateCartBadge() {
+  const cart = getCart();
+  const totalItems = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+
+  if (cartCount) {
+    cartCount.textContent = totalItems;
+  }
+}
+
+function showToast(message) {
+  if (!toast) return;
+
+  toast.textContent = message;
+  toast.classList.add("show");
+
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => {
+    toast.classList.remove("show");
+  }, 3000);
+}
+
+function createPetCard(pet, id = "") {
+  return `
+    <article class="pet-card" ${id ? `data-pet-id="${id}"` : ""}>
+      <div class="pet-top">
+        <img src="${pet.image}" alt="${pet.name}">
+        <div class="pet-info">
+          <div class="pet-head">
+            <h3>${pet.name}</h3>
+            <button class="status-btn" data-open-flow="${id || 999}">${pet.status}</button>
+          </div>
+          ${pet.details.map(item => `<p>${item}</p>`).join("")}
+        </div>
+      </div>
+
+      <div class="pet-location">${pet.location}</div>
+      <div class="pet-phone">${pet.phone}</div>
+    </article>
+  `;
+}
+
+function showStep(stepNumber) {
+  flowSteps.forEach((step) => {
+    step.classList.remove("active");
+  });
+
+  const activeStep = document.querySelector(`.flow-step[data-step="${stepNumber}"]`);
+  if (activeStep) {
+    activeStep.classList.add("active");
+  }
+
+  if (stepNumber === 2) {
+    setTimeout(initMapIfNeeded, 100);
+  }
+
+  if (stepNumber === 3) {
+    startCountdown();
+  } else {
+    stopCountdown();
+  }
+}
+
+function openFlow(petId) {
+  currentPetId = Number(petId);
+  attemptsLeft = 4;
+
+  if (attemptsLeftEl) {
+    attemptsLeftEl.textContent = attemptsLeft;
+  }
+
+  if (verifyAnswerBtn) {
+    verifyAnswerBtn.disabled = false;
+  }
+
+  const secretAnswerInput = document.getElementById("secretAnswer");
+  if (secretAnswerInput) {
+    secretAnswerInput.disabled = false;
+    secretAnswerInput.value = "";
+  }
+
+  const rewardCodeInput = document.getElementById("rewardCodeInput");
+  if (rewardCodeInput) {
+    rewardCodeInput.value = "";
+  }
+
+  if (flowModal) {
+    flowModal.classList.remove("hidden");
+    showStep(1);
+  }
+}
+
+function closeFlow() {
+  if (flowModal) {
+    flowModal.classList.add("hidden");
+  }
+  stopCountdown();
+}
+
+function openAbuseModal() {
+  if (abuseModal) {
+    abuseModal.classList.remove("hidden");
+  }
+}
+
+function closeAbuseModal() {
+  if (abuseModal) {
+    abuseModal.classList.add("hidden");
+  }
+}
+
+function initMapIfNeeded() {
+  const mapElement = document.getElementById("map");
+  if (!mapElement || typeof L === "undefined") return;
+
+  if (!map) {
+    map = L.map("map").setView([31.9539, 35.9106], 11);
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(map);
+
+    map.on("click", (e) => {
+      selectedLatLng = e.latlng;
+
+      if (marker) {
+        marker.setLatLng(e.latlng);
+      } else {
+        marker = L.marker(e.latlng).addTo(map);
+      }
+    });
+  }
+
+  setTimeout(() => {
+    if (map) map.invalidateSize();
+  }, 100);
+}
+
+function validateStep1() {
+  const finderName = document.getElementById("finderName")?.value.trim() || "";
+  const finderPhone = document.getElementById("finderPhone")?.value.trim() || "";
+
+  if (!finderName || !finderPhone) {
+    showToast("Please fill in your full name and phone number.");
+    return false;
+  }
+
+  return true;
+}
+
+function validateStep2() {
+  const animalType = document.getElementById("animalType")?.value.trim() || "";
+  const dateFound = document.getElementById("dateFound")?.value.trim() || "";
+  const addressFound = document.getElementById("addressFound")?.value.trim() || "";
+  const animalDescription = document.getElementById("animalDescription")?.value.trim() || "";
+
+  if (!animalType || !dateFound || !addressFound || !animalDescription) {
+    showToast("Please fill in the required found animal information.");
+    return false;
+  }
+
+  if (!selectedLatLng) {
+    showToast("Please choose the location on the map.");
+    return false;
+  }
+
+  return true;
+}
+
+function startCountdown() {
+  stopCountdown();
+
+  let totalSeconds = 47 * 3600 + 51 * 60 + 48;
+
+  function tick() {
+    const hours = String(Math.floor(totalSeconds / 3600)).padStart(2, "0");
+    const minutes = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, "0");
+    const seconds = String(totalSeconds % 60).padStart(2, "0");
+
+    if (countdownText) {
+      countdownText.textContent = `${hours}:${minutes}:${seconds}`;
+    }
+
+    if (totalSeconds > 0) {
+      totalSeconds -= 1;
+    }
+  }
+
+  tick();
+  countdownInterval = setInterval(tick, 1000);
+}
+
+function stopCountdown() {
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+    countdownInterval = null;
+  }
+}
+
+function initFadeUpAnimation() {
+  const fadeElements = document.querySelectorAll(".fade-up");
+
+  if ("IntersectionObserver" in window) {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("show");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.15 }
+    );
+
+    fadeElements.forEach((el) => observer.observe(el));
+  } else {
+    fadeElements.forEach((el) => el.classList.add("show"));
+  }
+}
+
+function initServicesDropdown() {
+  if (!servicesToggle || !servicesDropdown) return;
+
+  servicesToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    servicesDropdown.classList.toggle("open");
+  });
+
+  document.addEventListener("click", (e) => {
+    if (!servicesDropdown.contains(e.target)) {
+      servicesDropdown.classList.remove("open");
+    }
+  });
+}
+
+function initMobileMenu() {
+  if (menuBtn && navLinks) {
+    menuBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      navLinks.classList.toggle("open");
+    });
+
+    document.addEventListener("click", (e) => {
+      if (!navLinks.contains(e.target) && !menuBtn.contains(e.target)) {
+        navLinks.classList.remove("open");
+      }
+    });
+  }
+
+  if (mobileServicesBlock && mobileServicesToggle) {
+    mobileServicesToggle.addEventListener("click", () => {
+      mobileServicesBlock.classList.toggle("open");
+    });
+  }
+}
+
+function injectProfileLostPet() {
+  const savedPet = localStorage.getItem("waffyLostPetFromProfile");
+  if (!savedPet || !petsGrid) return;
+
+  try {
+    const pet = JSON.parse(savedPet);
+
+    const profilePet = {
+      name: pet.name || "My Lost Pet",
+      status: "Done",
+      details: [
+        pet.breed || "Unknown breed",
+        pet.color || "Unknown color",
+        pet.age || "Unknown age",
+        pet.note || "Missing pet"
+      ],
+      location: `📍 ${pet.location || "Unknown location"}`,
+      phone: `📞 ${pet.phone || "No phone"}`,
+      image: pet.image || "../Images/lost/Beagle.png"
+    };
+
+    petsGrid.insertAdjacentHTML("afterbegin", createPetCard(profilePet, "profile-lost"));
+  } catch (error) {
+    console.error("Invalid lost pet profile data", error);
+  }
+}
+
+document.addEventListener("click", (e) => {
+  const openFlowBtn = e.target.closest("[data-open-flow]");
+  const nextBtn = e.target.closest("[data-next-step]");
+  const prevBtn = e.target.closest("[data-prev-step]");
+  const closeFlowBtn = e.target.closest("[data-close-flow]");
+  const closeAbuseBtn = e.target.closest("[data-close-abuse]");
+
+  if (openFlowBtn) {
+    openFlow(openFlowBtn.dataset.openFlow);
+    return;
+  }
+
+  if (nextBtn) {
+    const nextStep = Number(nextBtn.dataset.nextStep);
+
+    if (nextStep === 2 && !validateStep1()) return;
+    if (nextStep === 3 && !validateStep2()) return;
+
+    showStep(nextStep);
+    return;
+  }
+
+  if (prevBtn) {
+    const prevStep = Number(prevBtn.dataset.prevStep);
+    showStep(prevStep);
+    return;
+  }
+
+  if (closeFlowBtn) {
+    closeFlow();
+    return;
+  }
+
+  if (closeAbuseBtn) {
+    closeAbuseModal();
+  }
+});
+
+if (verifyAnswerBtn) {
+  verifyAnswerBtn.addEventListener("click", () => {
+    const secretAnswerInput = document.getElementById("secretAnswer");
+    const answer = secretAnswerInput?.value.trim() || "";
+
+    if (!answer) {
+      showToast("Please enter your answer first.");
+      return;
+    }
+
+    const normalized = answer.toLowerCase();
+    const acceptedAnswers = ["green collar", "pink collar", "blue id tag", "beak mark", "collar"];
+
+    if (acceptedAnswers.some((item) => normalized.includes(item))) {
+      showStep(5);
+      return;
+    }
+
+    attemptsLeft -= 1;
+
+    if (attemptsLeftEl) {
+      attemptsLeftEl.textContent = attemptsLeft;
+    }
+
+    if (attemptsLeft <= 0) {
+      showToast("No attempts left. The secret answer is now locked.");
+      verifyAnswerBtn.disabled = true;
+
+      if (secretAnswerInput) {
+        secretAnswerInput.disabled = true;
+      }
+      return;
+    }
+
+    showToast(`Incorrect answer. Attempts left: ${attemptsLeft}`);
+  });
+}
+
+if (checkCodeBtn) {
+  checkCodeBtn.addEventListener("click", () => {
+    const rewardCode = document.getElementById("rewardCodeInput")?.value.trim().toUpperCase() || "";
+
+    if (!rewardCode) {
+      showToast("Please enter the reward code.");
+      return;
+    }
+
+    if (rewardCode.startsWith("WAFFY")) {
+      showStep(6);
+      return;
+    }
+
+    showToast("Invalid code. Please try again.");
+  });
+}
+
+if (reportCancelBtn) {
+  reportCancelBtn.addEventListener("click", () => {
+    openAbuseModal();
+  });
+}
+
+if (submitAbuseBtn) {
+  submitAbuseBtn.addEventListener("click", () => {
+    const fraudDetails = document.getElementById("fraudDetails")?.value.trim() || "";
+
+    if (!fraudDetails) {
+      showToast("Please explain the issue before sending the report.");
+      return;
+    }
+
+    showToast("Your abuse report has been submitted successfully.");
+    closeAbuseModal();
+  });
+}
+
+if (reportAnotherBtn) {
+  reportAnotherBtn.addEventListener("click", () => {
+    closeFlow();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+}
+
+if (viewWalletBtn) {
+  viewWalletBtn.addEventListener("click", () => {
+    showToast("Wallet page can be connected later.");
+    closeFlow();
+  });
+}
+
+if (viewMoreBtn) {
+  viewMoreBtn.addEventListener("click", () => {
+    if (shownExtra || !petsGrid) return;
+
+    petsGrid.insertAdjacentHTML(
+      "beforeend",
+      extraPets.map((pet, index) => createPetCard(pet, `extra-${index + 1}`)).join("")
+    );
+
+    shownExtra = true;
+    viewMoreBtn.textContent = "Done!!";
+    viewMoreBtn.disabled = true;
+    viewMoreBtn.style.opacity = "0.7";
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  updateCartBadge();
+  injectProfileLostPet();
+  initFadeUpAnimation();
+  initServicesDropdown();
+  initMobileMenu();
+});

@@ -32,6 +32,26 @@ namespace Waffy.Controllers
             return View();
         }
 
+        public IActionResult About()
+        {
+            return View();
+        }
+        public IActionResult Faq()
+        {
+            return View();
+        }
+
+        public IActionResult Travel()
+        {
+            return View();
+        }
+
+        public IActionResult Suport()
+        {
+            return View();
+        }
+
+
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {

@@ -1,0 +1,576 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lost Pets - Waffy</title>
+
+    <link rel="stylesheet" href="~/css/lost.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+</head>
+<body>
+
+    <div class="top-note">
+        💚 Be the reason a family smiles again.
+        Return a lost pet to its owner and receive a special gift voucher as a thank you.
+    </div>
+
+    <div class="top-hero-area">
+        <div class="top-hero-shell">
+            <header class="topbar">
+                <div class="header-shell">
+                    <nav class="navbar">
+
+                        <div class="left-nav desktop-nav desktop-links">
+                            <a href="home-after.html" class="nav-link">Home</a>
+                            <a href="veterinary.html" class="nav-link">Clinics</a>
+                            <a href="product.html" class="nav-link">Stores</a>
+                            <a href="adapt.html" class="nav-link">Adoption</a>
+                            <a href="lost.html" class="nav-link active">Lost Pets</a>
+                        </div>
+
+                        <div class="logo-center">
+                            <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
+                        </div>
+
+                        <div class="right-nav">
+                            <div class="desktop-nav desktop-links desktop-right-links">
+                                <div class="services-dropdown" id="servicesDropdown">
+                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
+                                        Services
+                                        <span class="dropdown-arrow">▼</span>
+                                    </button>
+
+                                    <div class="dropdown-menu" id="servicesMenu">
+                                        <a href="veterinary.html" class="dropdown-link">Clinics</a>
+                                        <a href="product.html" class="dropdown-link">Stores</a>
+                                        <a href="adapt.html" class="dropdown-link">Adoption</a>
+                                        <a href="lost.html" class="dropdown-link active-link">Lost Pets</a>
+                                        <a href="gps.html" class="dropdown-link">Map</a>
+                                        <a href="money.html" class="dropdown-link">Donations</a>
+                                        <a href="travel.html" class="dropdown-link">Law</a>
+                                        <a href="support.html" class="dropdown-link">Technical Support</a>
+                                        <a href="faq.html" class="dropdown-link">FAQ</a>
+                                    </div>
+                                </div>
+
+                                <a href="about.html" class="nav-link">About Us</a>
+                            </div>
+
+                            <div class="nav-actions">
+                                <a href="cart.html" class="nav-icon" aria-label="Cart">
+                                    <i class="fa-solid fa-cart-shopping"></i>
+                                    <span id="cartCount" class="cart-badge">0</span>
+                                </a>
+
+                                <a href="#" class="nav-icon" aria-label="Notifications">
+                                    <i class="fa-solid fa-bell"></i>
+                                </a>
+
+                                <a href="profile.html" class="profile-btn" aria-label="Profile">
+                                    <img src="../Images/user.jpg" alt="Profile">
+                                </a>
+
+                                <a href="logout.html" class="nav-link login-btn">Log out</a>
+                            </div>
+
+                            <div class="mobile-nav-wrap">
+                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+
+                                <div class="nav-links" id="navLinks">
+                                    <div class="mobile-menu-logo">
+                                        <img src="../Images/logo.png" alt="Waffy Logo">
+                                    </div>
+
+                                    <a href="home-after.html" class="nav-link">Home</a>
+                                    <a href="veterinary.html" class="nav-link">Clinics</a>
+                                    <a href="product.html" class="nav-link">Stores</a>
+                                    <a href="adapt.html" class="nav-link">Adoption</a>
+                                    <a href="lost.html" class="nav-link active">Lost Pets</a>
+                                    <a href="gps.html" class="nav-link">Map</a>
+
+                                    <div class="mobile-services-block" id="mobileServicesBlock">
+                                        <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
+                                            <span>Services</span>
+                                            <span class="dropdown-arrow">▼</span>
+                                        </button>
+
+                                        <div class="mobile-services-menu" id="mobileServicesMenu">
+                                            <a href="money.html" class="dropdown-link">Donations</a>
+                                            <a href="law.html" class="dropdown-link">Law</a>
+                                            <a href="dangerousAnimal.html" class="dropdown-link">Dangerous Animal</a>
+                                            <a href="support.html" class="dropdown-link">Technical Support</a>
+                                            <a href="faq.html" class="dropdown-link">FAQ</a>
+                                        </div>
+                                    </div>
+
+                                    <a href="about.html" class="nav-link">About Us</a>
+                                    <a href="logout.html" class="nav-link login-btn">Log out</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </nav>
+                </div>
+            </header>
+        </div>
+    </div>
+
+    <main class="container lost-page">
+
+        <section class="hero-section fade-up">
+            <h1>Lost Pets</h1>
+            <p>
+                Be the reason a family smiles again.<br>
+                Return a lost pet to its owner and receive a special gift voucher as a thank you.
+            </p>
+        </section>
+
+        <section class="steps-grid fade-up">
+            <article class="step-card">
+                <img src="../Images/lost/rep.png" alt="Report">
+                <h3>Report</h3>
+                <p>Share the lost pet details and location.</p>
+            </article>
+
+            <article class="step-card">
+                <img src="../Images/lost/ret.png" alt="Return">
+                <h3>Return Safely</h3>
+                <p>Help connect the pet with its owner.</p>
+            </article>
+
+            <article class="step-card">
+                <img src="../Images/lost/ver.png" alt="Verify">
+                <h3>Verify</h3>
+                <p>Owner confirms the pet is returned.</p>
+            </article>
+
+            <article class="step-card">
+                <img src="../Images/lost/rew.png" alt="Reward">
+                <h3>Reward</h3>
+                <p>Receive a special thank-you voucher.</p>
+            </article>
+        </section>
+
+        <section class="community-section fade-up">
+            <div class="community-header">
+                <h2>🐾 Community Pet Heroes</h2>
+                <p>People who helped return lost pets to their families</p>
+                <span class="sub-ar">Thank you to all the people who contributed to bringing the pets back to their homes.</span>
+            </div>
+
+            <div class="heroes-row">
+                <article class="hero-mini">
+                    <img src="../Images/lost/omar.png" alt="Omar">
+                    <h4>Omar</h4>
+                    <span>3 Successes</span>
+                </article>
+
+                <article class="hero-mini">
+                    <img src="../Images/lost/ahmad.png" alt="Ahmad">
+                    <h4>Ahmad</h4>
+                    <span>7 Successes</span>
+                </article>
+
+                <article class="hero-mini">
+                    <img src="../Images/lost/yara.png" alt="Yara">
+                    <h4>Yara</h4>
+                    <span>1 Success</span>
+                </article>
+            </div>
+        </section>
+
+        <section class="pets-grid fade-up" id="petsGrid">
+            <article class="pet-card" data-pet-id="1">
+                <div class="pet-top">
+                    <img src="../Images/lost/Beagle.png" alt="Bella">
+                    <div class="pet-info">
+                        <div class="pet-head">
+                            <h3>Bella</h3>
+                            <button class="status-btn" data-open-flow="1">I found it</button>
+                        </div>
+                        <p><strong>Beagle, Female</strong></p>
+                        <p>Mixed color</p>
+                        <p>2 years old</p>
+                        <p>Wearing a green collar</p>
+                    </div>
+                </div>
+                <div class="pet-location">📍 Al-Rawdah neighborhood, Amman</div>
+                <div class="pet-phone">📞 0791234567</div>
+            </article>
+
+            <article class="pet-card" data-pet-id="2">
+                <div class="pet-top">
+                    <img src="../Images/lost/Orange.png" alt="Simba">
+                    <div class="pet-info">
+                        <div class="pet-head">
+                            <h3>Simba</h3>
+                            <button class="status-btn" data-open-flow="2">I found it</button>
+                        </div>
+                        <p><strong>Orange Tabby, Male</strong></p>
+                        <p>Orange striped</p>
+                        <p>Blue id tag</p>
+                        <p>Uses a pink collar</p>
+                    </div>
+                </div>
+                <div class="pet-location">📍 Al-Shmeisani neighborhood, Amman</div>
+                <div class="pet-phone">📞 0799876543</div>
+            </article>
+
+            <article class="pet-card" data-pet-id="3">
+                <div class="pet-top">
+                    <img src="../Images/lost/Siamese.png" alt="Luna">
+                    <div class="pet-info">
+                        <div class="pet-head">
+                            <h3>Luna</h3>
+                            <button class="status-btn" data-open-flow="3">I found it</button>
+                        </div>
+                        <p><strong>Siamese, Female</strong></p>
+                        <p>White and brown</p>
+                        <p>Approx. 3 years old</p>
+                        <p>Wearing a pink collar</p>
+                    </div>
+                </div>
+                <div class="pet-location">📍 Al-Gardens neighborhood, Amman</div>
+                <div class="pet-phone">📞 0798765432</div>
+            </article>
+
+            <article class="pet-card" data-pet-id="4">
+                <div class="pet-top">
+                    <img src="../Images/lost/Parrot.png" alt="Coco">
+                    <div class="pet-info">
+                        <div class="pet-head">
+                            <h3>Coco</h3>
+                            <button class="status-btn" data-open-flow="4">I found it</button>
+                        </div>
+                        <p><strong>Parrot, Green</strong></p>
+                        <p>Green with a red spot</p>
+                        <p>Beak mark</p>
+                        <p>Very social bird</p>
+                    </div>
+                </div>
+                <div class="pet-location">📍 Tlaa Al-Ali neighborhood, Amman</div>
+                <div class="pet-phone">📞 0795554443</div>
+            </article>
+        </section>
+
+        <div class="more-wrap fade-up">
+            <button id="viewMoreBtn" class="more-btn" type="button">Watch more</button>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="about.html">About Us</a>
+            <span>|</span>
+            <a href="about.html">Contact</a>
+            <span>|</span>
+            <a href="faq.html">FAQ</a>
+            <span>|</span>
+            <div class="social-inline">
+                <span>f</span>
+                <span>🐦</span>
+                <span>◎</span>
+            </div>
+        </div>
+        <div>© 2026 Waffy, all rights reserved.</div>
+    </footer>
+
+    <div id="flowModal" class="flow-modal hidden">
+        <div class="flow-overlay" data-close-flow></div>
+
+        <div class="flow-card">
+            <button class="flow-close" data-close-flow>&times;</button>
+
+            <section class="flow-step active" data-step="1">
+                <div class="modal-head">
+                    <h2>Your Information</h2>
+                    <p>Finder Information</p>
+                </div>
+
+                <div class="form-grid one">
+                    <label>
+                        <span>Full Name</span>
+                        <input id="finderName" type="text" placeholder="Enter your full name" />
+                    </label>
+                </div>
+
+                <div class="form-grid phone-grid">
+                    <label>
+                        <span>Country</span>
+                        <select id="countryCode">
+                            <option value="+962">Jordan (+962)</option>
+                            <option value="+966">Saudi Arabia (+966)</option>
+                            <option value="+971">UAE (+971)</option>
+                            <option value="+20">Egypt (+20)</option>
+                            <option value="+970">Palestine (+970)</option>
+                            <option value="+961">Lebanon (+961)</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Phone Number</span>
+                        <input id="finderPhone" type="text" placeholder="7X XXX XXXX" />
+                    </label>
+                </div>
+
+                <div class="form-grid one">
+                    <label>
+                        <span>Email (Optional)</span>
+                        <input id="finderEmail" type="email" placeholder="email@example.com" />
+                    </label>
+                </div>
+
+                <div class="step-actions">
+                    <button class="step-btn" data-next-step="2">Continue</button>
+                </div>
+            </section>
+
+            <section class="flow-step" data-step="2">
+                <div class="modal-head">
+                    <h2>Found Animal Information</h2>
+                    <p>Found Animal Information</p>
+                </div>
+
+                <div class="form-grid one">
+                    <label>
+                        <span>Animal Photo</span>
+                        <input id="animalPhoto" type="file" accept="image/png, image/jpeg, image/jpg" />
+                    </label>
+                </div>
+
+                <div class="form-grid two">
+                    <label>
+                        <span>Animal Type</span>
+                        <select id="animalType">
+                            <option value="">Select type</option>
+                            <option>Dog</option>
+                            <option>Cat</option>
+                            <option>Bird</option>
+                            <option>Rabbit</option>
+                            <option>Other</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        <span>Color / Markings</span>
+                        <input id="animalColor" type="text" placeholder="Example: red fur with white spot..." />
+                    </label>
+                </div>
+
+                <div class="form-grid two">
+                    <label>
+                        <span>Date Found</span>
+                        <input id="dateFound" type="date" />
+                    </label>
+
+                    <label>
+                        <span>Time Found (Optional)</span>
+                        <input id="timeFound" type="time" />
+                    </label>
+                </div>
+
+                <div class="form-grid one">
+                    <label>
+                        <span>Location Found</span>
+                        <div id="map"></div>
+                        <small class="map-note">Click on the map to select the location.</small>
+                    </label>
+                </div>
+
+                <div class="form-grid one">
+                    <label>
+                        <span>Address</span>
+                        <input id="addressFound" type="text" placeholder="Enter the address, street, area, city..." />
+                    </label>
+                </div>
+
+                <div class="form-grid one">
+                    <label>
+                        <span>Description</span>
+                        <textarea id="animalDescription" placeholder="Example: Brown husky, calm, found near Al-Hussein park..."></textarea>
+                    </label>
+                </div>
+
+                <div class="step-actions two-btns">
+                    <button class="back-btn" data-prev-step="1">Back</button>
+                    <button class="step-btn" data-next-step="3">Submit</button>
+                </div>
+            </section>
+
+            <section class="flow-step" data-step="3">
+                <div class="result-box">
+                    <div class="result-icon">⏳</div>
+                    <h2>We Received Your Report!</h2>
+                    <p>
+                        Your report has been sent successfully.<br>
+                        We will review the photo and contact you soon.
+                    </p>
+
+                    <div class="score-box">
+                        <div class="score-line">
+                            <span>Type</span>
+                            <div class="score-bar"><i style="width:100%"></i></div>
+                            <strong>100%</strong>
+                        </div>
+                        <div class="score-line">
+                            <span>Location</span>
+                            <div class="score-bar"><i style="width:78%"></i></div>
+                            <strong>78%</strong>
+                        </div>
+                        <div class="score-line">
+                            <span>Color</span>
+                            <div class="score-bar orange"><i style="width:65%"></i></div>
+                            <strong>65%</strong>
+                        </div>
+
+                        <div class="total-score">
+                            <div class="big-score">81%</div>
+                            <div>
+                                <strong>Overall Match Score</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="timer-box">
+                        <span>Auto-expires in</span>
+                        <strong id="countdownText">47:51:48</strong>
+                    </div>
+
+                    <div class="note-box">
+                        SMS notice will be sent if the owner confirms the match.
+                    </div>
+
+                    <div class="verify-box">
+                        <p>✅ The pet owner has reviewed the report — the next step is to answer the secret question.</p>
+                        <button class="step-btn" data-next-step="4">Continue to Secret Verification</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="flow-step" data-step="4">
+                <div class="modal-head">
+                    <h2>Secret Question</h2>
+                    <p>Answer the question asked by the owner only.</p>
+                </div>
+
+                <div class="secret-box">
+                    <div class="attempts">Attempts Left: <strong id="attemptsLeft">4</strong></div>
+                    <div class="question-card">
+                        Is there any unique mark or special feature you can describe?
+                    </div>
+
+                    <label class="answer-label">
+                        <span>Your Answer</span>
+                        <input id="secretAnswer" type="text" placeholder="Enter your answer here..." />
+                    </label>
+
+                    <small>You have 4 attempts only before the answer is blocked.</small>
+                </div>
+
+                <div class="step-actions two-btns">
+                    <button class="back-btn" data-prev-step="3">Back</button>
+                    <button class="step-btn" id="verifyAnswerBtn">Verify Answer</button>
+                </div>
+            </section>
+
+            <section class="flow-step" data-step="5">
+                <div class="modal-head">
+                    <h2>Did the owner give you a code?</h2>
+                    <p>Enter the code given by the owner to unlock the reward.</p>
+                </div>
+
+                <div class="code-box">
+                    <p class="warn">
+                        The pet owner gives this code to the person who helped return the pet.
+                    </p>
+
+                    <label>
+                        <span>Reward Code</span>
+                        <input id="rewardCodeInput" type="text" placeholder="WAFFY-O-XXXX" />
+                    </label>
+
+                    <div class="step-actions two-btns">
+                        <button class="step-btn" id="checkCodeBtn">Verify</button>
+                        <button class="report-cancel-btn" id="reportCancelBtn">Report Abuse</button>
+                    </div>
+                </div>
+            </section>
+
+            <section class="flow-step" data-step="6">
+                <div class="success-final">
+                    <div class="success-icon">🎉</div>
+                    <h2>Your Reward is on the Way!</h2>
+                    <p>
+                        Thank you for helping return the pet to its owner.<br>
+                        The reward has been released and will arrive in your Waffy wallet shortly.
+                    </p>
+
+                    <div class="wallet-card">
+                        <div class="wallet-amount">25+ JD</div>
+                        <div class="wallet-status">
+                            <strong>Reward Added Successfully</strong>
+                            <span>Waffy Wallet — Confirmed</span>
+                        </div>
+                    </div>
+
+                    <div class="transaction-card">
+                        <p><strong>Transaction Number:</strong> TXN-1773726420663</p>
+                        <p><strong>Date & Time:</strong> 2026-03-17 04:37 PM</p>
+                        <p><strong>Animal:</strong> Dog - Husky</p>
+                        <p><strong>Reward:</strong> 25.00 JD</p>
+                    </div>
+
+                    <div class="step-actions two-btns">
+                        <button class="step-btn" id="reportAnotherBtn">Report Another Animal</button>
+                        <button class="back-btn" id="viewWalletBtn">View My Wallet</button>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <div id="abuseModal" class="flow-modal hidden">
+        <div class="flow-overlay" data-close-abuse></div>
+        <div class="abuse-card">
+            <button class="flow-close" data-close-abuse>&times;</button>
+
+            <h3>Report Abuse</h3>
+            <p>If the owner did not return the pet or used the process incorrectly, you can report it here.</p>
+
+            <label>
+                <span>Fraud Type</span>
+                <select id="fraudType">
+                    <option>False report or mismatch</option>
+                    <option>Owner denied after return</option>
+                    <option>Wrong code / fake code</option>
+                    <option>Other</option>
+                </select>
+            </label>
+
+            <label>
+                <span>Details</span>
+                <textarea id="fraudDetails" placeholder="Explain what happened."></textarea>
+            </label>
+
+            <div class="step-actions two-btns">
+                <button class="back-btn" data-close-abuse>Cancel</button>
+                <button class="step-btn" id="submitAbuseBtn">Send Report</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/js/lost.js"></script>
+</body>
+</html>

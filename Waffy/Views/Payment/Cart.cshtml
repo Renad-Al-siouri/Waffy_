@@ -1,0 +1,200 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cart - Waffy</title>
+
+    <link rel="stylesheet" href="~/css/cartstyle.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+
+    <div class="top-hero-area">
+        <div class="top-hero-shell">
+            <header class="topbar">
+                <div class="header-shell">
+                    <nav class="navbar">
+
+                        <div class="left-nav desktop-nav desktop-links">
+                            <a href="home-after.html" class="nav-link">Home</a>
+                            <a href="veterinary.html" class="nav-link">Clinics</a>
+                            <a href="product.html" class="nav-link">Stores</a>
+                            <a href="adapt.html" class="nav-link">Adoption</a>
+                            <a href="lost.html" class="nav-link">Lost Pets</a>
+                        </div>
+
+                        <div class="logo-center">
+                            <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
+                        </div>
+
+                        <div class="right-nav">
+                            <div class="desktop-nav desktop-links desktop-right-links">
+                                <div class="services-dropdown" id="servicesDropdown">
+                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
+                                        Services
+                                        <span class="dropdown-arrow">▼</span>
+                                    </button>
+
+                                    <div class="dropdown-menu" id="servicesMenu">
+                                        <a href="veterinary.html" class="dropdown-link">Clinics</a>
+                                        <a href="product.html" class="dropdown-link">Stores</a>
+                                        <a href="adapt.html" class="dropdown-link">Adoption</a>
+                                        <a href="lost.html" class="dropdown-link">Lost Pets</a>
+                                        <a href="gps.html" class="dropdown-link">Map</a>
+                                        <a href="money.html" class="dropdown-link">Donations</a>
+                                        <a href="law.html" class="dropdown-link">Law</a>
+                                        <a href="dangerousAnimal.html" class="dropdown-link">Dangerous Animal</a>
+                                        <a href="support.html" class="dropdown-link">Technical Support</a>
+                                        <a href="faq.html" class="dropdown-link">FAQ</a>
+                                    </div>
+                                </div>
+
+                                <a href="about.html" class="nav-link">About Us</a>
+                            </div>
+
+                            <div class="nav-actions">
+                                <a href="cart.html" class="nav-icon active-cart-icon" aria-label="Cart">
+                                    <i class="fa-solid fa-cart-shopping"></i>
+                                    <span id="cartCount" class="cart-badge">0</span>
+                                </a>
+
+                                <a href="#" class="nav-icon" aria-label="Notifications">
+                                    <i class="fa-solid fa-bell"></i>
+                                </a>
+
+                                <a href="profile.html" class="profile-btn" aria-label="Profile">
+                                    <img src="../Images/user.jpg" alt="Profile">
+                                </a>
+
+                                <a href="logout.html" class="nav-link login-btn">Log out</a>
+                            </div>
+
+                            <div class="mobile-nav-wrap">
+                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+
+                                <div class="nav-links" id="navLinks">
+                                    <div class="mobile-menu-logo">
+                                        <img src="../Images/logo.png" alt="Waffy Logo">
+                                    </div>
+
+                                    <a href="home-after.html" class="nav-link">Home</a>
+                                    <a href="veterinary.html" class="nav-link">Clinics</a>
+                                    <a href="product.html" class="nav-link">Stores</a>
+                                    <a href="adapt.html" class="nav-link">Adoption</a>
+                                    <a href="lost.html" class="nav-link">Lost Pets</a>
+                                    <a href="gps.html" class="nav-link">Map</a>
+
+                                    <div class="mobile-services-block" id="mobileServicesBlock">
+                                        <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
+                                            <span>Services</span>
+                                            <span class="dropdown-arrow">▼</span>
+                                        </button>
+
+                                        <div class="mobile-services-menu" id="mobileServicesMenu">
+                                            <a href="money.html" class="dropdown-link">Donations</a>
+                                            <a href="law.html" class="dropdown-link">Law</a>
+                                            <a href="dangerousAnimal.html" class="dropdown-link">Dangerous Animal</a>
+                                            <a href="support.html" class="dropdown-link">Technical Support</a>
+                                            <a href="faq.html" class="dropdown-link">FAQ</a>
+                                        </div>
+                                    </div>
+
+                                    <a href="about.html" class="nav-link">About Us</a>
+                                    <a href="cart.html" class="nav-link active">Cart</a>
+                                    <a href="logout.html" class="nav-link login-btn">Log out</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </nav>
+                </div>
+            </header>
+        </div>
+    </div>
+
+    <main class="container cart-page">
+        <section class="hero-section fade-up">
+            <h1>Your Cart 🛒</h1>
+            <p>
+                Review your selected products, remove anything you don’t need,
+                or continue to checkout when you're ready.
+            </p>
+        </section>
+
+        <section class="cart-layout">
+            <div class="cart-items-card fade-up">
+                <div class="section-head">
+                    <div class="section-title-wrap">
+                        <span>🐾</span>
+                        <h2>Cart Items</h2>
+                    </div>
+                    <button id="clearCartBtn" class="clear-cart-btn" type="button">Clear Cart</button>
+                </div>
+
+                <div id="cartItems" class="cart-items-list"></div>
+            </div>
+
+            <aside class="summary-card fade-up">
+                <h3>Order Summary</h3>
+
+                <div class="summary-line">
+                    <span>Total Items</span>
+                    <strong id="summaryItems">0</strong>
+                </div>
+
+                <div class="summary-line">
+                    <span>Subtotal</span>
+                    <strong id="summarySubtotal">0.00 JD</strong>
+                </div>
+
+                <div class="summary-line">
+                    <span>Service Fee</span>
+                    <strong id="summaryFee">1.50 JD</strong>
+                </div>
+
+                <div class="summary-line total-line">
+                    <span>Total</span>
+                    <strong id="summaryTotal">0.00 JD</strong>
+                </div>
+
+                <div id="paymentNotice" class="payment-notice hidden">
+                    Payment completed successfully. Please remove purchased products from your cart.
+                </div>
+
+                <button id="checkoutBtn" class="checkout-btn" type="button">
+                    Checkout
+                </button>
+            </aside>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="about.html">About Us</a>
+            <span>|</span>
+            <a href="about.html">Contact</a>
+            <span>|</span>
+            <a href="faq.html">FAQ</a>
+            <span>|</span>
+            <div class="social-inline">
+                <span>f</span>
+                <span>🐦</span>
+                <span>◎</span>
+            </div>
+        </div>
+        <div>© 2026 Waffy, all rights reserved.</div>
+    </footer>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="~/js/cartjs.js"></script>
+</body>
+</html>
