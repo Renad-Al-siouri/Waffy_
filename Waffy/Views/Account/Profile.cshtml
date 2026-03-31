@@ -1,0 +1,890 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waffy | Profile</title>
+    <link rel="stylesheet" href="profile.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link rel="stylesheet" href="~/css/profile.css" />
+</head>
+<body>
+    <!-- HEADER -->
+    <header class="topbar">
+        <div class="header-shell">
+            <nav class="navbar">
+
+                <div class="left-nav desktop-nav desktop-links">
+                    <a href="home-after.html" class="nav-link active">Home</a>
+                    <a href="veterinary.html" class="nav-link">Clinics</a>
+                    <a href="product.html" class="nav-link">Stores</a>
+                    <a href="adapt.html" class="nav-link">Adoption</a>
+                    <a href="lost.html" class="nav-link">Lost Pets</a>
+
+                </div>
+
+                <div class="logo-center">
+                    <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
+                </div>
+
+                <div class="right-nav">
+                    <div class="desktop-nav desktop-links desktop-right-links">
+
+
+
+                        <div class="services-dropdown" id="servicesDropdown">
+                            <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
+                                Services
+                                <span class="dropdown-arrow">▼</span>
+                            </button>
+
+                            <div class="dropdown-menu" id="servicesMenu">
+                                <a href="veterinary.html" class="dropdown-link">Clinics</a>
+                                <a href="product.html" class="dropdown-link">Stores</a>
+                                <a href="adapt.html" class="dropdown-link">Adoption</a>
+                                <a href="lost.html" class="dropdown-link">Lost Pets</a>
+                                <a href="gps.html" class="dropdown-link">Map</a>
+                                <a href="money.html" class="dropdown-link">Donations</a>
+                                <a href="law.html" class="dropdown-link">Law</a>
+                                <a href="dangerousAnimal.html" class="dropdown-link">Dangerous Animal</a>
+                                <a href="support.html" class="dropdown-link">Technical Support</a>
+                                <a href="faq.html" class="dropdown-link">FAQ</a>
+                            </div>
+                        </div>
+
+                        <a href="about.html" class="nav-link">About Us</a>
+
+                    </div>
+
+                    <div class="nav-actions">
+                        <a href="cart.html" class="nav-icon" aria-label="Cart">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                        </a>
+
+                        <a href="#" class="nav-icon" aria-label="Notifications">
+                            <i class="fa-solid fa-bell"></i>
+                        </a>
+
+                        <a href="profile.html" class="profile-btn" aria-label="Profile">
+                            <img src="../Images/user.jpg" alt="Profile">
+                        </a>
+                        <a href="logout.html" class="nav-link login-btn">Log out</a>
+                    </div>
+
+                    <div class="mobile-nav-wrap">
+                        <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+
+                        <div class="nav-links" id="navLinks">
+                            <div class="mobile-menu-logo">
+                                <img src="../Images/logo.png" alt="Waffy Logo">
+                            </div>
+
+                            <a href="home-after.html" class="nav-link active">Home</a>
+                            <a href="veterinary.html" class="nav-link">Clinics</a>
+                            <a href="product.html" class="nav-link">Stores</a>
+                            <a href="adapt.html" class="nav-link">Adoption</a>
+                            <a href="lost.html" class="nav-link">Lost Pets</a>
+                            <a href="gps.html" class="nav-link">Map</a>
+
+                            <div class="mobile-services-block" id="mobileServicesBlock">
+                                <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
+                                    <span>Services</span>
+                                    <span class="dropdown-arrow">▼</span>
+                                </button>
+
+                                <div class="mobile-services-menu" id="mobileServicesMenu">
+
+                                    <a href="money.html" class="dropdown-link">Donations</a>
+                                    <a href="law.html" class="dropdown-link">Law</a>
+                                    <a href="dangerousAnimal.html" class="dropdown-link">Dangerous Animal</a>
+                                    <a href="support.html" class="dropdown-link">Technical Support</a>
+                                    <a href="faq.html" class="dropdown-link">FAQ</a>
+                                </div>
+                            </div>
+
+                            <a href="about.html" class="nav-link">About Us</a>
+                            <a href="logout.html" class="nav-link login-btn">Log out</a>
+                        </div>
+                    </div>
+                </div>
+
+            </nav>
+        </div>
+    </header>
+
+    <!-- PAGE -->
+    <main class="profile-page">
+        <div class="container">
+            <!-- PROFILE CARD -->
+            <section class="profile-card">
+                <div class="profile-top">
+                    <div class="avatar-wrap">
+                        <div class="avatar">
+                            <span>👤</span>
+                        </div>
+                        <button class="camera-btn" id="changePhotoBtn">📷</button>
+                        <input type="file" id="photoInput" accept="image/*" hidden />
+                    </div>
+
+                    <div class="profile-info">
+                        <h1>Layan Mugdadi</h1>
+
+                        <div class="meta-line">
+                            <span>♀ Female</span>
+                        </div>
+
+                        <div class="meta-line">
+                            <span>📍 Amman, Jordan</span>
+                        </div>
+
+                        <a href="profileEdit.html" class="edit-profile-btn">✏ Edit Profile</a>
+                    </div>
+                </div>
+
+                <div class="contact-box">
+                    <div class="contact-row">
+                        <span class="contact-label">✉ Email</span>
+                        <span class="contact-value" id="userEmail">layan.mugdadi@email.com</span>
+                    </div>
+
+                    <div class="contact-row">
+                        <span class="contact-label">📞 Phone</span>
+                        <span class="contact-value" id="userPhone">+962 79 123 4567</span>
+                    </div>
+
+                    <div class="contact-row">
+                        <span class="contact-label">🏠 Address</span>
+                        <span class="contact-value" id="userAddress">123 Pet Street, Amman, Jordan</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PETS SECTION -->
+            <section class="pets-section">
+                <div class="section-title">
+                    <span>🐾 My Pets</span>
+                </div>
+
+                <div class="pets-grid" id="petsGrid">
+                    <!-- PET 1 -->
+                    <article class="pet-card">
+                        <div class="pet-image-box">
+                            <div class="pet-avatar-wrap">
+                                <div class="pet-avatar">
+                                    <img src="" alt="Buddy" class="pet-image" style="display: none;" />
+                                    <span class="pet-default-icon">🐾</span>
+                                </div>
+
+                                <button class="pet-camera-btn" type="button">📷</button>
+                                <input type="file" class="pet-photo-input" accept="image/*" hidden />
+                            </div>
+                        </div>
+
+                        <div class="pet-content">
+                            <div class="pet-head">
+                                <div>
+                                    <h3>Buddy</h3>
+                                    <p class="pet-type">Dog</p>
+                                </div>
+                                <span class="pet-dot"></span>
+                            </div>
+
+                            <p class="pet-age">Age: 3 Years</p>
+
+                            <ul class="pet-notes">
+                                <li class="good">Up-to-date on vaccines</li>
+                                <li class="alert">Medication needed</li>
+                            </ul>
+
+                            <div class="pet-actions">
+                                <button class="pet-btn primary details-btn" data-pet="buddy">View Details</button>
+
+                                <button class="pet-btn secondary edit-pet-btn">Edit</button>
+                                <button class="pet-btn danger delete-pet-btn">Delete</button>
+                            </div>
+                        </div>
+                    </article>
+
+                    <!-- PET 2 -->
+                    <article class="pet-card">
+                        <div class="pet-image-box">
+                            <div class="pet-avatar-wrap">
+                                <div class="pet-avatar">
+                                    <img src="" alt="Buddy" class="pet-image" style="display: none;" />
+                                    <span class="pet-default-icon">🐾</span>
+                                </div>
+
+
+                                <button class="pet-camera-btn" type="button">📷</button>
+                                <input type="file" class="pet-photo-input" accept="image/*" hidden />
+                            </div>
+                        </div>
+
+                        <div class="pet-content">
+                            <div class="pet-head">
+                                <div>
+                                    <h3>Milo</h3>
+                                    <p class="pet-type">Cat</p>
+                                </div>
+                                <span class="pet-dot"></span>
+                            </div>
+
+                            <p class="pet-age">Age: 1 Year</p>
+
+                            <ul class="pet-notes">
+                                <li class="good">Up-to-date on vaccines</li>
+                                <li class="alert">Allergy to chicken</li>
+                            </ul>
+
+                            <div class="pet-actions">
+                                <button class="pet-btn primary details-btn" data-pet="milo">View Details</button>
+                                <button class="pet-btn secondary edit-pet-btn">Edit</button>
+                                <button class="pet-btn danger delete-pet-btn">Delete</button>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <!-- ADD PET -->
+                <div class="add-pet-box" id="addPetBox">
+                    <button class="add-pet-circle">＋</button>
+                    <p>Click to add a new pet</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="#">Home</a>
+                <span>|</span>
+                <a href="#">Clinics</a>
+                <span>|</span>
+                <a href="#">Supplies</a>
+                <span>|</span>
+                <a href="#">About Us</a>
+            </div>
+            <p>© 2026 Waffy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- PROFILE MODAL -->
+    <!-- PET DETAILS MODAL -->
+    <div class="modal-overlay" id="petModal">
+        <div class="modal small-modal">
+            <button class="close-modal" id="closePetModal">×</button>
+            <h2 id="petModalTitle">Pet Details</h2>
+            <div id="petModalBody">
+                <p><strong>Name:</strong> Buddy</p>
+                <p><strong>Type:</strong> Dog</p>
+                <p><strong>Age:</strong> 3 Years</p>
+                <p><strong>Status:</strong> Up-to-date on vaccines</p>
+                <p><strong>Notes:</strong> Medication needed</p>
+            </div>
+        </div>
+    </div>
+    <!-- ADD PET MODAL -->
+    <div class="modal-overlay" id="addPetModal">
+        <div class="modal">
+            <button class="close-modal" id="closeAddPetModal">×</button>
+            <h2>Add New Pet</h2>
+            <div class="form-group full">
+                <div id="petImagePreview" class="pet-upload-preview">No image selected</div>
+            </div>
+            <form id="addPetForm">
+
+                <!-- BASIC -->
+                <div class="pet-form-section">
+                    <div class="pet-form-title">🐾 Pet Information</div>
+                    <div class="form-group full">
+                        <label for="petImageInput">Pet Photo</label>
+                        <input type="file" id="petImageInput" accept="image/*" />
+                    </div>
+                    <div class="pet-grid-2">
+                        <div class="form-group">
+                            <label>Pet Name</label>
+                            <input type="text" id="petNameInput" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Pet Type</label>
+                            <select id="petTypeInput" required>
+                                <option value="">Select</option>
+                                <option>🐕 Dog</option>
+                                <option>🐈 Cat</option>
+                                <option>🐦 Bird</option>
+                                <option>🐰 Rabbit</option>
+                                <option>🦜 Other</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Breed</label>
+                            <input type="text" id="petBreedInput" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Age</label>
+                            <input type="number" id="petAgeInput" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Gender</label>
+                            <select id="petGenderInput">
+                                <option>Male</option>
+                                <option>Female</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Color</label>
+                            <input type="text" id="petColorInput" />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- HEALTH -->
+                <div class="pet-form-section">
+                    <div class="pet-form-title">❤️ Health</div>
+
+                    <div class="pet-grid-2">
+                        <div class="form-group">
+                            <label>Health Status</label>
+                            <select id="petHealthInput">
+                                <option>Healthy</option>
+                                <option>Has issues</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Vaccinated</label>
+                            <select id="petVaccinatedInput">
+                                <option>Yes</option>
+                                <option>No</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Vaccination Date</label>
+                            <input type="date" id="petVaccDateInput" />
+                        </div>
+
+                        <div class="form-group">
+                            <label>Neutered</label>
+                            <select id="petNeuterInput">
+                                <option>Yes</option>
+                                <option>No</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group full">
+                            <label>Health Notes</label>
+                            <textarea id="petNotesInput"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BEHAVIOR -->
+                <div class="pet-form-section">
+                    <div class="pet-form-title">🧠 Behaviour</div>
+
+                    <div class="pet-grid-2">
+                        <div class="form-group">
+                            <label>Energy Level</label>
+                            <select id="petEnergyInput">
+                                <option>Low</option>
+                                <option selected>Medium</option>
+                                <option>High</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Good with Children</label>
+                            <select id="petChildrenInput">
+                                <option>Yes</option>
+                                <option>No</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Good with Pets</label>
+                            <select id="petOtherPetsInput">
+                                <option>Yes</option>
+                                <option>No</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group full">
+                            <label>Description</label>
+                            <textarea id="petDescInput"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="save-btn">Add Pet</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+          // ELEMENTS
+          const mobileToggle = document.getElementById("mobileToggle");
+          const navMenu = document.getElementById("navMenu");
+
+          const editProfileBtn = document.getElementById("editProfileBtn");
+          const profileModal = document.getElementById("profileModal");
+          const closeProfileModal = document.getElementById("closeProfileModal");
+          const profileForm = document.getElementById("profileForm");
+
+          const addPetBox = document.getElementById("addPetBox");
+          const addPetModal = document.getElementById("addPetModal");
+          const closeAddPetModal = document.getElementById("closeAddPetModal");
+          const addPetForm = document.getElementById("addPetForm");
+          const petsGrid = document.getElementById("petsGrid");
+
+          const changePhotoBtn = document.getElementById("changePhotoBtn");
+          const photoInput = document.getElementById("photoInput");
+          const avatar = document.querySelector(".avatar");
+          const petImageInput = document.getElementById("petImageInput");
+           const petImagePreview = document.getElementById("petImagePreview");
+
+           let uploadedPetImage = "";
+          let petCounter = 3;
+          let currentEditCard = null;
+
+          // NAVBAR
+          const servicesDropdown = document.getElementById("servicesDropdown");
+          const servicesToggle = document.getElementById("servicesToggle");
+          const menuBtn = document.getElementById("menuBtn");
+          const navLinks = document.getElementById("navLinks");
+          const mobileServicesBlock = document.getElementById("mobileServicesBlock");
+          const mobileServicesToggle = document.getElementById("mobileServicesToggle");
+
+          if (servicesToggle && servicesDropdown) {
+            servicesToggle.addEventListener("click", function (e) {
+              e.stopPropagation();
+              servicesDropdown.classList.toggle("open");
+            });
+
+            document.addEventListener("click", function (e) {
+              if (!servicesDropdown.contains(e.target)) {
+                servicesDropdown.classList.remove("open");
+              }
+            });
+          }
+
+          if (menuBtn && navLinks) {
+            menuBtn.addEventListener("click", function (e) {
+              e.stopPropagation();
+              navLinks.classList.toggle("open");
+            });
+
+            document.addEventListener("click", function (e) {
+              if (!navLinks.contains(e.target) && !menuBtn.contains(e.target)) {
+                navLinks.classList.remove("open");
+              }
+            });
+          }
+
+          if (mobileServicesToggle && mobileServicesBlock) {
+            mobileServicesToggle.addEventListener("click", function (e) {
+              e.stopPropagation();
+              mobileServicesBlock.classList.toggle("open");
+            });
+          }
+
+
+          // MOBILE MENU
+          if (mobileToggle && navMenu) {
+            mobileToggle.addEventListener("click", () => {
+              navMenu.classList.toggle("show");
+            });
+          }
+
+          // PROFILE MODAL
+          if (editProfileBtn && profileModal) {
+            editProfileBtn.addEventListener("click", () => {
+              profileModal.classList.add("show");
+            });
+          }
+
+          if (closeProfileModal && profileModal) {
+            closeProfileModal.addEventListener("click", () => {
+              profileModal.classList.remove("show");
+            });
+          }
+
+          // CLOSE MODALS ON OUTSIDE CLICK
+          window.addEventListener("click", (e) => {
+            if (profileModal && e.target === profileModal) {
+              profileModal.classList.remove("show");
+            }
+
+            if (addPetModal && e.target === addPetModal) {
+              addPetModal.classList.remove("show");
+              resetAddPetForm();
+            }
+          });
+
+          // SAVE PROFILE
+          if (profileForm) {
+          profileForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById("nameInput").value.trim();
+            const email = document.getElementById("emailInput").value.trim();
+            const phone = document.getElementById("phoneInput").value.trim();
+            const address = document.getElementById("addressInput").value.trim();
+            const gender = document.getElementById("genderInput").value;
+
+            const city = document.getElementById("cityInput").value.trim();
+            const area = document.getElementById("areaInput").value.trim();
+
+            if (!name || !email || !phone) {
+              alert("Please fill in the required profile fields.");
+              return;
+            }
+
+            document.querySelector(".profile-info h1").textContent = name;
+            document.getElementById("userEmail").textContent = email;
+            document.getElementById("userPhone").textContent = phone;
+
+            const finalAddress = area
+              ? `${area}, ${city}`
+              : city;
+
+            document.getElementById("userAddress").textContent =
+              address || finalAddress || "No address added";
+
+            const metaLine = document.querySelector(".profile-info .meta-line span");
+            if (metaLine && gender) {
+              metaLine.textContent = gender === "Female" ? "♀ Female" :
+                                     gender === "Male" ? "♂ Male" :
+                                     gender;
+            }
+
+            profileModal.classList.remove("show");
+            alert("Profile updated successfully!");
+          });
+        }
+
+          // OPEN ADD PET MODAL
+          if (addPetBox && addPetModal) {
+            addPetBox.addEventListener("click", () => {
+              currentEditCard = null;
+              resetAddPetForm();
+              document.querySelector("#addPetModal h2").textContent = "Add New Pet";
+              document.querySelector("#addPetForm .save-btn").textContent = "Add Pet";
+              addPetModal.classList.add("show");
+            });
+          }
+        if (petImageInput) {
+          petImageInput.addEventListener("change", function () {
+            const file = this.files[0];
+            if (!file) {
+              uploadedPetImage = "";
+              if (petImagePreview) {
+                petImagePreview.textContent = "No image selected";
+                petImagePreview.innerHTML = "No image selected";
+              }
+              return;
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+              uploadedPetImage = e.target.result;
+
+              if (petImagePreview) {
+                petImagePreview.innerHTML = `<img src="${uploadedPetImage}" alt="Preview">`;
+              }
+            };
+
+            reader.readAsDataURL(file);
+          });
+        }
+          // CLOSE ADD PET MODAL
+          if (closeAddPetModal && addPetModal) {
+            closeAddPetModal.addEventListener("click", () => {
+              addPetModal.classList.remove("show");
+              resetAddPetForm();
+            });
+          }
+          function resetAddPetForm() {
+          if (!addPetForm) return;
+
+          addPetForm.reset();
+          currentEditCard = null;
+          uploadedPetImage = "";
+
+          if (petImagePreview) {
+            petImagePreview.innerHTML = "No image selected";
+          }
+        }
+
+          function createPetCard({ name, type, age, notes, petId, image }) {
+          const article = document.createElement("article");
+          article.className = "pet-card";
+          article.setAttribute("data-pet-id", petId);
+
+          article.innerHTML = `
+            <div class="pet-image-box">
+              <div class="pet-avatar-wrap">
+                <div class="pet-avatar">
+                  <img src="${image || ""}" alt="${name}" class="pet-image" ${image ? "" : 'style="display:none;"'} />
+                  <span class="pet-default-icon" ${image ? 'style="display:none;"' : ""}>🐾</span>
+                </div>
+                <button class="pet-camera-btn" type="button">📷</button>
+                <input type="file" class="pet-photo-input" accept="image/*" hidden />
+              </div>
+            </div>
+
+            <div class="pet-content">
+              <div class="pet-head">
+                <div>
+                  <h3>${name}</h3>
+                  <p class="pet-type">${type}</p>
+                </div>
+                <span class="pet-dot"></span>
+              </div>
+
+              <p class="pet-age">Age: ${age} Year${Number(age) > 1 ? "s" : ""}</p>
+
+              <ul class="pet-notes">
+                <li class="good">Pet record available</li>
+                ${notes ? `<li class="alert">${notes}</li>` : ""}
+              </ul>
+
+              <div class="pet-actions">
+                <button class="pet-btn primary details-btn" data-pet="${petId}">View Details</button>
+                <button class="pet-btn secondary edit-pet-btn">Edit</button>
+                <button class="pet-btn danger delete-pet-btn">Delete</button>
+              </div>
+            </div>
+          `;
+
+          return article;
+        }
+          // ADD OR EDIT PET
+          if (addPetForm) {
+          addPetForm.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            const name = document.getElementById("petNameInput").value.trim();
+            const type = document.getElementById("petTypeInput").value;
+            const breed = document.getElementById("petBreedInput").value.trim();
+            const age = document.getElementById("petAgeInput").value.trim();
+            const gender = document.getElementById("petGenderInput").value;
+            const color = document.getElementById("petColorInput").value.trim();
+
+            const health = document.getElementById("petHealthInput").value;
+            const vaccinated = document.getElementById("petVaccinatedInput").value;
+            const vaccDate = document.getElementById("petVaccDateInput").value;
+            const neuter = document.getElementById("petNeuterInput").value;
+
+            const notes = document.getElementById("petNotesInput").value.trim();
+            const energy = document.getElementById("petEnergyInput").value;
+            const children = document.getElementById("petChildrenInput").value;
+            const otherPets = document.getElementById("petOtherPetsInput").value;
+            const desc = document.getElementById("petDescInput").value.trim();
+
+            if (!name || !type || !age) {
+              alert("Please fill in the required fields.");
+              return;
+            }
+
+            if (currentEditCard) {
+              currentEditCard.querySelector("h3").textContent = name;
+              currentEditCard.querySelector(".pet-type").textContent = type;
+              currentEditCard.querySelector(".pet-age").textContent =
+                `Age: ${age} Year${Number(age) > 1 ? "s" : ""}`;
+
+              const notesList = currentEditCard.querySelector(".pet-notes");
+              notesList.innerHTML = `
+                <li class="good">${health || "Pet record available"}</li>
+                ${notes ? `<li class="alert">${notes}</li>` : ""}
+              `;
+
+              const imageBox = currentEditCard.querySelector(".pet-image-box");
+
+              if (uploadedPetImage) {
+          imageBox.innerHTML = `
+            <div class="pet-avatar-wrap">
+              <div class="pet-avatar">
+                <img src="${uploadedPetImage}" alt="${name}" class="pet-image" />
+                <span class="pet-default-icon" style="display: none;">🐾</span>
+              </div>
+              <button class="pet-camera-btn" type="button">📷</button>
+              <input type="file" class="pet-photo-input" accept="image/*" hidden />
+            </div>
+          `;
+        }
+
+              addPetModal.classList.remove("show");
+              resetAddPetForm();
+              alert("Pet updated successfully!");
+              return;
+            }
+
+            const petId = `pet${petCounter++}`;
+
+            const newPetCard = createPetCard({
+              name,
+              type,
+              age,
+              notes: notes || health,
+              petId,
+              image: uploadedPetImage
+            });
+
+            petsGrid.appendChild(newPetCard);
+
+            addPetModal.classList.remove("show");
+            resetAddPetForm();
+            alert("Pet added successfully!");
+          });
+        }
+
+          // PET BUTTONS - EVENT DELEGATION
+          if (petsGrid) {
+            petsGrid.addEventListener("click", (e) => {
+              const detailsBtn = e.target.closest(".details-btn");
+              const deleteBtn = e.target.closest(".delete-pet-btn");
+              const editBtn = e.target.closest(".edit-pet-btn");
+
+              // VIEW DETAILS
+              if (detailsBtn) {
+                const petKey = detailsBtn.dataset.pet || "buddy";
+                window.location.href = `petRecord.html?pet=${petKey}`;
+                return;
+              }
+
+              // DELETE PET
+              if (deleteBtn) {
+                const petCard = deleteBtn.closest(".pet-card");
+                if (!petCard) return;
+
+                const petName = petCard.querySelector("h3").textContent;
+                if (confirm(`Delete ${petName}?`)) {
+                  petCard.remove();
+                  alert(`${petName} deleted.`);
+                }
+                return;
+              }
+
+              // EDIT PET
+              if (editBtn) {
+          const petCard = editBtn.closest(".pet-card");
+          if (!petCard) return;
+
+          currentEditCard = petCard;
+
+          const petName = petCard.querySelector("h3").textContent;
+          const petType = petCard.querySelector(".pet-type").textContent;
+          const petAgeText = petCard.querySelector(".pet-age").textContent;
+          const petAge = petAgeText.replace("Age:", "").replace("Years", "").replace("Year", "").trim();
+
+          const noteItems = petCard.querySelectorAll(".pet-notes li");
+          let customNote = "";
+          if (noteItems.length > 1) {
+            customNote = noteItems[1].textContent.trim();
+          }
+
+          document.getElementById("petNameInput").value = petName;
+          document.getElementById("petTypeInput").value = petType;
+          document.getElementById("petAgeInput").value = petAge;
+          document.getElementById("petNotesInput").value = customNote;
+
+          const currentImage = petCard.querySelector(".pet-image");
+          if (currentImage) {
+            uploadedPetImage = currentImage.src;
+            if (petImagePreview) {
+              petImagePreview.innerHTML = `<img src="${uploadedPetImage}" alt="Preview">`;
+            }
+          } else {
+            uploadedPetImage = "";
+            if (petImagePreview) {
+              petImagePreview.innerHTML = "No image selected";
+            }
+          }
+
+          document.querySelector("#addPetModal h2").textContent = "Edit Pet";
+          document.querySelector("#addPetForm .save-btn").textContent = "Save Changes";
+
+          addPetModal.classList.add("show");
+        }
+            });
+          }
+
+          // CHANGE PROFILE PHOTO
+          if (changePhotoBtn && photoInput) {
+            changePhotoBtn.addEventListener("click", () => {
+              photoInput.click();
+            });
+          }
+
+          if (photoInput && avatar) {
+            photoInput.addEventListener("change", function () {
+              const file = this.files[0];
+              if (!file) return;
+
+              const reader = new FileReader();
+
+              reader.onload = function (e) {
+                avatar.innerHTML = `<img src="${e.target.result}" alt="Profile Photo">`;
+              };
+
+              reader.readAsDataURL(file);
+            });
+          }
+          document.addEventListener("click", function (e) {
+          const cameraBtn = e.target.closest(".pet-camera-btn");
+          if (!cameraBtn) return;
+
+          const petCard = cameraBtn.closest(".pet-card");
+          if (!petCard) return;
+
+          const fileInput = petCard.querySelector(".pet-photo-input");
+          if (fileInput) {
+            fileInput.click();
+          }
+        });
+
+        document.addEventListener("change", function (e) {
+          if (!e.target.classList.contains("pet-photo-input")) return;
+
+          const file = e.target.files[0];
+          if (!file) return;
+
+          const petCard = e.target.closest(".pet-card");
+          if (!petCard) return;
+
+          const img = petCard.querySelector(".pet-image");
+          const defaultIcon = petCard.querySelector(".pet-default-icon");
+
+          const reader = new FileReader();
+          reader.onload = function (event) {
+            img.src = event.target.result;
+            img.style.display = "block";
+
+            if (defaultIcon) {
+              defaultIcon.style.display = "none";
+            }
+          };
+
+          reader.readAsDataURL(file);
+        });
+    </script>
+</body>
+</html>

@@ -34,6 +34,16 @@ namespace Waffy.Controllers
         {
             return View();
         }
+
+        public IActionResult Profile()
+        {
+            return View();
+        }
+
+        public IActionResult ProfileEdit()
+        {
+            return View();
+        }
         //Sign up step for clinic
 
         public IActionResult Clinic_step1()
