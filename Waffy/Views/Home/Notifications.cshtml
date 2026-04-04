@@ -1,0 +1,403 @@
+﻿@{
+    ViewData["Title"] = "Notifications";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waffy - Notifications</title>
+
+    <link rel="stylesheet" href="~/css/notifications.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+
+    <div class="top-hero-area">
+        <div class="top-hero-shell">
+            <header class="topbar">
+                <div class="header-shell">
+                    <nav class="navbar">
+
+                        <div class="left-nav desktop-nav desktop-links">
+                            <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
+                            <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
+                            <a asp-controller="Product" asp-action="Products" class="nav-link">Stores</a>
+                            <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
+                            <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
+                        </div>
+
+                        <div class="logo-center">
+                            <img src="~/Images/logo.png" alt="Waffy Main Logo" class="main-logo">
+                        </div>
+
+                        <div class="right-nav">
+                            <div class="desktop-nav desktop-links desktop-right-links">
+                                <div class="services-dropdown" id="servicesDropdown">
+                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
+                                        Services
+                                        <span class="dropdown-arrow">▼</span>
+                                    </button>
+
+                                    <div class="dropdown-menu" id="servicesMenu">
+                                        <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
+                                        <a asp-controller="Product" asp-action="Products" class="dropdown-link">Stores</a>
+                                        <a asp-controller="Pet" asp-action="Adapt" class="dropdown-link">Adoption</a>
+                                        <a asp-controller="Pet" asp-action="Lost" class="dropdown-link">Lost Pets</a>
+                                        <a asp-controller="Map" asp-action="Gps" class="dropdown-link">Map</a>
+                                        <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
+                                        <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
+                                        <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
+                                        <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
+                                        <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
+                                    </div>
+                                </div>
+
+                                <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
+                            </div>
+
+                            <div class="nav-actions">
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
+                                    <i class="fa-solid fa-cart-shopping"></i>
+                                </a>
+
+                                <a asp-controller="Account" asp-action="Notifications" class="nav-icon active-icon" aria-label="Notifications">
+                                    <i class="fa-solid fa-bell"></i>
+                                    <span class="nav-badge" id="navNotifCount">7</span>
+                                </a>
+
+                                <a asp-controller="Account" asp-action="Profile" class="profile-btn" aria-label="Profile">
+                                    <img src="~/Images/user.jpg" alt="Profile">
+                                </a>
+
+                                <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
+                            </div>
+
+                            <div class="mobile-nav-wrap">
+                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+
+                                <div class="nav-links" id="navLinks">
+                                    <div class="mobile-menu-logo">
+                                        <img src="~/Images/logo.png" alt="Waffy Logo">
+                                    </div>
+
+                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
+                                    <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
+                                    <a asp-controller="Product" asp-action="Products" class="nav-link">Stores</a>
+                                    <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
+                                    <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
+                                    <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
+                                    <a asp-controller="Account" asp-action="Notifications" class="nav-link active">Notifications</a>
+
+                                    <div class="mobile-services-block" id="mobileServicesBlock">
+                                        <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
+                                            <span>Services</span>
+                                            <span class="dropdown-arrow">▼</span>
+                                        </button>
+
+                                        <div class="mobile-services-menu" id="mobileServicesMenu">
+                                            <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
+                                            <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
+                                            <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
+                                            <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
+                                            <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
+                                        </div>
+                                    </div>
+
+                                    <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
+                                    <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
+                                </div>
+                            </div>
+                        </div>
+
+                    </nav>
+                </div>
+            </header>
+        </div>
+    </div>
+
+    <main class="container notifications-page">
+        <section class="hero-section fade-up">
+            <h1>Notifications 🔔</h1>
+            <p>
+                Stay updated with adoption approvals, appointment responses, reminders, rewards, coupons, and important updates from Waffy.
+            </p>
+        </section>
+
+        <section class="top-summary fade-up">
+            <article class="summary-card">
+                <span class="summary-icon"><i class="fa-solid fa-bell"></i></span>
+                <div>
+                    <strong>7 New Notifications</strong>
+                    <p>Unread alerts waiting for you</p>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <span class="summary-icon"><i class="fa-solid fa-calendar-check"></i></span>
+                <div>
+                    <strong>2 Upcoming Appointments</strong>
+                    <p>Accepted bookings and reminders</p>
+                </div>
+            </article>
+
+            <article class="summary-card">
+                <span class="summary-icon"><i class="fa-solid fa-gift"></i></span>
+                <div>
+                    <strong>1 Reward & 1 Coupon</strong>
+                    <p>Available benefits from recent activity</p>
+                </div>
+            </article>
+        </section>
+
+        <section class="controls-area fade-up">
+            <div class="search-wrap">
+                <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                <input type="text" id="notificationSearch" placeholder="Search notifications..." />
+            </div>
+
+            <div class="filters-row">
+                <div class="category-filters">
+                    <button class="category-btn active" data-filter="all">All</button>
+                    <button class="category-btn" data-filter="appointment">Appointments</button>
+                    <button class="category-btn" data-filter="adoption">Adoption</button>
+                    <button class="category-btn" data-filter="reward">Rewards</button>
+                    <button class="category-btn" data-filter="service">Services</button>
+                    <button class="category-btn" data-filter="system">System</button>
+                </div>
+
+                <div class="actions-box">
+                    <button class="ghost-btn" id="markAllBtn" type="button">
+                        <i class="fa-solid fa-check-double"></i>
+                        Mark all as read
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section class="notifications-list fade-up" id="notificationsList">
+
+            <article class="notification-card unread" data-type="adoption" data-search="adoption approved pet listing accepted by admin buddy dog">
+                <div class="notification-icon adoption">
+                    <i class="fa-solid fa-paw"></i>
+                </div>
+
+                <div class="notification-content">
+                    <div class="notification-top">
+                        <div>
+                            <h3>Your adoption post was approved</h3>
+                            <p class="notification-message">
+                                Great news! The admin approved your pet adoption listing for <strong>Buddy</strong>. Your post is now visible to users.
+                            </p>
+                        </div>
+                        <span class="notification-badge">New</span>
+                    </div>
+
+                    <div class="notification-meta">
+                        <span><i class="fa-regular fa-clock"></i> 5 min ago</span>
+                        <span><i class="fa-solid fa-layer-group"></i> Adoption</span>
+                    </div>
+
+                    <div class="notification-actions">
+                        <button class="notif-btn primary" type="button">View Post</button>
+                        <button class="notif-btn secondary" type="button">Mark as Read</button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="notification-card unread" data-type="appointment" data-search="appointment booking accepted clinic booking approved tomorrow doctor appointment">
+                <div class="notification-icon appointment">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+
+                <div class="notification-content">
+                    <div class="notification-top">
+                        <div>
+                            <h3>Your appointment was accepted</h3>
+                            <p class="notification-message">
+                                Your booking with <strong>Al Amanah Veterinary Clinic</strong> has been accepted for <strong>tomorrow at 4:00 PM</strong>.
+                            </p>
+                        </div>
+                        <span class="notification-badge">New</span>
+                    </div>
+
+                    <div class="notification-meta">
+                        <span><i class="fa-regular fa-clock"></i> 14 min ago</span>
+                        <span><i class="fa-solid fa-layer-group"></i> Appointment</span>
+                    </div>
+
+                    <div class="notification-actions">
+                        <button class="notif-btn primary" type="button">View Booking</button>
+                        <button class="notif-btn secondary" type="button">Mark as Read</button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="notification-card unread" data-type="appointment" data-search="appointment reminder upcoming checkup reminder 30 minutes">
+                <div class="notification-icon reminder">
+                    <i class="fa-solid fa-clock"></i>
+                </div>
+
+                <div class="notification-content">
+                    <div class="notification-top">
+                        <div>
+                            <h3>Appointment reminder</h3>
+                            <p class="notification-message">
+                                Reminder: your pet checkup starts in <strong>30 minutes</strong>. Please arrive a little early to complete your visit smoothly.
+                            </p>
+                        </div>
+                        <span class="notification-badge">Reminder</span>
+                    </div>
+
+                    <div class="notification-meta">
+                        <span><i class="fa-regular fa-clock"></i> 30 min ago</span>
+                        <span><i class="fa-solid fa-layer-group"></i> Appointment</span>
+                    </div>
+
+                    <div class="notification-actions">
+                        <button class="notif-btn primary" type="button">Open Details</button>
+                        <button class="notif-btn secondary" type="button">Mark as Read</button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="notification-card unread" data-type="reward" data-search="reward found lost pet reward approved coupon bonus">
+                <div class="notification-icon reward">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+
+                <div class="notification-content">
+                    <div class="notification-top">
+                        <div>
+                            <h3>You received a reward</h3>
+                            <p class="notification-message">
+                                Congratulations! A reward has been issued to your wallet after the successful lost pet verification process.
+                            </p>
+                        </div>
+                        <span class="notification-badge reward-badge">Reward</span>
+                    </div>
+
+                    <div class="notification-meta">
+                        <span><i class="fa-regular fa-clock"></i> 1 hour ago</span>
+                        <span><i class="fa-solid fa-layer-group"></i> Reward</span>
+                    </div>
+
+                    <div class="notification-actions">
+                        <button class="notif-btn primary" type="button">Open Wallet</button>
+                        <button class="notif-btn secondary" type="button">Mark as Read</button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="notification-card" data-type="reward" data-search="coupon pet store discount shopping supplies coupon">
+                <div class="notification-icon coupon">
+                    <i class="fa-solid fa-ticket"></i>
+                </div>
+
+                <div class="notification-content">
+                    <div class="notification-top">
+                        <div>
+                            <h3>New coupon added to your account</h3>
+                            <p class="notification-message">
+                                You received a <strong>15% discount coupon</strong> for pet supplies. Use it before it expires this week.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="notification-meta">
+                        <span><i class="fa-regular fa-clock"></i> 3 hours ago</span>
+                        <span><i class="fa-solid fa-layer-group"></i> Coupon</span>
+                    </div>
+
+                    <div class="notification-actions">
+                        <button class="notif-btn primary" type="button">Use Coupon</button>
+                        <button class="notif-btn secondary" type="button">Archive</button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="notification-card" data-type="service" data-search="new service dog walking grooming boarding training available">
+                <div class="notification-icon service">
+                    <i class="fa-solid fa-sparkles"></i>
+                </div>
+
+                <div class="notification-content">
+                    <div class="notification-top">
+                        <div>
+                            <h3>New services now available</h3>
+                            <p class="notification-message">
+                                Waffy now offers more helpful services including grooming, pet boarding, and training support in selected areas.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="notification-meta">
+                        <span><i class="fa-regular fa-clock"></i> Yesterday</span>
+                        <span><i class="fa-solid fa-layer-group"></i> Services</span>
+                    </div>
+
+                    <div class="notification-actions">
+                        <button class="notif-btn primary" type="button">Explore Services</button>
+                        <button class="notif-btn secondary" type="button">Archive</button>
+                    </div>
+                </div>
+            </article>
+
+            <article class="notification-card" data-type="system" data-search="admin message account system update policy safety notice">
+                <div class="notification-icon system">
+                    <i class="fa-solid fa-shield-heart"></i>
+                </div>
+
+                <div class="notification-content">
+                    <div class="notification-top">
+                        <div>
+                            <h3>Important account update</h3>
+                            <p class="notification-message">
+                                The admin sent a system notice about improved adoption review steps and safer verification for community posts.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="notification-meta">
+                        <span><i class="fa-regular fa-clock"></i> 2 days ago</span>
+                        <span><i class="fa-solid fa-layer-group"></i> System</span>
+                    </div>
+
+                    <div class="notification-actions">
+                        <button class="notif-btn primary" type="button">Read Notice</button>
+                        <button class="notif-btn secondary" type="button">Archive</button>
+                    </div>
+                </div>
+            </article>
+
+        </section>
+
+        <div class="empty-state" id="emptyState">
+            <i class="fa-solid fa-bell-slash"></i>
+            <h3>No notifications found</h3>
+            <p>Try another search term or choose a different category.</p>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a href="about.html">About Us</a>
+            <span>|</span>
+            <a href="about.html">Contact</a>
+            <span>|</span>
+            <a href="faq.html">FAQ</a>
+            <span>|</span>
+            <div class="social-inline">
+                <span>f</span>
+                <span>🐦</span>
+                <span>◎</span>
+            </div>
+        </div>
+        <div>© 2026 Waffy, all rights reserved.</div>
+    </footer>
+
+    <script src="~/js/Notifications.js"></script>
+</body>
+</html>

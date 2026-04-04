@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -20,11 +17,11 @@
             <div class="topbar">
                 <div class="logo"><span class="logo-ico"></span> Waffy</div>
                 <div class="topbar-right">
-                    <a href="signup.html" class="top-signup-link">← Back to Sign Up</a>
+                    <a asp-controller="Account" asp-action="Signup" class="top-signup-link">← Back to Sign Up</a>
                 </div>
             </div>
 
-            <div class="prog-line"><div class="prog-fill" style="width:60%"></div></div>
+            <div class="prog-line"><div class="prog-fill" style="width:75%"></div></div>
 
             <div class="sw-wrap">
                 <aside class="sw-sidebar">
@@ -37,10 +34,9 @@
                         <div class="sw-sb-lbl">Registration Steps</div>
                         <div id="swSbSteps">
                             <div class="sw-si done"><div class="sw-si-num">✓</div><div><div class="sw-si-title">👤 Account Owner</div><div class="sw-si-sub">Step 1</div></div></div>
-                            <div class="sw-si done"><div class="sw-si-num">✓</div><div><div class="sw-si-title">🏪 Store Information</div><div class="sw-si-sub">Step 2</div></div></div>
-                            <div class="sw-si active"><div class="sw-si-num">3</div><div><div class="sw-si-title">📍 Contact & Location</div><div class="sw-si-sub">Step 3</div></div></div>
-                            <div class="sw-si"><div class="sw-si-num">4</div><div><div class="sw-si-title">🖼 Media & Payments</div><div class="sw-si-sub">Step 4</div></div></div>
-                            <div class="sw-si"><div class="sw-si-num">5</div><div><div class="sw-si-title">📄 Business & Docs</div><div class="sw-si-sub">Step 5</div></div></div>
+                            <div class="sw-si done"><div class="sw-si-num">✓</div><div><div class="sw-si-title">🏪 Store Details & Location</div><div class="sw-si-sub">Step 2</div></div></div>
+                            <div class="sw-si active"><div class="sw-si-num">3</div><div><div class="sw-si-title">📞 Contact & Payments</div><div class="sw-si-sub">Step 3</div></div></div>
+                            <div class="sw-si"><div class="sw-si-num">4</div><div><div class="sw-si-title">📄 Business & Docs</div><div class="sw-si-sub">Step 4</div></div></div>
                         </div>
                     </div>
                 </aside>
@@ -50,7 +46,6 @@
                         <div class="sw-dot done"></div>
                         <div class="sw-dot done"></div>
                         <div class="sw-dot active"></div>
-                        <div class="sw-dot"></div>
                         <div class="sw-dot"></div>
                     </div>
 
@@ -93,98 +88,25 @@
 
                         <div class="sw-card">
                             <div class="sw-card-hd">
-                                <div class="sw-card-ico">📍</div>
+                                <div class="sw-card-ico">💳</div>
                                 <div>
-                                    <div class="sw-card-title">Store Location</div>
-                                    <div class="sw-card-sub">Help customers find your store</div>
+                                    <div class="sw-card-title">Accepted Payment Methods</div>
+                                    <div class="sw-card-sub">Select all payment methods you accept</div>
                                 </div>
                             </div>
 
-                            <div class="sw-fg">
-                                <div class="sw-f">
-                                    <label class="sw-lbl">Country <span class="sw-req">*</span></label>
-                                    <select class="sw-inp" id="sw-country" oninput="swCe(this)">
-                                        <option value="">Select country</option>
-                                        <option selected>Jordan</option>
-                                        <option>Saudi Arabia</option>
-                                        <option>UAE</option>
-                                        <option>Kuwait</option>
-                                        <option>Qatar</option>
-                                    </select>
-                                    <div class="sw-ferr" id="sw-e-country">⚠ Please select a country</div>
-                                </div>
-
-                                <div class="sw-f">
-                                    <label class="sw-lbl">City <span class="sw-req">*</span></label>
-                                    <select class="sw-inp" id="sw-scity" oninput="swCe(this)">
-                                        <option value="">Select city</option>
-                                        <option>Amman</option>
-                                        <option>Zarqa</option>
-                                        <option>Irbid</option>
-                                        <option>Aqaba</option>
-                                        <option>Salt</option>
-                                        <option>Madaba</option>
-                                        <option>Karak</option>
-                                        <option>Jerash</option>
-                                        <option>Other</option>
-                                    </select>
-                                    <div class="sw-ferr" id="sw-e-scity">⚠ Please select a city</div>
-                                </div>
-
-                                <div class="sw-f sw-fw">
-                                    <label class="sw-lbl">Store Address <span class="sw-req">*</span></label>
-                                    <input class="sw-inp" id="sw-saddr" placeholder="Street, neighborhood, building..." oninput="swCe(this)">
-                                    <div class="sw-ferr" id="sw-e-saddr">⚠ Please enter your store address</div>
-                                </div>
-
-                                <div class="sw-f sw-fw">
-                                    <label class="sw-lbl">Google Maps Link <span class="sw-opt">(Optional)</span></label>
-                                    <input class="sw-inp" id="sw-gmaps" placeholder="https://maps.google.com/..." type="url">
-                                    <div class="sw-hint">💡 Share a Google Maps link to make it easier for customers to find you</div>
-                                </div>
-
-                                <div class="sw-f sw-fw">
-                                    <label class="sw-lbl">Delivery Available? <span class="sw-req">*</span></label>
-
-                                    <div class="sw-del-toggle">
-                                        <div class="sw-del-opt" id="swDelYes" onclick="swSetDel(true)">✅ Yes, delivery available</div>
-                                        <div class="sw-del-opt" id="swDelNo" onclick="swSetDel(false)">❌ No, pickup only</div>
-                                    </div>
-
-                                    <div class="sw-del-extra" id="swDelExtra">
-                                        <div class="sw-fg" style="margin-top:.6rem">
-                                            <div class="sw-f sw-fw">
-                                                <label class="sw-lbl">Delivery Areas</label>
-                                                <textarea class="sw-inp" placeholder="e.g. Amman, Zarqa, Irbid..." style="min-height:70px"></textarea>
-                                            </div>
-
-                                            <div class="sw-f">
-                                                <label class="sw-lbl">Delivery Fee (JOD)</label>
-                                                <div class="sw-ph-wrap">
-                                                    <input class="sw-inp" type="number" placeholder="0.00" style="flex:1">
-                                                    <span class="sw-ph-pre">JOD</span>
-                                                </div>
-                                            </div>
-
-                                            <div class="sw-f">
-                                                <label class="sw-lbl">Estimated Delivery Time</label>
-                                                <select class="sw-inp">
-                                                    <option>Within 24 hours</option>
-                                                    <option>1–2 business days</option>
-                                                    <option>2–3 business days</option>
-                                                    <option>3–5 business days</option>
-                                                    <option>More than 5 days</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <div class="sw-chip-group">
+                                <div class="sw-chip" onclick="this.classList.toggle('on')">💵 Cash on Delivery</div>
+                                <div class="sw-chip" onclick="this.classList.toggle('on')">💳 Online Payment</div>
+                                <div class="sw-chip" onclick="this.classList.toggle('on')">👛 Waffy Wallet</div>
+                                <div class="sw-chip" onclick="this.classList.toggle('on')">🏦 Bank Transfer</div>
+                                <div class="sw-chip" onclick="this.classList.toggle('on')">📲 CliQ</div>
                             </div>
                         </div>
 
                         <div class="sw-fnav">
-                            <button class="sw-btn sw-btn-o" onclick="window.location.href='store-step2.html'">← Previous</button>
-                            <button class="sw-btn sw-btn-p" onclick="window.location.href='store-step4.html'">Next →</button>
+                            <a class="sw-btn sw-btn-o" asp-controller="Account" asp-action="Stor_step2">← Previous</a>
+                            <a class="sw-btn sw-btn-p" asp-controller="Account" asp-action="Stor_step5">Next →</a>
                         </div>
                     </div>
                 </div>

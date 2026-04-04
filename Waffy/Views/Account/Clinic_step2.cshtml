@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -21,17 +18,34 @@
             <div class="topbar">
                 <div class="logo">Waffy</div>
                 <div class="topbar-right">
-                    <a href="signup.html" class="top-signup-link">← Back to Sign Up</a>
+                    <a asp-controller="Account" asp-action="Signup" class="top-signup-link">← Back to Sign Up</a>
                 </div>
             </div>
 
-            <div class="prog-line"><div class="prog-fill" style="width:40%"></div></div>
+            <div class="prog-line"><div class="prog-fill" style="width:50%"></div></div>
 
             <div class="cw-wrap">
                 <aside class="cw-left">
                     <div class="cw-info-card" id="cwStepsCard">
                         <div class="cw-info-title">📋 Registration Steps</div>
-
+                        <div id="cwStepsList">
+                            <div class="cw-step-item">
+                                <div class="cw-step-num done">✓</div>
+                                <div class="cw-step-text">Clinic Information</div>
+                            </div>
+                            <div class="cw-step-item">
+                                <div class="cw-step-num active">2</div>
+                                <div class="cw-step-text">Schedule & Plan</div>
+                            </div>
+                            <div class="cw-step-item">
+                                <div class="cw-step-num">3</div>
+                                <div class="cw-step-text">Official Documents</div>
+                            </div>
+                            <div class="cw-step-item">
+                                <div class="cw-step-num">4</div>
+                                <div class="cw-step-text">Manager Info</div>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="cw-info-card">
@@ -49,32 +63,31 @@
                         <div class="cw-prog-wrap">
                             <div class="cw-prog-header">
                                 <div class="cw-prog-title">🏥 New Clinic Registration</div>
-                                <div class="cw-prog-counter" id="cwClinicCounter">Step 2 of 5</div>
+                                <div class="cw-prog-counter" id="cwClinicCounter">Step 2 of 4</div>
                             </div>
 
                             <div class="cw-indicators" id="cwClinicIndicators">
                                 <div class="cw-ind done"><div class="cw-dot">✓</div><div class="cw-ind-label">Clinic</div></div>
                                 <div class="cw-ind active"><div class="cw-dot">2</div><div class="cw-ind-label">Schedule</div></div>
-                                <div class="cw-ind"><div class="cw-dot">3</div><div class="cw-ind-label">Plan</div></div>
-                                <div class="cw-ind"><div class="cw-dot">4</div><div class="cw-ind-label">Documents</div></div>
-                                <div class="cw-ind"><div class="cw-dot">5</div><div class="cw-ind-label">Manager</div></div>
+                                <div class="cw-ind"><div class="cw-dot">3</div><div class="cw-ind-label">Documents</div></div>
+                                <div class="cw-ind"><div class="cw-dot">4</div><div class="cw-ind-label">Manager</div></div>
                             </div>
                         </div>
 
                         <div class="cw-content" id="cc-2">
-                            <div class="cw-content-title">Working Hours & Services</div>
-                            <div class="cw-content-sub">Set your availability and the services you offer</div>
+                            <div class="cw-content-title">Working Hours & Subscription Plan</div>
+                            <div class="cw-content-sub">Set your availability and choose the most suitable plan</div>
 
                             <div class="cw-field">
                                 <label class="cw-label"><span class="req">*</span>Working Days</label>
                                 <div class="cw-days">
-                                    <button class="cw-day active" onclick="this.classList.toggle('active')">Sun</button>
-                                    <button class="cw-day active" onclick="this.classList.toggle('active')">Mon</button>
-                                    <button class="cw-day active" onclick="this.classList.toggle('active')">Tue</button>
-                                    <button class="cw-day active" onclick="this.classList.toggle('active')">Wed</button>
-                                    <button class="cw-day active" onclick="this.classList.toggle('active')">Thu</button>
-                                    <button class="cw-day" onclick="this.classList.toggle('active')">Fri</button>
-                                    <button class="cw-day" onclick="this.classList.toggle('active')">Sat</button>
+                                    <button class="cw-day active" type="button" onclick="this.classList.toggle('active')">Sun</button>
+                                    <button class="cw-day active" type="button" onclick="this.classList.toggle('active')">Mon</button>
+                                    <button class="cw-day active" type="button" onclick="this.classList.toggle('active')">Tue</button>
+                                    <button class="cw-day active" type="button" onclick="this.classList.toggle('active')">Wed</button>
+                                    <button class="cw-day active" type="button" onclick="this.classList.toggle('active')">Thu</button>
+                                    <button class="cw-day" type="button" onclick="this.classList.toggle('active')">Fri</button>
+                                    <button class="cw-day" type="button" onclick="this.classList.toggle('active')">Sat</button>
                                 </div>
                             </div>
 
@@ -96,43 +109,76 @@
                                         <div class="cw-toggle-label">🚨 Emergency Service</div>
                                         <div class="cw-toggle-sub">Available for urgent cases outside working hours</div>
                                     </div>
-                                    <button class="cw-toggle" onclick="this.classList.toggle('on')"></button>
+                                    <button class="cw-toggle" type="button" onclick="this.classList.toggle('on')"></button>
                                 </div>
                             </div>
 
-                            <div class="cw-field">
-                                <label class="cw-label"><span class="req">*</span>Available Services</label>
-                                <div class="cw-services">
-                                    <div class="cw-service active" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">💉</div><div class="cw-svc-name">Vaccines</div></div>
-                                    <div class="cw-service active" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">🔬</div><div class="cw-svc-name">Check-up</div></div>
-                                    <div class="cw-service" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">🔪</div><div class="cw-svc-name">Surgery</div></div>
-                                    <div class="cw-service" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">🦷</div><div class="cw-svc-name">Dental</div></div>
-                                    <div class="cw-service" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">✂️</div><div class="cw-svc-name">Grooming</div></div>
-                                    <div class="cw-service" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">🧪</div><div class="cw-svc-name">Lab Tests</div></div>
-                                    <div class="cw-service" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">📷</div><div class="cw-svc-name">X-Ray</div></div>
-                                    <div class="cw-service" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">🏠</div><div class="cw-svc-name">Home Visit</div></div>
-                                    <div class="cw-service" onclick="this.classList.toggle('active')"><div class="cw-svc-icon">🚨</div><div class="cw-svc-name">Emergency</div></div>
+                            <div class="cw-content-title" style="margin:1.5rem 0 .4rem;">Choose Your Subscription Plan</div>
+                            <div class="cw-content-sub">You can change your plan anytime from your dashboard</div>
+
+                            <div class="cw-plans" style="margin-bottom:1.2rem">
+                                <div class="cw-plan" onclick="cwSelectPlan(this,'free')">
+                                    <div class="cw-plan-icon">🌱</div>
+                                    <div class="cw-plan-name">Free</div>
+                                    <div class="cw-plan-price">0 JOD</div>
+                                    <div class="cw-plan-commission">15% commission</div>
+                                    <div class="cw-plan-features">
+                                        <div class="cw-plan-feature">✓ Up to 20 appts/month</div>
+                                        <div class="cw-plan-feature">✓ 1 doctor</div>
+                                    </div>
+                                </div>
+
+                                <div class="cw-plan active" onclick="cwSelectPlan(this,'basic')">
+                                    <span class="cw-plan-popular">Most Popular</span>
+                                    <div class="cw-plan-icon">⭐</div>
+                                    <div class="cw-plan-name">Basic</div>
+                                    <div class="cw-plan-price">25 JOD</div>
+                                    <div class="cw-plan-commission">8% commission</div>
+                                    <div class="cw-plan-features">
+                                        <div class="cw-plan-feature">✓ Unlimited appointments</div>
+                                        <div class="cw-plan-feature">✓ Up to 3 doctors</div>
+                                    </div>
+                                </div>
+
+                                <div class="cw-plan" onclick="cwSelectPlan(this,'pro')">
+                                    <div class="cw-plan-icon">🚀</div>
+                                    <div class="cw-plan-name">Pro</div>
+                                    <div class="cw-plan-price">60 JOD</div>
+                                    <div class="cw-plan-commission">3% commission only</div>
+                                    <div class="cw-plan-features">
+                                        <div class="cw-plan-feature">✓ Everything unlimited</div>
+                                        <div class="cw-plan-feature">✓ Priority support</div>
+                                    </div>
                                 </div>
                             </div>
 
-                            <div class="cw-field">
-                                <label class="cw-label">Clinic Photos <span class="cw-opt-badge">Optional — up to 8</span></label>
-                                <div class="cw-hint" style="margin-bottom:.6rem">💡 Storefront, interior, equipment</div>
-                                <div class="cw-img-grid" id="cwClinicImgGrid">
-                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
-                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
-                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
-                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
-                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
-                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
-                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
-                                    <div class="cw-img-thumb" onclick="cwAddImg(this)">➕</div>
+                            <div id="cwPaymentDetails">
+                                <div class="cw-grid">
+                                    <div class="cw-field cw-field-full">
+                                        <label class="cw-label">Card Holder Name</label>
+                                        <input class="cw-input" type="text" placeholder="Full name on card">
+                                    </div>
+
+                                    <div class="cw-field cw-field-full">
+                                        <label class="cw-label">Card Number</label>
+                                        <input class="cw-input" type="text" placeholder="XXXX XXXX XXXX XXXX">
+                                    </div>
+
+                                    <div class="cw-field">
+                                        <label class="cw-label">Expiry Date</label>
+                                        <input class="cw-input" type="text" placeholder="MM / YY">
+                                    </div>
+
+                                    <div class="cw-field">
+                                        <label class="cw-label">CVV</label>
+                                        <input class="cw-input" type="text" placeholder="XXX">
+                                    </div>
                                 </div>
                             </div>
 
                             <div class="cw-submit-wrap">
-                                <button class="cw-btn-back" onclick="window.location.href='clinic-step1.html'">← Previous</button>
-                                <button class="cw-btn-next" onclick="window.location.href='clinic-step3.html'">Next — Subscription Plan →</button>
+                                <a class="cw-btn-back" asp-controller="Account" asp-action="Clinic_step1">← Previous</a>
+                                <a class="cw-btn-next" asp-controller="Account" asp-action="Clinic_step3">Next — Documents →</a>
                             </div>
                         </div>
                     </div>

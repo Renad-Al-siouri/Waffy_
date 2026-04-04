@@ -10,7 +10,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Waffy | Profile</title>
-    <link rel="stylesheet" href="profile.css">
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -29,7 +29,6 @@
                     <a href="product.html" class="nav-link">Stores</a>
                     <a href="adapt.html" class="nav-link">Adoption</a>
                     <a href="lost.html" class="nav-link">Lost Pets</a>
-
                 </div>
 
                 <div class="logo-center">
@@ -38,9 +37,6 @@
 
                 <div class="right-nav">
                     <div class="desktop-nav desktop-links desktop-right-links">
-
-
-
                         <div class="services-dropdown" id="servicesDropdown">
                             <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
                                 Services
@@ -62,7 +58,6 @@
                         </div>
 
                         <a href="about.html" class="nav-link">About Us</a>
-
                     </div>
 
                     <div class="nav-actions">
@@ -77,6 +72,7 @@
                         <a href="profile.html" class="profile-btn" aria-label="Profile">
                             <img src="../Images/user.jpg" alt="Profile">
                         </a>
+
                         <a href="logout.html" class="nav-link login-btn">Log out</a>
                     </div>
 
@@ -102,7 +98,6 @@
                                 </button>
 
                                 <div class="mobile-services-menu" id="mobileServicesMenu">
-
                                     <a href="money.html" class="dropdown-link">Donations</a>
                                     <a href="law.html" class="dropdown-link">Law</a>
                                     <a href="dangerousAnimal.html" class="dropdown-link">Dangerous Animal</a>
@@ -131,7 +126,7 @@
                         <div class="avatar">
                             <span>👤</span>
                         </div>
-                        <button class="camera-btn" id="changePhotoBtn">📷</button>
+                        <button class="camera-btn" id="changePhotoBtn" type="button">📷</button>
                         <input type="file" id="photoInput" accept="image/*" hidden />
                     </div>
 
@@ -206,10 +201,9 @@
                             </ul>
 
                             <div class="pet-actions">
-                                <button class="pet-btn primary details-btn" data-pet="buddy">View Details</button>
-
-                                <button class="pet-btn secondary edit-pet-btn">Edit</button>
-                                <button class="pet-btn danger delete-pet-btn">Delete</button>
+                                <button class="pet-btn primary details-btn" data-pet="buddy" type="button">View Details</button>
+                                <button class="pet-btn secondary edit-pet-btn" type="button">Edit</button>
+                                <button class="pet-btn danger delete-pet-btn" type="button">Delete</button>
                             </div>
                         </div>
                     </article>
@@ -222,7 +216,6 @@
                                     <img src="" alt="Buddy" class="pet-image" style="display: none;" />
                                     <span class="pet-default-icon">🐾</span>
                                 </div>
-
 
                                 <button class="pet-camera-btn" type="button">📷</button>
                                 <input type="file" class="pet-photo-input" accept="image/*" hidden />
@@ -246,9 +239,9 @@
                             </ul>
 
                             <div class="pet-actions">
-                                <button class="pet-btn primary details-btn" data-pet="milo">View Details</button>
-                                <button class="pet-btn secondary edit-pet-btn">Edit</button>
-                                <button class="pet-btn danger delete-pet-btn">Delete</button>
+                                <button class="pet-btn primary details-btn" data-pet="milo" type="button">View Details</button>
+                                <button class="pet-btn secondary edit-pet-btn" type="button">Edit</button>
+                                <button class="pet-btn danger delete-pet-btn" type="button">Delete</button>
                             </div>
                         </div>
                     </article>
@@ -256,7 +249,7 @@
 
                 <!-- ADD PET -->
                 <div class="add-pet-box" id="addPetBox">
-                    <button class="add-pet-circle">＋</button>
+                    <button class="add-pet-circle" type="button">＋</button>
                     <p>Click to add a new pet</p>
                 </div>
             </section>
@@ -279,11 +272,10 @@
         </div>
     </footer>
 
-    <!-- PROFILE MODAL -->
     <!-- PET DETAILS MODAL -->
     <div class="modal-overlay" id="petModal">
         <div class="modal small-modal">
-            <button class="close-modal" id="closePetModal">×</button>
+            <button class="close-modal" id="closePetModal" type="button">×</button>
             <h2 id="petModalTitle">Pet Details</h2>
             <div id="petModalBody">
                 <p><strong>Name:</strong> Buddy</p>
@@ -294,23 +286,27 @@
             </div>
         </div>
     </div>
+
     <!-- ADD PET MODAL -->
     <div class="modal-overlay" id="addPetModal">
         <div class="modal">
-            <button class="close-modal" id="closeAddPetModal">×</button>
+            <button class="close-modal" id="closeAddPetModal" type="button">×</button>
             <h2>Add New Pet</h2>
+
             <div class="form-group full">
                 <div id="petImagePreview" class="pet-upload-preview">No image selected</div>
             </div>
-            <form id="addPetForm">
 
+            <form id="addPetForm">
                 <!-- BASIC -->
                 <div class="pet-form-section">
                     <div class="pet-form-title">🐾 Pet Information</div>
+
                     <div class="form-group full">
                         <label for="petImageInput">Pet Photo</label>
                         <input type="file" id="petImageInput" accept="image/*" />
                     </div>
+
                     <div class="pet-grid-2">
                         <div class="form-group">
                             <label>Pet Name</label>
@@ -437,454 +433,6 @@
         </div>
     </div>
 
-    <script>
-          // ELEMENTS
-          const mobileToggle = document.getElementById("mobileToggle");
-          const navMenu = document.getElementById("navMenu");
-
-          const editProfileBtn = document.getElementById("editProfileBtn");
-          const profileModal = document.getElementById("profileModal");
-          const closeProfileModal = document.getElementById("closeProfileModal");
-          const profileForm = document.getElementById("profileForm");
-
-          const addPetBox = document.getElementById("addPetBox");
-          const addPetModal = document.getElementById("addPetModal");
-          const closeAddPetModal = document.getElementById("closeAddPetModal");
-          const addPetForm = document.getElementById("addPetForm");
-          const petsGrid = document.getElementById("petsGrid");
-
-          const changePhotoBtn = document.getElementById("changePhotoBtn");
-          const photoInput = document.getElementById("photoInput");
-          const avatar = document.querySelector(".avatar");
-          const petImageInput = document.getElementById("petImageInput");
-           const petImagePreview = document.getElementById("petImagePreview");
-
-           let uploadedPetImage = "";
-          let petCounter = 3;
-          let currentEditCard = null;
-
-          // NAVBAR
-          const servicesDropdown = document.getElementById("servicesDropdown");
-          const servicesToggle = document.getElementById("servicesToggle");
-          const menuBtn = document.getElementById("menuBtn");
-          const navLinks = document.getElementById("navLinks");
-          const mobileServicesBlock = document.getElementById("mobileServicesBlock");
-          const mobileServicesToggle = document.getElementById("mobileServicesToggle");
-
-          if (servicesToggle && servicesDropdown) {
-            servicesToggle.addEventListener("click", function (e) {
-              e.stopPropagation();
-              servicesDropdown.classList.toggle("open");
-            });
-
-            document.addEventListener("click", function (e) {
-              if (!servicesDropdown.contains(e.target)) {
-                servicesDropdown.classList.remove("open");
-              }
-            });
-          }
-
-          if (menuBtn && navLinks) {
-            menuBtn.addEventListener("click", function (e) {
-              e.stopPropagation();
-              navLinks.classList.toggle("open");
-            });
-
-            document.addEventListener("click", function (e) {
-              if (!navLinks.contains(e.target) && !menuBtn.contains(e.target)) {
-                navLinks.classList.remove("open");
-              }
-            });
-          }
-
-          if (mobileServicesToggle && mobileServicesBlock) {
-            mobileServicesToggle.addEventListener("click", function (e) {
-              e.stopPropagation();
-              mobileServicesBlock.classList.toggle("open");
-            });
-          }
-
-
-          // MOBILE MENU
-          if (mobileToggle && navMenu) {
-            mobileToggle.addEventListener("click", () => {
-              navMenu.classList.toggle("show");
-            });
-          }
-
-          // PROFILE MODAL
-          if (editProfileBtn && profileModal) {
-            editProfileBtn.addEventListener("click", () => {
-              profileModal.classList.add("show");
-            });
-          }
-
-          if (closeProfileModal && profileModal) {
-            closeProfileModal.addEventListener("click", () => {
-              profileModal.classList.remove("show");
-            });
-          }
-
-          // CLOSE MODALS ON OUTSIDE CLICK
-          window.addEventListener("click", (e) => {
-            if (profileModal && e.target === profileModal) {
-              profileModal.classList.remove("show");
-            }
-
-            if (addPetModal && e.target === addPetModal) {
-              addPetModal.classList.remove("show");
-              resetAddPetForm();
-            }
-          });
-
-          // SAVE PROFILE
-          if (profileForm) {
-          profileForm.addEventListener("submit", (e) => {
-            e.preventDefault();
-
-            const name = document.getElementById("nameInput").value.trim();
-            const email = document.getElementById("emailInput").value.trim();
-            const phone = document.getElementById("phoneInput").value.trim();
-            const address = document.getElementById("addressInput").value.trim();
-            const gender = document.getElementById("genderInput").value;
-
-            const city = document.getElementById("cityInput").value.trim();
-            const area = document.getElementById("areaInput").value.trim();
-
-            if (!name || !email || !phone) {
-              alert("Please fill in the required profile fields.");
-              return;
-            }
-
-            document.querySelector(".profile-info h1").textContent = name;
-            document.getElementById("userEmail").textContent = email;
-            document.getElementById("userPhone").textContent = phone;
-
-            const finalAddress = area
-              ? `${area}, ${city}`
-              : city;
-
-            document.getElementById("userAddress").textContent =
-              address || finalAddress || "No address added";
-
-            const metaLine = document.querySelector(".profile-info .meta-line span");
-            if (metaLine && gender) {
-              metaLine.textContent = gender === "Female" ? "♀ Female" :
-                                     gender === "Male" ? "♂ Male" :
-                                     gender;
-            }
-
-            profileModal.classList.remove("show");
-            alert("Profile updated successfully!");
-          });
-        }
-
-          // OPEN ADD PET MODAL
-          if (addPetBox && addPetModal) {
-            addPetBox.addEventListener("click", () => {
-              currentEditCard = null;
-              resetAddPetForm();
-              document.querySelector("#addPetModal h2").textContent = "Add New Pet";
-              document.querySelector("#addPetForm .save-btn").textContent = "Add Pet";
-              addPetModal.classList.add("show");
-            });
-          }
-        if (petImageInput) {
-          petImageInput.addEventListener("change", function () {
-            const file = this.files[0];
-            if (!file) {
-              uploadedPetImage = "";
-              if (petImagePreview) {
-                petImagePreview.textContent = "No image selected";
-                petImagePreview.innerHTML = "No image selected";
-              }
-              return;
-            }
-
-            const reader = new FileReader();
-
-            reader.onload = function (e) {
-              uploadedPetImage = e.target.result;
-
-              if (petImagePreview) {
-                petImagePreview.innerHTML = `<img src="${uploadedPetImage}" alt="Preview">`;
-              }
-            };
-
-            reader.readAsDataURL(file);
-          });
-        }
-          // CLOSE ADD PET MODAL
-          if (closeAddPetModal && addPetModal) {
-            closeAddPetModal.addEventListener("click", () => {
-              addPetModal.classList.remove("show");
-              resetAddPetForm();
-            });
-          }
-          function resetAddPetForm() {
-          if (!addPetForm) return;
-
-          addPetForm.reset();
-          currentEditCard = null;
-          uploadedPetImage = "";
-
-          if (petImagePreview) {
-            petImagePreview.innerHTML = "No image selected";
-          }
-        }
-
-          function createPetCard({ name, type, age, notes, petId, image }) {
-          const article = document.createElement("article");
-          article.className = "pet-card";
-          article.setAttribute("data-pet-id", petId);
-
-          article.innerHTML = `
-            <div class="pet-image-box">
-              <div class="pet-avatar-wrap">
-                <div class="pet-avatar">
-                  <img src="${image || ""}" alt="${name}" class="pet-image" ${image ? "" : 'style="display:none;"'} />
-                  <span class="pet-default-icon" ${image ? 'style="display:none;"' : ""}>🐾</span>
-                </div>
-                <button class="pet-camera-btn" type="button">📷</button>
-                <input type="file" class="pet-photo-input" accept="image/*" hidden />
-              </div>
-            </div>
-
-            <div class="pet-content">
-              <div class="pet-head">
-                <div>
-                  <h3>${name}</h3>
-                  <p class="pet-type">${type}</p>
-                </div>
-                <span class="pet-dot"></span>
-              </div>
-
-              <p class="pet-age">Age: ${age} Year${Number(age) > 1 ? "s" : ""}</p>
-
-              <ul class="pet-notes">
-                <li class="good">Pet record available</li>
-                ${notes ? `<li class="alert">${notes}</li>` : ""}
-              </ul>
-
-              <div class="pet-actions">
-                <button class="pet-btn primary details-btn" data-pet="${petId}">View Details</button>
-                <button class="pet-btn secondary edit-pet-btn">Edit</button>
-                <button class="pet-btn danger delete-pet-btn">Delete</button>
-              </div>
-            </div>
-          `;
-
-          return article;
-        }
-          // ADD OR EDIT PET
-          if (addPetForm) {
-          addPetForm.addEventListener("submit", (e) => {
-            e.preventDefault();
-
-            const name = document.getElementById("petNameInput").value.trim();
-            const type = document.getElementById("petTypeInput").value;
-            const breed = document.getElementById("petBreedInput").value.trim();
-            const age = document.getElementById("petAgeInput").value.trim();
-            const gender = document.getElementById("petGenderInput").value;
-            const color = document.getElementById("petColorInput").value.trim();
-
-            const health = document.getElementById("petHealthInput").value;
-            const vaccinated = document.getElementById("petVaccinatedInput").value;
-            const vaccDate = document.getElementById("petVaccDateInput").value;
-            const neuter = document.getElementById("petNeuterInput").value;
-
-            const notes = document.getElementById("petNotesInput").value.trim();
-            const energy = document.getElementById("petEnergyInput").value;
-            const children = document.getElementById("petChildrenInput").value;
-            const otherPets = document.getElementById("petOtherPetsInput").value;
-            const desc = document.getElementById("petDescInput").value.trim();
-
-            if (!name || !type || !age) {
-              alert("Please fill in the required fields.");
-              return;
-            }
-
-            if (currentEditCard) {
-              currentEditCard.querySelector("h3").textContent = name;
-              currentEditCard.querySelector(".pet-type").textContent = type;
-              currentEditCard.querySelector(".pet-age").textContent =
-                `Age: ${age} Year${Number(age) > 1 ? "s" : ""}`;
-
-              const notesList = currentEditCard.querySelector(".pet-notes");
-              notesList.innerHTML = `
-                <li class="good">${health || "Pet record available"}</li>
-                ${notes ? `<li class="alert">${notes}</li>` : ""}
-              `;
-
-              const imageBox = currentEditCard.querySelector(".pet-image-box");
-
-              if (uploadedPetImage) {
-          imageBox.innerHTML = `
-            <div class="pet-avatar-wrap">
-              <div class="pet-avatar">
-                <img src="${uploadedPetImage}" alt="${name}" class="pet-image" />
-                <span class="pet-default-icon" style="display: none;">🐾</span>
-              </div>
-              <button class="pet-camera-btn" type="button">📷</button>
-              <input type="file" class="pet-photo-input" accept="image/*" hidden />
-            </div>
-          `;
-        }
-
-              addPetModal.classList.remove("show");
-              resetAddPetForm();
-              alert("Pet updated successfully!");
-              return;
-            }
-
-            const petId = `pet${petCounter++}`;
-
-            const newPetCard = createPetCard({
-              name,
-              type,
-              age,
-              notes: notes || health,
-              petId,
-              image: uploadedPetImage
-            });
-
-            petsGrid.appendChild(newPetCard);
-
-            addPetModal.classList.remove("show");
-            resetAddPetForm();
-            alert("Pet added successfully!");
-          });
-        }
-
-          // PET BUTTONS - EVENT DELEGATION
-          if (petsGrid) {
-            petsGrid.addEventListener("click", (e) => {
-              const detailsBtn = e.target.closest(".details-btn");
-              const deleteBtn = e.target.closest(".delete-pet-btn");
-              const editBtn = e.target.closest(".edit-pet-btn");
-
-              // VIEW DETAILS
-              if (detailsBtn) {
-                const petKey = detailsBtn.dataset.pet || "buddy";
-                window.location.href = `petRecord.html?pet=${petKey}`;
-                return;
-              }
-
-              // DELETE PET
-              if (deleteBtn) {
-                const petCard = deleteBtn.closest(".pet-card");
-                if (!petCard) return;
-
-                const petName = petCard.querySelector("h3").textContent;
-                if (confirm(`Delete ${petName}?`)) {
-                  petCard.remove();
-                  alert(`${petName} deleted.`);
-                }
-                return;
-              }
-
-              // EDIT PET
-              if (editBtn) {
-          const petCard = editBtn.closest(".pet-card");
-          if (!petCard) return;
-
-          currentEditCard = petCard;
-
-          const petName = petCard.querySelector("h3").textContent;
-          const petType = petCard.querySelector(".pet-type").textContent;
-          const petAgeText = petCard.querySelector(".pet-age").textContent;
-          const petAge = petAgeText.replace("Age:", "").replace("Years", "").replace("Year", "").trim();
-
-          const noteItems = petCard.querySelectorAll(".pet-notes li");
-          let customNote = "";
-          if (noteItems.length > 1) {
-            customNote = noteItems[1].textContent.trim();
-          }
-
-          document.getElementById("petNameInput").value = petName;
-          document.getElementById("petTypeInput").value = petType;
-          document.getElementById("petAgeInput").value = petAge;
-          document.getElementById("petNotesInput").value = customNote;
-
-          const currentImage = petCard.querySelector(".pet-image");
-          if (currentImage) {
-            uploadedPetImage = currentImage.src;
-            if (petImagePreview) {
-              petImagePreview.innerHTML = `<img src="${uploadedPetImage}" alt="Preview">`;
-            }
-          } else {
-            uploadedPetImage = "";
-            if (petImagePreview) {
-              petImagePreview.innerHTML = "No image selected";
-            }
-          }
-
-          document.querySelector("#addPetModal h2").textContent = "Edit Pet";
-          document.querySelector("#addPetForm .save-btn").textContent = "Save Changes";
-
-          addPetModal.classList.add("show");
-        }
-            });
-          }
-
-          // CHANGE PROFILE PHOTO
-          if (changePhotoBtn && photoInput) {
-            changePhotoBtn.addEventListener("click", () => {
-              photoInput.click();
-            });
-          }
-
-          if (photoInput && avatar) {
-            photoInput.addEventListener("change", function () {
-              const file = this.files[0];
-              if (!file) return;
-
-              const reader = new FileReader();
-
-              reader.onload = function (e) {
-                avatar.innerHTML = `<img src="${e.target.result}" alt="Profile Photo">`;
-              };
-
-              reader.readAsDataURL(file);
-            });
-          }
-          document.addEventListener("click", function (e) {
-          const cameraBtn = e.target.closest(".pet-camera-btn");
-          if (!cameraBtn) return;
-
-          const petCard = cameraBtn.closest(".pet-card");
-          if (!petCard) return;
-
-          const fileInput = petCard.querySelector(".pet-photo-input");
-          if (fileInput) {
-            fileInput.click();
-          }
-        });
-
-        document.addEventListener("change", function (e) {
-          if (!e.target.classList.contains("pet-photo-input")) return;
-
-          const file = e.target.files[0];
-          if (!file) return;
-
-          const petCard = e.target.closest(".pet-card");
-          if (!petCard) return;
-
-          const img = petCard.querySelector(".pet-image");
-          const defaultIcon = petCard.querySelector(".pet-default-icon");
-
-          const reader = new FileReader();
-          reader.onload = function (event) {
-            img.src = event.target.result;
-            img.style.display = "block";
-
-            if (defaultIcon) {
-              defaultIcon.style.display = "none";
-            }
-          };
-
-          reader.readAsDataURL(file);
-        });
-    </script>
+    <script src="~/js/profile.js"></script>
 </body>
 </html>

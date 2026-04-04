@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -10,8 +7,45 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Waffy - Store Registration</title>
+
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;500;600;700;800&family=Readex+Pro:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     <link rel="stylesheet" href="~/css/store.css" />
+
+    <style>
+        /* فقط إضافات الخريطة حتى تشتغل فورًا حتى لو ما ضفتيهم في store.css */
+        #storeWizardContainer .sw-map-wrap {
+            width: 100%;
+            height: 340px;
+            border: 1.5px solid var(--line);
+            border-radius: 18px;
+            overflow: hidden;
+            background: #f8f4ed;
+        }
+
+        #swStoreMap {
+            width: 100%;
+            height: 100%;
+            min-height: 340px;
+        }
+
+        #storeWizardContainer .sw-map-note {
+            margin-top: 10px;
+            font-size: .78rem;
+            font-weight: 700;
+            color: var(--muted);
+        }
+
+        #storeWizardContainer .leaflet-container {
+            width: 100%;
+            height: 100%;
+            border-radius: 18px;
+            font-family: "Nunito", sans-serif;
+        }
+    </style>
 </head>
 <body class="store-step-2">
 
@@ -20,27 +54,57 @@
             <div class="topbar">
                 <div class="logo"><span class="logo-ico"></span> Waffy</div>
                 <div class="topbar-right">
-                    <a href="signup.html" class="top-signup-link">← Back to Sign Up</a>
+                    <a asp-controller="Account" asp-action="Signup" class="top-signup-link">← Back to Sign Up</a>
                 </div>
             </div>
 
-            <div class="prog-line"><div class="prog-fill" style="width:40%"></div></div>
+            <div class="prog-line">
+                <div class="prog-fill" style="width:50%"></div>
+            </div>
 
             <div class="sw-wrap">
                 <aside class="sw-sidebar">
                     <div class="sw-sb-brand">
                         <div class="sw-sb-brand-title">🏪 Store Registration</div>
-                        <div class="sw-sb-brand-sub">Join Waffy and start selling to thousands of pet owners across Jordan</div>
+                        <div class="sw-sb-brand-sub">
+                            Join Waffy and start selling to thousands of pet owners across Jordan
+                        </div>
                     </div>
 
                     <div class="sw-sb-steps">
                         <div class="sw-sb-lbl">Registration Steps</div>
                         <div id="swSbSteps">
-                            <div class="sw-si done"><div class="sw-si-num">✓</div><div><div class="sw-si-title">👤 Account Owner</div><div class="sw-si-sub">Step 1</div></div></div>
-                            <div class="sw-si active"><div class="sw-si-num">2</div><div><div class="sw-si-title">🏪 Store Information</div><div class="sw-si-sub">Step 2</div></div></div>
-                            <div class="sw-si"><div class="sw-si-num">3</div><div><div class="sw-si-title">📍 Contact & Location</div><div class="sw-si-sub">Step 3</div></div></div>
-                            <div class="sw-si"><div class="sw-si-num">4</div><div><div class="sw-si-title">🖼 Media & Payments</div><div class="sw-si-sub">Step 4</div></div></div>
-                            <div class="sw-si"><div class="sw-si-num">5</div><div><div class="sw-si-title">📄 Business & Docs</div><div class="sw-si-sub">Step 5</div></div></div>
+                            <div class="sw-si done">
+                                <div class="sw-si-num">✓</div>
+                                <div>
+                                    <div class="sw-si-title">👤 Account Owner</div>
+                                    <div class="sw-si-sub">Step 1</div>
+                                </div>
+                            </div>
+
+                            <div class="sw-si active">
+                                <div class="sw-si-num">2</div>
+                                <div>
+                                    <div class="sw-si-title">🏪 Store Details & Location</div>
+                                    <div class="sw-si-sub">Step 2</div>
+                                </div>
+                            </div>
+
+                            <div class="sw-si">
+                                <div class="sw-si-num">3</div>
+                                <div>
+                                    <div class="sw-si-title">📞 Contact & Payments</div>
+                                    <div class="sw-si-sub">Step 3</div>
+                                </div>
+                            </div>
+
+                            <div class="sw-si">
+                                <div class="sw-si-num">4</div>
+                                <div>
+                                    <div class="sw-si-title">📄 Business & Docs</div>
+                                    <div class="sw-si-sub">Step 4</div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </aside>
@@ -51,10 +115,11 @@
                         <div class="sw-dot active"></div>
                         <div class="sw-dot"></div>
                         <div class="sw-dot"></div>
-                        <div class="sw-dot"></div>
                     </div>
 
                     <div class="sw-screen on" id="sw-s2">
+
+                        <!-- Store Basic Information -->
                         <div class="sw-card">
                             <div class="sw-card-hd">
                                 <div class="sw-card-ico">🏪</div>
@@ -72,53 +137,116 @@
                                 </div>
 
                                 <div class="sw-f sw-fw">
-                                    <label class="sw-lbl">Store Logo <span class="sw-opt">(Recommended)</span></label>
-                                    <div class="wf-upload-box" onclick="swTrigUpload('sw-logoFile')">
-                                        <input type="file" id="sw-logoFile" accept="image/*" style="display:none" onchange="swPreviewFile(this,'sw-logoPrev','sw-logoName')">
-                                        <div class="wf-upload-ico">🖼</div>
-                                        <div class="wf-upload-txt"><strong>Click to upload logo</strong><br>PNG, JPG — max 5MB</div>
-                                    </div>
-                                    <div class="wf-upload-prev" id="sw-logoPrev">
-                                        <span>🖼</span>
-                                        <span class="wf-prev-name" id="sw-logoName"></span>
-                                        <button class="wf-prev-rm" onclick="swRemoveFile('sw-logoFile','sw-logoPrev','sw-logoName')">✕ Remove</button>
-                                    </div>
-                                </div>
-
-                                <div class="sw-f sw-fw">
                                     <label class="sw-lbl">Store Description <span class="sw-opt">(Optional)</span></label>
                                     <textarea class="sw-inp" id="sw-sdesc" placeholder="Write a brief description about your store, products, and what makes it unique..."></textarea>
                                     <div class="sw-hint">💡 Displayed to customers on your public store page</div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Store Images & Banner -->
+                        <div class="sw-card">
+                            <div class="sw-card-hd">
+                                <div class="sw-card-ico">🖼</div>
+                                <div>
+                                    <div class="sw-card-title">Store Images & Banner</div>
+                                    <div class="sw-card-sub">Visuals that help customers get to know your store</div>
+                                </div>
+                            </div>
+
+                            <div class="sw-fg">
+                                <div class="sw-f sw-fw">
+                                    <label class="sw-lbl">Store Banner <span class="sw-opt">(Optional)</span></label>
+                                    <div class="wf-upload-box" onclick="swTrigUpload('sw-bannerFile')" style="padding:1.5rem">
+                                        <input type="file" id="sw-bannerFile" accept="image/*" style="display:none" onchange="swPreviewFile(this,'sw-bannerPrev','sw-bannerName')">
+                                        <div class="wf-upload-ico">🏞</div>
+                                        <div class="wf-upload-txt">
+                                            <strong>Upload store banner</strong><br>
+                                            Displayed at the top of your store page — 1200×400px ideal
+                                        </div>
+                                    </div>
+                                    <div class="wf-upload-prev" id="sw-bannerPrev">
+                                        <span>🏞</span>
+                                        <span class="wf-prev-name" id="sw-bannerName"></span>
+                                        <button type="button" class="wf-prev-rm" onclick="swRemoveFile('sw-bannerFile','sw-bannerPrev','sw-bannerName')">✕ Remove</button>
+                                    </div>
+                                </div>
 
                                 <div class="sw-f sw-fw">
-                                    <label class="sw-lbl">Store Type / Specialty <span class="sw-req">*</span></label>
-                                    <div class="sw-hint" style="margin-bottom:.6rem">💡 You can select more than one type</div>
+                                    <label class="sw-lbl">Store Photos <span class="sw-opt">(up to 8 photos)</span></label>
+                                    <div class="sw-hint" style="margin-bottom:.6rem">💡 Products, storefront, interior environment</div>
 
-                                    <div class="sw-type-grid" id="swTypeGrid">
-                                        <div class="sw-type-btn" onclick="this.classList.toggle('on')"><span class="sw-type-ico">🐾</span><span class="sw-type-lbl">Pet Food<br><small style="font-size:.65rem;color:var(--sw-muted)">Animal nutrition</small></span></div>
-                                        <div class="sw-type-btn" onclick="this.classList.toggle('on')"><span class="sw-type-ico">🎀</span><span class="sw-type-lbl">Pet Accessories<br><small style="font-size:.65rem;color:var(--sw-muted)">Collars, toys &amp; more</small></span></div>
-                                        <div class="sw-type-btn" onclick="this.classList.toggle('on')"><span class="sw-type-ico">💊</span><span class="sw-type-lbl">Pet Pharmacy<br><small style="font-size:.65rem;color:var(--sw-muted)">Medicines &amp; vitamins</small></span></div>
-                                        <div class="sw-type-btn" onclick="this.classList.toggle('on')"><span class="sw-type-ico">✂️</span><span class="sw-type-lbl">Pet Grooming<br><small style="font-size:.65rem;color:var(--sw-muted)">Care &amp; styling</small></span></div>
-                                        <div class="sw-type-btn" onclick="this.classList.toggle('on')"><span class="sw-type-ico">🛒</span><span class="sw-type-lbl">All Pet Supplies<br><small style="font-size:.65rem;color:var(--sw-muted)">General supplies</small></span></div>
-                                        <div class="sw-type-btn" onclick="this.classList.toggle('on')"><span class="sw-type-ico">🐟</span><span class="sw-type-lbl">Fish &amp; Reptiles<br><small style="font-size:.65rem;color:var(--sw-muted)">Aquatic &amp; exotic pets</small></span></div>
+                                    <div class="sw-img-grid" id="swImgGrid">
+                                        <div class="sw-img-thumb" onclick="swAddImg(this)">➕</div>
+                                        <div class="sw-img-thumb" onclick="swAddImg(this)">➕</div>
+                                        <div class="sw-img-thumb" onclick="swAddImg(this)">➕</div>
+                                        <div class="sw-img-thumb" onclick="swAddImg(this)">➕</div>
+                                        <div class="sw-img-thumb" onclick="swAddImg(this)">➕</div>
+                                        <div class="sw-img-thumb" onclick="swAddImg(this)">➕</div>
+                                        <div class="sw-img-thumb" onclick="swAddImg(this)">➕</div>
+                                        <div class="sw-img-thumb" onclick="swAddImg(this)">➕</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Store Location -->
+                        <div class="sw-card">
+                            <div class="sw-card-hd">
+                                <div class="sw-card-ico">📍</div>
+                                <div>
+                                    <div class="sw-card-title">Store Location</div>
+                                    <div class="sw-card-sub">Choose your exact store location from the map</div>
+                                </div>
+                            </div>
+
+                            <div class="sw-fg">
+                                <div class="sw-f sw-fw">
+                                    <label class="sw-lbl">City <span class="sw-req">*</span></label>
+                                    <select class="sw-inp" id="sw-scity" oninput="swCe(this)">
+                                        <option value="">Select city</option>
+                                        <option>Amman</option>
+                                        <option>Zarqa</option>
+                                        <option>Irbid</option>
+                                        <option>Aqaba</option>
+                                        <option>Salt</option>
+                                        <option>Madaba</option>
+                                        <option>Karak</option>
+                                        <option>Jerash</option>
+                                        <option>Other</option>
+                                    </select>
+                                    <div class="sw-ferr" id="sw-e-scity">⚠ Please select a city</div>
+                                </div>
+
+                                <div class="sw-f sw-fw">
+                                    <label class="sw-lbl">Store Location on Map <span class="sw-req">*</span></label>
+
+                                    <div class="sw-map-wrap">
+                                        <div id="swStoreMap"></div>
                                     </div>
 
-                                    <div class="sw-ferr" id="sw-e-type" style="margin-top:5px">⚠ Please select at least one store type</div>
+                                    <div class="sw-map-note" id="swMapNote">📍 Click on the map to choose your store location</div>
+                                    <div class="sw-ferr" id="sw-e-map">⚠ Please choose your store location on the map</div>
+
+                                    <input type="hidden" id="sw-lat" />
+                                    <input type="hidden" id="sw-lng" />
                                 </div>
                             </div>
                         </div>
 
                         <div class="sw-fnav">
-                            <button class="sw-btn sw-btn-o" onclick="window.location.href='store-step1.html'">← Previous</button>
-                            <button class="sw-btn sw-btn-p" onclick="window.location.href='store-step3.html'">Next →</button>
+                            <a class="sw-btn sw-btn-o" asp-controller="Account" asp-action="Stor_step1">← Previous</a>
+                            <a class="sw-btn sw-btn-p" asp-controller="Account" asp-action="Stor_step3">Next →</a>
                         </div>
+
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="~/js/store.js"></script>
 </body>
 </html>

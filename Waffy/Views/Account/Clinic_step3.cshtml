@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -21,17 +18,16 @@
             <div class="topbar">
                 <div class="logo">Waffy</div>
                 <div class="topbar-right">
-                    <a href="signup.html" class="top-signup-link">← Back to Sign Up</a>
+                    <a asp-controller="Account" asp-action="Signup" class="top-signup-link">← Back to Sign Up</a>
                 </div>
             </div>
 
-            <div class="prog-line"><div class="prog-fill" style="width:60%"></div></div>
+            <div class="prog-line"><div class="prog-fill" style="width:75%"></div></div>
 
             <div class="cw-wrap">
                 <aside class="cw-left">
                     <div class="cw-info-card" id="cwStepsCard">
                         <div class="cw-info-title">📋 Registration Steps</div>
-
                     </div>
 
                     <div class="cw-info-card">
@@ -49,89 +45,80 @@
                         <div class="cw-prog-wrap">
                             <div class="cw-prog-header">
                                 <div class="cw-prog-title">🏥 New Clinic Registration</div>
-                                <div class="cw-prog-counter" id="cwClinicCounter">Step 3 of 5</div>
+                                <div class="cw-prog-counter" id="cwClinicCounter">Step 3 of 4</div>
                             </div>
 
                             <div class="cw-indicators" id="cwClinicIndicators">
                                 <div class="cw-ind done"><div class="cw-dot">✓</div><div class="cw-ind-label">Clinic</div></div>
                                 <div class="cw-ind done"><div class="cw-dot">✓</div><div class="cw-ind-label">Schedule</div></div>
-                                <div class="cw-ind active"><div class="cw-dot">3</div><div class="cw-ind-label">Plan</div></div>
-                                <div class="cw-ind"><div class="cw-dot">4</div><div class="cw-ind-label">Documents</div></div>
-                                <div class="cw-ind"><div class="cw-dot">5</div><div class="cw-ind-label">Manager</div></div>
+                                <div class="cw-ind active"><div class="cw-dot">3</div><div class="cw-ind-label">Documents</div></div>
+                                <div class="cw-ind"><div class="cw-dot">4</div><div class="cw-ind-label">Manager</div></div>
                             </div>
                         </div>
 
                         <div class="cw-content" id="cc-3">
-                            <div class="cw-content-title">Choose Your Subscription Plan</div>
-                            <div class="cw-content-sub">You can change your plan anytime from your dashboard</div>
+                            <div class="cw-content-title">Official Documents</div>
+                            <div class="cw-content-sub">Required for clinic verification — reviewed within 24 hours</div>
 
-                            <div class="cw-plans" style="margin-bottom:1.2rem">
-                                <div class="cw-plan" onclick="cwSelectPlan(this,'free')">
-                                    <div class="cw-plan-icon">🌱</div>
-                                    <div class="cw-plan-name">Free</div>
-                                    <div class="cw-plan-price">0 JOD</div>
-                                    <div class="cw-plan-commission">15% commission</div>
-                                    <div class="cw-plan-features">
-                                        <div class="cw-plan-feature">✓ Up to 20 appts/month</div>
-                                        <div class="cw-plan-feature">✓ 1 doctor</div>
-                                    </div>
+                            <div class="cw-field">
+                                <label class="cw-label"><span class="req">*</span>Municipal License</label>
+                                <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-municipal')">
+                                    <input type="file" id="cw-doc-municipal" accept=".pdf,image/*" style="display:none" onchange="cwPreviewFile(this,'cw-doc-municipal-p','cw-doc-municipal-n')">
+                                    <div class="wf-upload-ico">🏛</div>
+                                    <div class="wf-upload-txt"><strong>Upload Municipal License</strong><br>Must be currently valid — PDF, JPG, PNG — max 10MB</div>
                                 </div>
-
-                                <div class="cw-plan active" onclick="cwSelectPlan(this,'basic')">
-                                    <span class="cw-plan-popular">Most Popular</span>
-                                    <div class="cw-plan-icon">⭐</div>
-                                    <div class="cw-plan-name">Basic</div>
-                                    <div class="cw-plan-price">25 JOD</div>
-                                    <div class="cw-plan-commission">8% commission</div>
-                                    <div class="cw-plan-features">
-                                        <div class="cw-plan-feature">✓ Unlimited appointments</div>
-                                        <div class="cw-plan-feature">✓ Up to 3 doctors</div>
-                                    </div>
-                                </div>
-
-                                <div class="cw-plan" onclick="cwSelectPlan(this,'pro')">
-                                    <div class="cw-plan-icon">🚀</div>
-                                    <div class="cw-plan-name">Pro</div>
-                                    <div class="cw-plan-price">60 JOD</div>
-                                    <div class="cw-plan-commission">3% commission only</div>
-                                    <div class="cw-plan-features">
-                                        <div class="cw-plan-feature">✓ Everything unlimited</div>
-                                        <div class="cw-plan-feature">✓ Priority support</div>
-                                    </div>
+                                <div class="cw-upload-prev" id="cw-doc-municipal-p">
+                                    <span>🏛</span>
+                                    <span class="cw-prev-name" id="cw-doc-municipal-n"></span>
+                                    <button type="button" class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-municipal','cw-doc-municipal-p','cw-doc-municipal-n')">✕ Remove</button>
                                 </div>
                             </div>
 
-                            <div id="cwPaymentDetails">
-                                <div class="cw-field">
-                                    <label class="cw-label">Payment Method</label>
-                                    <select class="cw-input">
-                                        <option>Credit Card / Visa / Mastercard</option>
-                                        <option>Bank Transfer</option>
-                                        <option>CliQ</option>
-                                    </select>
+                            <div class="cw-field">
+                                <label class="cw-label"><span class="req">*</span>Veterinary Practice License</label>
+                                <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-vet')">
+                                    <input type="file" id="cw-doc-vet" accept=".pdf,image/*" style="display:none" onchange="cwPreviewFile(this,'cw-doc-vet-p','cw-doc-vet-n')">
+                                    <div class="wf-upload-ico">⚕️</div>
+                                    <div class="wf-upload-txt"><strong>Upload Practice License</strong><br>Issued by the Jordan Veterinary Association — PDF, JPG, PNG — max 10MB</div>
                                 </div>
+                                <div class="cw-upload-prev" id="cw-doc-vet-p">
+                                    <span>⚕️</span>
+                                    <span class="cw-prev-name" id="cw-doc-vet-n"></span>
+                                    <button type="button" class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-vet','cw-doc-vet-p','cw-doc-vet-n')">✕ Remove</button>
+                                </div>
+                            </div>
 
-                                <div class="cw-grid">
-                                    <div class="cw-field cw-field-full">
-                                        <label class="cw-label">Card Number</label>
-                                        <input class="cw-input" type="text" placeholder="XXXX XXXX XXXX XXXX">
-                                    </div>
+                            <div class="cw-field">
+                                <label class="cw-label"><span class="req">*</span>Clinic Manager National ID</label>
+                                <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-id')">
+                                    <input type="file" id="cw-doc-id" accept=".pdf,image/*" style="display:none" onchange="cwPreviewFile(this,'cw-doc-id-p','cw-doc-id-n')">
+                                    <div class="wf-upload-ico">🪪</div>
+                                    <div class="wf-upload-txt"><strong>Upload National ID Photo</strong><br>Both front and back sides — JPG, PNG — max 5MB</div>
+                                </div>
+                                <div class="cw-upload-prev" id="cw-doc-id-p">
+                                    <span>🪪</span>
+                                    <span class="cw-prev-name" id="cw-doc-id-n"></span>
+                                    <button type="button" class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-id','cw-doc-id-p','cw-doc-id-n')">✕ Remove</button>
+                                </div>
+                            </div>
 
-                                    <div class="cw-field">
-                                        <label class="cw-label">Expiry Date</label>
-                                        <input class="cw-input" type="text" placeholder="MM / YY">
-                                    </div>
-
-                                    <div class="cw-field">
-                                        <label class="cw-label">CVV</label>
-                                        <input class="cw-input" type="text" placeholder="XXX">
-                                    </div>
+                            <div class="cw-field">
+                                <label class="cw-label">Clinic Logo <span class="cw-opt-badge">Optional</span></label>
+                                <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-logo')">
+                                    <input type="file" id="cw-doc-logo" accept="image/*,svg" style="display:none" onchange="cwPreviewFile(this,'cw-doc-logo-p','cw-doc-logo-n')">
+                                    <div class="wf-upload-ico">🎨</div>
+                                    <div class="wf-upload-txt"><strong>Upload Clinic Logo</strong><br>Appears on your clinic page and reports — PNG, SVG — max 2MB</div>
+                                </div>
+                                <div class="cw-upload-prev" id="cw-doc-logo-p">
+                                    <span>🎨</span>
+                                    <span class="cw-prev-name" id="cw-doc-logo-n"></span>
+                                    <button type="button" class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-logo','cw-doc-logo-p','cw-doc-logo-n')">✕ Remove</button>
                                 </div>
                             </div>
 
                             <div class="cw-submit-wrap">
-                                <button class="cw-btn-back" onclick="window.location.href='clinic-step2.html'">← Previous</button>
-                                <button class="cw-btn-next" onclick="window.location.href='clinic-step4.html'">Next — Documents →</button>
+                                <a class="cw-btn-back" asp-controller="Account" asp-action="Clinic_step2">← Previous</a>
+                                <a class="cw-btn-next" asp-controller="Account" asp-action="Clinic_step4">Next — Manager Info →</a>
                             </div>
                         </div>
                     </div>

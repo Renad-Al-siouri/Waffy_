@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -21,17 +18,17 @@
             <div class="topbar">
                 <div class="logo">Waffy</div>
                 <div class="topbar-right">
-                    <a href="signup.html" class="top-signup-link">← Back to Sign Up</a>
+                    <a asp-controller="Account" asp-action="Signup" class="top-signup-link">← Back to Sign Up</a>
                 </div>
             </div>
 
-            <div class="prog-line"><div class="prog-fill" style="width:20%"></div></div>
+            <div class="prog-line"><div class="prog-fill" style="width:25%"></div></div>
 
             <div class="cw-wrap">
                 <aside class="cw-left">
                     <div class="cw-info-card" id="cwStepsCard">
                         <div class="cw-info-title">📋 Registration Steps</div>
-
+                       
                     </div>
 
                     <div class="cw-info-card">
@@ -49,15 +46,14 @@
                         <div class="cw-prog-wrap">
                             <div class="cw-prog-header">
                                 <div class="cw-prog-title">🏥 New Clinic Registration</div>
-                                <div class="cw-prog-counter" id="cwClinicCounter">Step 1 of 5</div>
+                                <div class="cw-prog-counter" id="cwClinicCounter">Step 1 of 4</div>
                             </div>
 
                             <div class="cw-indicators" id="cwClinicIndicators">
                                 <div class="cw-ind active"><div class="cw-dot">1</div><div class="cw-ind-label">Clinic</div></div>
                                 <div class="cw-ind"><div class="cw-dot">2</div><div class="cw-ind-label">Schedule</div></div>
-                                <div class="cw-ind"><div class="cw-dot">3</div><div class="cw-ind-label">Plan</div></div>
-                                <div class="cw-ind"><div class="cw-dot">4</div><div class="cw-ind-label">Documents</div></div>
-                                <div class="cw-ind"><div class="cw-dot">5</div><div class="cw-ind-label">Manager</div></div>
+                                <div class="cw-ind"><div class="cw-dot">3</div><div class="cw-ind-label">Documents</div></div>
+                                <div class="cw-ind"><div class="cw-dot">4</div><div class="cw-ind-label">Manager</div></div>
                             </div>
                         </div>
 
@@ -71,18 +67,7 @@
                                     <input class="cw-input" type="text" id="cc-clinicName" placeholder="e.g. Al-Amana Veterinary Clinic">
                                 </div>
 
-                                <div class="cw-field">
-                                    <label class="cw-label"><span class="req">*</span>Clinic Type</label>
-                                    <select class="cw-input">
-                                        <option value="">Select type...</option>
-                                        <option>Small Private Clinic</option>
-                                        <option>Veterinary Hospital</option>
-                                        <option>Mobile Clinic</option>
-                                        <option>Animal Care Center</option>
-                                    </select>
-                                </div>
-
-                                <div class="cw-field">
+                                <div class="cw-field cw-field-full">
                                     <label class="cw-label"><span class="req">*</span>City</label>
                                     <select class="cw-input" id="cc-city">
                                         <option value="">Select city...</option>
@@ -96,18 +81,8 @@
                                 </div>
 
                                 <div class="cw-field cw-field-full">
-                                    <label class="cw-label"><span class="req">*</span>Full Address</label>
-                                    <input class="cw-input" type="text" placeholder="Street, neighborhood, building...">
-                                </div>
-
-                                <div class="cw-field">
                                     <label class="cw-label"><span class="req">*</span>Phone Number</label>
                                     <input class="cw-input" type="tel" id="cc-phone" placeholder="06-XXXXXXX">
-                                </div>
-
-                                <div class="cw-field">
-                                    <label class="cw-label"><span class="req">*</span>Email Address</label>
-                                    <input class="cw-input" type="email" id="cc-email" placeholder="clinic@waffy.jo">
                                 </div>
 
                                 <div class="cw-field cw-field-full">
@@ -126,8 +101,8 @@
                             </div>
 
                             <div class="cw-submit-wrap">
-                                <button class="cw-btn-back" onclick="window.location.href='signup.html'">← Back</button>
-                                <button class="cw-btn-next" onclick="window.location.href='clinic-step2.html'">Next — Schedule & Services →</button>
+                                <a class="cw-btn-back" asp-controller="Account" asp-action="Signup">← Back</a>
+                                <a class="cw-btn-next" asp-controller="Account" asp-action="Clinic_step2">Next — Schedule & Plan →</a>
                             </div>
                         </div>
                     </div>

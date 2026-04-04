@@ -8,5 +8,9 @@ namespace Waffy.Controllers
         {
             return View();
         }
+        public IActionResult Stores()
+        {
+            return View();
+        }
     }
 }
