@@ -1,8 +1,6 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-    Layout = null;  
+﻿@{
+    Layout = null;
+    var otpEmail = TempData.Peek("OtpEmail")?.ToString();
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -31,7 +29,14 @@
                 Enter the 4-digit code sent to your email address
             </div>
 
-            <form id="otpForm" novalidate>
+            <form id="otpForm" asp-controller="Account" asp-action="VerifyOtp" method="post" novalidate>
+                @Html.AntiForgeryToken()
+                @if (TempData["OtpError"] != null)
+                {
+                    <div style="color:red;margin-bottom:10px;">
+                        @TempData["OtpError"]
+                    </div>
+                }
                 <div class="otp-group">
                     <input type="text" maxlength="1" class="otp-input" inputmode="numeric" />
                     <input type="text" maxlength="1" class="otp-input" inputmode="numeric" />
@@ -39,13 +44,18 @@
                     <input type="text" maxlength="1" class="otp-input" inputmode="numeric" />
                 </div>
 
-                <a asp-controller="Account" asp-action="ResetPass" class="btn-verify" style="display:flex;width:100%;height:50px;align-items:center;justify-content:center;text-align:center;text-decoration:none;color:#fff;margin:0 auto;border-radius:12px;background:linear-gradient(135deg,#59652a,#97ad4d);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.95rem;padding:12px;box-shadow:0 8px 18px rgba(151,173,77,0.16);">Verify</a>
+                <button type="submit" class="btn-verify" style="display:flex;width:100%;height:50px;align-items:center;justify-content:center;text-align:center;text-decoration:none;color:#fff;margin:0 auto;border-radius:12px;background:linear-gradient(135deg,#59652a,#97ad4d);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.95rem;padding:12px;box-shadow:0 8px 18px rgba(151,173,77,0.16);border:none;">
+                    Verify
+                </button>
 
                 <div class="success" id="successMsg">
                     Code verified successfully!
                 </div>
-            </form>
+                <input type="hidden" name="code" id="finalCode" />
+                
 
+            </form>
+           
             <div class="bottom-text">
                 Didn’t receive the code?
                 <a href="#" class="resend-link disabled" id="resendCode">Resend in 30s</a>
@@ -56,7 +66,6 @@
             </div>
         </div>
     </div>
-
-    <script src="~/js/OTPVer.js"></script>
+    <script src="~/js/OTPVer.js" asp-append-version="true"></script>
 </body>
 </html>

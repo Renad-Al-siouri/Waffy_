@@ -31,7 +31,23 @@
                 <span>🐾</span>
             </div>
 
-            <form id="loginForm" autocomplete="on" novalidate>
+            <form id="loginForm" asp-controller="Account" asp-action="Login" method="post" autocomplete="on" novalidate>
+                @Html.AntiForgeryToken()
+
+                @if (TempData["LoginError"] != null)
+                {
+                    <div style="margin-bottom:14px;padding:12px 14px;border-radius:12px;background:#fff1f1;border:1px solid #f3caca;color:#b42318;font-weight:700;">
+                        @TempData["LoginError"]
+                    </div>
+                }
+
+                @if (TempData["LoginSuccess"] != null)
+                {
+                    <div style="margin-bottom:14px;padding:12px 14px;border-radius:12px;background:#f3fff1;border:1px solid #cfe9c8;color:#2f6b22;font-weight:700;">
+                        @TempData["LoginSuccess"]
+                    </div>
+                }
+
                 <div class="field">
                     <i class="fa-regular fa-envelope field-icon"></i>
                     <input type="email" id="email" name="email" placeholder="Email" autocomplete="email" />
@@ -54,13 +70,15 @@
                     <a asp-controller="Account" asp-action="ForgotPass" class="forgot-link">Forgot Password</a>
                 </div>
 
-                <a asp-controller="Home" asp-action="Home_After" class="btn-login" style="display:flex;width:100%;height:50px;align-items:center;justify-content:center;text-align:center;text-decoration:none;color:#fff;margin:0 auto;border-radius:12px;background:linear-gradient(135deg,#59652a,#97ad4d);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.95rem;padding:12px;box-shadow:0 8px 18px rgba(151,173,77,0.16);">Log In</a>
+                <button type="submit" class="btn-login"
+                        style="display:flex;width:100%;height:50px;align-items:center;justify-content:center;text-align:center;text-decoration:none;color:#fff;margin:0 auto;border-radius:12px;background:linear-gradient(135deg,#59652a,#97ad4d);font-family:'Nunito',sans-serif;font-weight:800;font-size:0.95rem;padding:12px;box-shadow:0 8px 18px rgba(151,173,77,0.16);border:none;">
+                    Log In
+                </button>
 
                 <div class="success-message" id="successMessage">
                     Logged in successfully!
                 </div>
             </form>
-
             <div class="bottom-text">
                 New here?
                 <a asp-controller="Account" asp-action="Signup" class="signup-link">Sign Up</a>
@@ -68,6 +86,5 @@
         </div>
     </div>
 
-    
 </body>
 </html>

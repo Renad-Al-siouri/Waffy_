@@ -1,4 +1,4 @@
-namespace Waffy.Models
+﻿namespace Waffy.Models
 {
     public class ErrorViewModel
     {

@@ -1,6 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Waffy.Models.User
 @{
     Layout = null;
 }
@@ -76,7 +74,7 @@
                                     <i class="fa-solid fa-bell"></i>
                                 </a>
 
-                                <a asp-controller="Account" asp-action="Profile" class="profile-btn" aria-label="Profile">
+                                <a asp-controller="Account" asp-action="Profile" asp-route-id="@Model.UserId" class="profile-btn" aria-label="Profile">
                                     <img src="../Images/user.jpg" alt="Profile">
                                 </a>
                                 <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
@@ -133,41 +131,48 @@
                 <div class="profile-top">
                     <div class="avatar-wrap">
                         <div class="avatar">
-                            <span>👤</span>
+                            @if (Model != null && !string.IsNullOrEmpty(Model.ProfileImage))
+                            {
+                                <img src="@Model.ProfileImage" alt="Profile Image" />
+                            }
+                            else
+                            {
+                                <span>👤</span>
+                            }
                         </div>
                         <button class="camera-btn" id="changePhotoBtn" type="button">📷</button>
                         <input type="file" id="photoInput" accept="image/*" hidden />
                     </div>
 
                     <div class="profile-info">
-                        <h1>Layan Mugdadi</h1>
+                        <h1>@Model.FullName</h1>
 
                         <div class="meta-line">
-                            <span>♀ Female</span>
+                            <span>♀ @Model.Gender</span>
                         </div>
 
                         <div class="meta-line">
-                            <span>📍 Amman, Jordan</span>
+                            <span>📍 @Model.City</span>
                         </div>
 
-                        <a href="profileEdit.html" class="edit-profile-btn">✏ Edit Profile</a>
+                        <a asp-controller="Account" asp-action="ProfileEdit" asp-controller="Account" asp-action="Profile" class="edit-profile-btn">✏ Edit Profile</a>
                     </div>
                 </div>
 
                 <div class="contact-box">
                     <div class="contact-row">
                         <span class="contact-label">✉ Email</span>
-                        <span class="contact-value" id="userEmail">layan.mugdadi@email.com</span>
+                        <span class="contact-value" id="userEmail">@Model.Email</span>
                     </div>
 
                     <div class="contact-row">
                         <span class="contact-label">📞 Phone</span>
-                        <span class="contact-value" id="userPhone">+962 79 123 4567</span>
+                        <span class="contact-value" id="userPhone">@Model.Phone</span>
                     </div>
 
                     <div class="contact-row">
                         <span class="contact-label">🏠 Address</span>
-                        <span class="contact-value" id="userAddress">123 Pet Street, Amman, Jordan</span>
+                        <span class="contact-value" id="userAddress">@Model.AddressDetail</span>
                     </div>
                 </div>
             </section>
@@ -416,7 +421,8 @@
 
                         <div class="form-group">
                             <label>Good with Children</label>
-                            <select id="petChildrenInput">
+                            <select id="petChildren
+Input">
                                 <option>Yes</option>
                                 <option>No</option>
                             </select>
