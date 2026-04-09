@@ -3,19 +3,16 @@ function byId(id) {
 }
 
 const SW_STEPS = [
-    { label: 'Account Owner', sub: 'Step 1', ico: '👤' },
-    { label: 'Store Details & Location', sub: 'Step 2', ico: '🏪' },
-    { label: 'Contact & Payments', sub: 'Step 3', ico: '📞' },
-    { label: 'Business & Docs', sub: 'Step 4', ico: '📄' }
+    { label: 'Store Owner Information', sub: 'Step 1', ico: '👤' },
+    { label: 'Store Information', sub: 'Step 2', ico: '🏪' }
 ];
 
 let swCur = 1;
-let swDelChoice = null;
-let swBizChoice = null;
-let swStoreMap = null;
-let swStoreMarker = null;
 
 function swRenderSidebar() {
+    const panel = byId('swSbSteps');
+    if (!panel) return;
+
     let h = '';
 
     SW_STEPS.forEach((s, i) => {
@@ -24,58 +21,29 @@ function swRenderSidebar() {
         const num = n < swCur ? '✓' : n;
 
         h += `
-      <div class="sw-si ${cls}">
-        <div class="sw-si-num">${num}</div>
-        <div>
-          <div class="sw-si-title">${s.ico} ${s.label}</div>
-          <div class="sw-si-sub">${s.sub}</div>
-        </div>
-      </div>
-    `;
+            <div class="sw-si ${cls}">
+                <div class="sw-si-num">${num}</div>
+                <div>
+                    <div class="sw-si-title">${s.ico} ${s.label}</div>
+                    <div class="sw-si-sub">${s.sub}</div>
+                </div>
+            </div>
+        `;
     });
 
-    const panel = byId('swSbSteps');
-    if (panel) panel.innerHTML = h;
-}
-
-function swRenderDots() {
-    let h = '';
-
-    for (let i = 1; i <= 4; i++) {
-        const cls = i < swCur ? 'done' : i === swCur ? 'active' : '';
-        h += `<div class="sw-dot ${cls}"></div>`;
-    }
-
-    const d = byId('swDots');
-    if (d) d.innerHTML = h;
+    panel.innerHTML = h;
 }
 
 function swUpdateProgress() {
-    const steps = 4;
-    const pct = swCur > steps ? 100 : Math.round((swCur / steps) * 100);
-
     const fill = document.querySelector('.prog-fill');
-    if (fill) fill.style.width = pct + '%';
-}
+    if (!fill) return;
 
-function swGo(step) {
-    document.querySelectorAll('#storeWizardContainer .sw-screen').forEach(s => s.classList.remove('on'));
+    const widths = {
+        1: '50%',
+        2: '100%'
+    };
 
-    if (step > 4) {
-        const s = byId('sw-ssuccess');
-        if (s) s.classList.add('on');
-        swCur = 5;
-    } else {
-        const s = byId('sw-s' + step);
-        if (s) s.classList.add('on');
-        swCur = step;
-    }
-
-    swRenderSidebar();
-    swRenderDots();
-    swUpdateProgress();
-
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    fill.style.width = widths[swCur] || '50%';
 }
 
 function swCe(el) {
@@ -89,7 +57,6 @@ function swCe(el) {
 
 function swReq(id) {
     const el = byId(id);
-
     if (!el) return false;
 
     if (!String(el.value || '').trim()) {
@@ -98,7 +65,6 @@ function swReq(id) {
         if (e) e.classList.add('show');
         return false;
     }
-
     return true;
 }
 
@@ -107,13 +73,11 @@ function swVEmail(id) {
     if (!el) return true;
 
     const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(el.value);
-
     if (!ok) {
         el.classList.add('err');
         const e = byId('sw-e-' + id.replace('sw-', ''));
         if (e) e.classList.add('show');
     }
-
     return ok;
 }
 
@@ -135,7 +99,9 @@ function swPwdStr(inp) {
     });
 
     const pl = byId('sw-pl');
-    if (pl) pl.textContent = s > 0 ? ['Weak', 'Medium', 'Strong'][s - 1] : 'Enter a password';
+    if (pl) {
+        pl.textContent = s > 0 ? ['Weak', 'Medium', 'Strong'][s - 1] : 'Enter a password';
+    }
 }
 
 function swN1() {
@@ -168,95 +134,28 @@ function swN1() {
 }
 
 function swN2() {
-    const ok = swReq('sw-sname') & swReq('sw-scity');
+    const ok =
+        swReq('sw-sname') &
+        swVEmail('sw-semail') &
+        swReq('sw-sphone') &
+        swReq('sw-scity');
 
-    const lat = byId('sw-lat') ? byId('sw-lat').value.trim() : '';
-    const lng = byId('sw-lng') ? byId('sw-lng').value.trim() : '';
-
-    if (!lat || !lng) {
-        const e = byId('sw-e-map');
-        if (e) e.classList.add('show');
-    }
-
-    if (!ok || !lat || !lng) return;
-
-    window.location.href = '/Account/Stor_step3';
-}
-
-function swN3() {
-    const ok = swVEmail('sw-semail') & swReq('sw-sphone');
     if (!ok) return;
 
-    window.location.href = '/Account/Stor_step4';
-}
+    const doc1 = byId('sw-doc1');
+    const doc2 = byId('sw-doc2');
 
-function swFinish() {
-    const t1 = byId('sw-t1') ? byId('sw-t1').checked : false;
-    const t2 = byId('sw-t2') ? byId('sw-t2').checked : false;
-    const t3 = byId('sw-t3') ? byId('sw-t3').checked : false;
+    if (!doc1 || !doc1.files.length) {
+        alert('Please upload the Commercial Registration file.');
+        return;
+    }
 
-    ['sw-t1', 'sw-t2', 'sw-t3'].forEach((id, i) => {
-        const checks = [t1, t2, t3];
-        if (!checks[i]) {
-            const el = byId(id);
-            if (el) {
-                el.style.outline = '2px solid var(--red)';
-                setTimeout(() => {
-                    el.style.outline = '';
-                }, 1200);
-            }
-        }
-    });
-
-    if (!t1 || !t2 || !t3) return;
+    if (!doc2 || !doc2.files.length) {
+        alert('Please upload the Business License file.');
+        return;
+    }
 
     window.location.href = '/Account/Stor_success';
-}
-
-function swSetDel(val) {
-    swDelChoice = val;
-
-    const yes = byId('swDelYes');
-    const no = byId('swDelNo');
-    const extra = byId('swDelExtra');
-
-    if (yes) yes.classList.remove('on');
-    if (no) no.classList.remove('on');
-
-    if (val) {
-        if (yes) yes.classList.add('on');
-        if (extra) extra.style.display = 'block';
-    } else {
-        if (no) no.classList.add('on');
-        if (extra) extra.style.display = 'none';
-    }
-}
-
-function swSelectBiz(type) {
-    swBizChoice = type;
-
-    const comm = byId('swBizComm');
-    const sub = byId('swBizSub');
-    const commExtra = byId('swCommExtra');
-    const subExtra = byId('swSubExtra');
-
-    if (comm) comm.classList.remove('on');
-    if (sub) sub.classList.remove('on');
-
-    if (type === 'commission') {
-        if (comm) comm.classList.add('on');
-        if (commExtra) commExtra.style.display = 'grid';
-        if (subExtra) subExtra.style.display = 'none';
-    } else {
-        if (sub) sub.classList.add('on');
-        if (subExtra) subExtra.style.display = 'block';
-        if (commExtra) commExtra.style.display = 'none';
-    }
-}
-
-function swSelPlan(card) {
-    document.querySelectorAll('#storeWizardContainer .sw-plan-card').forEach(c => c.classList.remove('on'));
-    if (card) card.classList.add('on');
 }
 
 function swTrigUpload(id) {
@@ -285,124 +184,13 @@ function swRemoveFile(fileId, prevId, nameId) {
     if (p) p.classList.remove('show');
 }
 
-function swAddImg(thumb) {
-    const inp = document.createElement('input');
-    inp.type = 'file';
-    inp.accept = 'image/*';
-    inp.style.display = 'none';
-
-    document.body.appendChild(inp);
-    inp.click();
-
-    inp.onchange = () => {
-        if (!inp.files || !inp.files[0]) {
-            document.body.removeChild(inp);
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = e => {
-            const img = document.createElement('img');
-            img.src = e.target.result;
-
-            thumb.innerHTML = '';
-            thumb.appendChild(img);
-
-            const rm = document.createElement('button');
-            rm.className = 'sw-thumb-rm';
-            rm.textContent = '✕';
-            rm.type = 'button';
-
-            rm.onclick = (ev) => {
-                ev.stopPropagation();
-                thumb.innerHTML = '➕';
-                thumb.classList.remove('filled');
-                thumb.onclick = () => swAddImg(thumb);
-            };
-
-            thumb.appendChild(rm);
-            thumb.classList.add('filled');
-            thumb.onclick = null;
-        };
-
-        reader.readAsDataURL(inp.files[0]);
-        document.body.removeChild(inp);
-    };
-}
-
-function swInitStoreMap() {
-    const mapEl = byId('swStoreMap');
-    const mapNote = byId('swMapNote');
-
-    if (!mapEl) {
-        console.error('swStoreMap element not found');
-        return;
-    }
-
-    if (typeof L === 'undefined') {
-        console.error('Leaflet library did not load');
-        if (mapNote) {
-            mapNote.textContent = '⚠ Map library failed to load. Check Leaflet script/link.';
-        }
-        return;
-    }
-
-    if (swStoreMap) {
-        swStoreMap.remove();
-        swStoreMap = null;
-    }
-
-    swStoreMap = L.map('swStoreMap').setView([31.9539, 35.9106], 8);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 19
-    }).addTo(swStoreMap);
-
-    swStoreMap.on('click', function (e) {
-        const lat = e.latlng.lat;
-        const lng = e.latlng.lng;
-
-        if (swStoreMarker) {
-            swStoreMap.removeLayer(swStoreMarker);
-        }
-
-        swStoreMarker = L.marker([lat, lng]).addTo(swStoreMap);
-        swStoreMarker.bindPopup('Selected store location').openPopup();
-
-        const latInput = byId('sw-lat');
-        const lngInput = byId('sw-lng');
-        const mapErr = byId('sw-e-map');
-
-        if (latInput) latInput.value = lat.toFixed(6);
-        if (lngInput) lngInput.value = lng.toFixed(6);
-
-        if (mapNote) {
-            mapNote.textContent = `📍 Selected location: ${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-        }
-
-        if (mapErr) mapErr.classList.remove('show');
-    });
-
-    setTimeout(() => {
-        swStoreMap.invalidateSize();
-    }, 500);
-}
-
 document.addEventListener('DOMContentLoaded', () => {
-    const body = document.body;
-
-    if (body.classList.contains('store-step-1')) swCur = 1;
-    else if (body.classList.contains('store-step-2')) swCur = 2;
-    else if (body.classList.contains('store-step-3')) swCur = 3;
-    else if (body.classList.contains('store-step-4')) swCur = 4;
-    else if (body.classList.contains('store-success')) swCur = 5;
+    if (document.body.classList.contains('store-step-2')) {
+        swCur = 2;
+    } else {
+        swCur = 1;
+    }
 
     swRenderSidebar();
-    swRenderDots();
     swUpdateProgress();
-
-    if (body.classList.contains('store-step-2')) {
-        swInitStoreMap();
-    }
 });

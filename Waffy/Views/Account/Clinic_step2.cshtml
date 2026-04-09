@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&family=Readex+Pro:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/clinic.css" />
 </head>
-<body>
+<body class="clinic-step-2">
     <div id="clinicWizardContainer" dir="ltr" lang="en">
         <div class="cw-bg"></div>
 
@@ -22,7 +22,9 @@
                 </div>
             </div>
 
-            <div class="prog-line"><div class="prog-fill" style="width:50%"></div></div>
+            <div class="prog-line">
+                <div class="prog-fill" style="width:100%"></div>
+            </div>
 
             <div class="cw-wrap">
                 <aside class="cw-left">
@@ -35,15 +37,7 @@
                             </div>
                             <div class="cw-step-item">
                                 <div class="cw-step-num active">2</div>
-                                <div class="cw-step-text">Schedule & Plan</div>
-                            </div>
-                            <div class="cw-step-item">
-                                <div class="cw-step-num">3</div>
-                                <div class="cw-step-text">Official Documents</div>
-                            </div>
-                            <div class="cw-step-item">
-                                <div class="cw-step-num">4</div>
-                                <div class="cw-step-text">Manager Info</div>
+                                <div class="cw-step-text">Clinic Owner Information</div>
                             </div>
                         </div>
                     </div>
@@ -63,129 +57,77 @@
                         <div class="cw-prog-wrap">
                             <div class="cw-prog-header">
                                 <div class="cw-prog-title">🏥 New Clinic Registration</div>
-                                <div class="cw-prog-counter" id="cwClinicCounter">Step 2 of 4</div>
+                                <div class="cw-prog-counter" id="cwClinicCounter">Step 2 of 2</div>
                             </div>
 
-                            <div class="cw-indicators" id="cwClinicIndicators">
-                                <div class="cw-ind done"><div class="cw-dot">✓</div><div class="cw-ind-label">Clinic</div></div>
-                                <div class="cw-ind active"><div class="cw-dot">2</div><div class="cw-ind-label">Schedule</div></div>
-                                <div class="cw-ind"><div class="cw-dot">3</div><div class="cw-ind-label">Documents</div></div>
-                                <div class="cw-ind"><div class="cw-dot">4</div><div class="cw-ind-label">Manager</div></div>
-                            </div>
+                            
                         </div>
 
                         <div class="cw-content" id="cc-2">
-                            <div class="cw-content-title">Working Hours & Subscription Plan</div>
-                            <div class="cw-content-sub">Set your availability and choose the most suitable plan</div>
-
-                            <div class="cw-field">
-                                <label class="cw-label"><span class="req">*</span>Working Days</label>
-                                <div class="cw-days">
-                                    <button class="cw-day active" type="button" onclick="this.classList.toggle('active')">Sun</button>
-                                    <button class="cw-day active" type="button" onclick="this.classList.toggle('active')">Mon</button>
-                                    <button class="cw-day active" type="button" onclick="this.classList.toggle('active')">Tue</button>
-                                    <button class="cw-day active" type="button" onclick="this.classList.toggle('active')">Wed</button>
-                                    <button class="cw-day active" type="button" onclick="this.classList.toggle('active')">Thu</button>
-                                    <button class="cw-day" type="button" onclick="this.classList.toggle('active')">Fri</button>
-                                    <button class="cw-day" type="button" onclick="this.classList.toggle('active')">Sat</button>
-                                </div>
-                            </div>
+                            <div class="cw-content-title">Clinic Owner Information</div>
+                            <div class="cw-content-sub">These will be your login credentials as clinic manager</div>
 
                             <div class="cw-grid">
                                 <div class="cw-field">
-                                    <label class="cw-label"><span class="req">*</span>Opening Time</label>
-                                    <input class="cw-input" type="time" value="09:00">
+                                    <label class="cw-label"><span class="req">*</span>Full Name</label>
+                                    <input class="cw-input" type="text" id="co-fullName" placeholder="Full name">
                                 </div>
 
                                 <div class="cw-field">
-                                    <label class="cw-label"><span class="req">*</span>Closing Time</label>
-                                    <input class="cw-input" type="time" value="18:00">
+                                    <label class="cw-label"><span class="req">*</span>Phone Number</label>
+                                    <input class="cw-input" type="tel" id="co-phone" placeholder="07XXXXXXXX">
+                                </div>
+
+                                <div class="cw-field cw-field-full">
+                                    <label class="cw-label"><span class="req">*</span>Email Address</label>
+                                    <input class="cw-input" type="email" id="co-email" placeholder="manager@clinic.jo">
+                                </div>
+
+                                <div class="cw-field">
+                                    <label class="cw-label"><span class="req">*</span>Password</label>
+                                    <input class="cw-input" type="password" id="co-password" placeholder="At least 8 characters">
+                                </div>
+
+                                <div class="cw-field">
+                                    <label class="cw-label"><span class="req">*</span>Confirm Password</label>
+                                    <input class="cw-input" type="password" id="co-confirmPassword" placeholder="Re-enter password">
                                 </div>
                             </div>
 
-                            <div class="cw-field">
-                                <div class="cw-toggle-row">
-                                    <div>
-                                        <div class="cw-toggle-label">🚨 Emergency Service</div>
-                                        <div class="cw-toggle-sub">Available for urgent cases outside working hours</div>
-                                    </div>
-                                    <button class="cw-toggle" type="button" onclick="this.classList.toggle('on')"></button>
-                                </div>
+                            <div style="height:1px;background:rgba(90,143,56,0.18);margin:1.2rem 0;"></div>
+
+                            <div class="cw-content-title" style="margin-bottom:0.8rem">📋 Review Your Details</div>
+
+                            <div class="cw-review">
+                                <div class="cw-review-title">🏥 Clinic</div>
+                                <div class="cw-review-item"><span class="cw-review-key">Name</span><span class="cw-review-val" id="cwReviewName">—</span></div>
+                                <div class="cw-review-item"><span class="cw-review-key">City</span><span class="cw-review-val" id="cwReviewCity">—</span></div>
+                                <div class="cw-review-item"><span class="cw-review-key">Phone</span><span class="cw-review-val" id="cwReviewPhone">—</span></div>
                             </div>
 
-                            <div class="cw-content-title" style="margin:1.5rem 0 .4rem;">Choose Your Subscription Plan</div>
-                            <div class="cw-content-sub">You can change your plan anytime from your dashboard</div>
-
-                            <div class="cw-plans" style="margin-bottom:1.2rem">
-                                <div class="cw-plan" onclick="cwSelectPlan(this,'free')">
-                                    <div class="cw-plan-icon">🌱</div>
-                                    <div class="cw-plan-name">Free</div>
-                                    <div class="cw-plan-price">0 JOD</div>
-                                    <div class="cw-plan-commission">15% commission</div>
-                                    <div class="cw-plan-features">
-                                        <div class="cw-plan-feature">✓ Up to 20 appts/month</div>
-                                        <div class="cw-plan-feature">✓ 1 doctor</div>
-                                    </div>
-                                </div>
-
-                                <div class="cw-plan active" onclick="cwSelectPlan(this,'basic')">
-                                    <span class="cw-plan-popular">Most Popular</span>
-                                    <div class="cw-plan-icon">⭐</div>
-                                    <div class="cw-plan-name">Basic</div>
-                                    <div class="cw-plan-price">25 JOD</div>
-                                    <div class="cw-plan-commission">8% commission</div>
-                                    <div class="cw-plan-features">
-                                        <div class="cw-plan-feature">✓ Unlimited appointments</div>
-                                        <div class="cw-plan-feature">✓ Up to 3 doctors</div>
-                                    </div>
-                                </div>
-
-                                <div class="cw-plan" onclick="cwSelectPlan(this,'pro')">
-                                    <div class="cw-plan-icon">🚀</div>
-                                    <div class="cw-plan-name">Pro</div>
-                                    <div class="cw-plan-price">60 JOD</div>
-                                    <div class="cw-plan-commission">3% commission only</div>
-                                    <div class="cw-plan-features">
-                                        <div class="cw-plan-feature">✓ Everything unlimited</div>
-                                        <div class="cw-plan-feature">✓ Priority support</div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div id="cwPaymentDetails">
-                                <div class="cw-grid">
-                                    <div class="cw-field cw-field-full">
-                                        <label class="cw-label">Card Holder Name</label>
-                                        <input class="cw-input" type="text" placeholder="Full name on card">
-                                    </div>
-
-                                    <div class="cw-field cw-field-full">
-                                        <label class="cw-label">Card Number</label>
-                                        <input class="cw-input" type="text" placeholder="XXXX XXXX XXXX XXXX">
-                                    </div>
-
-                                    <div class="cw-field">
-                                        <label class="cw-label">Expiry Date</label>
-                                        <input class="cw-input" type="text" placeholder="MM / YY">
-                                    </div>
-
-                                    <div class="cw-field">
-                                        <label class="cw-label">CVV</label>
-                                        <input class="cw-input" type="text" placeholder="XXX">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="cw-submit-wrap">
-                                <a class="cw-btn-back" asp-controller="Account" asp-action="Clinic_step1">← Previous</a>
-                                <a class="cw-btn-next" asp-controller="Account" asp-action="Clinic_step3">Next — Documents →</a>
+                            <div class="cw-nav" style="display:flex;justify-content:space-between;gap:12px;margin-top:1.4rem;">
+                                <button class="cw-btn-back" type="button" onclick="window.location.href='/Account/Clinic_step1'">← Previous</button>
+                                <a class="cw-btn-next" type="button" asp-controller="Account" asp-action="Clinic_success">Submit Application 🚀</a>
                             </div>
                         </div>
                     </div>
+
+                    <div class="cw-success" id="cwSuccess" style="display:none;">
+                        <div class="cw-s-anim" id="cwSuccessIcon">🏥</div>
+                        <div class="cw-s-title" id="cwSuccessTitle">Clinic Application Submitted!</div>
+                        <div class="cw-s-sub" id="cwSuccessSub">The Waffy team will review your application within 24 hours. You will receive an email notification once approved.</div>
+                        <div class="cw-s-steps">
+                            <div class="cw-s-step"><span>✅</span>Your application has been received</div>
+                            <div class="cw-s-step"><span>🔍</span>Document review by the Waffy team</div>
+                            <div class="cw-s-step"><span>📧</span>Approval notification sent to your email</div>
+                            <div class="cw-s-step"><span>🚀</span>Access your dashboard and start using Waffy</div>
+                        </div>
+                        <a class="cw-btn-next" style="max-width:280px;margin:0 auto" asp-controller="Home" asp-action="Home_After">Back to Home 🐾</a>
+                    </div>
                 </div>
             </div>
-
         </div>
+
     </div>
 
     <script src="~/js/clinic.js"></script>

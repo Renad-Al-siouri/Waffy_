@@ -49,92 +49,107 @@
 
             <div class="fwrap">
 
-<section class="screen on" id="s1">
-<form asp-controller="Account" asp-action="user_signup" method="post">
-@Html.AntiForgeryToken()
-                    <div class="card">
-                        <div class="card-hd">
-                            <div class="card-ico">👤</div>
-                            <div>
-                                <div class="card-title">Account Information</div>
-                                <div class="card-sub">Review and complete your main account information.</div>
-                            </div>
-
-                        <div class="social-btns">
-                            <button type="button" class="social-btn google"><i class="fa-brands fa-google"></i> Continue with Google</button>
-                            <button type="button" class="social-btn facebook"><i class="fa-brands fa-facebook-f"></i> Continue with Facebook</button>
-                        </div>
-
-                        <div class="divider"><span>Or create a new account</span></div>
-
-                        <div class="fg">
-                            <div class="f fw">
-                                <label class="lbl">Full Name <span class="req">*</span></label>
-                                    <input class="inp" name="fullName" id="fullName" type="text" oninput="ce(this)" />
-                                <div class="ferr" id="e-fullName">Please enter your full name.</div>
-                            </div>
-
-                            <div class="f fw">
-                                <label class="lbl">Email Address <span class="req">*</span></label>
-                                    <input class="inp" name="email" id="email" type="email" oninput="ce(this)" />
-                                <div class="ferr" id="e-email">Please enter a valid email.</div>
-                            </div>
-                            <div class="f fw">
-                                <label class="lbl">Phone Number <span class="req">*</span></label>
-                                <div class="ph-wrap">
-                                    <span class="ph-pre">+962</span>
-                                        <input class="inp" name="phone"  id="phone" type="tel" placeholder="7X XXX XXXX" oninput="ce(this)" />
+                <section class="screen on" id="s1">
+                    <form asp-controller="Account" asp-action="user_signup" method="post">
+                      
+                        @Html.AntiForgeryToken()
+                        <div class="card">
+                            <div class="card-hd">
+                                <div class="card-ico">👤</div>
+                                <div>
+                                    <div class="card-title">Account Information</div>
+                                    <div class="card-sub">Review and complete your main account information.</div>
                                 </div>
-                                <div class="ferr" id="e-phone">Please enter a valid phone number.</div>
                             </div>
+
+                            <div class="social-btns">
+                                <button type="button" class="social-btn google"><i class="fa-brands fa-google"></i> Continue with Google</button>
+                                <button type="button" class="social-btn facebook"><i class="fa-brands fa-facebook-f"></i> Continue with Facebook</button>
+                            </div>
+
+                            <div class="divider"><span>Or create a new account</span></div>
+
                             <div class="fg">
-                                <div class="f">
-                                    <label class="lbl">City <span class="req">*</span></label>
+                                <div class="f fw">
+                                    <label class="lbl">Full Name <span class="req">*</span></label>
+                                    <input class="inp" name="fullName" id="fullName" type="text" oninput="ce(this)" />
+                                    <div class="ferr" id="e-fullName">Please enter your full name.</div>
+                                </div>
+
+                                <div class="f fw">
+                                    <label class="lbl">Email Address <span class="req">*</span></label>
+                                    <input class="inp" name="email" id="email" type="email" oninput="ce(this)" />
+                                    <div class="ferr" id="e-email">Please enter a valid email.</div>
+                                </div>
+                                <div class="f fw">
+                                    <label class="lbl">Phone Number <span class="req">*</span></label>
+                                    <div class="ph-wrap">
+                                        <span class="ph-pre">+962</span>
+                                        <input class="inp" name="phone" id="phone" type="tel" placeholder="7X XXX XXXX" oninput="ce(this)" />
+                                    </div>
+                                    <div class="ferr" id="e-phone">Please enter a valid phone number.</div>
+                                </div>
+                                <div class="fg">
+                                    <div class="f">
+                                        <label class="lbl">City <span class="req">*</span></label>
                                         <select class="inp" name="city" id="city" oninput="ce(this)">
-                                        <option value="">Select your city</option>
-                                        <option>Amman</option>
-                                        <option>Zarqa</option>
-                                        <option>Irbid</option>
-                                        <option>Aqaba</option>
-                                        <option>Salt</option>
-                                        <option>Madaba</option>
-                                        <option>Karak</option>
-                                        <option>Jerash</option>
-                                        <option>Other</option>
-                                    </select>
-                                    <div class="ferr" id="e-city">Please select your city.</div>
+                                            <option value="">Select your city</option>
+                                            <option>Amman</option>
+                                            <option>Zarqa</option>
+                                            <option>Irbid</option>
+                                            <option>Aqaba</option>
+                                            <option>Salt</option>
+                                            <option>Madaba</option>
+                                            <option>Karak</option>
+                                            <option>Jerash</option>
+                                            <option>Other</option>
+                                        </select>
+                                        <div class="ferr" id="e-city">Please select your city.</div>
+                                    </div>
+
+
                                 </div>
-
-
-                            </div>
-                            <div class="f fw">
-                                <label class="lbl">Password <span class="req">*</span></label>
+                                <div class="f fw">
+                                    <label class="lbl">Password <span class="req">*</span></label>
                                     <input class="inp" id="pwd" name="password" type="password" oninput="ce(this);pwdStr(this)" />
-                                <div class="pwd-str" id="pwdStr">
-                                    <div class="pb"></div>
-                                    <div class="pb"></div>
-                                    <div class="pb"></div>
-                                    <div class="pl" id="pwdLbl">Enter a password</div>
+                                    <div class="pwd-str" id="pwdStr">
+                                        <div class="pb"></div>
+                                        <div class="pb"></div>
+                                        <div class="pb"></div>
+                                        <div class="pl" id="pwdLbl">Enter a password</div>
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div class="f fw">
-                                <label class="lbl">Confirm Password <span class="req">*</span></label>
+                                <div class="f fw">
+                                    <label class="lbl">Confirm Password <span class="req">*</span></label>
                                     <input class="inp" name="confirmPassword" id="pwd2" type="password" oninput="ce(this)" />
-                                <div class="ferr" id="e-pwd2">Passwords do not match.</div>
-                                <div class="hint">At least 8 characters with numbers recommended.</div>
+                                    <div class="ferr" id="e-pwd2">Passwords do not match.</div>
+                                    <div class="hint">At least 8 characters with numbers recommended.</div>
+                                    @if (TempData["SignupError"] != null)
+                                    {
+                                        <div class="server-msg server-msg-error" style="color:red">
+                                            @TempData["SignupError"]
+                                        </div>
+                                    }
+
+                                    @if (TempData["SignupSuccess"] != null)
+                                    {
+                                        <div class="server-msg server-msg-success" style="color:red">
+                                            @TempData["SignupSuccess"]
+                                        </div>
+                                    }
+                                </div>
+
+
                             </div>
-
-
                         </div>
-                    </div>
 
-                    <div class="fnav">
-                        <div class="bottom-corner-link">Already have an account? <a asp-controller="Account" asp-action="Login">Log in</a></div>
+                        <div class="fnav">
+                            <div class="bottom-corner-link">Already have an account? <a asp-controller="Account" asp-action="Login">Log in</a></div>
                             <button type="submit" class="btn btn-p">
                                 Create My Account
                             </button>
-                    </div>
+                        </div>
                     </form>
                 </section>
             </div>
