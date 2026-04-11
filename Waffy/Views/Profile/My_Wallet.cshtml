@@ -1,0 +1,309 @@
+﻿@{
+    ViewData["Title"] = "My Wallet";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waffy | My Wallet</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="~/css/waffy-shared.css">
+    <link rel="stylesheet" href="~/css/waffy-responsive-patch.css">
+</head>
+<body>
+
+    <div class="top-hero-area">
+        <div class="top-hero-shell">
+            <header class="topbar">
+                <div class="header-shell">
+                    <nav class="navbar">
+                        <div class="left-nav desktop-nav desktop-links">
+                            <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
+                            <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
+                            <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
+                            <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
+                            <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
+                        </div>
+                        <div class="logo-center">
+                            <img src="~/Images/logo.png" alt="Waffy" class="main-logo">
+                        </div>
+                        <div class="right-nav">
+                            <div class="desktop-nav desktop-links desktop-right-links">
+                                <div class="services-dropdown" id="servicesDropdown">
+                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
+                                        Services <span class="dropdown-arrow">&#9660;</span>
+                                    </button>
+                                    <div class="dropdown-menu" id="servicesMenu">
+                                        <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
+                                        <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
+                                        <a asp-controller="Pet" asp-action="Adapt" class="dropdown-link">Adoption</a>
+                                        <a asp-controller="Pet" asp-action="Lost" class="dropdown-link">Lost Pets</a>
+                                        <a asp-controller="Map" asp-action="Gps" class="dropdown-link">Map</a>
+                                        <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
+                                        <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
+                                        <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
+                                        <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
+                                        <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
+                                    </div>
+                                </div>
+                                <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
+                            </div>
+                            <div class="nav-actions">
+                                <a href="/Cart/Index" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+                                <a href="/Notifications/Index" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
+                                <a href="/Profile/Edit_Profile" class="profile-btn">
+                                    <img src="~/Images/user.jpg" alt="Profile">
+                                </a>
+                                <a href="/Account/Logout" class="nav-link login-btn">Log out</a>
+                            </div>
+                            <div class="mobile-nav-wrap">
+                                <button class="menu-btn" id="menuBtn" type="button">&#9776;</button>
+                                <div class="nav-links" id="navLinks">
+                                    <div class="mobile-menu-logo"><img src="~/Images/logo.png" alt="Waffy"></div>
+
+                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
+                                    <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
+                                    <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
+                                    <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
+                                    <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
+                                    <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
+                                    <div class="mobile-services-block" id="mobileServicesBlock">
+                                        <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
+                                            <span>Services</span><span class="dropdown-arrow">&#9660;</span>
+                                        </button>
+                                        <div class="mobile-services-menu" id="mobileServicesMenu">
+                                            <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
+                                            <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
+                                            <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
+                                            <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
+                                            <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
+                                        </div>
+                                    </div>
+
+                                    <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
+                                    <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </header>
+        </div>
+    </div>
+
+    <div class="page-wrap">
+        <aside class="sidebar">
+            <div class="sb-profile">
+                <div class="sb-profile-inner">
+                    <div class="sb-avatar-wrap">
+                        <div class="sb-avatar" id="sidebarAvatar"><span>&#128100;</span></div>
+                        <button class="sb-cam" onclick="document.getElementById('avatarFile').click()">&#128247;</button>
+                        <input type="file" id="avatarFile" accept="image/*" hidden onchange="changeAvatar(this)">
+                    </div>
+                    <div class="sb-profile-text">
+                        <div class="sb-name" id="sidebarName">Batool Jaber</div>
+                        <div class="sb-email" id="sidebarEmail">Batool@@email.com</div>
+                        <div class="sb-wallet-mini">
+                            <span>&#128155; Wallet</span>
+                            <strong id="sidebarBalance">100.50 JOD</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-nav-label">Account</div>
+                <a href="/Profile/Edit_Profile" class="sb-item"><i class="fa-solid fa-user"></i> Edit Profile</a>
+                <a href="/Profile/Contact_Info" class="sb-item"><i class="fa-solid fa-address-card"></i> Contact Info</a>
+                <a href="/Profile/My_Wallet" class="sb-item active"><i class="fa-solid fa-wallet"></i> My Wallet<span class="sb-badge">32.50</span></a>
+                <a href="/Profile/Rewards" class="sb-item"><i class="fa-solid fa-gift"></i> Rewards<span class="sb-badge">3</span></a>
+
+                <div class="sb-nav-label">Pets &amp; Services</div>
+                <a href="/Profile/Appointments" class="sb-item"><i class="fa-solid fa-calendar-check"></i> Appointments<span class="sb-badge">2</span></a>
+                <a href="/Profile/Orders" class="sb-item"><i class="fa-solid fa-box"></i> Orders<span class="sb-badge">3</span></a>
+                <a href="/Profile/Lost_Reports" class="sb-item"><i class="fa-solid fa-magnifying-glass"></i> Lost Reports<span class="sb-badge red">1</span></a>
+                <a href="/Profile/Adoption_Ads" class="sb-item"><i class="fa-solid fa-paw"></i> Adoption Ads<span class="sb-badge">1</span></a>
+
+                <div class="sb-nav-label">History</div>
+                <a href="/Profile/Timeline" class="sb-item"><i class="fa-solid fa-clock-rotate-left"></i> Timeline</a>
+                <a href="/Profile/Complaints" class="sb-item"><i class="fa-solid fa-triangle-exclamation"></i> Complaints</a>
+
+                <div class="sb-nav-label">Settings</div>
+                <a href="/Profile/Security" class="sb-item"><i class="fa-solid fa-lock"></i> Security</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="page-header"><div><h2>My Wallet</h2><p>Balance, top-up and transaction history</p></div></div>
+
+            <div class="wallet-hero">
+                <div class="wallet-bal-label">Current Balance</div>
+                <div class="wallet-bal">32.50 <span style="font-size:1rem;opacity:.7">JOD</span></div>
+                <div class="cashback-chip">&#127873; 2% Cashback on every order</div>
+                <div class="wallet-meta">
+                    <div class="wallet-meta-item"><span>Total Topped Up</span><strong>85.00 JOD</strong></div>
+                    <div class="wallet-meta-item"><span>Total Spent</span><strong>57.50 JOD</strong></div>
+                    <div class="wallet-meta-item"><span>Rewards Earned</span><strong>+5.00 JOD</strong></div>
+                </div>
+            </div>
+
+            <div class="s-card">
+                <div class="s-card-head"><span class="s-card-title">&#128179; Top Up Wallet</span></div>
+                <div class="s-card-body">
+                    <p style="font-size:.82rem;color:var(--muted);font-weight:700;margin-bottom:12px">Select amount</p>
+                    <div class="amt-grid">
+                        <div class="amt-btn" onclick="selAmt(this,'5')">5 JOD</div>
+                        <div class="amt-btn active" onclick="selAmt(this,'10')">10 JOD</div>
+                        <div class="amt-btn" onclick="selAmt(this,'20')">20 JOD</div>
+                        <div class="amt-btn" onclick="selAmt(this,'custom')">Custom</div>
+                    </div>
+                    <div id="customAmtWrap" style="display:none;margin-bottom:14px">
+                        <div class="field"><input type="number" id="customAmt" placeholder="Enter amount in JOD"></div>
+                    </div>
+                    <p style="font-size:.82rem;color:var(--muted);font-weight:700;margin-bottom:10px">Payment method</p>
+                    <div class="topup-grid">
+                        <div class="topup-btn active" onclick="selTopup(this,'card')"><span>&#128179;</span><p>Card</p></div>
+                        <div class="topup-btn" onclick="selTopup(this,'cliq')"><span>&#128241;</span><p>CliQ</p></div>
+                        <div class="topup-btn" onclick="selTopup(this,'cash')"><span>&#128181;</span><p>Cash Point</p></div>
+                    </div>
+                    <div id="topup-card">
+                        <div class="form-grid">
+                            <div class="field full"><label>Card Number</label><input placeholder="1234 5678 9012 3456" dir="ltr"></div>
+                            <div class="field"><label>Expiry</label><input placeholder="MM / YY" dir="ltr"></div>
+                            <div class="field"><label>CVV</label><input placeholder="&bull;&bull;&bull;" type="password" dir="ltr"></div>
+                            <div class="field full"><label>Cardholder Name</label><input placeholder="Name on card" dir="ltr"></div>
+                        </div>
+                    </div>
+                    <div id="topup-cliq" style="display:none">
+                        <div class="field"><label>CliQ Alias or Phone</label><div class="phone-row"><span class="phone-code">+962</span><input placeholder="7X XXX XXXX"></div></div>
+                    </div>
+                    <div id="topup-cash" style="display:none">
+                        <div style="background:#fff8e6;border:1px solid #fde68a;border-radius:14px;padding:14px;font-size:.85rem;font-weight:700;color:#92400e">
+                            &#128205; Top up at any authorized Waffy cash point. A top-up code will be sent to your phone via SMS.
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="showToast('&#128179; Wallet topped up successfully!')">
+                        <i class="fa-solid fa-bolt"></i> Top Up Now
+                    </button>
+                    <p style="text-align:center;font-size:.75rem;color:var(--muted);font-weight:700;margin-top:8px">&#128274; Your payment data is protected with SSL encryption</p>
+                </div>
+            </div>
+
+            <div class="s-card">
+                <div class="s-card-head">
+                    <span class="s-card-title">&#128203; Transaction History</span>
+                    <select style="padding:6px 12px;border:1px solid var(--line);border-radius:var(--pill);font-size:.78rem;font-weight:700;background:#fff;outline:none;cursor:pointer">
+                        <option>All</option>
+                        <option>Top Up</option>
+                        <option>Payment</option>
+                        <option>Reward</option>
+                    </select>
+                </div>
+                <div class="s-card-body">
+                    <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)">
+                        <div style="width:42px;height:42px;border-radius:12px;background:#eef5df;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">&#11014;&#65039;</div>
+                        <div style="flex:1"><div style="font-weight:800;font-size:.88rem">Wallet Top-up via Card</div><div style="font-size:.76rem;color:var(--muted);font-weight:700">Mar 10, 2:30 PM</div></div>
+                        <div style="font-family:Fredoka,sans-serif;font-size:1rem;color:var(--olive-dark);font-weight:600">+20.00 JOD</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)">
+                        <div style="width:42px;height:42px;border-radius:12px;background:#fef2f2;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">&#11015;&#65039;</div>
+                        <div style="flex:1"><div style="font-weight:800;font-size:.88rem">Order Payment &mdash; Royal Canin</div><div style="font-size:.76rem;color:var(--muted);font-weight:700">Mar 8, 4:00 PM</div></div>
+                        <div style="font-family:Fredoka,sans-serif;font-size:1rem;color:#b91c1c;font-weight:600">-18.50 JOD</div>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:14px;padding:12px 0">
+                        <div style="width:42px;height:42px;border-radius:12px;background:#eef5df;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">&#127873;</div>
+                        <div style="flex:1"><div style="font-weight:800;font-size:.88rem">Finder Reward</div><div style="font-size:.76rem;color:var(--muted);font-weight:700">Feb 28, 6:45 PM</div></div>
+                        <div style="font-family:Fredoka,sans-serif;font-size:1rem;color:var(--olive-dark);font-weight:600">+10.00 JOD</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <div class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile bottom navigation">
+        <a href="/Profile/Edit_Profile" class="mb-nav-item">
+            <i class="fa-solid fa-user"></i><span>Edit</span>
+        </a>
+        <a href="/Profile/My_Wallet" class="mb-nav-item active">
+            <i class="fa-solid fa-wallet"></i><span>Wallet</span>
+        </a>
+        <a href="/Profile/Appointments" class="mb-nav-item">
+            <i class="fa-solid fa-calendar-check"></i><span>Appointments</span>
+        </a>
+        <a href="/Profile/Orders" class="mb-nav-item">
+            <i class="fa-solid fa-box"></i><span>Orders</span>
+        </a>
+        <button type="button" class="mb-nav-item mb-more-btn" id="mbMoreBtn" aria-expanded="false" aria-controls="mbMoreDrawer">
+            <i class="fa-solid fa-grid-2"></i><span>More</span>
+        </button>
+    </div>
+
+    <div class="mb-more-overlay" id="mbMoreOverlay"></div>
+    <div class="mb-more-drawer" id="mbMoreDrawer" aria-hidden="true">
+        <div class="mb-more-head">
+            <h3>More Pages</h3>
+            <button type="button" class="mb-more-close" id="mbMoreClose" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="mb-more-grid">
+            <a href="/Profile/Contact_Info" class="mb-more-link"><i class="fa-solid fa-address-card"></i><span>Contact Info</span></a>
+            <a href="/Profile/Rewards" class="mb-more-link"><i class="fa-solid fa-gift"></i><span>Rewards</span></a>
+            <a href="/Profile/Lost_Reports" class="mb-more-link"><i class="fa-solid fa-magnifying-glass"></i><span>Lost Reports</span></a>
+            <a href="/Profile/Adoption_Ads" class="mb-more-link"><i class="fa-solid fa-paw"></i><span>Adoption Ads</span></a>
+            <a href="/Profile/Timeline" class="mb-more-link"><i class="fa-solid fa-clock-rotate-left"></i><span>Timeline</span></a>
+            <a href="/Profile/Complaints" class="mb-more-link"><i class="fa-solid fa-triangle-exclamation"></i><span>Complaints</span></a>
+            <a href="/Profile/Security" class="mb-more-link"><i class="fa-solid fa-lock"></i><span>Security</span></a>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="/Home/Index">Home</a><span>|</span>
+                <a href="/Clinics/Index">Clinics</a><span>|</span>
+                <a href="/Stores/Index">Supplies</a><span>|</span>
+                <a href="/About/Index">About Us</a>
+            </div>
+            <p>&#169; 2026 Waffy. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+          const moreBtn = document.getElementById('mbMoreBtn');
+          const moreDrawer = document.getElementById('mbMoreDrawer');
+          const moreOverlay = document.getElementById('mbMoreOverlay');
+          const moreClose = document.getElementById('mbMoreClose');
+          if (!moreBtn || !moreDrawer || !moreOverlay) return;
+          function openMoreDrawer() { moreDrawer.classList.add('open'); moreOverlay.classList.add('open'); moreBtn.setAttribute('aria-expanded','true'); moreDrawer.setAttribute('aria-hidden','false'); document.body.classList.add('mb-menu-open'); }
+          function closeMoreDrawer() { moreDrawer.classList.remove('open'); moreOverlay.classList.remove('open'); moreBtn.setAttribute('aria-expanded','false'); moreDrawer.setAttribute('aria-hidden','true'); document.body.classList.remove('mb-menu-open'); }
+          function toggleMoreDrawer() { moreDrawer.classList.contains('open') ? closeMoreDrawer() : openMoreDrawer(); }
+          moreBtn.addEventListener('click', toggleMoreDrawer);
+          if (moreClose) moreClose.addEventListener('click', closeMoreDrawer);
+          moreOverlay.addEventListener('click', closeMoreDrawer);
+          document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMoreDrawer(); });
+          window.addEventListener('resize', () => { if (window.innerWidth >= 768) closeMoreDrawer(); });
+        });
+        function showToast(msg, duration = 3000) { const t = document.getElementById("toast"); if (!t) return; t.textContent = msg; t.classList.add("show"); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove("show"), duration); }
+        document.addEventListener("DOMContentLoaded", () => {
+          const menuBtn = document.getElementById("menuBtn");
+          const navLinks = document.getElementById("navLinks");
+          if (menuBtn && navLinks) { menuBtn.addEventListener("click", e => { e.stopPropagation(); navLinks.classList.toggle("open"); }); document.addEventListener("click", e => { if (!navLinks.contains(e.target) && e.target !== menuBtn) navLinks.classList.remove("open"); }); }
+          const sd = document.getElementById("servicesDropdown");
+          const st = document.getElementById("servicesToggle");
+          if (sd && st) { st.addEventListener("click", e => { e.stopPropagation(); sd.classList.toggle("open"); }); document.addEventListener("click", () => sd.classList.remove("open")); }
+          const mt = document.getElementById("mobileServicesToggle");
+          const mb = document.getElementById("mobileServicesBlock");
+          if (mt && mb) mt.addEventListener("click", () => mb.classList.toggle("open"));
+        });
+        function changeAvatar(input) { if (input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { const sb = document.getElementById("sidebarAvatar"); if (sb) sb.innerHTML = `<img src="${e.target.result}" alt="Profile">`; const big = document.getElementById("bigAvatar"); if (big) big.innerHTML = `<img src="${e.target.result}" alt="Profile">`; }; r.readAsDataURL(input.files[0]); } }
+        var selAmt_val = "10";
+        function selAmt(el, v) { document.querySelectorAll(".amt-btn").forEach(b => b.classList.remove("active")); el.classList.add("active"); selAmt_val = v; document.getElementById("customAmtWrap").style.display = v === "custom" ? "block" : "none"; }
+        function selTopup(el, m) { document.querySelectorAll(".topup-btn").forEach(b => b.classList.remove("active")); el.classList.add("active"); ["card","cliq","cash"].forEach(x => document.getElementById("topup-" + x).style.display = x === m ? "block" : "none"); }
+    </script>
+</body>
+</html>

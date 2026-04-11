@@ -1,0 +1,333 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waffy | Security</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link rel="stylesheet" href="waffy-shared.css">
+
+    <link rel="stylesheet" href="waffy-responsive-patch.css">
+</head>
+<body>
+
+    <div class="top-hero-area">
+        <div class="top-hero-shell">
+            <header class="topbar">
+                <div class="header-shell">
+                    <nav class="navbar">
+                        <div class="left-nav desktop-nav desktop-links">
+                            <a href="home-after.html" class="nav-link active">Home</a>
+                            <a href="clinics.html" class="nav-link">Clinics</a>
+                            <a href="stores.html" class="nav-link">Stores</a>
+                            <a href="adoption.html" class="nav-link">Adoption</a>
+                            <a href="lost.html" class="nav-link">Lost Pets</a>
+                        </div>
+                        <div class="logo-center"><img src="../Images/logo.png" alt="Waffy" class="main-logo"></div>
+                        <div class="right-nav">
+                            <div class="desktop-nav desktop-links desktop-right-links">
+                                <div class="services-dropdown" id="servicesDropdown">
+                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">Services <span class="dropdown-arrow">&#9660;</span></button>
+                                    <div class="dropdown-menu" id="servicesMenu">
+                                        <a href="clinics.html" class="dropdown-link">Clinics</a>
+                                        <a href="stores.html" class="dropdown-link">Stores</a>
+                                        <a href="adoption.html" class="dropdown-link">Adoption</a>
+                                        <a href="lost.html" class="dropdown-link">Lost Pets</a>
+                                        <a href="map.html" class="dropdown-link">Map</a>
+                                        <a href="donate.html" class="dropdown-link">Donations</a>
+                                        <a href="law.html" class="dropdown-link">Law</a>
+                                        <a href="dangerous.html" class="dropdown-link">Dangerous Animal</a>
+                                        <a href="support.html" class="dropdown-link">Technical Support</a>
+                                        <a href="faq.html" class="dropdown-link">FAQ</a>
+                                    </div>
+                                </div>
+                                <a href="about.html" class="nav-link">About Us</a>
+                            </div>
+                            <div class="nav-actions">
+                                <a href="cart.html" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+                                <a href="notifications.html" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
+                                <a href="profile-edit.html" class="profile-btn"><img src="../Images/user.jpg" alt="Profile"></a>
+                                <a href="login.html" class="nav-link login-btn">Log out</a>
+                            </div>
+                            <div class="mobile-nav-wrap">
+                                <button class="menu-btn" id="menuBtn" type="button">&#9776;</button>
+                                <div class="nav-links" id="navLinks">
+                                    <div class="mobile-menu-logo"><img src="../Images/logo.png" alt="Waffy"></div>
+                                    <a href="home-after.html" class="nav-link active">Home</a>
+                                    <a href="clinics.html" class="nav-link">Clinics</a>
+                                    <a href="stores.html" class="nav-link">Stores</a>
+                                    <a href="adoption.html" class="nav-link">Adoption</a>
+                                    <a href="lost.html" class="nav-link">Lost Pets</a>
+                                    <div class="mobile-services-block" id="mobileServicesBlock">
+                                        <button class="mobile-services-toggle" id="mobileServicesToggle" type="button"><span>Services</span><span class="dropdown-arrow">&#9660;</span></button>
+                                        <div class="mobile-services-menu" id="mobileServicesMenu">
+                                            <a href="donate.html" class="dropdown-link">Donations</a>
+                                            <a href="law.html" class="dropdown-link">Law</a>
+                                            <a href="dangerous.html" class="dropdown-link">Dangerous Animal</a>
+                                            <a href="support.html" class="dropdown-link">Technical Support</a>
+                                            <a href="faq.html" class="dropdown-link">FAQ</a>
+                                        </div>
+                                    </div>
+                                    <a href="about.html" class="nav-link">About Us</a>
+                                    <a href="login.html" class="nav-link login-btn">Log out</a>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </header>
+        </div>
+    </div>
+    <div class="page-wrap">
+        <aside class="sidebar">
+            <div class="sb-profile">
+                <div class="sb-profile-inner">
+                    <div class="sb-avatar-wrap">
+                        <div class="sb-avatar" id="sidebarAvatar"><span>&#128100;</span></div>
+                        <button class="sb-cam" onclick="document.getElementById('avatarFile').click()">&#128247;</button>
+                        <input type="file" id="avatarFile" accept="image/*" hidden onchange="changeAvatar(this)">
+                    </div>
+                    <!-- text group -->
+                    <div class="sb-profile-text">
+                        <div class="sb-name" id="sidebarName">Batool Jaber</div>
+                        <div class="sb-email" id="sidebarEmail">Batool@email.com</div>
+                        <div class="sb-wallet-mini">
+                            <span>&#128155; Wallet</span>
+                            <strong id="sidebarBalance">100.50 JOD</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sb-nav">
+                <div class="sb-nav-label">Account</div>
+                <a href="profile-edit.html" class="sb-item"><i class="fa-solid fa-user"></i> Edit Profile</a>
+                <a href="profile-contact.html" class="sb-item"><i class="fa-solid fa-address-card"></i> Contact Info</a>
+                <a href="profile-wallet.html" class="sb-item"><i class="fa-solid fa-wallet"></i> My Wallet<span class="sb-badge">32.50</span></a>
+                <a href="profile-rewards.html" class="sb-item"><i class="fa-solid fa-gift"></i> Rewards<span class="sb-badge">3</span></a>
+
+                <div class="sb-nav-label">Pets &amp; Services</div>
+                <a href="profile-appointments.html" class="sb-item "><i class="fa-solid fa-calendar-check"></i> Appointments<span class="sb-badge">2</span></a>
+                <a href="profile-orders.html" class="sb-item"><i class="fa-solid fa-box"></i> Orders<span class="sb-badge">3</span></a>
+                <a href="profile-lost.html" class="sb-item"><i class="fa-solid fa-magnifying-glass"></i> Lost Reports<span class="sb-badge red">1</span></a>
+                <a href="profile-adoption.html" class="sb-item "><i class="fa-solid fa-paw"></i> Adoption Ads<span class="sb-badge">1</span></a>
+
+                <div class="sb-nav-label">History</div>
+                <a href="profile-timeline.html" class="sb-item"><i class="fa-solid fa-clock-rotate-left"></i> Timeline</a>
+                <a href="profile-complaints.html" class="sb-item"><i class="fa-solid fa-triangle-exclamation"></i> Complaints</a>
+
+                <div class="sb-nav-label">Settings</div>
+                <a href="profile-security.html" class="sb-item active"><i class="fa-solid fa-lock"></i> Security</a>
+            </nav>
+        </aside>
+        <main class="main-content">
+
+            <div class="page-header"><div><h2>Security &#128274;</h2><p>Password, 2FA and notifications</p></div></div>
+            <div class="s-card">
+                <div class="s-card-head"><span class="s-card-title">&#128273; Change Password</span></div>
+                <div class="s-card-body">
+                    <div class="form-grid">
+                        <div class="field full"><label>Current Password</label><input id="curPass" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" dir="ltr"></div>
+                        <div class="field"><label>New Password</label><input id="newPass" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" dir="ltr"></div>
+                        <div class="field"><label>Confirm New Password</label><input id="conPass" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" dir="ltr"></div>
+                    </div>
+                    <button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="changePassword()">Update Password</button>
+                </div>
+            </div>
+            <div class="s-card">
+                <div class="s-card-head"><span class="s-card-title">&#128737;&#65039; Security Settings</span></div>
+                <div class="s-card-body">
+                    <div class="security-row"><div class="security-info"><h4>Two-Factor Authentication (2FA)</h4><p>Receive a code via SMS on each login</p></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+                    <div class="security-row"><div class="security-info"><h4>Login Notifications</h4><p>Get alerted when a new device logs in</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+                    <div class="security-row"><div class="security-info"><h4>Email Notifications</h4><p>Appointments, orders, and alerts</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+                    <div class="security-row"><div class="security-info"><h4>SMS Notifications</h4><p>Reminders and OTP codes</p></div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+                    <div class="security-row"><div class="security-info"><h4>Marketing Emails</h4><p>Offers, news and promotions</p></div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+                </div>
+            </div>
+            <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:16px;padding:16px">
+                <div style="font-weight:800;color:#b91c1c;margin-bottom:4px">&#9888;&#65039; Danger Zone</div>
+                <p style="font-size:.82rem;color:#7f1d1d;font-weight:700;margin-bottom:12px">These actions cannot be undone.</p>
+                <div style="display:flex;gap:10px;flex-wrap:wrap">
+                    <button class="btn btn-danger btn-sm" onclick="showToast('&#128229; Data export requested. Check your email.')"><i class="fa-solid fa-download"></i> Export My Data</button>
+                    <button class="btn btn-danger btn-sm" onclick="showToast('&#9888;&#65039; Please contact support to delete your account.')"><i class="fa-solid fa-trash"></i> Delete Account</button>
+                </div>
+            </div>
+        </main>
+    </div>
+    <!-- Mobile Bottom Navigation -->
+    <div class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile bottom navigation">
+        <a href="profile-edit.html" class="mb-nav-item ">
+            <i class="fa-solid fa-user"></i>
+            <span>Edit</span>
+        </a>
+
+        <a href="profile-wallet.html" class="mb-nav-item">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Wallet</span>
+        </a>
+
+        <a href="profile-appointments.html" class="mb-nav-item">
+            <i class="fa-solid fa-calendar-check"></i>
+            <span>Appointments</span>
+        </a>
+
+        <a href="profile-orders.html" class="mb-nav-item">
+            <i class="fa-solid fa-box"></i>
+            <span>Orders</span>
+        </a>
+
+        <button type="button" class="mb-nav-item mb-more-btn" id="mbMoreBtn" aria-expanded="false" aria-controls="mbMoreDrawer">
+            <i class="fa-solid fa-grid-2"></i>
+            <span>More</span>
+        </button>
+    </div>
+
+    <!-- Mobile More Overlay -->
+    <div class="mb-more-overlay" id="mbMoreOverlay"></div>
+
+    <!-- Mobile More Drawer -->
+    <div class="mb-more-drawer" id="mbMoreDrawer" aria-hidden="true">
+        <div class="mb-more-head">
+            <h3>More Pages</h3>
+            <button type="button" class="mb-more-close" id="mbMoreClose" aria-label="Close menu">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <div class="mb-more-grid">
+            <a href="profile-contact.html" class="mb-more-link">
+                <i class="fa-solid fa-address-card"></i>
+                <span>Contact Info</span>
+            </a>
+
+            <a href="profile-rewards.html" class="mb-more-link">
+                <i class="fa-solid fa-gift"></i>
+                <span>Rewards</span>
+            </a>
+
+            <a href="profile-lost.html" class="mb-more-link">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Lost Reports</span>
+            </a>
+
+            <a href="profile-adoption.html" class="mb-more-link">
+                <i class="fa-solid fa-paw"></i>
+                <span>Adoption Ads</span>
+            </a>
+
+            <a href="profile-timeline.html" class="mb-more-link">
+                <i class="fa-solid fa-clock-rotate-left"></i>
+                <span>Timeline</span>
+            </a>
+
+            <a href="profile-complaints.html" class="mb-more-link">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>Complaints</span>
+            </a>
+
+            <a href="profile-security.html" class="mb-more-link">
+                <i class="fa-solid fa-lock"></i>
+                <span>Security</span>
+            </a>
+        </div>
+    </div>
+    <div class="toast" id="toast"></div>
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-links">
+                <a href="home-after.html">Home</a><span>|</span>
+                <a href="clinics.html">Clinics</a><span>|</span>
+                <a href="stores.html">Supplies</a><span>|</span>
+                <a href="about.html">About Us</a>
+            </div>
+            <p>&#169; 2026 Waffy. All rights reserved.</p>
+        </div>
+    </footer>
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+          const moreBtn = document.getElementById('mbMoreBtn');
+          const moreDrawer = document.getElementById('mbMoreDrawer');
+          const moreOverlay = document.getElementById('mbMoreOverlay');
+          const moreClose = document.getElementById('mbMoreClose');
+
+          if (!moreBtn || !moreDrawer || !moreOverlay) return;
+
+          function openMoreDrawer() {
+            moreDrawer.classList.add('open');
+            moreOverlay.classList.add('open');
+            moreBtn.setAttribute('aria-expanded', 'true');
+            moreDrawer.setAttribute('aria-hidden', 'false');
+            document.body.classList.add('mb-menu-open');
+          }
+
+          function closeMoreDrawer() {
+            moreDrawer.classList.remove('open');
+            moreOverlay.classList.remove('open');
+            moreBtn.setAttribute('aria-expanded', 'false');
+            moreDrawer.setAttribute('aria-hidden', 'true');
+            document.body.classList.remove('mb-menu-open');
+          }
+
+          function toggleMoreDrawer() {
+            const isOpen = moreDrawer.classList.contains('open');
+            if (isOpen) closeMoreDrawer();
+            else openMoreDrawer();
+          }
+
+          moreBtn.addEventListener('click', toggleMoreDrawer);
+
+          if (moreClose) {
+            moreClose.addEventListener('click', closeMoreDrawer);
+          }
+
+          moreOverlay.addEventListener('click', closeMoreDrawer);
+
+          document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeMoreDrawer();
+          });
+
+          window.addEventListener('resize', function () {
+            if (window.innerWidth >= 768) {
+              closeMoreDrawer();
+            }
+          });
+        });
+        /* ── Shared JS ── */
+        function showToast(msg,duration=3000){const t=document.getElementById("toast");if(!t)return;t.textContent=msg;t.classList.add("show");clearTimeout(t._timer);t._timer=setTimeout(()=>t.classList.remove("show"),duration)}
+        document.addEventListener("DOMContentLoaded",()=>{
+          const menuBtn=document.getElementById("menuBtn");
+          const navLinks=document.getElementById("navLinks");
+          if(menuBtn&&navLinks){menuBtn.addEventListener("click",e=>{e.stopPropagation();navLinks.classList.toggle("open")});document.addEventListener("click",e=>{if(!navLinks.contains(e.target)&&e.target!==menuBtn)navLinks.classList.remove("open")})}
+          const sd=document.getElementById("servicesDropdown");
+          const st=document.getElementById("servicesToggle");
+          if(sd&&st){st.addEventListener("click",e=>{e.stopPropagation();sd.classList.toggle("open")});document.addEventListener("click",()=>sd.classList.remove("open"))}
+          const mt=document.getElementById("mobileServicesToggle");
+          const mb=document.getElementById("mobileServicesBlock");
+          if(mt&&mb)mt.addEventListener("click",()=>mb.classList.toggle("open"));
+        });
+        function changeAvatar(input){if(input.files&&input.files[0]){const r=new FileReader();r.onload=e=>{const sb=document.getElementById("sidebarAvatar");if(sb)sb.innerHTML=`<img src="${e.target.result}" alt="Profile">`;const big=document.getElementById("bigAvatar");if(big)big.innerHTML=`<img src="${e.target.result}" alt="Profile">`};r.readAsDataURL(input.files[0])}}
+
+
+
+        function changePassword(){
+          const np=document.getElementById("newPass").value;
+          const cp=document.getElementById("conPass").value;
+          const cur=document.getElementById("curPass").value;
+          if(!cur){showToast("&#9888;&#65039; Enter your current password");return}
+          if(np.length<8){showToast("&#9888;&#65039; Password must be at least 8 characters");return}
+          if(np!==cp){showToast("&#9888;&#65039; Passwords do not match");return}
+          showToast("&#128273; Password updated successfully!");
+          document.getElementById("curPass").value="";document.getElementById("newPass").value="";document.getElementById("conPass").value="";
+        }
+
+    </script>
+</body>
+</html>

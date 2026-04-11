@@ -1,0 +1,580 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Waffy — Store Admin | Adoption";
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/waffy-theme.css">
+    <link rel="stylesheet" href="~/css/waffy-store-compat.css">
+    <style>
+        .pet-cards-grid {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 1.2rem;
+            padding: 18px
+        }
+
+        .pet-card-item {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            transition: .22s ease;
+            cursor: pointer;
+            position: relative
+        }
+
+            .pet-card-item:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow);
+                border-color: rgba(139,169,74,0.3)
+            }
+
+        .pet-card-thumb {
+            height: 180px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+            background: linear-gradient(135deg,var(--brand-xlight),var(--brand-ghost));
+            position: relative;
+            overflow: hidden
+        }
+
+        .pet-card-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px
+        }
+
+        .pet-card-body {
+            padding: 14px 16px
+        }
+
+        .pet-card-name {
+            font-family: "Fredoka",sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+            margin-bottom: 2px
+        }
+
+        .pet-card-meta {
+            font-size: .78rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-bottom: 10px
+        }
+
+        .pet-card-chips {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-bottom: 12px
+        }
+
+        .pet-card-actions {
+            display: flex;
+            gap: 6px
+        }
+
+        .add-form-section {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            margin-bottom: 14px
+        }
+
+        .add-form-head {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border);
+            background: linear-gradient(135deg,rgba(139,169,74,0.05),rgba(95,116,48,0.02))
+        }
+
+        .add-form-head-ico {
+            width: 44px;
+            height: 44px;
+            background: var(--brand-xlight);
+            border: 1px solid var(--brand-light);
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0
+        }
+
+        .add-form-head-title {
+            font-family: "Fredoka",sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--brand-dark)
+        }
+
+        .add-form-head-sub {
+            font-size: .75rem;
+            color: var(--text-muted);
+            margin-top: 1px
+        }
+
+        .add-form-body {
+            padding: 20px 18px
+        }
+
+        .trait-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 6px
+        }
+
+        .trait-pill {
+            padding: 7px 14px;
+            border: 1.5px solid var(--border);
+            background: #fff;
+            border-radius: var(--pill);
+            cursor: pointer;
+            font-size: .79rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            transition: .18s;
+            user-select: none
+        }
+
+            .trait-pill:hover {
+                border-color: var(--brand);
+                background: var(--brand-ghost);
+                color: var(--brand-dark)
+            }
+
+            .trait-pill.on {
+                background: var(--brand-dark);
+                border-color: var(--brand-dark);
+                color: #fff
+            }
+
+        .adopt-notice {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            background: var(--warning-soft);
+            border: 1.5px solid rgba(226,163,58,0.3);
+            border-radius: var(--r);
+            padding: 14px 16px;
+            margin-bottom: 16px
+        }
+
+        .adopt-notice-ico {
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            margin-top: 1px
+        }
+
+        .adopt-notice-title {
+            font-size: .87rem;
+            font-weight: 900;
+            color: #9b6000;
+            margin-bottom: 2px
+        }
+
+        .adopt-notice-sub {
+            font-size: .79rem;
+            color: #8b7751;
+            font-weight: 700
+        }
+
+        @@media(max-width:1100px) {
+            .pet-cards-grid {
+                grid-template-columns: repeat(2,1fr)
+            }
+        }
+
+        @@media(max-width:600px) {
+            .pet-cards-grid {
+                grid-template-columns: 1fr
+            }
+
+            .add-form-body .form-group {
+                grid-template-columns: 1fr
+            }
+
+            .add-form-body .form-field.full {
+                grid-column: 1
+            }
+        }
+
+        @@media(max-width:480px) {
+            .pet-cards-grid {
+                grid-template-columns: 1fr 1fr
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
+    <div class="wa-shell" id="waShell">
+        <aside class="wa-sb" id="waSb">
+            <div class="sb-logo">
+                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
+                <div class="sb-wordmark">
+                    <div class="sb-wm-name">Waffy</div>
+                    <div class="sb-wm-tag">Store Admin</div>
+                </div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" href="@Url.Action("Dashboard", "StoreAdmin")" data-tip="Dashboard">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
+                        <span class="sb-lbl">Dashboard</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Store</div>
+                    <a class="sb-row" href="@Url.Action("Products", "StoreAdmin")" data-tip="Products">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
+                        <span class="sb-lbl">Products</span>
+                        <span class="sb-bdg bd-g" id="productsCountBadge">0</span>
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Orders", "StoreAdmin")" data-tip="Orders">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /></svg></span>
+                        <span class="sb-lbl">Orders</span>
+                        <span class="sb-bdg bd-y" id="ordersCountBadge">0</span>
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Customers", "StoreAdmin")" data-tip="Customers">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
+                        <span class="sb-lbl">Customers</span>
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Reviews", "StoreAdmin")" data-tip="Reviews">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></span>
+                        <span class="sb-lbl">Reviews</span>
+                        <span class="sb-bdg bd-r" id="reviewsCountBadge">0</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row active" href="@Url.Action("Adoption", "StoreAdmin")" data-tip="Adoption">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                        <span class="sb-lbl">Adoption</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Management</div>
+                    <a class="sb-row" href="@Url.Action("Notifications", "StoreAdmin")" data-tip="Notifications">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
+                        <span class="sb-lbl">Notifications</span>
+                        <span class="sb-bdg bd-r" id="notifCountBadge">0</span>
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Settings", "StoreAdmin")" data-tip="Settings">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg></span>
+                        <span class="sb-lbl">Store Settings</span>
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Subscription", "StoreAdmin")" data-tip="Subscription">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></span>
+                        <span class="sb-lbl">Subscription</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row">
+                    <div class="sb-av">M</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">Mohammad Al-Omari</div>
+                        <div class="sb-user-role">Store Owner</div>
+                    </div>
+                </div>
+                <button class="sb-logout" onclick="alert('Sign out')" type="button">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                    <span class="sb-logout-lbl">Sign Out</span>
+                </button>
+            </div>
+        </aside>
+        <header class="wa-tn" id="waTn">
+            <button class="tn-toggle" onclick="toggleSb()" type="button">
+                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+            </button>
+            <nav class="tn-bread"><span>Store</span><span>/</span><b>Adoption</b></nav>
+            <div class="tn-center">
+                <div class="tn-center-main">Adoption</div>
+                <div class="tn-center-sub">Store Admin Panel</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <button class="tn-btn" type="button">
+                    <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                </button>
+                <a class="tn-btn" href="@Url.Action("Notifications", "StoreAdmin")">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+                    <span class="tn-count" id="tnNotifCount">0</span>
+                </a>
+                <div class="tn-sep"></div>
+                <div class="tn-profile">
+                    <div class="tn-av">M</div>
+                    <div><div class="tn-pname">Mohammad Al-Omari</div><div class="tn-prole">Store Owner</div></div>
+                </div>
+            </div>
+        </header>
+        <main class="wa-main" id="waMain">
+            <section class="page-hero">
+                <div class="page-hero-text">
+                    <h1>Adoption 🐾</h1>
+                    <p>Manage animals available for adoption. Every listing is reviewed by the Super Admin before going live.</p>
+                </div>
+                <div class="page-hero-actions"></div>
+                <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:16px">
+                    <button class="btn btn-outline btn-sm" onclick="toggleAdoptionView()">⊞ Toggle View</button>
+                    <button class="btn btn-primary" onclick="openAdoptionAddPage()">+ Add Pet for Adoption</button>
+                </div>
+            </section>
+            <div class="page-body">
+
+                <!-- ══ MANAGE VIEW ══ -->
+                <div id="adoptionManagePage">
+                    <div class="kpi-grid kpi-grid-4">
+                        <div class="kpi-card c1"><div class="kpi-ico green">🐾</div><div class="kpi-val" id="adoptTotalCount">0</div><div class="kpi-label">Total Listings</div></div>
+                        <div class="kpi-card c2"><div class="kpi-ico blue">✅</div><div class="kpi-val" id="adoptAvailableCount">0</div><div class="kpi-label">Available</div></div>
+                        <div class="kpi-card c3"><div class="kpi-ico yellow">⏳</div><div class="kpi-val" id="adoptPendingCount">0</div><div class="kpi-label">Pending Review</div></div>
+                        <div class="kpi-card c1"><div class="kpi-ico green">🎉</div><div class="kpi-val" id="adoptAdoptedCount">0</div><div class="kpi-label">Adopted</div></div>
+                    </div>
+
+                    <!-- Card View -->
+                    <div id="adoptionCardView">
+                        <div class="table-card">
+                            <div class="table-head-bar">
+                                <div class="search-wrap" style="flex:1;max-width:300px"><span>🔍</span><input id="adoptionSearchCards" placeholder="Search name, type, breed..."></div>
+                                <select class="sel-wrap" id="adoptionStatusCards" style="height:40px;width:auto;min-width:150px">
+                                    <option value="all">All statuses</option>
+                                    <option value="available">✅ Available</option>
+                                    <option value="reserved">🔒 Reserved</option>
+                                    <option value="adopted">🎉 Adopted</option>
+                                    <option value="pending">⏳ Pending</option>
+                                </select>
+                            </div>
+                            <div class="pet-cards-grid" id="petCardsGrid"></div>
+                        </div>
+                    </div>
+
+                    <!-- Table View -->
+                    <div id="adoptionTableView" style="display:none">
+                        <div class="table-card">
+                            <div class="table-head-bar">
+                                <div class="search-wrap" style="flex:1;max-width:300px"><span>🔍</span><input id="adoptionSearchTable" placeholder="Search name, type, breed..."></div>
+                                <select class="sel-wrap" id="adoptionStatusTable" style="height:40px;width:auto;min-width:150px">
+                                    <option value="all">All statuses</option>
+                                    <option value="available">✅ Available</option>
+                                    <option value="reserved">🔒 Reserved</option>
+                                    <option value="adopted">🎉 Adopted</option>
+                                    <option value="pending">⏳ Pending</option>
+                                </select>
+                            </div>
+                            <div class="table-wrap">
+                                <table>
+                                    <thead><tr><th>Pet</th><th>Type</th><th>Age</th><th>Gender</th><th>Health</th><th>Adoption</th><th>Listing</th><th>Actions</th></tr></thead>
+                                    <tbody id="petTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══ ADD VIEW ══ -->
+                <div id="adoptionAddPage" style="display:none">
+                    <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+                        <button class="btn btn-outline" onclick="openAdoptionManagePage()">← Back to Listings</button>
+                    </div>
+                    <div class="adopt-notice">
+                        <div class="adopt-notice-ico">⏳</div>
+                        <div>
+                            <div class="adopt-notice-title">Pending Review Required</div>
+                            <div class="adopt-notice-sub">Every new listing goes through Super Admin review before being published publicly. You will be notified once approved.</div>
+                        </div>
+                    </div>
+
+                    <!-- Pet Info -->
+                    <div class="add-form-section">
+                        <div class="add-form-head">
+                            <div class="add-form-head-ico">🐾</div>
+                            <div><div class="add-form-head-title">Pet Information</div><div class="add-form-head-sub">Basic animal details</div></div>
+                        </div>
+                        <div class="add-form-body">
+                            <div class="form-group">
+                                <div class="form-field"><label class="form-label">Pet Name <span class="req">*</span></label><input class="form-input" id="petName" placeholder="e.g. Max, Luna, Bebo..."></div>
+                                <div class="form-field"><label class="form-label">Animal Type <span class="req">*</span></label><select class="form-select" id="petType"><option value="">Select type</option><option value="dog">🐕 Dog</option><option value="cat">🐈 Cat</option><option value="bird">🐦 Bird</option><option value="other">🐾 Other</option></select></div>
+                                <div class="form-field"><label class="form-label">Breed <span class="req">*</span></label><input class="form-input" id="petBreed" placeholder="Persian, Husky, Mixed..."></div>
+                                <div class="form-field"><label class="form-label">Age <span class="req">*</span></label><input class="form-input" id="petAge" placeholder="e.g. 2 years, 8 months"></div>
+                                <div class="form-field"><label class="form-label">Gender <span class="req">*</span></label><select class="form-select" id="petGender"><option value="">Select gender</option><option>Male</option><option>Female</option></select></div>
+                                <div class="form-field"><label class="form-label">Color</label><input class="form-input" id="petColor" placeholder="White, beige, brown..."></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Health -->
+                    <div class="add-form-section">
+                        <div class="add-form-head">
+                            <div class="add-form-head-ico">❤️</div>
+                            <div><div class="add-form-head-title">Health & Vaccination</div><div class="add-form-head-sub">Medical summary</div></div>
+                        </div>
+                        <div class="add-form-body">
+                            <div class="form-group">
+                                <div class="form-field"><label class="form-label">Health Status <span class="req">*</span></label><select class="form-select" id="petHealth"><option value="">Select</option><option>Healthy</option><option>Has health issues</option></select></div>
+                                <div class="form-field"><label class="form-label">Neutered / Spayed <span class="req">*</span></label><select class="form-select" id="petNeuter"><option value="">Select</option><option>Yes</option><option>No</option></select></div>
+                                <div class="form-field"><label class="form-label">Vaccinated <span class="req">*</span></label><select class="form-select" id="petVaccinated" onchange="toggleVaccDate()"><option value="">Select</option><option>Yes</option><option>No</option></select></div>
+                                <div class="form-field"><label class="form-label">Health Problems</label><input class="form-input" id="petProblems" placeholder="Allergy, injury, special note..."></div>
+                                <div class="form-field full" id="vaccRow" style="display:none"><label class="form-label">Last Vaccination Date</label><input class="form-input" id="petVaccDate" type="date"></div>
+                                <div class="form-field full">
+                                    <label class="form-label">Medical Report (optional)</label>
+                                    <label class="upload-zone" for="medReportInput"><span class="upload-zone-ico">📋</span><span class="upload-zone-label">Upload Medical Report</span><span class="upload-zone-hint">PNG, JPG, or PDF</span></label>
+                                    <input id="medReportInput" type="file" accept="image/*,.pdf" hidden>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Behaviour -->
+                    <div class="add-form-section">
+                        <div class="add-form-head">
+                            <div class="add-form-head-ico">🧠</div>
+                            <div><div class="add-form-head-title">Behaviour & Personality</div><div class="add-form-head-sub">Traits and compatibility info</div></div>
+                        </div>
+                        <div class="add-form-body">
+                            <div class="form-group">
+                                <div class="form-field full">
+                                    <label class="form-label">Personality Traits</label>
+                                    <div class="trait-row">
+                                        <div class="trait-pill" onclick="this.classList.toggle('on')">😊 Friendly</div>
+                                        <div class="trait-pill" onclick="this.classList.toggle('on')">😌 Calm</div>
+                                        <div class="trait-pill" onclick="this.classList.toggle('on')">🎮 Playful</div>
+                                        <div class="trait-pill" onclick="this.classList.toggle('on')">💝 Loving</div>
+                                        <div class="trait-pill" onclick="this.classList.toggle('on')">⚡ Active</div>
+                                        <div class="trait-pill" onclick="this.classList.toggle('on')">🎯 Trained</div>
+                                        <div class="trait-pill" onclick="this.classList.toggle('on')">✨ Clean</div>
+                                    </div>
+                                </div>
+                                <div class="form-field"><label class="form-label">Energy Level</label><select class="form-select" id="petEnergy"><option>Low</option><option selected>Medium</option><option>High</option></select></div>
+                                <div class="form-field"><label class="form-label">Good with Children?</label><select class="form-select" id="petChildren"><option>Yes</option><option>No</option></select></div>
+                                <div class="form-field"><label class="form-label">Good with Other Pets?</label><select class="form-select" id="petOtherPets"><option>Yes</option><option>No</option></select></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Photos & Listing -->
+                    <div class="add-form-section">
+                        <div class="add-form-head">
+                            <div class="add-form-head-ico">🖼</div>
+                            <div><div class="add-form-head-title">Photos & Listing Info</div><div class="add-form-head-sub">Public-facing listing content</div></div>
+                        </div>
+                        <div class="add-form-body">
+                            <div class="form-group">
+                                <div class="form-field full">
+                                    <label class="form-label">Pet Photo</label>
+                                    <label class="upload-zone" for="adoptPetImage"><span class="upload-zone-ico">📸</span><span class="upload-zone-label">Upload Pet Photo</span><span class="upload-zone-hint">PNG, JPG, WEBP — 800×800px recommended</span></label>
+                                    <input id="adoptPetImage" type="file" accept="image/*" hidden>
+                                    <div id="adoptPetPreviewWrap" style="display:none;margin-top:12px">
+                                        <div class="upload-preview">
+                                            <img id="adoptPetPreview" alt="Preview">
+                                            <div>
+                                                <div style="font-size:.8rem;font-weight:800;color:var(--brand-dark)">Photo uploaded ✓</div>
+                                                <button type="button" onclick="document.getElementById('adoptPetImage').click()" style="font-size:.74rem;color:var(--text-muted);font-weight:700;background:none;border:none;cursor:pointer;padding:0;margin-top:2px;font-family:inherit">Change photo</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-field full"><label class="form-label">Story & Description</label><textarea class="form-textarea" id="petDesc" placeholder="Tell the pet's story — personality, background, why they need a home..." style="min-height:110px"></textarea></div>
+                                <div class="form-field"><label class="form-label">Adoption Status</label><select class="form-select" id="petAdoptionStatus"><option value="available">✅ Available</option><option value="reserved">🔒 Reserved</option><option value="adopted">🎉 Adopted</option></select></div>
+                                <div class="form-field"><label class="form-label">Listing Status</label><select class="form-select" id="petListingStatus"><option value="pending">⏳ Pending Review</option><option value="approved">✅ Published</option><option value="rejected">❌ Rejected</option></select></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;padding-bottom:2rem">
+                        <button class="btn btn-primary" onclick="submitAdoptionPet()">🐾 Submit for Review</button>
+                        <button class="btn btn-outline" onclick="openAdoptionManagePage()">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- Pet Detail Modal -->
+                <div class="overlay" id="petModal">
+                    <div class="modal wide">
+                        <div class="modal-hd">
+                            <div class="modal-title" id="petModalTitle">🐾 Pet Details</div>
+                            <button class="modal-close" onclick="closeModal('petModal')">✕</button>
+                        </div>
+                        <div class="modal-body" id="petModalBody"></div>
+                        <div class="modal-ft">
+                            <button class="btn btn-danger" style="margin-right:auto">🗑 Delete</button>
+                            <button class="btn btn-outline" onclick="closeModal('petModal')">Close</button>
+                            <button class="btn btn-primary">✏️ Edit</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Add Adoption Pet Modal -->
+                <div class="overlay" id="addAdoptionModal">
+                    <div class="modal">
+                        <div class="modal-hd">
+                            <div class="modal-title">🐾 Quick Add Pet</div>
+                            <button class="modal-close" onclick="closeModal('addAdoptionModal')">✕</button>
+                        </div>
+                        <div class="modal-body" style="padding:0">
+                            <div class="modal-section">
+                                <div class="modal-section-title">Pet Information</div>
+                                <div class="form-group">
+                                    <div class="form-field full"><label class="form-label">Pet Name <span class="req">*</span></label><input id="adoptPetName" class="form-input" placeholder="Pet name"></div>
+                                    <div class="form-field"><label class="form-label">Type <span class="req">*</span></label><select id="adoptPetType" class="form-select"><option value="">Select type</option><option>Dog</option><option>Cat</option><option>Bird</option><option>Other</option></select></div>
+                                    <div class="form-field"><label class="form-label">Breed <span class="req">*</span></label><input id="adoptPetBreed" class="form-input" placeholder="e.g. Persian, Mixed..."></div>
+                                    <div class="form-field"><label class="form-label">Age</label><input id="adoptPetAge" class="form-input" placeholder="e.g. 2 years"></div>
+                                    <div class="form-field"><label class="form-label">Status</label><select id="adoptPetStatus" class="form-select"><option value="available">✅ Available</option><option value="reserved">🔒 Reserved</option><option value="adopted">🎉 Adopted</option></select></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-ft">
+                            <button class="btn btn-outline" onclick="closeModal('addAdoptionModal')">Cancel</button>
+                            <button class="btn btn-primary" onclick="addAdoptionPet()">🐾 Save Pet</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+    <div id="toast">✅ Done!</div>
+    <script>
+        const shell=document.getElementById('waShell'),sb=document.getElementById('waSb'),ovl=document.getElementById('waOvl');
+        const mob=()=>window.innerWidth<=992;let mini=false;
+        function save(v){localStorage.setItem('wa_mini',v);}
+        function miniOn(){mini=true;shell.classList.add('mini');save('1');document.querySelectorAll('.sb-sub').forEach(s=>s.style.height='0px');}
+        function miniOff(){mini=false;shell.classList.remove('mini');save('0');document.querySelectorAll('.sb-sub.open').forEach(s=>{const i=s.querySelector('.sb-sub-inner');s.style.height=(i?i.scrollHeight:0)+'px';});}
+        function openMob(){sb.classList.add('mob-open');ovl.classList.add('show');document.body.style.overflow='hidden';}
+        function closeMob(){sb.classList.remove('mob-open');ovl.classList.remove('show');document.body.style.overflow='';}
+        function toggleSb(){if(mob()){sb.classList.contains('mob-open')?closeMob():openMob();}else{mini?miniOff():miniOn();}}
+        function toggleSidebar(){toggleSb();}
+        function closeSidebar(){closeMob();}
+        function markActive(){const p=location.pathname.split('/').pop();document.querySelectorAll('.sb-row[href]').forEach(el=>{if(el.getAttribute('href')===p)el.classList.add('active');});}
+        let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!mob()){closeMob();localStorage.getItem('wa_mini')==='1'?miniOn():miniOff();}else{shell.classList.remove('mini');mini=false;}},90);});
+        document.addEventListener('keydown',e=>{if(e.key==='['&&!e.ctrlKey&&!e.metaKey)toggleSb();if(e.key==='Escape')closeMob();});
+        let tx=0;
+        document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
+        document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(!mob())return;if(dx>55&&tx<28)openMob();if(dx<-55)closeMob();},{passive:true});
+        document.addEventListener('DOMContentLoaded',()=>{
+          if(!mob()&&localStorage.getItem('wa_mini')==='1')miniOn();
+          markActive();
+          const el=document.getElementById('tnNotifCount'),b=document.getElementById('notifCountBadge');
+          if(el&&b)el.textContent=b.textContent;
+        });
+    </script>
+    <script src="~/js/AdminStore.js"></script>
+</body>
+</html>
