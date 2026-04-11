@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -62,142 +59,158 @@
                                 <div class="cw-prog-title">🏥 New Clinic Registration</div>
                                 <div class="cw-prog-counter" id="cwClinicCounter">Step 1 of 2</div>
                             </div>
-
-                           
                         </div>
 
-                        <div class="cw-content" id="cc-1">
-                            <div class="cw-content-title">Clinic Information</div>
-                            <div class="cw-content-sub">This information will be shown to users on your clinic page</div>
+                        @* ✅ عرض رسالة الخطأ *@
+                        @if (TempData["ClinicStep1Error"] != null)
+                        {
+                            <div class="cw-error-msg" style="color:red;margin-bottom:1rem;padding:0.6rem 1rem;background:#fff0f0;border-radius:8px;border:1px solid #ffcccc;">
+                                ⚠️ @TempData["ClinicStep1Error"]
+                            </div>
+                        }
 
-                            <div class="cw-grid">
-                                <div class="cw-field cw-field-full">
-                                    <label class="cw-label"><span class="req">*</span>Clinic Name</label>
-                                    <input class="cw-input" type="text" id="cc-clinicName" placeholder="e.g. Al-Amana Veterinary Clinic">
+                        <form method="post" asp-action="Clinic_step1" enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
+
+                            <div class="cw-content" id="cc-1">
+                                <div class="cw-content-title">Clinic Information</div>
+                                <div class="cw-content-sub">This information will be shown to users on your clinic page</div>
+
+                                <div class="cw-grid">
+                                    <div class="cw-field cw-field-full">
+                                        <label class="cw-label"><span class="req">*</span>Clinic Name</label>
+                                        <input class="cw-input" type="text" name="name" id="cc-clinicName"
+                                               placeholder="e.g. Al-Amana Veterinary Clinic"
+                                               value="@TempData["cc_name"]">
+                                    </div>
+
+                                    <div class="cw-field">
+                                        <label class="cw-label"><span class="req">*</span>City</label>
+                                        <select class="cw-input" id="cc-city" name="city">
+                                            <option value="">Select city...</option>
+                                            @{
+                                                var cities = new[] { "Amman", "Zarqa", "Irbid", "Aqaba", "Salt", "Madaba", "Jerash", "Ajloun", "Mafraq", "Karak", "Tafilah", "Ma'an", "Other" };
+                                                var savedCity = TempData["cc_city"]?.ToString();
+                                                foreach (var c in cities)
+                                                {
+                                                    if (c == savedCity)
+                                                    {
+                                                        <option selected>@c</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option>@c</option>
+                                                    }
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="cw-field">
+                                        <label class="cw-label"><span class="req">*</span>Phone Number</label>
+                                        <input class="cw-input" name="phone" type="tel" id="cc-phone"
+                                               placeholder="06-XXXXXXX"
+                                               value="@TempData["cc_phone"]">
+                                    </div>
+
+                                    <div class="cw-field">
+                                        <label class="cw-label">WhatsApp <span class="cw-opt-badge">Optional</span></label>
+                                        <input class="cw-input" type="tel" id="cc-whatsapp" placeholder="07XXXXXXXX">
+                                    </div>
+
+                                    <div class="cw-field cw-field-full">
+                                        <label class="cw-label">Clinic Description <span class="cw-opt-badge">Optional</span></label>
+                                        <textarea class="cw-input" name="description" id="cc-desc"
+                                                  placeholder="Write a short description about your clinic, services, and specialties...">@TempData["cc_desc"]</textarea>
+                                    </div>
                                 </div>
 
-                                
+                                <div style="height:1px;background:rgba(90,143,56,0.18);margin:1.4rem 0;"></div>
+
+                                <div class="cw-content-title">Commercial Records & Legal Documents</div>
+                                <div class="cw-content-sub">Required for clinic verification — reviewed within 24 hours</div>
 
                                 <div class="cw-field">
-                                    <label class="cw-label"><span class="req">*</span>City</label>
-                                    <select class="cw-input" id="cc-city">
-                                        <option value="">Select city...</option>
-                                        <option>Amman</option>
-                                        <option>Zarqa</option>
-                                        <option>Irbid</option>
-                                        <option>Aqaba</option>
-                                        <option>Salt</option>
-                                        <option>Madaba</option>
-                                        <option>Jerash</option>
-                                        <option>Ajloun</option>
-                                        <option>Mafraq</option>
-                                        <option>Karak</option>
-                                        <option>Tafilah</option>
-                                        <option>Ma'an</option>
-                                        <option>Other</option>
-                                    </select>
-                                </div>
-
-                                
-
-                                <div class="cw-field">
-                                    <label class="cw-label"><span class="req">*</span>Phone Number</label>
-                                    <input class="cw-input" type="tel" id="cc-phone" placeholder="06-XXXXXXX">
+                                    <label class="cw-label"><span class="req">*</span>Municipal License</label>
+                                    <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-municipal')">
+                                        <input type="file" name="docMunicipal" id="cw-doc-municipal" accept=".pdf,image/*"
+                                               style="display:none" onchange="cwPreviewFile(this,'cw-doc-municipal-p','cw-doc-municipal-n')">
+                                        <div class="wf-upload-ico">🏛</div>
+                                        <div class="wf-upload-txt">
+                                            <strong>Upload Municipal License</strong><br>
+                                            Must be currently valid — PDF, JPG, PNG — max 10MB
+                                        </div>
+                                    </div>
+                                    <div class="cw-upload-prev" id="cw-doc-municipal-p">
+                                        <span>🏛</span>
+                                        <span class="cw-prev-name" id="cw-doc-municipal-n"></span>
+                                        <button type="button" class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-municipal','cw-doc-municipal-p','cw-doc-municipal-n')">✕ Remove</button>
+                                    </div>
                                 </div>
 
                                 <div class="cw-field">
-                                    <label class="cw-label">WhatsApp <span class="cw-opt-badge">Optional</span></label>
-                                    <input class="cw-input" type="tel" id="cc-whatsapp" placeholder="07XXXXXXXX">
-                                </div>
-
-                                <div class="cw-field cw-field-full">
-                                    <label class="cw-label">Clinic Description <span class="cw-opt-badge">Optional</span></label>
-                                    <textarea class="cw-input" id="cc-desc" placeholder="Write a short description about your clinic, services, and specialties..."></textarea>
-                                </div>
-                            </div>
-
-                            <div style="height:1px;background:rgba(90,143,56,0.18);margin:1.4rem 0;"></div>
-
-                            <div class="cw-content-title">Commercial Records & Legal Documents</div>
-                            <div class="cw-content-sub">Required for clinic verification — reviewed within 24 hours</div>
-
-                            <div class="cw-field">
-                                <label class="cw-label"><span class="req">*</span>Municipal License</label>
-                                <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-municipal')">
-                                    <input type="file" id="cw-doc-municipal" accept=".pdf,image/*" style="display:none" onchange="cwPreviewFile(this,'cw-doc-municipal-p','cw-doc-municipal-n')">
-                                    <div class="wf-upload-ico">🏛</div>
-                                    <div class="wf-upload-txt">
-                                        <strong>Upload Municipal License</strong><br>
-                                        Must be currently valid — PDF, JPG, PNG — max 10MB
+                                    <label class="cw-label"><span class="req">*</span>Veterinary Practice License</label>
+                                    <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-vet')">
+                                        <input type="file" name="docVet" id="cw-doc-vet" accept=".pdf,image/*"
+                                               style="display:none" onchange="cwPreviewFile(this,'cw-doc-vet-p','cw-doc-vet-n')">
+                                        <div class="wf-upload-ico">⚕️</div>
+                                        <div class="wf-upload-txt">
+                                            <strong>Upload Practice License</strong><br>
+                                            Issued by the Jordan Veterinary Association — PDF, JPG, PNG — max 10MB
+                                        </div>
+                                    </div>
+                                    <div class="cw-upload-prev" id="cw-doc-vet-p">
+                                        <span>⚕️</span>
+                                        <span class="cw-prev-name" id="cw-doc-vet-n"></span>
+                                        <button type="button" class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-vet','cw-doc-vet-p','cw-doc-vet-n')">✕ Remove</button>
                                     </div>
                                 </div>
-                                <div class="cw-upload-prev" id="cw-doc-municipal-p">
-                                    <span>🏛</span>
-                                    <span class="cw-prev-name" id="cw-doc-municipal-n"></span>
-                                    <button type="button" class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-municipal','cw-doc-municipal-p','cw-doc-municipal-n')">✕ Remove</button>
-                                </div>
-                            </div>
 
-                            <div class="cw-field">
-                                <label class="cw-label"><span class="req">*</span>Veterinary Practice License</label>
-                                <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-vet')">
-                                    <input type="file" id="cw-doc-vet" accept=".pdf,image/*" style="display:none" onchange="cwPreviewFile(this,'cw-doc-vet-p','cw-doc-vet-n')">
-                                    <div class="wf-upload-ico">⚕️</div>
-                                    <div class="wf-upload-txt">
-                                        <strong>Upload Practice License</strong><br>
-                                        Issued by the Jordan Veterinary Association — PDF, JPG, PNG — max 10MB
+                                <div class="cw-field">
+                                    <label class="cw-label"><span class="req">*</span>Clinic Manager National ID</label>
+                                    <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-id')">
+                                        <input type="file" id="cw-doc-id" name="docId" accept=".pdf,image/*"
+                                               style="display:none" onchange="cwPreviewFile(this,'cw-doc-id-p','cw-doc-id-n')">
+                                        <div class="wf-upload-ico">🪪</div>
+                                        <div class="wf-upload-txt">
+                                            <strong>Upload National ID Photo</strong><br>
+                                            Both front and back sides — JPG, PNG — max 5MB
+                                        </div>
+                                    </div>
+                                    <div class="cw-upload-prev" id="cw-doc-id-p">
+                                        <span>🪪</span>
+                                        <span class="cw-prev-name" id="cw-doc-id-n"></span>
+                                        <button type="button" class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-id','cw-doc-id-p','cw-doc-id-n')">✕ Remove</button>
                                     </div>
                                 </div>
-                                <div class="cw-upload-prev" id="cw-doc-vet-p">
-                                    <span>⚕️</span>
-                                    <span class="cw-prev-name" id="cw-doc-vet-n"></span>
-                                    <button type="button" class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-vet','cw-doc-vet-p','cw-doc-vet-n')">✕ Remove</button>
-                                </div>
-                            </div>
 
-                            <div class="cw-field">
-                                <label class="cw-label"><span class="req">*</span>Clinic Manager National ID</label>
-                                <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-id')">
-                                    <input type="file" id="cw-doc-id" accept=".pdf,image/*" style="display:none" onchange="cwPreviewFile(this,'cw-doc-id-p','cw-doc-id-n')">
-                                    <div class="wf-upload-ico">🪪</div>
-                                    <div class="wf-upload-txt">
-                                        <strong>Upload National ID Photo</strong><br>
-                                        Both front and back sides — JPG, PNG — max 5MB
+                                <div class="cw-field">
+                                    <label class="cw-label">Clinic Logo <span class="cw-opt-badge">Optional</span></label>
+                                    <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-logo')">
+                                        <input type="file" name="docLogo" id="cw-doc-logo" accept="image/*,svg"
+                                               style="display:none" onchange="cwPreviewFile(this,'cw-doc-logo-p','cw-doc-logo-n')">
+                                        <div class="wf-upload-ico">🎨</div>
+                                        <div class="wf-upload-txt">
+                                            <strong>Upload Clinic Logo</strong><br>
+                                            Appears on your clinic page and reports
+                                        </div>
+                                    </div>
+                                    <div class="cw-upload-prev" id="cw-doc-logo-p">
+                                        <span>🎨</span>
+                                        <span class="cw-prev-name" id="cw-doc-logo-n"></span>
+                                        <button type="button" class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-logo','cw-doc-logo-p','cw-doc-logo-n')">✕ Remove</button>
                                     </div>
                                 </div>
-                                <div class="cw-upload-prev" id="cw-doc-id-p">
-                                    <span>🪪</span>
-                                    <span class="cw-prev-name" id="cw-doc-id-n"></span>
-                                    <button type="button" class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-id','cw-doc-id-p','cw-doc-id-n')">✕ Remove</button>
-                                </div>
-                            </div>
 
-                            <div class="cw-field">
-                                <label class="cw-label">Clinic Logo <span class="cw-opt-badge">Optional</span></label>
-                                <div class="wf-upload-box" onclick="cwTrigUpload('cw-doc-logo')">
-                                    <input type="file" id="cw-doc-logo" accept="image/*,svg" style="display:none" onchange="cwPreviewFile(this,'cw-doc-logo-p','cw-doc-logo-n')">
-                                    <div class="wf-upload-ico">🎨</div>
-                                    <div class="wf-upload-txt">
-                                        <strong>Upload Clinic Logo</strong><br>
-                                        Appears on your clinic page and reports
-                                    </div>
-                                </div>
-                                <div class="cw-upload-prev" id="cw-doc-logo-p">
-                                    <span>🎨</span>
-                                    <span class="cw-prev-name" id="cw-doc-logo-n"></span>
-                                    <button type="button" class="cw-prev-rm" onclick="cwRemoveFile('cw-doc-logo','cw-doc-logo-p','cw-doc-logo-n')">✕ Remove</button>
+                                <div class="cw-nav" style="display:flex;justify-content:flex-end;gap:12px;margin-top:1.4rem;">
+                                    <button class="cw-btn-next" type="submit">Next — Owner Information →</button>
                                 </div>
                             </div>
-
-                            <div class="cw-nav" style="display:flex;justify-content:flex-end;gap:12px;margin-top:1.4rem;">
-                                <button class="cw-btn-next" type="button" onclick="window.location.href='/Account/Clinic_step2'">Next — Owner Information →</button>
-                            </div>
-                        </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
 
     <script src="~/js/clinic.js"></script>

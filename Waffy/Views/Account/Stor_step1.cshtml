@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -36,7 +33,6 @@
                             Join Waffy and start selling to thousands of pet owners across Jordan
                         </div>
                     </div>
-
                     <div class="sw-sb-steps">
                         <div class="sw-sb-lbl">Registration Steps</div>
                         <div id="swSbSteps"></div>
@@ -44,67 +40,108 @@
                 </aside>
 
                 <div class="sw-fwrap">
+
+                    @* ✅ عرض أخطاء السيرفر *@
+                    @if (TempData["StoreError"] != null)
+                    {
+                        <div class="sw-server-error">
+                            ⚠ @TempData["StoreError"]
+                        </div>
+                    }
+
                     <div class="sw-screen on" id="sw-s1">
-                        <div class="sw-card">
-                            <div class="sw-card-hd">
-                                <div class="sw-card-ico">👤</div>
-                                <div>
-                                    <div class="sw-card-title">Account Owner Information</div>
-                                    <div class="sw-card-sub">Your personal login credentials for this store account</div>
-                                </div>
-                            </div>
 
-                            <div class="sw-fg">
-                                <div class="sw-f">
-                                    <label class="sw-lbl">First Name <span class="sw-req">*</span></label>
-                                    <input class="sw-inp" id="sw-fn" placeholder="e.g. Ahmad" oninput="swCe(this)">
-                                    <div class="sw-ferr" id="sw-e-fn">⚠ This field is required</div>
-                                </div>
+                        @* ✅ Form يرسل إلى Stor_step1 POST *@
+                        <form asp-controller="Account" asp-action="Stor_step1" method="post">
+                            @Html.AntiForgeryToken()
 
-                                <div class="sw-f">
-                                    <label class="sw-lbl">Last Name <span class="sw-req">*</span></label>
-                                    <input class="sw-inp" id="sw-ln" placeholder="e.g. Al-Omari" oninput="swCe(this)">
-                                    <div class="sw-ferr" id="sw-e-ln">⚠ This field is required</div>
-                                </div>
-
-                                <div class="sw-f sw-fw">
-                                    <label class="sw-lbl">Email Address <span class="sw-req">*</span></label>
-                                    <input class="sw-inp" id="sw-oemail" type="email" placeholder="owner@store.com" oninput="swCe(this)">
-                                    <div class="sw-ferr" id="sw-e-oemail">⚠ Please enter a valid email address</div>
-                                </div>
-
-                                <div class="sw-f sw-fw">
-                                    <label class="sw-lbl">Phone Number <span class="sw-req">*</span></label>
-                                    <div class="sw-ph-wrap">
-                                        <span class="sw-ph-pre">🇯🇴 +962</span>
-                                        <input class="sw-inp" id="sw-ophone" type="tel" placeholder="7X XXX XXXX" oninput="swCe(this)" style="flex:1">
-                                    </div>
-                                    <div class="sw-ferr" id="sw-e-ophone">⚠ Please enter a valid phone number</div>
-                                </div>
-
-                                <div class="sw-f sw-fw">
-                                    <label class="sw-lbl">Password <span class="sw-req">*</span></label>
-                                    <input class="sw-inp" id="sw-opwd" type="password" placeholder="••••••••" oninput="swPwdStr(this)" autocomplete="new-password">
-                                    <div class="sw-pwd-str" id="sw-ps">
-                                        <div class="sw-pb"></div>
-                                        <div class="sw-pb"></div>
-                                        <div class="sw-pb"></div>
-                                        <div class="sw-pl" id="sw-pl">Enter a password</div>
+                            <div class="sw-card">
+                                <div class="sw-card-hd">
+                                    <div class="sw-card-ico">👤</div>
+                                    <div>
+                                        <div class="sw-card-title">Account Owner Information</div>
+                                        <div class="sw-card-sub">Your personal login credentials for this store account</div>
                                     </div>
                                 </div>
 
-                                <div class="sw-f sw-fw">
-                                    <label class="sw-lbl">Confirm Password <span class="sw-req">*</span></label>
-                                    <input class="sw-inp" id="sw-opwd2" type="password" placeholder="••••••••" oninput="swCe(this)" autocomplete="new-password">
-                                    <div class="sw-ferr" id="sw-e-opwd2">⚠ Passwords do not match</div>
+                                <div class="sw-fg">
+
+                                    <div class="sw-f">
+                                        <label class="sw-lbl">First Name <span class="sw-req">*</span></label>
+                                        <input class="sw-inp" name="firstName" id="sw-fn"
+                                               placeholder="e.g. Ahmad"
+                                               value="@TempData["firstName"]"
+                                               oninput="swCe(this)" />
+                                        <div class="sw-ferr" id="sw-e-fn">⚠ This field is required</div>
+                                    </div>
+
+                                    <div class="sw-f">
+                                        <label class="sw-lbl">Last Name <span class="sw-req">*</span></label>
+                                        <input class="sw-inp" name="lastName" id="sw-ln"
+                                               placeholder="e.g. Al-Omari"
+                                               value="@TempData["lastName"]"
+                                               oninput="swCe(this)" />
+                                        <div class="sw-ferr" id="sw-e-ln">⚠ This field is required</div>
+                                    </div>
+
+                                    <div class="sw-f sw-fw">
+                                        <label class="sw-lbl">Email Address <span class="sw-req">*</span></label>
+                                        <input class="sw-inp" name="email" id="sw-oemail"
+                                               type="email"
+                                               placeholder="owner@store.com"
+                                               value="@TempData["email"]"
+                                               oninput="swCe(this)" />
+                                        <div class="sw-ferr" id="sw-e-oemail">⚠ Please enter a valid email address</div>
+                                    </div>
+
+                                    <div class="sw-f sw-fw">
+                                        <label class="sw-lbl">Phone Number <span class="sw-req">*</span></label>
+                                        <div class="sw-ph-wrap">
+                                            <span class="sw-ph-pre">🇯🇴 +962</span>
+                                            <input class="sw-inp" name="phone" id="sw-ophone"
+                                                   type="tel"
+                                                   placeholder="7X XXX XXXX"
+                                                   value="@TempData["phone"]"
+                                                   oninput="swCe(this)"
+                                                   style="flex:1" />
+                                        </div>
+                                        <div class="sw-ferr" id="sw-e-ophone">⚠ Please enter a valid phone number</div>
+                                    </div>
+
+                                    <div class="sw-f sw-fw">
+                                        <label class="sw-lbl">Password <span class="sw-req">*</span></label>
+                                        <input class="sw-inp" name="password" id="sw-opwd"
+                                               type="password"
+                                               placeholder="••••••••"
+                                               oninput="swPwdStr(this)"
+                                               autocomplete="new-password" />
+                                        <div class="sw-pwd-str" id="sw-ps">
+                                            <div class="sw-pb"></div>
+                                            <div class="sw-pb"></div>
+                                            <div class="sw-pb"></div>
+                                            <div class="sw-pl" id="sw-pl">Enter a password</div>
+                                        </div>
+                                    </div>
+
+                                    <div class="sw-f sw-fw">
+                                        <label class="sw-lbl">Confirm Password <span class="sw-req">*</span></label>
+                                        <input class="sw-inp" name="confirmPassword" id="sw-opwd2"
+                                               type="password"
+                                               placeholder="••••••••"
+                                               oninput="swCe(this)"
+                                               autocomplete="new-password" />
+                                        <div class="sw-ferr" id="sw-e-opwd2">⚠ Passwords do not match</div>
+                                    </div>
+
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="sw-fnav">
-                            <div></div>
-                            <button class="sw-btn sw-btn-p" type="button" onclick="swN1()">Continue</button>
-                        </div>
+                            <div class="sw-fnav">
+                                <div></div>
+                                <button class="sw-btn sw-btn-p" type="submit">Continue</button>
+                            </div>
+
+                        </form>
                     </div>
                 </div>
             </div>

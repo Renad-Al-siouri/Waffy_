@@ -33,7 +33,6 @@
                             Join Waffy and start selling to thousands of pet owners across Jordan
                         </div>
                     </div>
-
                     <div class="sw-sb-steps">
                         <div class="sw-sb-lbl">Registration Steps</div>
                         <div id="swSbSteps"></div>
@@ -41,165 +40,226 @@
                 </aside>
 
                 <div class="sw-fwrap">
+
+                    @* ✅ عرض أخطاء السيرفر *@
+                    @if (TempData["StoreStep2Error"] != null)
+                    {
+                        <div class="sw-server-error">
+                            ⚠ @TempData["StoreStep2Error"]
+                        </div>
+                    }
+
                     <div class="sw-screen on" id="sw-s2">
 
-                        <div class="sw-card">
-                            <div class="sw-card-hd">
-                                <div class="sw-card-ico">🏪</div>
-                                <div>
-                                    <div class="sw-card-title">Store Basic Information</div>
-                                    <div class="sw-card-sub">This information will appear to customers on your store page</div>
-                                </div>
-                            </div>
+                        @* ✅ Form يرسل إلى Stor_step2 POST مع enctype لرفع الملفات *@
+                        <form asp-controller="Account" asp-action="Stor_step2"
+                              method="post" enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
 
-                            <div class="sw-fg">
-                                <div class="sw-f sw-fw">
-                                    <label class="sw-lbl">Store Name <span class="sw-req">*</span></label>
-                                    <input class="sw-inp" id="sw-sname" placeholder="e.g. Pet Friends Store" oninput="swCe(this)">
-                                    <div class="sw-ferr" id="sw-e-sname">⚠ Please enter your store name</div>
-                                </div>
-
-                                <div class="sw-f sw-fw">
-                                    <label class="sw-lbl">Store Description <span class="sw-opt">(Optional)</span></label>
-                                    <textarea class="sw-inp" id="sw-sdesc" placeholder="Write a brief description about your store, products, and what makes it unique..."></textarea>
-                                    <div class="sw-hint">💡 Displayed to customers on your public store page</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="sw-card">
-                            <div class="sw-card-hd">
-                                <div class="sw-card-ico">📞</div>
-                                <div>
-                                    <div class="sw-card-title">Contact Information</div>
-                                    <div class="sw-card-sub">How customers can reach your store</div>
-                                </div>
-                            </div>
-
-                            <div class="sw-fg">
-                                <div class="sw-f sw-fw">
-                                    <label class="sw-lbl">Store Email <span class="sw-req">*</span></label>
-                                    <input class="sw-inp" id="sw-semail" type="email" placeholder="store@example.com" oninput="swCe(this)">
-                                    <div class="sw-ferr" id="sw-e-semail">⚠ Please enter a valid email address</div>
-                                </div>
-
-                                <div class="sw-f">
-                                    <label class="sw-lbl">Store Phone <span class="sw-req">*</span></label>
-                                    <div class="sw-ph-wrap">
-                                        <span class="sw-ph-pre">🇯🇴 +962</span>
-                                        <input class="sw-inp" id="sw-sphone" type="tel" placeholder="6 XXX XXXX" oninput="swCe(this)" style="flex:1">
-                                    </div>
-                                    <div class="sw-ferr" id="sw-e-sphone">⚠ Please enter a valid phone number</div>
-                                </div>
-
-                                <div class="sw-f">
-                                    <label class="sw-lbl">WhatsApp <span class="sw-opt">(Optional)</span></label>
-                                    <div class="sw-ph-wrap">
-                                        <span class="sw-ph-pre">🇯🇴 +962</span>
-                                        <input class="sw-inp" id="sw-whatsapp" type="tel" placeholder="7X XXX XXXX">
+                            @* ===== بيانات المتجر الأساسية ===== *@
+                            <div class="sw-card">
+                                <div class="sw-card-hd">
+                                    <div class="sw-card-ico">🏪</div>
+                                    <div>
+                                        <div class="sw-card-title">Store Basic Information</div>
+                                        <div class="sw-card-sub">This information will appear to customers on your store page</div>
                                     </div>
                                 </div>
 
-                                <div class="sw-f sw-fw">
-                                    <label class="sw-lbl">Location / City <span class="sw-req">*</span></label>
-                                    <select class="sw-inp" id="sw-scity" oninput="swCe(this)">
-                                        <option value="">Select city</option>
-                                        <option>Amman</option>
-                                        <option>Zarqa</option>
-                                        <option>Irbid</option>
-                                        <option>Aqaba</option>
-                                        <option>Salt</option>
-                                        <option>Madaba</option>
-                                        <option>Karak</option>
-                                        <option>Jerash</option>
-                                        <option>Ajloun</option>
-                                        <option>Mafraq</option>
-                                        <option>Tafilah</option>
-                                        <option>Ma'an</option>
-                                        <option>Other</option>
-                                    </select>
-                                    <div class="sw-ferr" id="sw-e-scity">⚠ Please select your location</div>
-                                </div>
-                            </div>
-                        </div>
+                                <div class="sw-fg">
+                                    <div class="sw-f sw-fw">
+                                        <label class="sw-lbl">Store Name <span class="sw-req">*</span></label>
+                                        <input class="sw-inp" name="name" id="sw-sname"
+                                               placeholder="e.g. Pet Friends Store"
+                                               oninput="swCe(this)" />
+                                        <div class="sw-ferr" id="sw-e-sname">⚠ Please enter your store name</div>
+                                    </div>
 
-                        <div class="sw-card">
-                            <div class="sw-card-hd">
-                                <div class="sw-card-ico">📄</div>
-                                <div>
-                                    <div class="sw-card-title">Commercial Records & Documents</div>
-                                    <div class="sw-card-sub">Required for store approval — reviewed within 24–48 hours</div>
-                                </div>
-                            </div>
-
-                            <div class="sw-info-box">
-                                ℹ️ The Waffy team will review your application within 24–48 hours. Documents marked with <strong>*</strong> are mandatory for store approval.
-                            </div>
-
-                            <div class="sw-doc-grid">
-                                <div class="sw-f">
-                                    <label class="sw-lbl">Commercial Registration <span class="sw-req">*</span></label>
-                                    <div class="wf-upload-box" onclick="swTrigUpload('sw-doc1')" style="padding:.9rem">
-                                        <input type="file" id="sw-doc1" accept=".pdf,image/*" style="display:none" onchange="swPreviewFile(this,'sw-doc1p','sw-doc1n')">
-                                        <div class="wf-upload-ico" style="font-size:1.4rem">📋</div>
-                                        <div class="wf-upload-txt" style="font-size:.72rem"><strong>Upload file</strong> — PDF or image</div>
-                                    </div>
-                                    <div class="wf-upload-prev" id="sw-doc1p">
-                                        <span>📋</span>
-                                        <span class="wf-prev-name" id="sw-doc1n"></span>
-                                        <button type="button" class="wf-prev-rm" onclick="swRemoveFile('sw-doc1','sw-doc1p','sw-doc1n')">✕</button>
-                                    </div>
-                                </div>
-
-                                <div class="sw-f">
-                                    <label class="sw-lbl">Business License <span class="sw-req">*</span></label>
-                                    <div class="wf-upload-box" onclick="swTrigUpload('sw-doc2')" style="padding:.9rem">
-                                        <input type="file" id="sw-doc2" accept=".pdf,image/*" style="display:none" onchange="swPreviewFile(this,'sw-doc2p','sw-doc2n')">
-                                        <div class="wf-upload-ico" style="font-size:1.4rem">🏛</div>
-                                        <div class="wf-upload-txt" style="font-size:.72rem"><strong>Upload file</strong> — PDF or image</div>
-                                    </div>
-                                    <div class="wf-upload-prev" id="sw-doc2p">
-                                        <span>🏛</span>
-                                        <span class="wf-prev-name" id="sw-doc2n"></span>
-                                        <button type="button" class="wf-prev-rm" onclick="swRemoveFile('sw-doc2','sw-doc2p','sw-doc2n')">✕</button>
-                                    </div>
-                                </div>
-
-                                <div class="sw-f">
-                                    <label class="sw-lbl">Trademark Certificate <span class="sw-opt">(Optional)</span></label>
-                                    <div class="wf-upload-box" onclick="swTrigUpload('sw-doc3')" style="padding:.9rem">
-                                        <input type="file" id="sw-doc3" accept=".pdf,image/*" style="display:none" onchange="swPreviewFile(this,'sw-doc3p','sw-doc3n')">
-                                        <div class="wf-upload-ico" style="font-size:1.4rem">™️</div>
-                                        <div class="wf-upload-txt" style="font-size:.72rem"><strong>Upload file</strong> — PDF or image</div>
-                                    </div>
-                                    <div class="wf-upload-prev" id="sw-doc3p">
-                                        <span>™️</span>
-                                        <span class="wf-prev-name" id="sw-doc3n"></span>
-                                        <button type="button" class="wf-prev-rm" onclick="swRemoveFile('sw-doc3','sw-doc3p','sw-doc3n')">✕</button>
-                                    </div>
-                                </div>
-
-                                <div class="sw-f">
-                                    <label class="sw-lbl">Additional Supporting File <span class="sw-opt">(Optional)</span></label>
-                                    <div class="wf-upload-box" onclick="swTrigUpload('sw-doc4')" style="padding:.9rem">
-                                        <input type="file" id="sw-doc4" accept=".pdf,image/*" style="display:none" onchange="swPreviewFile(this,'sw-doc4p','sw-doc4n')">
-                                        <div class="wf-upload-ico" style="font-size:1.4rem">📎</div>
-                                        <div class="wf-upload-txt" style="font-size:.72rem"><strong>Upload file</strong> — PDF or image</div>
-                                    </div>
-                                    <div class="wf-upload-prev" id="sw-doc4p">
-                                        <span>📎</span>
-                                        <span class="wf-prev-name" id="sw-doc4n"></span>
-                                        <button type="button" class="wf-prev-rm" onclick="swRemoveFile('sw-doc4','sw-doc4p','sw-doc4n')">✕</button>
+                                    <div class="sw-f sw-fw">
+                                        <label class="sw-lbl">Store Description <span class="sw-opt">(Optional)</span></label>
+                                        <textarea class="sw-inp" name="description" id="sw-sdesc"
+                                                  placeholder="Write a brief description about your store..."></textarea>
+                                        <div class="sw-hint">💡 Displayed to customers on your public store page</div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="sw-fnav">
-                            <button class="sw-btn sw-btn-o" type="button" onclick="window.location.href='/Account/Stor_step1'">Back</button>
-                            <button class="sw-btn sw-btn-p" type="button" onclick="swN2()">Submit</button>
-                        </div>
+                            @* ===== بيانات التواصل ===== *@
+                            <div class="sw-card">
+                                <div class="sw-card-hd">
+                                    <div class="sw-card-ico">📞</div>
+                                    <div>
+                                        <div class="sw-card-title">Contact Information</div>
+                                        <div class="sw-card-sub">How customers can reach your store</div>
+                                    </div>
+                                </div>
 
+                                <div class="sw-fg">
+                                    <div class="sw-f sw-fw">
+                                        <label class="sw-lbl">Store Email <span class="sw-req">*</span></label>
+                                        <input class="sw-inp" name="email" id="sw-semail"
+                                               type="email"
+                                               placeholder="store@example.com"
+                                               oninput="swCe(this)" />
+                                        <div class="sw-ferr" id="sw-e-semail">⚠ Please enter a valid email address</div>
+                                    </div>
+
+                                    <div class="sw-f">
+                                        <label class="sw-lbl">Store Phone <span class="sw-req">*</span></label>
+                                        <div class="sw-ph-wrap">
+                                            <span class="sw-ph-pre">🇯🇴 +962</span>
+                                            <input class="sw-inp" name="phone" id="sw-sphone"
+                                                   type="tel"
+                                                   placeholder="6 XXX XXXX"
+                                                   oninput="swCe(this)"
+                                                   style="flex:1" />
+                                        </div>
+                                        <div class="sw-ferr" id="sw-e-sphone">⚠ Please enter a valid phone number</div>
+                                    </div>
+
+                                    <div class="sw-f">
+                                        <label class="sw-lbl">WhatsApp <span class="sw-opt">(Optional)</span></label>
+                                        <div class="sw-ph-wrap">
+                                            <span class="sw-ph-pre">🇯🇴 +962</span>
+                                            <input class="sw-inp" name="whatsApp" id="sw-whatsapp"
+                                                   type="tel"
+                                                   placeholder="7X XXX XXXX" />
+                                        </div>
+                                    </div>
+
+                                    <div class="sw-f sw-fw">
+                                        <label class="sw-lbl">Location / City <span class="sw-req">*</span></label>
+                                        <select class="sw-inp" name="city" id="sw-scity" oninput="swCe(this)">
+                                            <option value="">Select city</option>
+                                            <option>Amman</option>
+                                            <option>Zarqa</option>
+                                            <option>Irbid</option>
+                                            <option>Aqaba</option>
+                                            <option>Salt</option>
+                                            <option>Madaba</option>
+                                            <option>Karak</option>
+                                            <option>Jerash</option>
+                                            <option>Ajloun</option>
+                                            <option>Mafraq</option>
+                                            <option>Tafilah</option>
+                                            <option>Ma'an</option>
+                                            <option>Other</option>
+                                        </select>
+                                        <div class="sw-ferr" id="sw-e-scity">⚠ Please select your location</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            @* ===== الوثائق ===== *@
+                            <div class="sw-card">
+                                <div class="sw-card-hd">
+                                    <div class="sw-card-ico">📄</div>
+                                    <div>
+                                        <div class="sw-card-title">Commercial Records & Documents</div>
+                                        <div class="sw-card-sub">Required for store approval — reviewed within 24–48 hours</div>
+                                    </div>
+                                </div>
+
+                                <div class="sw-info-box">
+                                    ℹ️ The Waffy team will review your application within 24–48 hours.
+                                    Documents marked with <strong>*</strong> are mandatory.
+                                </div>
+
+                                <div class="sw-doc-grid">
+
+                                    <div class="sw-f">
+                                        <label class="sw-lbl">Commercial Registration <span class="sw-req">*</span></label>
+                                        <div class="wf-upload-box" onclick="swTrigUpload('sw-doc1')" style="padding:.9rem">
+                                            @* ✅ name="commercialRegister" يطابق parameter الـ Controller *@
+                                            <input type="file" name="commercialRegister" id="sw-doc1"
+                                                   accept=".pdf,image/*" style="display:none"
+                                                   onchange="swPreviewFile(this,'sw-doc1p','sw-doc1n')" />
+                                            <div class="wf-upload-ico" style="font-size:1.4rem">📋</div>
+                                            <div class="wf-upload-txt" style="font-size:.72rem"><strong>Upload file</strong> — PDF or image</div>
+                                        </div>
+                                        <div class="wf-upload-prev" id="sw-doc1p">
+                                            <span>📋</span>
+                                            <span class="wf-prev-name" id="sw-doc1n"></span>
+                                            <button type="button" class="wf-prev-rm"
+                                                    onclick="swRemoveFile('sw-doc1','sw-doc1p','sw-doc1n')">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="sw-f">
+                                        <label class="sw-lbl">Business License <span class="sw-req">*</span></label>
+                                        <div class="wf-upload-box" onclick="swTrigUpload('sw-doc2')" style="padding:.9rem">
+                                            @* ✅ name="businessLicense" يطابق parameter الـ Controller *@
+                                            <input type="file" name="businessLicense" id="sw-doc2"
+                                                   accept=".pdf,image/*" style="display:none"
+                                                   onchange="swPreviewFile(this,'sw-doc2p','sw-doc2n')" />
+                                            <div class="wf-upload-ico" style="font-size:1.4rem">🏛</div>
+                                            <div class="wf-upload-txt" style="font-size:.72rem"><strong>Upload file</strong> — PDF or image</div>
+                                        </div>
+                                        <div class="wf-upload-prev" id="sw-doc2p">
+                                            <span>🏛</span>
+                                            <span class="wf-prev-name" id="sw-doc2n"></span>
+                                            <button type="button" class="wf-prev-rm"
+                                                    onclick="swRemoveFile('sw-doc2','sw-doc2p','sw-doc2n')">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="sw-f">
+                                        <label class="sw-lbl">Trademark Certificate <span class="sw-opt">(Optional)</span></label>
+                                        <div class="wf-upload-box" onclick="swTrigUpload('sw-doc3')" style="padding:.9rem">
+                                            @* ✅ name="trademarkCertificate" *@
+                                            <input type="file" name="trademarkCertificate" id="sw-doc3"
+                                                   accept=".pdf,image/*" style="display:none"
+                                                   onchange="swPreviewFile(this,'sw-doc3p','sw-doc3n')" />
+                                            <div class="wf-upload-ico" style="font-size:1.4rem">™️</div>
+                                            <div class="wf-upload-txt" style="font-size:.72rem"><strong>Upload file</strong> — PDF or image</div>
+                                        </div>
+                                        <div class="wf-upload-prev" id="sw-doc3p">
+                                            <span>™️</span>
+                                            <span class="wf-prev-name" id="sw-doc3n"></span>
+                                            <button type="button" class="wf-prev-rm"
+                                                    onclick="swRemoveFile('sw-doc3','sw-doc3p','sw-doc3n')">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="sw-f">
+                                        <label class="sw-lbl">Additional Supporting File <span class="sw-opt">(Optional)</span></label>
+                                        <div class="wf-upload-box" onclick="swTrigUpload('sw-doc4')" style="padding:.9rem">
+                                            @* ✅ name="additionalFile" *@
+                                            <input type="file" name="additionalFile" id="sw-doc4"
+                                                   accept=".pdf,image/*" style="display:none"
+                                                   onchange="swPreviewFile(this,'sw-doc4p','sw-doc4n')" />
+                                            <div class="wf-upload-ico" style="font-size:1.4rem">📎</div>
+                                            <div class="wf-upload-txt" style="font-size:.72rem"><strong>Upload file</strong> — PDF or image</div>
+                                        </div>
+                                        <div class="wf-upload-prev" id="sw-doc4p">
+                                            <span>📎</span>
+                                            <span class="wf-prev-name" id="sw-doc4n"></span>
+                                            <button type="button" class="wf-prev-rm"
+                                                    onclick="swRemoveFile('sw-doc4','sw-doc4p','sw-doc4n')">
+                                                ✕
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div class="sw-fnav">
+                                <a class="sw-btn sw-btn-o"
+                                   asp-controller="Account" asp-action="Stor_step1">Back</a>
+                                <button class="sw-btn sw-btn-p" type="submit"
+                                        onclick="return swValidateStep2()">
+                                    Submit
+                                </button>
+                            </div>
+
+                        </form>
                     </div>
                 </div>
             </div>
