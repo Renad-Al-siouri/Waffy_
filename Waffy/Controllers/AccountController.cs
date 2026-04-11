@@ -159,8 +159,7 @@ namespace Waffy.Controllers
             return View(user);
         }
 
-        [HttpGet]
-        public IActionResult ProfileEdit() => View();
+       
 
         // =========================
         // Store Signup — Step 1

@@ -2,7 +2,7 @@
 
 namespace Waffy.Controllers
 {
-    public class StoreAdmin : Controller
+    public class StoreAdminController : Controller
     {
         public IActionResult Index()
         {

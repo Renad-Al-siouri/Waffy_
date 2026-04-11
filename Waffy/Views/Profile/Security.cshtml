@@ -1,4 +1,5 @@
-﻿@{
+﻿@model Waffy.Models.User
+@{
     ViewData["Title"] = "Security";
     Layout = null;
 }
@@ -22,59 +23,73 @@
                 <div class="header-shell">
                     <nav class="navbar">
                         <div class="left-nav desktop-nav desktop-links">
-                            <a href="/Home/Index" class="nav-link active">Home</a>
-                            <a href="/Clinics/Index" class="nav-link">Clinics</a>
-                            <a href="/Stores/Index" class="nav-link">Stores</a>
-                            <a href="/Adoption/Index" class="nav-link">Adoption</a>
-                            <a href="/Lost/Index" class="nav-link">Lost Pets</a>
+                            <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
+                            <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
+                            <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
+                            <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
+                            <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                         </div>
                         <div class="logo-center"><img src="~/Images/logo.png" alt="Waffy" class="main-logo"></div>
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
                                 <div class="services-dropdown" id="servicesDropdown">
-                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">Services <span class="dropdown-arrow">&#9660;</span></button>
+                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
+                                        Services <span class="dropdown-arrow">&#9660;</span>
+                                    </button>
                                     <div class="dropdown-menu" id="servicesMenu">
-                                        <a href="/Clinics/Index" class="dropdown-link">Clinics</a>
-                                        <a href="/Stores/Index" class="dropdown-link">Stores</a>
-                                        <a href="/Adoption/Index" class="dropdown-link">Adoption</a>
-                                        <a href="/Lost/Index" class="dropdown-link">Lost Pets</a>
-                                        <a href="/Map/Index" class="dropdown-link">Map</a>
-                                        <a href="/Donate/Index" class="dropdown-link">Donations</a>
-                                        <a href="/Law/Index" class="dropdown-link">Law</a>
-                                        <a href="/Dangerous/Index" class="dropdown-link">Dangerous Animal</a>
-                                        <a href="/Support/Index" class="dropdown-link">Technical Support</a>
-                                        <a href="/Faq/Index" class="dropdown-link">FAQ</a>
+                                        <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
+                                        <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
+                                        <a asp-controller="Pet" asp-action="Adapt" class="dropdown-link">Adoption</a>
+                                        <a asp-controller="Pet" asp-action="Lost" class="dropdown-link">Lost Pets</a>
+                                        <a asp-controller="Map" asp-action="Gps" class="dropdown-link">Map</a>
+                                        <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
+                                        <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
+                                        <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
+                                        <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
+                                        <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                     </div>
                                 </div>
-                                <a href="/About/Index" class="nav-link">About Us</a>
+                                <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                             </div>
                             <div class="nav-actions">
                                 <a href="/Cart/Index" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
                                 <a href="/Notifications/Index" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
-                                <a href="/Profile/Edit_Profile" class="profile-btn"><img src="~/Images/user.jpg" alt="Profile"></a>
-                                <a href="/Account/Logout" class="nav-link login-btn">Log out</a>
+                                <a asp-controller="Profile" asp-action="Edit_Profile" class="profile-btn">
+                                    @if (!string.IsNullOrEmpty(Model.ProfileImage))
+                                    {
+                                        <img src="@Model.ProfileImage" alt="Profile">
+                                    }
+                                    else
+                                    {
+                                        <img src="~/Images/user.jpg" alt="Profile">
+                                    }
+                                </a>
+                                <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
                             <div class="mobile-nav-wrap">
                                 <button class="menu-btn" id="menuBtn" type="button">&#9776;</button>
                                 <div class="nav-links" id="navLinks">
                                     <div class="mobile-menu-logo"><img src="~/Images/logo.png" alt="Waffy"></div>
-                                    <a href="/Home/Index" class="nav-link active">Home</a>
-                                    <a href="/Clinics/Index" class="nav-link">Clinics</a>
-                                    <a href="/Stores/Index" class="nav-link">Stores</a>
-                                    <a href="/Adoption/Index" class="nav-link">Adoption</a>
-                                    <a href="/Lost/Index" class="nav-link">Lost Pets</a>
+                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
+                                    <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
+                                    <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
+                                    <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
+                                    <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
+                                    <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
                                     <div class="mobile-services-block" id="mobileServicesBlock">
-                                        <button class="mobile-services-toggle" id="mobileServicesToggle" type="button"><span>Services</span><span class="dropdown-arrow">&#9660;</span></button>
+                                        <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
+                                            <span>Services</span><span class="dropdown-arrow">&#9660;</span>
+                                        </button>
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
-                                            <a href="/Donate/Index" class="dropdown-link">Donations</a>
-                                            <a href="/Law/Index" class="dropdown-link">Law</a>
-                                            <a href="/Dangerous/Index" class="dropdown-link">Dangerous Animal</a>
-                                            <a href="/Support/Index" class="dropdown-link">Technical Support</a>
-                                            <a href="/Faq/Index" class="dropdown-link">FAQ</a>
+                                            <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
+                                            <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
+                                            <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
+                                            <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
+                                            <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-                                    <a href="/About/Index" class="nav-link">About Us</a>
-                                    <a href="/Account/Logout" class="nav-link login-btn">Log out</a>
+                                    <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
+                                    <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
                             </div>
                         </div>
@@ -89,57 +104,101 @@
             <div class="sb-profile">
                 <div class="sb-profile-inner">
                     <div class="sb-avatar-wrap">
-                        <div class="sb-avatar" id="sidebarAvatar"><span>&#128100;</span></div>
-                        <button class="sb-cam" onclick="document.getElementById('avatarFile').click()">&#128247;</button>
-                        <input type="file" id="avatarFile" accept="image/*" hidden onchange="changeAvatar(this)">
+                        <div class="sb-avatar" id="sidebarAvatar">
+                            @if (!string.IsNullOrEmpty(Model.ProfileImage))
+                            {
+                                <img src="@Model.ProfileImage" alt="Profile">
+                            }
+                            else
+                            {
+                                <span>&#128100;</span>
+                            }
+                        </div>
                     </div>
                     <div class="sb-profile-text">
-                        <div class="sb-name" id="sidebarName">Batool Jaber</div>
-                        <div class="sb-email" id="sidebarEmail">Batool@@email.com</div>
+                        <div class="sb-name">@Model.FullName</div>
+                        <div class="sb-email">@Model.Email</div>
                         <div class="sb-wallet-mini">
                             <span>&#128155; Wallet</span>
-                            <strong id="sidebarBalance">100.50 JOD</strong>
+                            <strong>0.00 JOD</strong>
                         </div>
                     </div>
                 </div>
             </div>
+
             <nav class="sb-nav">
                 <div class="sb-nav-label">Account</div>
-                <a href="/Profile/Edit_Profile" class="sb-item"><i class="fa-solid fa-user"></i> Edit Profile</a>
-                <a href="/Profile/Contact_Info" class="sb-item"><i class="fa-solid fa-address-card"></i> Contact Info</a>
-                <a href="/Profile/My_Wallet" class="sb-item"><i class="fa-solid fa-wallet"></i> My Wallet<span class="sb-badge">32.50</span></a>
-                <a href="/Profile/Rewards" class="sb-item"><i class="fa-solid fa-gift"></i> Rewards<span class="sb-badge">3</span></a>
+                <a asp-controller="Profile" asp-action="Edit_Profile" class="sb-item"><i class="fa-solid fa-user"></i> Edit Profile</a>
+                <a asp-controller="Profile" asp-action="Contact_Info" class="sb-item"><i class="fa-solid fa-address-card"></i> Contact Info</a>
+                <a asp-controller="Profile" asp-action="My_Wallet" class="sb-item"><i class="fa-solid fa-wallet"></i> My Wallet</a>
+                <a asp-controller="Profile" asp-action="Rewards" class="sb-item"><i class="fa-solid fa-gift"></i> Rewards</a>
 
                 <div class="sb-nav-label">Pets &amp; Services</div>
-                <a href="/Profile/Appointments" class="sb-item"><i class="fa-solid fa-calendar-check"></i> Appointments<span class="sb-badge">2</span></a>
-                <a href="/Profile/Orders" class="sb-item"><i class="fa-solid fa-box"></i> Orders<span class="sb-badge">3</span></a>
-                <a href="/Profile/Lost_Reports" class="sb-item"><i class="fa-solid fa-magnifying-glass"></i> Lost Reports<span class="sb-badge red">1</span></a>
-                <a href="/Profile/Adoption_Ads" class="sb-item"><i class="fa-solid fa-paw"></i> Adoption Ads<span class="sb-badge">1</span></a>
+                <a asp-controller="Profile" asp-action="Appointments" class="sb-item"><i class="fa-solid fa-calendar-check"></i> Appointments</a>
+                <a asp-controller="Profile" asp-action="Orders" class="sb-item"><i class="fa-solid fa-box"></i> Orders</a>
+                <a asp-controller="Profile" asp-action="Lost_Reports" class="sb-item"><i class="fa-solid fa-magnifying-glass"></i> Lost Reports</a>
+                <a asp-controller="Profile" asp-action="Adoption_Ads" class="sb-item"><i class="fa-solid fa-paw"></i> Adoption Ads</a>
 
                 <div class="sb-nav-label">History</div>
-                <a href="/Profile/Timeline" class="sb-item"><i class="fa-solid fa-clock-rotate-left"></i> Timeline</a>
-                <a href="/Profile/Complaints" class="sb-item"><i class="fa-solid fa-triangle-exclamation"></i> Complaints</a>
+                <a asp-controller="Profile" asp-action="Timeline" class="sb-item"><i class="fa-solid fa-clock-rotate-left"></i> Timeline</a>
+                <a asp-controller="Profile" asp-action="Complaints" class="sb-item"><i class="fa-solid fa-triangle-exclamation"></i> Complaints</a>
 
                 <div class="sb-nav-label">Settings</div>
-                <a href="/Profile/Security" class="sb-item active"><i class="fa-solid fa-lock"></i> Security</a>
+                <a asp-controller="Profile" asp-action="Security" class="sb-item active"><i class="fa-solid fa-lock"></i> Security</a>
             </nav>
         </aside>
 
         <main class="main-content">
-            <div class="page-header"><div><h2>Security &#128274;</h2><p>Password, 2FA and notifications</p></div></div>
-
-            <div class="s-card">
-                <div class="s-card-head"><span class="s-card-title">&#128273; Change Password</span></div>
-                <div class="s-card-body">
-                    <div class="form-grid">
-                        <div class="field full"><label>Current Password</label><input id="curPass" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" dir="ltr"></div>
-                        <div class="field"><label>New Password</label><input id="newPass" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" dir="ltr"></div>
-                        <div class="field"><label>Confirm New Password</label><input id="conPass" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" dir="ltr"></div>
-                    </div>
-                    <button class="btn btn-primary btn-sm" style="margin-top:6px" onclick="changePassword()">Update Password</button>
-                </div>
+            <div class="page-header">
+                <div><h2>Security &#128274;</h2><p>Password, 2FA and notifications</p></div>
             </div>
 
+            @* ✅ رسائل النجاح والخطأ *@
+            @if (TempData["SecuritySuccess"] != null)
+            {
+                <div style="background:#f0fff0;border:1px solid #b2dfb2;color:#2d7a2d;padding:0.7rem 1rem;border-radius:10px;margin-bottom:1rem;font-weight:700;">
+                    ✅ @TempData["SecuritySuccess"]
+                </div>
+            }
+            @if (TempData["SecurityError"] != null)
+            {
+                <div style="background:#fff0f0;border:1px solid #ffcccc;color:#c0392b;padding:0.7rem 1rem;border-radius:10px;margin-bottom:1rem;font-weight:700;">
+                    ⚠️ @TempData["SecurityError"]
+                </div>
+            }
+
+            @* ✅ فورم تغيير كلمة المرور مرتبط بالـ POST *@
+            <form method="post" asp-controller="Profile" asp-action="Security">
+                @Html.AntiForgeryToken()
+
+                <div class="s-card">
+                    <div class="s-card-head"><span class="s-card-title">&#128273; Change Password</span></div>
+                    <div class="s-card-body">
+                        <div class="form-grid">
+                            <div class="field full">
+                                <label>Current Password</label>
+                                <input name="currentPassword" id="curPass" type="password"
+                                       placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" dir="ltr">
+                            </div>
+                            <div class="field">
+                                <label>New Password</label>
+                                <input name="newPassword" id="newPass" type="password"
+                                       placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" dir="ltr">
+                            </div>
+                            <div class="field">
+                                <label>Confirm New Password</label>
+                                <input name="confirmPassword" id="conPass" type="password"
+                                       placeholder="&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;&#9679;" dir="ltr">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm" style="margin-top:6px">
+                            Update Password
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            @* ── Security Settings — بدون ربط بالـ Backend حتى الآن ── *@
             <div class="s-card">
                 <div class="s-card-head"><span class="s-card-title">&#128737;&#65039; Security Settings</span></div>
                 <div class="s-card-body">
@@ -151,6 +210,7 @@
                 </div>
             </div>
 
+            @* ── Danger Zone — بدون تغيير ── *@
             <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:16px;padding:16px">
                 <div style="font-weight:800;color:#b91c1c;margin-bottom:4px">&#9888;&#65039; Danger Zone</div>
                 <p style="font-size:.82rem;color:#7f1d1d;font-weight:700;margin-bottom:12px">These actions cannot be undone.</p>
@@ -162,35 +222,34 @@
         </main>
     </div>
 
-    <!-- Mobile Bottom Navigation -->
-    <div class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile bottom navigation">
-        <a href="/Profile/Edit_Profile" class="mb-nav-item"><i class="fa-solid fa-user"></i><span>Edit</span></a>
-        <a href="/Profile/My_Wallet" class="mb-nav-item"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
-        <a href="/Profile/Appointments" class="mb-nav-item"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></a>
-        <a href="/Profile/Orders" class="mb-nav-item"><i class="fa-solid fa-box"></i><span>Orders</span></a>
-        <button type="button" class="mb-nav-item mb-more-btn" id="mbMoreBtn" aria-expanded="false" aria-controls="mbMoreDrawer">
-            <i class="fa-solid fa-grid-2"></i><span>More</span>
-        </button>
+    <!-- Mobile Bottom Navigation — بدون تغيير -->
+    <div class="mobile-bottom-nav" id="mobileBottomNav">
+        <a asp-controller="Profile" asp-action="Edit_Profile" class="mb-nav-item"><i class="fa-solid fa-user"></i><span>Edit</span></a>
+        <a asp-controller="Profile" asp-action="My_Wallet" class="mb-nav-item"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
+        <a asp-controller="Profile" asp-action="Appointments" class="mb-nav-item"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></a>
+        <a asp-controller="Profile" asp-action="Orders" class="mb-nav-item"><i class="fa-solid fa-box"></i><span>Orders</span></a>
+        <button type="button" class="mb-nav-item mb-more-btn" id="mbMoreBtn"><i class="fa-solid fa-grid-2"></i><span>More</span></button>
     </div>
 
     <div class="mb-more-overlay" id="mbMoreOverlay"></div>
     <div class="mb-more-drawer" id="mbMoreDrawer" aria-hidden="true">
         <div class="mb-more-head">
             <h3>More Pages</h3>
-            <button type="button" class="mb-more-close" id="mbMoreClose" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" class="mb-more-close" id="mbMoreClose"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="mb-more-grid">
-            <a href="/Profile/Contact_Info" class="mb-more-link"><i class="fa-solid fa-address-card"></i><span>Contact Info</span></a>
-            <a href="/Profile/Rewards" class="mb-more-link"><i class="fa-solid fa-gift"></i><span>Rewards</span></a>
-            <a href="/Profile/Lost_Reports" class="mb-more-link"><i class="fa-solid fa-magnifying-glass"></i><span>Lost Reports</span></a>
-            <a href="/Profile/Adoption_Ads" class="mb-more-link"><i class="fa-solid fa-paw"></i><span>Adoption Ads</span></a>
-            <a href="/Profile/Timeline" class="mb-more-link"><i class="fa-solid fa-clock-rotate-left"></i><span>Timeline</span></a>
-            <a href="/Profile/Complaints" class="mb-more-link"><i class="fa-solid fa-triangle-exclamation"></i><span>Complaints</span></a>
-            <a href="/Profile/Security" class="mb-more-link"><i class="fa-solid fa-lock"></i><span>Security</span></a>
+            <a asp-controller="Profile" asp-action="Contact_Info" class="mb-more-link"><i class="fa-solid fa-address-card"></i><span>Contact Info</span></a>
+            <a asp-controller="Profile" asp-action="Rewards" class="mb-more-link"><i class="fa-solid fa-gift"></i><span>Rewards</span></a>
+            <a asp-controller="Profile" asp-action="Lost_Reports" class="mb-more-link"><i class="fa-solid fa-magnifying-glass"></i><span>Lost Reports</span></a>
+            <a asp-controller="Profile" asp-action="Adoption_Ads" class="mb-more-link"><i class="fa-solid fa-paw"></i><span>Adoption Ads</span></a>
+            <a asp-controller="Profile" asp-action="Timeline" class="mb-more-link"><i class="fa-solid fa-clock-rotate-left"></i><span>Timeline</span></a>
+            <a asp-controller="Profile" asp-action="Complaints" class="mb-more-link"><i class="fa-solid fa-triangle-exclamation"></i><span>Complaints</span></a>
+            <a asp-controller="Profile" asp-action="Security" class="mb-more-link"><i class="fa-solid fa-lock"></i><span>Security</span></a>
         </div>
     </div>
 
     <div class="toast" id="toast"></div>
+
     <footer class="footer">
         <div class="container">
             <div class="footer-links">
@@ -205,37 +264,25 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-          const moreBtn = document.getElementById('mbMoreBtn'); const moreDrawer = document.getElementById('mbMoreDrawer'); const moreOverlay = document.getElementById('mbMoreOverlay'); const moreClose = document.getElementById('mbMoreClose');
-          if (!moreBtn || !moreDrawer || !moreOverlay) return;
-          function openMoreDrawer() { moreDrawer.classList.add('open'); moreOverlay.classList.add('open'); moreBtn.setAttribute('aria-expanded','true'); moreDrawer.setAttribute('aria-hidden','false'); document.body.classList.add('mb-menu-open'); }
-          function closeMoreDrawer() { moreDrawer.classList.remove('open'); moreOverlay.classList.remove('open'); moreBtn.setAttribute('aria-expanded','false'); moreDrawer.setAttribute('aria-hidden','true'); document.body.classList.remove('mb-menu-open'); }
-          function toggleMoreDrawer() { moreDrawer.classList.contains('open') ? closeMoreDrawer() : openMoreDrawer(); }
-          moreBtn.addEventListener('click', toggleMoreDrawer);
-          if (moreClose) moreClose.addEventListener('click', closeMoreDrawer);
-          moreOverlay.addEventListener('click', closeMoreDrawer);
-          document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMoreDrawer(); });
-          window.addEventListener('resize', () => { if (window.innerWidth >= 768) closeMoreDrawer(); });
+            const moreBtn = document.getElementById('mbMoreBtn'); const moreDrawer = document.getElementById('mbMoreDrawer'); const moreOverlay = document.getElementById('mbMoreOverlay'); const moreClose = document.getElementById('mbMoreClose');
+            if (!moreBtn || !moreDrawer || !moreOverlay) return;
+            function openMoreDrawer() { moreDrawer.classList.add('open'); moreOverlay.classList.add('open'); moreBtn.setAttribute('aria-expanded','true'); moreDrawer.setAttribute('aria-hidden','false'); document.body.classList.add('mb-menu-open'); }
+            function closeMoreDrawer() { moreDrawer.classList.remove('open'); moreOverlay.classList.remove('open'); moreBtn.setAttribute('aria-expanded','false'); moreDrawer.setAttribute('aria-hidden','true'); document.body.classList.remove('mb-menu-open'); }
+            moreBtn.addEventListener('click', () => moreDrawer.classList.contains('open') ? closeMoreDrawer() : openMoreDrawer());
+            if (moreClose) moreClose.addEventListener('click', closeMoreDrawer);
+            moreOverlay.addEventListener('click', closeMoreDrawer);
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMoreDrawer(); });
+            window.addEventListener('resize', () => { if (window.innerWidth >= 768) closeMoreDrawer(); });
+        });
+        document.addEventListener("DOMContentLoaded", () => {
+            const menuBtn = document.getElementById("menuBtn"); const navLinks = document.getElementById("navLinks");
+            if (menuBtn && navLinks) { menuBtn.addEventListener("click", e => { e.stopPropagation(); navLinks.classList.toggle("open"); }); document.addEventListener("click", e => { if (!navLinks.contains(e.target) && e.target !== menuBtn) navLinks.classList.remove("open"); }); }
+            const sd = document.getElementById("servicesDropdown"); const st = document.getElementById("servicesToggle");
+            if (sd && st) { st.addEventListener("click", e => { e.stopPropagation(); sd.classList.toggle("open"); }); document.addEventListener("click", () => sd.classList.remove("open")); }
+            const mt = document.getElementById("mobileServicesToggle"); const mb = document.getElementById("mobileServicesBlock");
+            if (mt && mb) mt.addEventListener("click", () => mb.classList.toggle("open"));
         });
         function showToast(msg, duration = 3000) { const t = document.getElementById("toast"); if (!t) return; t.textContent = msg; t.classList.add("show"); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove("show"), duration); }
-        document.addEventListener("DOMContentLoaded", () => {
-          const menuBtn = document.getElementById("menuBtn"); const navLinks = document.getElementById("navLinks");
-          if (menuBtn && navLinks) { menuBtn.addEventListener("click", e => { e.stopPropagation(); navLinks.classList.toggle("open"); }); document.addEventListener("click", e => { if (!navLinks.contains(e.target) && e.target !== menuBtn) navLinks.classList.remove("open"); }); }
-          const sd = document.getElementById("servicesDropdown"); const st = document.getElementById("servicesToggle");
-          if (sd && st) { st.addEventListener("click", e => { e.stopPropagation(); sd.classList.toggle("open"); }); document.addEventListener("click", () => sd.classList.remove("open")); }
-          const mt = document.getElementById("mobileServicesToggle"); const mb = document.getElementById("mobileServicesBlock");
-          if (mt && mb) mt.addEventListener("click", () => mb.classList.toggle("open"));
-        });
-        function changeAvatar(input) { if (input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { const sb = document.getElementById("sidebarAvatar"); if (sb) sb.innerHTML = `<img src="${e.target.result}" alt="Profile">`; const big = document.getElementById("bigAvatar"); if (big) big.innerHTML = `<img src="${e.target.result}" alt="Profile">`; }; r.readAsDataURL(input.files[0]); } }
-        function changePassword() {
-          const np = document.getElementById("newPass").value;
-          const cp = document.getElementById("conPass").value;
-          const cur = document.getElementById("curPass").value;
-          if (!cur) { showToast("⚠️ Enter your current password"); return; }
-          if (np.length < 8) { showToast("⚠️ Password must be at least 8 characters"); return; }
-          if (np !== cp) { showToast("⚠️ Passwords do not match"); return; }
-          showToast("🔑 Password updated successfully!");
-          document.getElementById("curPass").value = ""; document.getElementById("newPass").value = ""; document.getElementById("conPass").value = "";
-        }
     </script>
 </body>
 </html>
