@@ -1,0 +1,311 @@
+﻿@{
+    ViewData["Title"] = "Waffy — Super Admin | Store Analytics";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" />
+</head>
+<body>
+    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
+    <div class="wa-shell" id="waShell">
+
+        <!-- ══ SIDEBAR ══ -->
+        <aside class="wa-sb" id="waSb">
+            <div class="sb-logo">
+                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
+                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard" data-tip="Dashboard">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
+                        <span class="sb-lbl">Dashboard</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Management</div>
+                    <div>
+                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" data-tip="Users" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span>
+                            <span class="sb-lbl">Users</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-users">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Users"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
+                            <span class="sb-lbl">Clinics</span><span class="sb-bdg bd-y">4</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-clinics">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_C"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row open active" id="t-shop" onclick="acc('g-shop','t-shop')" data-tip="Shop" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
+                            <span class="sb-lbl">Shop</span><span class="sb-bdg bd-r">3</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub open" id="g-shop" style="height:auto;">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span><span class="sb-bdg bd-y sb-child-bdg">3</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_S"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span><span class="sb-bdg bd-r sb-child-bdg">6</span></a>
+                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Analytics_S"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" data-tip="Adoption" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                            <span class="sb-lbl">Adoption</span><span class="sb-bdg bd-y">5</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-adopt">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Listings"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span><span class="sb-bdg bd-y sb-child-bdg">5</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span><span class="sb-bdg bd-r sb-child-bdg">3</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Adopted_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_A"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" data-tip="Reports" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
+                            <span class="sb-lbl">Reports</span><span class="sb-bdg bd-y">8</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-rep">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span><span class="sb-bdg bd-y sb-child-bdg">8</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span><span class="sb-bdg bd-g sb-child-bdg">5</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span><span class="sb-bdg bd-r sb-child-bdg">4</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Donations"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Laws_Regulations"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Tools</div>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Map" data-tip="Map"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span><span class="sb-lbl">Map</span></a>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications" data-tip="Notifications"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span><span class="sb-lbl">Notifications</span><span class="sb-bdg bd-r">12</span></a>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row"><div class="sb-av">DC</div><div class="sb-user-info"><div class="sb-user-name">Daniel Carter</div><div class="sb-user-role">Operations Director</div></div></div>
+                <button class="sb-logout" onclick="alert('Sign out')" type="button"><svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg><span class="sb-logout-lbl">Sign Out</span></button>
+            </div>
+        </aside>
+
+        <!-- ══ TOPNAV ══ -->
+        <header class="wa-tn" id="waTn">
+            <button class="tn-toggle" onclick="toggleSb()" type="button"><svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg></button>
+            <nav class="tn-bread"><span>Shop</span><span>/</span><b>Analytics</b></nav>
+            <div class="tn-center"><div class="tn-center-main">Store Analytics</div><div class="tn-center-sub">Super Admin Panel</div></div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <button class="tn-btn" type="button"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg></button>
+                <a class="tn-btn" asp-controller="SuperAdmin" asp-action="Notifications"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg><span class="tn-count">12</span></a>
+                <a class="tn-btn" href="#"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg><span class="tn-dot dot-g"></span></a>
+                <div class="tn-sep"></div>
+                <div class="tn-profile" onclick="alert('Profile')"><div class="tn-av">DC</div><div><div class="tn-pname">Daniel Carter</div><div class="tn-prole">Operations Director</div></div></div>
+            </div>
+        </header>
+
+        <!-- ══ MAIN ══ -->
+        <main class="wa-main" id="waMain">
+            <section class="page-hero">
+                <div>
+                    <h1>Store Analytics</h1>
+                    <p>Platform-wide performance — revenue, orders, top stores, and growth trends.</p>
+                </div>
+                <div class="page-hero-actions">
+                    <select class="sel-wrap" style="height:40px;width:auto;min-width:150px;font-size:.82rem;" id="periodFilter" onchange="updatePeriod(this.value)">
+                        <option value="month">This Month</option>
+                        <option value="quarter">Last 3 Months</option>
+                        <option value="year">This Year</option>
+                    </select>
+                    <button class="btn btn-outline btn-sm" onclick="exportReport()">Export</button>
+                </div>
+            </section>
+
+            <div class="page-body">
+
+                <!-- Revenue Hero Banner -->
+                <div style="background:linear-gradient(135deg,#f0f7e2,#e4f0cc);border:1px solid rgba(139,169,74,.25);border-radius:var(--r-xl);padding:22px;margin-bottom:18px;position:relative;overflow:hidden;box-shadow:var(--shadow);">
+                    <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:rgba(139,169,74,.07);top:-80px;right:-60px;pointer-events:none;"></div>
+                    <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+                        <div>
+                            <div style="font-size:.72rem;color:var(--text-muted);font-weight:900;letter-spacing:.7px;text-transform:uppercase;margin-bottom:6px;">Total Platform Revenue</div>
+                            <div style="font-family:'Fredoka',sans-serif;font-size:2.2rem;font-weight:700;color:var(--brand-dark);" id="totalRevenue">5,060 JD</div>
+                            <div style="font-size:.84rem;color:var(--text-muted);margin-top:6px;" id="revenueBreakdown">Subscriptions: 2,100 JD &nbsp;|&nbsp; Commissions: 2,960 JD</div>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                            <span class="badge badge-success" style="padding:12px 16px;justify-content:center;font-size:.78rem;">35 Active Stores</span>
+                            <span class="badge badge-info" style="padding:12px 16px;justify-content:center;font-size:.78rem;">3 Pending</span>
+                            <span class="badge badge-warning" style="padding:12px 16px;justify-content:center;font-size:.78rem;">18% Monthly Growth</span>
+                            <span class="badge badge-purple" style="padding:12px 16px;justify-content:center;font-size:.78rem;">42 Total Stores</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI -->
+                <div class="kpi-grid kpi-grid-4">
+                    <div class="kpi-card c1"><div class="kpi-ico green">Revenue</div><div class="kpi-val">5,060 JD</div><div class="kpi-label">Platform Revenue</div><div class="kpi-chip chip-green">+18% this month</div></div>
+                    <div class="kpi-card c2"><div class="kpi-ico blue">Orders</div><div class="kpi-val">648</div><div class="kpi-label">Total Orders</div><div class="kpi-chip chip-blue">+12% growth</div></div>
+                    <div class="kpi-card c3"><div class="kpi-ico yellow">Products</div><div class="kpi-val">1,247</div><div class="kpi-label">Active Products</div><div class="kpi-chip chip-yellow">+8% this month</div></div>
+                    <div class="kpi-card c2"><div class="kpi-ico blue">Rating</div><div class="kpi-val">4.2</div><div class="kpi-label">Avg Store Rating</div><div class="kpi-chip chip-blue">Healthy</div></div>
+                </div>
+
+                <!-- Charts Row 1 -->
+                <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px;">
+                    <div class="table-card">
+                        <div class="table-head-bar"><div class="table-head-title">Monthly Revenue Trend</div><div style="display:flex;gap:6px;"><span class="badge badge-success">Subscription</span><span class="badge badge-purple">Commission</span></div></div>
+                        <div style="padding:16px;height:260px;"><canvas id="revenueChart"></canvas></div>
+                    </div>
+                    <div class="table-card">
+                        <div class="table-head-bar"><div class="table-head-title">Store Status</div></div>
+                        <div style="padding:16px;height:260px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                            <canvas id="statusChart" style="max-height:180px;"></canvas>
+                            <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap;justify-content:center;font-size:.73rem;font-weight:800;">
+                                <span style="color:#8ba94a;">Active (35)</span><span style="color:#e2a33a;">Pending (3)</span><span style="color:#d9534f;">Suspended (2)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 2 -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                    <div class="table-card"><div class="table-head-bar"><div class="table-head-title">Monthly Orders</div></div><div style="padding:16px;height:220px;"><canvas id="ordersChart"></canvas></div></div>
+                    <div class="table-card"><div class="table-head-bar"><div class="table-head-title">Payment Model Split</div></div><div style="padding:16px;height:220px;display:flex;align-items:center;justify-content:center;"><canvas id="modelChart" style="max-height:180px;"></canvas></div></div>
+                </div>
+
+                <!-- Top Stores Table -->
+                <div class="table-card" style="margin-bottom:14px;">
+                    <div class="table-head-bar">
+                        <div class="table-head-title">Top Performing Stores</div>
+                        <select class="sel-wrap" style="height:36px;width:auto;min-width:150px;font-size:.78rem;" onchange="sortTopStores(this.value)">
+                            <option value="revenue">By Revenue</option>
+                            <option value="orders">By Orders</option>
+                            <option value="rating">By Rating</option>
+                            <option value="products">By Products</option>
+                        </select>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>#</th><th>Store</th><th>City</th><th>Model</th><th>Products</th><th>Orders</th><th>Revenue</th><th>Rating</th><th>Status</th></tr></thead>
+                            <tbody id="topStoresTBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Charts Row 3 -->
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div class="table-card"><div class="table-head-bar"><div class="table-head-title">Products by Category</div></div><div style="padding:16px;height:220px;display:flex;align-items:center;justify-content:center;"><canvas id="catChart" style="max-height:180px;"></canvas></div></div>
+                    <div class="table-card"><div class="table-head-bar"><div class="table-head-title">Quick Stats</div></div><div style="padding:16px;" id="quickStatsList"></div></div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="~/js/Waffy-Shell.js"></script>
+    <script src="~/js/superAdminClinic.js"></script>
+    <script>
+        const storesData = [
+            {id:1,name:"Pet Friends Store",emoji:"",city:"Amman",model:"Subscription",products:48,orders:186,revenue:1840,rating:4.2,status:"active"},
+            {id:2,name:"BestPet Store",emoji:"",city:"Irbid",model:"Commission",products:32,orders:124,revenue:980,rating:4.7,status:"active"},
+            {id:3,name:"Cat House",emoji:"",city:"Amman",model:"Subscription",products:14,orders:88,revenue:690,rating:4.0,status:"active"},
+            {id:4,name:"Pet Care Pharmacy",emoji:"",city:"Amman",model:"Subscription",products:65,orders:190,revenue:1040,rating:4.5,status:"active"},
+            {id:5,name:"Happy Tails Market",emoji:"",city:"Zarqa",model:"Commission",products:21,orders:60,revenue:510,rating:3.8,status:"suspended"},
+            {id:6,name:"Aqaba Pet World",emoji:"",city:"Aqaba",model:"Subscription",products:17,orders:0,revenue:0,rating:0,status:"pending"},
+        ];
+        let sortKey='revenue';
+        const ch={};
+        const C={brand:'#8ba94a',dark:'#5f7430',danger:'#d9534f',warn:'#e2a33a',info:'#3A86FF',purple:'#8F79C6'};
+
+        function initCharts() {
+            Chart.defaults.font.family="'Nunito',sans-serif";
+            Chart.defaults.font.weight='700';
+            Chart.defaults.color='#7d6d5f';
+            const mk=(id,cfg)=>{ const el=document.getElementById(id); if(!el) return; if(ch[id]) ch[id].destroy(); ch[id]=new Chart(el,cfg); };
+            mk('revenueChart',{type:'line',data:{labels:['Oct','Nov','Dec','Jan','Feb','Mar'],datasets:[{label:'Subscription',data:[1200,1400,1350,1800,2100,2100],borderColor:C.brand,backgroundColor:C.brand+'22',tension:.4,fill:true,pointRadius:4},{label:'Commission',data:[800,900,1100,1400,2500,2960],borderColor:C.purple,backgroundColor:C.purple+'22',tension:.4,fill:true,pointRadius:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>v+' JD'}}}}});
+            mk('statusChart',{type:'doughnut',data:{labels:['Active','Pending','Suspended'],datasets:[{data:[35,3,2],backgroundColor:[C.brand,C.warn,C.danger],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},cutout:'65%'}});
+            mk('ordersChart',{type:'bar',data:{labels:['Oct','Nov','Dec','Jan','Feb','Mar'],datasets:[{label:'Orders',data:[280,310,290,420,510,648],backgroundColor:C.brand+'cc',borderRadius:8}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+            mk('modelChart',{type:'doughnut',data:{labels:['Subscription','Commission'],datasets:[{data:[28,14],backgroundColor:[C.info,C.purple],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'60%',plugins:{legend:{position:'bottom',labels:{boxWidth:12,padding:14}}}}});
+            mk('catChart',{type:'doughnut',data:{labels:['Food','Accessories','Health','Toys','Other'],datasets:[{data:[420,340,280,130,77],backgroundColor:[C.brand,C.dark,C.warn,C.info,C.purple],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,maintainAspectRatio:false,cutout:'55%',plugins:{legend:{position:'bottom',labels:{boxWidth:12,padding:10,font:{size:11}}}}}});
+        }
+
+        function renderTopStores() {
+            const sorted=[...storesData].sort((a,b)=>b[sortKey]-a[sortKey]);
+            const sb=s=>{const m={active:['badge-success','Active'],suspended:['badge-danger','Suspended'],pending:['badge-warning','Pending']};const[cl,lb]=m[s]||['badge-muted',s];return`<span class="badge ${cl}">${lb}</span>`;};
+            document.getElementById('topStoresTBody').innerHTML=sorted.map((s,i)=>`
+                <tr>
+                    <td><div style="width:28px;height:28px;border-radius:8px;background:${i<3?'linear-gradient(135deg,'+C.brand+','+C.dark+')':'var(--surface-2)'};color:${i<3?'#fff':'var(--text-muted)'};display:grid;place-items:center;font-weight:900;font-size:.82rem;">${i+1}</div></td>
+                    <td><div class="cell-title">${s.name}</div></td>
+                    <td style="color:var(--text-muted);">${s.city}</td>
+                    <td>${s.model==='Subscription'?'<span class="badge badge-info" style="font-size:.7rem;">Subscription</span>':'<span class="badge badge-purple" style="font-size:.7rem;">Commission</span>'}</td>
+                    <td>${s.products}</td><td>${s.orders}</td>
+                    <td><strong style="color:${s.revenue>0?'var(--success)':'var(--text-muted)'};">${s.revenue>0?s.revenue.toLocaleString()+' JD':'--'}</strong></td>
+                    <td>${s.rating>0?s.rating.toFixed(1):'--'}</td>
+                    <td>${sb(s.status)}</td>
+                </tr>`).join('');
+        }
+
+        function renderQuickStats() {
+            const stats=[
+                {l:'Best Rating Store',v:'BestPet Store — 4.7',c:'var(--success)'},
+                {l:'Highest Revenue',v:'Pet Friends Store — 1,840 JD',c:'var(--success)'},
+                {l:'Most Products',v:'Pet Care Pharmacy — 65',c:'var(--brand-dark)'},
+                {l:'Avg Revenue / Store',v:Math.round(storesData.reduce((a,s)=>a+s.revenue,0)/storesData.length)+' JD',c:'var(--brand-dark)'},
+                {l:'Subscription Stores',v:'28 stores (67%)',c:C.info},
+                {l:'Commission Stores',v:'14 stores (33%)',c:C.purple},
+                {l:'Pending Approvals',v:'3 stores',c:C.warn},
+                {l:'Open Complaints',v:'3 cases',c:'var(--danger)'},
+            ];
+            document.getElementById('quickStatsList').innerHTML=stats.map(s=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid rgba(221,209,191,.5);"><span style="font-size:.8rem;font-weight:700;color:var(--text-muted);">${s.l}</span><strong style="font-size:.82rem;color:${s.c};">${s.v}</strong></div>`).join('');
+        }
+
+        function sortTopStores(k) { sortKey=k; renderTopStores(); }
+
+        function updatePeriod(v) {
+            const d={month:{r:'5,060 JD',b:'Subscriptions: 2,100 JD | Commissions: 2,960 JD'},quarter:{r:'13,200 JD',b:'Subscriptions: 6,300 JD | Commissions: 6,900 JD'},year:{r:'48,800 JD',b:'Subscriptions: 25,200 JD | Commissions: 23,600 JD'}};
+            document.getElementById('totalRevenue').textContent=d[v].r;
+            document.getElementById('revenueBreakdown').textContent=d[v].b;
+        }
+
+        function exportReport() {
+            const t=document.createElement('div');
+            t.style.cssText='position:fixed;bottom:24px;right:24px;z-index:9999;padding:14px 20px;border-radius:14px;background:var(--success-soft);border:1px solid rgba(47,158,95,.3);color:var(--success);font-weight:800;font-size:.86rem;font-family:Nunito,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.12);';
+            t.textContent='Report exported successfully.';
+            document.body.appendChild(t); setTimeout(()=>t.remove(),3000);
+        }
+
+        function openM(id) { const m=document.getElementById(id); if(m) m.classList.add('open'); }
+        function closeM(id) { const m=document.getElementById(id); if(m) m.classList.remove('open'); }
+
+        document.addEventListener('DOMContentLoaded',()=>{ initCharts(); renderTopStores(); renderQuickStats(); });
+    </script>
+</body>
+</html>

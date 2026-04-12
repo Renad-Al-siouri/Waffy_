@@ -1,0 +1,232 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waffy — Super Admin | Found Pets</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+    <style>
+        .rank-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            font-size: .9rem;
+            font-weight: 900;
+        }
+
+        .rank-1 {
+            background: var(--warning-soft);
+            color: #9b6000;
+        }
+
+        .rank-2 {
+            background: var(--surface-2);
+            color: var(--text-muted);
+        }
+
+        .rank-3 {
+            background: var(--orange-soft);
+            color: var(--orange);
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(221,209,191,.5);
+            font-size: .83rem;
+        }
+
+            .info-row:last-child {
+                border-bottom: none;
+            }
+
+        .info-key {
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .info-val {
+            font-weight: 900;
+            color: var(--brand-dark);
+        }
+    </style>
+</head>
+<body>
+    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
+    <div class="wa-shell" id="waShell">
+        <aside class="wa-sb" id="waSb">
+            <div class="sb-logo"><div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div><div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div></div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat"><a class="sb-row" href="@Url.Action("Dashboard", "SuperAdmin")" data-tip="Dashboard"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span><span class="sb-lbl">Dashboard</span></a></div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Management</div>
+                    <div><button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span><span class="sb-lbl">Users</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-users"><div class="sb-sub-inner"><a class="sb-child" href="@Url.Action("Users", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a></div></div></div>
+                    <div><button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span><span class="sb-lbl">Clinics</span><span class="sb-bdg bd-y">4</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-clinics"><div class="sb-sub-inner"><a class="sb-child" href="@Url.Action("Clinics", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a><a class="sb-child" href="@Url.Action("Reviews_Complaints_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a><a class="sb-child" href="@Url.Action("Analytics_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a></div></div></div>
+                    <div><button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span><span class="sb-lbl">Shop</span><span class="sb-bdg bd-r">3</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-shop"><div class="sb-sub-inner"><a class="sb-child" href="@Url.Action("Stores", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a><a class="sb-child" href="@Url.Action("Reviews_Complaints_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a><a class="sb-child" href="@Url.Action("Analytics_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a></div></div></div>
+                    <div><button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span><span class="sb-lbl">Adoption</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-adopt"><div class="sb-sub-inner"><a class="sb-child" href="@Url.Action("Listings", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span></a><a class="sb-child" href="@Url.Action("Flagged", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span><span class="sb-bdg bd-r sb-child-bdg">3</span></a><a class="sb-child" href="@Url.Action("Adopted_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a><a class="sb-child" href="@Url.Action("Analytics_A", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a></div></div></div>
+                    <div>
+                        <button class="sb-row open active" id="t-rep" onclick="acc('g-rep','t-rep')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span><span class="sb-lbl">Reports</span><span class="sb-bdg bd-y">8</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button>
+                        <div class="sb-sub open" id="g-rep" style="height:auto;">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" href="@Url.Action("Lost_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span><span class="sb-bdg bd-y sb-child-bdg">8</span></a>
+                                <a class="sb-child active" href="@Url.Action("Found_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span><span class="sb-bdg bd-g sb-child-bdg">5</span></a>
+                                <a class="sb-child" href="@Url.Action("Dangerous_Animals", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span><span class="sb-bdg bd-r sb-child-bdg">4</span></a>
+                                <a class="sb-child" href="@Url.Action("Donations", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
+                                <a class="sb-child" href="@Url.Action("Laws_Regulations", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Tools</div>
+                    <a class="sb-row" href="@Url.Action("Map", "SuperAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span><span class="sb-lbl">Map</span></a>
+                    <a class="sb-row" href="@Url.Action("Notifications", "SuperAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span><span class="sb-lbl">Notifications</span><span class="sb-bdg bd-r">12</span></a>
+                </div>
+            </nav>
+            <div class="sb-foot"><div class="sb-user-row"><div class="sb-av">DC</div><div class="sb-user-info"><div class="sb-user-name">Daniel Carter</div><div class="sb-user-role">Operations Director</div></div></div><button class="sb-logout" onclick="alert('Sign out')" type="button"><svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg><span class="sb-logout-lbl">Sign Out</span></button></div>
+        </aside>
+
+        <header class="wa-tn" id="waTn">
+            <button class="tn-toggle" onclick="toggleSb()" type="button"><svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg></button>
+            <nav class="tn-bread"><span>Reports</span><span>/</span><b>Found Pets</b></nav>
+            <div class="tn-center"><div class="tn-center-main">Found Pets</div><div class="tn-center-sub">Super Admin Panel</div></div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <a class="tn-btn" href="@Url.Action("Notifications", "SuperAdmin")"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg><span class="tn-count">9</span></a>
+                <div class="tn-sep"></div>
+                <div class="tn-profile" onclick="alert('Profile')"><div class="tn-av">DC</div><div><div class="tn-pname">Daniel Carter</div><div class="tn-prole">Operations Director</div></div></div>
+            </div>
+        </header>
+
+        <main class="wa-main" id="waMain">
+            <section class="page-hero">
+                <div><h1>&#x2705; Found Pets</h1><p>Pets reported as found. Verify finders, confirm rewards, and close cases.</p></div>
+            </section>
+            <div class="page-body">
+                <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
+                    <div class="kpi-card c1"><div class="kpi-ico green">&#x2705;</div><div class="kpi-val">5</div><div class="kpi-label">Active Found Reports</div></div>
+                    <div class="kpi-card c2"><div class="kpi-ico blue">&#x1F3C6;</div><div class="kpi-val">3</div><div class="kpi-label">Top Finders This Month</div></div>
+                    <div class="kpi-card c3"><div class="kpi-ico yellow">&#x1F39F;&#xFE0F;</div><div class="kpi-val">150 JOD</div><div class="kpi-label">Rewards Issued</div></div>
+                    <div class="kpi-card c3"><div class="kpi-ico yellow">&#x23F3;</div><div class="kpi-val" id="kpiVerifyPending">1</div><div class="kpi-label">Pending Verification</div></div>
+                </div>
+                <div class="table-card" style="margin-bottom:14px;">
+                    <div class="table-head-bar"><div class="table-head-title">&#x1F3C6; Top Finders This Month</div><span class="badge badge-warning">Top 3 receive rewards</span></div>
+                    <div class="table-wrap"><table><thead><tr><th>Rank</th><th>User</th><th>Pets Found</th><th>Reward Issued</th><th>Verification</th><th>Actions</th></tr></thead><tbody id="findersBody"></tbody></table></div>
+                </div>
+                <div class="table-card">
+                    <div class="table-head-bar"><div class="table-head-title">All Found Listings</div><span class="table-count">5 reports</span></div>
+                    <div class="table-wrap"><table><thead><tr><th>Pet</th><th>Found By</th><th>Owner</th><th>City</th><th>Date Found</th><th>Reward</th><th>Status</th><th>Actions</th></tr></thead><tbody id="foundBody"></tbody></table></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="detail-overlay" id="detailModal" onclick="if(event.target===this)closeModal('detailModal')">
+        <div class="detail-panel" style="max-width:620px;">
+            <div class="dp-header"><div class="dp-title" id="dTitle">&#x2705; Found Pet Details</div><button class="dp-close" onclick="closeModal('detailModal')">&#x2715;</button></div>
+            <div class="dp-body" id="dBody"></div>
+            <div class="dp-footer">
+                <button class="btn btn-success btn-sm" id="btnRelease" onclick="releaseReward()">&#x1F389; Confirm + Release Reward</button>
+                <button class="btn btn-danger btn-sm" onclick="cancelReward()">&#x1F6AB; Cancel Reward</button>
+                <button class="btn btn-outline btn-sm" onclick="closeModal('detailModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;padding:11px 22px;border-radius:var(--pill);font-weight:800;font-size:.85rem;z-index:1999;display:none;align-items:center;gap:6px;box-shadow:0 8px 22px rgba(89,101,42,.3);white-space:nowrap;"></div>
+
+    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
+    <script>
+        setPageInfo('Found Pets','Super Admin Panel','Reports','Found Pets');
+        const finders=[
+          {name:'Karim Saeed',found:3,reward:'50 JOD',verified:true},
+          {name:'Reem Al-Ali',found:2,reward:'30 JOD',verified:true},
+          {name:'Firas Mansour',found:1,reward:'20 JOD',verified:false},
+        ];
+        const foundPets=[
+          {id:1,petName:'Rio',emoji:'\u{1F426}',finderName:'Firas Mansour',finderPhone:'077-111-0000',ownerName:'Lama Hussein',ownerPhone:'077-888-9900',city:'Irbid',date:'Mar 8, 2026',reward:0,status:'confirmed',verified:true},
+          {id:2,petName:'Bobby',emoji:'\u{1F415}',finderName:'Karim Saeed',finderPhone:'079-222-3344',ownerName:'Sara Al-Khaldi',ownerPhone:'079-111-2233',city:'Amman',date:'Mar 10, 2026',reward:25,status:'pending_verify',verified:false},
+          {id:3,petName:'Luna',emoji:'\u{1F408}',finderName:'Reem Al-Ali',finderPhone:'078-555-9900',ownerName:'Sara Al-Khaldi',ownerPhone:'079-111-2233',city:'Amman',date:'Mar 9, 2026',reward:20,status:'confirmed',verified:true},
+          {id:4,petName:'Max',emoji:'\u{1F415}',finderName:'Ahmad Saif',finderPhone:'079-444-0011',ownerName:'Karim Saeed',ownerPhone:'079-222-3344',city:'Amman',date:'Mar 7, 2026',reward:50,status:'pending_verify',verified:false},
+          {id:5,petName:'Kiwi',emoji:'\u{1F426}',finderName:'Nour Haddad',finderPhone:'078-321-4455',ownerName:'Rana Haddad',ownerPhone:'078-777-8899',city:'Zarqa',date:'Mar 6, 2026',reward:5,status:'reward_released',verified:true},
+        ];
+        let selectedId=null;
+        const statusBadge=s=>{const m={confirmed:'badge-success',pending_verify:'badge-warning',reward_released:'badge-info',cancelled:'badge-danger'};const l={confirmed:'✅ Confirmed',pending_verify:'⏳ Pending Verify',reward_released:'🎉 Reward Released',cancelled:'❌ Cancelled'};return`<span class="badge ${m[s]||'badge-muted'}">${l[s]||s}</span>`;};
+        function renderFinders(){
+          const medals=['🥇','🥈','🥉'];
+          document.getElementById('findersBody').innerHTML=finders.map((f,i)=>`
+            <tr><td><span class="rank-badge rank-${i+1}">${medals[i]}</span></td>
+            <td><strong style="color:var(--brand-dark);">${f.name}</strong></td>
+            <td><span class="badge badge-info">${f.found} pets</span></td>
+            <td><strong style="color:var(--brand-dark);">${f.reward}</strong></td>
+            <td>${f.verified?'<span class="badge badge-success">✅ Verified</span>':'<span class="badge badge-warning">⏳ Pending</span>'}</td>
+            <td><div class="action-group">${!f.verified?`<button class="btn btn-success btn-xs" onclick="verifyFinder('${f.name}')">✅ Verify</button>`:''}<button class="btn btn-danger btn-xs" onclick="cancelFinder('${f.name}')">🚫 Cancel</button></div></td>
+            </tr>`).join('');
+        }
+        function renderFound(){
+          document.getElementById('foundBody').innerHTML=foundPets.map(p=>`
+            <tr style="cursor:pointer;" onclick="openDetail(${p.id})">
+              <td><div style="display:flex;align-items:center;gap:9px;"><div style="width:38px;height:38px;border-radius:11px;background:var(--brand-xlight);display:grid;place-items:center;font-size:1.1rem;border:1px solid var(--brand-light);">${p.emoji}</div><div class="cell-title">${p.petName}</div></div></td>
+              <td><div style="font-weight:800;">${p.finderName}</div><div class="cell-sub">${p.finderPhone}</div></td>
+              <td style="font-size:.82rem;color:var(--text-muted);">${p.ownerName}</td>
+              <td>${p.city}</td>
+              <td style="font-size:.8rem;color:var(--text-muted);">${p.date}</td>
+              <td style="font-weight:800;color:var(--brand-dark);">${p.reward>0?p.reward+' JOD':'—'}</td>
+              <td>${statusBadge(p.status)}</td>
+              <td><div class="action-group" onclick="event.stopPropagation()">
+                <button class="btn btn-outline btn-xs" onclick="openDetail(${p.id})">👁 View</button>
+                ${p.status==='pending_verify'?`<button class="btn btn-success btn-xs" onclick="quickRelease(${p.id})">🎉 Release</button>`:''}
+              </div></td>
+            </tr>`).join('');
+          document.getElementById('kpiVerifyPending').textContent=foundPets.filter(p=>p.status==='pending_verify').length;
+        }
+        function openDetail(id){
+          const p=foundPets.find(x=>x.id===id);if(!p)return;selectedId=id;
+          document.getElementById('dTitle').textContent=`${p.emoji} ${p.petName} — Found`;
+          document.getElementById('dBody').innerHTML=`
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+              <div class="dp-section" style="margin:0;"><div class="dp-section-title">Finder</div>
+                <div class="info-row"><span class="info-key">Name</span><span class="info-val">${p.finderName}</span></div>
+                <div class="info-row"><span class="info-key">Phone</span><span class="info-val">${p.finderPhone}</span></div>
+                <div class="info-row"><span class="info-key">City</span><span class="info-val">${p.city}</span></div>
+                <div class="info-row"><span class="info-key">Date Found</span><span class="info-val">${p.date}</span></div>
+              </div>
+              <div class="dp-section" style="margin:0;"><div class="dp-section-title">Owner</div>
+                <div class="info-row"><span class="info-key">Name</span><span class="info-val">${p.ownerName}</span></div>
+                <div class="info-row"><span class="info-key">Phone</span><span class="info-val">${p.ownerPhone}</span></div>
+                <div class="info-row"><span class="info-key">Reward</span><span class="info-val">${p.reward>0?p.reward+' JOD':'—'}</span></div>
+                <div class="info-row"><span class="info-key">Status</span><span class="info-val">${statusBadge(p.status)}</span></div>
+              </div>
+            </div>
+            <div class="dp-section"><div class="dp-section-title">Verification</div>
+              <div style="background:${p.verified?'var(--success-soft)':'var(--warning-soft)'};border:1px solid ${p.verified?'rgba(47,158,95,.2)':'rgba(226,163,58,.2)'};border-radius:var(--r);padding:12px 14px;font-size:.84rem;font-weight:800;color:${p.verified?'#2e7d32':'#9b6000'};">
+                ${p.verified?'✅ Both parties verified — phone numbers matched.':'⏳ Waiting for both parties to submit verification data.'}
+              </div>
+            </div>`;
+          document.getElementById('btnRelease').style.display=p.status==='pending_verify'?'inline-flex':'none';
+          openModal('detailModal');
+        }
+        function releaseReward(){const p=foundPets.find(x=>x.id===selectedId);if(!p)return;p.status='reward_released';p.verified=true;closeModal('detailModal');renderFound();showToast(`🎉 Reward released to ${p.finderName}!`);}
+        function quickRelease(id){const p=foundPets.find(x=>x.id===id);if(!p)return;p.status='reward_released';renderFound();showToast(`🎉 Reward released to ${p.finderName}!`);}
+        function cancelReward(){const p=foundPets.find(x=>x.id===selectedId);if(!p)return;p.status='cancelled';closeModal('detailModal');renderFound();showToast('🚫 Reward cancelled.');}
+        function verifyFinder(name){const f=finders.find(x=>x.name===name);if(f){f.verified=true;renderFinders();showToast(`✅ ${name} verified!`);}}
+        function cancelFinder(name){showToast(`🚫 ${name}'s reward cancelled.`);}
+        function openModal(id){document.getElementById(id).classList.add('open');}
+        function closeModal(id){document.getElementById(id).classList.remove('open');}
+        function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='flex';setTimeout(()=>t.style.display='none',3000);}
+        renderFinders();renderFound();
+    </script>
+</body>
+</html>

@@ -1,0 +1,309 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waffy — Super Admin | Flagged Listings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+</head>
+<body>
+
+    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
+    <div class="wa-shell" id="waShell">
+
+        <!-- ═══ SIDEBAR ═══ -->
+        <aside class="wa-sb" id="waSb">
+            <div class="sb-logo"><div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy Logo" class="sb-logo-img"></div><div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div></div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" href="@Url.Action("Dashboard", "SuperAdmin")" data-tip="Dashboard"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span><span class="sb-lbl">Dashboard</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Management</div>
+                    <div>
+                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" data-tip="Users" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span>
+                            <span class="sb-lbl">Users</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-users">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" href="@Url.Action("Users", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
+                            <span class="sb-lbl">Clinics</span><span class="sb-bdg bd-y">4</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-clinics">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" href="@Url.Action("Clinics", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
+                                <a class="sb-child" href="@Url.Action("Reviews_Complaints_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews & Complaints</span></a>
+                                <a class="sb-child" href="@Url.Action("Analytics_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" data-tip="Shop" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
+                            <span class="sb-lbl">Shop</span><span class="sb-bdg bd-r">3</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-shop">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" href="@Url.Action("Stores", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span><span class="sb-bdg bd-y sb-child-bdg">3</span></a>
+                                <a class="sb-child" href="@Url.Action("Reviews_Complaints_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews & Complaints</span><span class="sb-bdg bd-r sb-child-bdg">6</span></a>
+                                <a class="sb-child" href="@Url.Action("Analytics_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row open active" id="t-adopt" onclick="acc('g-adopt','t-adopt')" data-tip="Adoption" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                            <span class="sb-lbl">Adoption</span><span class="sb-bdg bd-y">5</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub open" id="g-adopt" style="height:auto;">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" href="@Url.Action("Listings", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span><span class="sb-bdg bd-y sb-child-bdg">5</span></a>
+                                <a class="sb-child active" href="@Url.Action("Flagged", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span><span class="sb-bdg bd-r sb-child-bdg">3</span></a>
+                                <a class="sb-child" href="@Url.Action("Adopted_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
+                                <a class="sb-child" href="@Url.Action("Analytics_A", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" data-tip="Reports" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
+                            <span class="sb-lbl">Reports</span><span class="sb-bdg bd-y">8</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-rep">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" href="@Url.Action("Lost_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span><span class="sb-bdg bd-y sb-child-bdg">8</span></a>
+                                <a class="sb-child" href="@Url.Action("Found_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span><span class="sb-bdg bd-g sb-child-bdg">5</span></a>
+                                <a class="sb-child" href="@Url.Action("Dangerous_Animals", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span><span class="sb-bdg bd-r sb-child-bdg">4</span></a>
+                                <a class="sb-child" href="@Url.Action("Donations", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
+                                <a class="sb-child" href="@Url.Action("Laws_Regulations", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Laws & Regulations</span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Tools</div>
+                    <a class="sb-row" href="@Url.Action("Map", "SuperAdmin")" data-tip="Map"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span><span class="sb-lbl">Map</span></a>
+                    <a class="sb-row" href="@Url.Action("Notifications", "SuperAdmin")" data-tip="Notifications"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span><span class="sb-lbl">Notifications</span><span class="sb-bdg bd-r">12</span></a>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row"><div class="sb-av">DC</div><div class="sb-user-info"><div class="sb-user-name">Daniel Carter</div><div class="sb-user-role">Operations Director</div></div></div>
+                <button class="sb-logout" onclick="alert('Sign out')" type="button"><svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg><span class="sb-logout-lbl">Sign Out</span></button>
+            </div>
+        </aside>
+
+        <!-- TOPNAV -->
+        <header class="wa-tn" id="waTn">
+            <button class="tn-toggle" onclick="toggleSb()" type="button"><svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg></button>
+            <nav class="tn-bread"><span>Adoption</span><span>/</span><b>Flagged Listings</b></nav>
+            <div class="tn-center"><div class="tn-center-main">Flagged Listings</div><div class="tn-center-sub">Super Admin Panel</div></div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <a class="tn-btn" href="@Url.Action("Notifications", "SuperAdmin")"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg><span class="tn-count">12</span></a>
+                <div class="tn-sep"></div>
+                <div class="tn-profile" onclick="alert('Profile')"><div class="tn-av">DC</div><div><div class="tn-pname">Daniel Carter</div><div class="tn-prole">Operations Director</div></div></div>
+            </div>
+        </header>
+
+        <!-- MAIN -->
+        <main class="wa-main" id="waMain">
+            <section class="page-hero">
+                <div>
+                    <h1>🚩 Flagged Listings</h1>
+                    <p>Listings reported by users as suspicious or violating platform policies.</p>
+                </div>
+            </section>
+
+            <div class="page-body">
+                <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
+                    <div class="kpi-card c4"><div class="kpi-ico red">🚩</div><div class="kpi-val" id="kpiFlagged">3</div><div class="kpi-label">Flagged Listings</div><div class="kpi-chip chip-red">Needs review</div></div>
+                    <div class="kpi-card c3"><div class="kpi-ico yellow">⏳</div><div class="kpi-val">2</div><div class="kpi-label">Selling Reports</div></div>
+                    <div class="kpi-card c2"><div class="kpi-ico blue">👁</div><div class="kpi-val">1</div><div class="kpi-label">Misleading Info</div></div>
+                    <div class="kpi-card c1"><div class="kpi-ico green">✅</div><div class="kpi-val">12</div><div class="kpi-label">Resolved This Month</div></div>
+                </div>
+
+                <!-- Filter -->
+                <div class="toolbar" style="grid-template-columns:1fr auto auto;margin-bottom:14px;">
+                    <div class="search-wrap"><span style="color:var(--text-muted);font-size:1rem;flex-shrink:0;">🔍</span><input id="searchInput" placeholder="Search flagged listings..." oninput="renderFlagged()" /></div>
+                    <select class="sel-wrap" id="reasonFilter" onchange="renderFlagged()" style="height:48px;width:auto;min-width:200px;">
+                        <option value="">All Reasons</option>
+                        <option value="sale">Selling instead of adoption</option>
+                        <option value="misleading">Misleading information</option>
+                        <option value="abusive">Abusive content</option>
+                    </select>
+                    <button class="btn btn-outline btn-sm" onclick="resetFilters()">Reset</button>
+                </div>
+
+                <div class="table-card">
+                    <div class="table-head-bar"><div class="table-head-title">🚩 Flagged Listings</div><span class="table-count" id="flagCount">3 listings</span></div>
+                    <div class="table-wrap">
+                        <table id="flagTable">
+                            <thead><tr><th>Pet</th><th>Type</th><th>Reported By</th><th>Created By</th><th>City</th><th>Reports</th><th>Reason</th><th>Date</th><th>Actions</th></tr></thead>
+                            <tbody id="flagBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- FLAG REVIEW MODAL -->
+    <div class="modal-overlay" id="flagModal" onclick="if(event.target===this)closeModal('flagModal')">
+        <div class="modal-box" style="max-width:500px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:0 24px 60px rgba(38,31,23,.25);overflow:hidden;">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.5);">
+                <div style="font-family:'Fredoka',sans-serif;font-size:1.1rem;font-weight:700;color:var(--brand-dark);">🚩 Review Flag Report</div>
+                <button class="dp-close" onclick="closeModal('flagModal')">✕</button>
+            </div>
+            <div style="padding:20px;">
+                <div id="flagWarnBox" style="background:var(--danger-soft);border:1px solid rgba(217,83,79,.2);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;font-size:.83rem;font-weight:800;color:var(--danger);">⚠️ Reported content</div>
+                <div id="flagPreview" style="background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;"></div>
+                <div class="field" style="margin-bottom:12px;">
+                    <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Decision</label>
+                    <select id="flagDecision" style="width:100%;min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;">
+                        <option value="safe">✅ Close report (listing is valid)</option>
+                        <option value="warn">⚠️ Warn creator</option>
+                        <option value="hide">👁 Hide listing temporarily</option>
+                        <option value="delete">🗑 Delete listing</option>
+                        <option value="suspend">🔒 Suspend creator account</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Admin Note</label>
+                    <textarea id="flagNote" style="width:100%;min-height:90px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:12px 14px;font-weight:700;font-size:.86rem;outline:none;font-family:'Nunito',sans-serif;resize:vertical;" placeholder="Write admin notes..."></textarea>
+                </div>
+            </div>
+            <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;background:rgba(255,255,255,.5);">
+                <button class="btn btn-success" onclick="applyFlagDecision()">✓ Apply Decision</button>
+                <button class="btn btn-outline" onclick="closeModal('flagModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;padding:11px 22px;border-radius:var(--pill);font-weight:800;font-size:.85rem;z-index:1999;display:none;align-items:center;gap:6px;box-shadow:0 8px 22px rgba(89,101,42,.3);white-space:nowrap;"></div>
+
+    <script src="~/js/superAdminClinic.js" asp-append-version="true"></script>
+    <script src="~/js/superAdminAdoption.js" asp-append-version="true"></script>
+    <script>
+        setPageInfo('Flagged Listings', 'Super Admin Panel', 'Adoption', 'Flagged');
+
+        function petEmoji(t) { return t==='cat'?'🐈':t==='dog'?'🐕':t==='bird'?'🐦':'🐾'; }
+
+        function renderFlagged() {
+          const q      = (document.getElementById('searchInput')?.value || '').toLowerCase();
+          const reason = document.getElementById('reasonFilter')?.value || '';
+          const flagged = state.listings.filter(l => {
+            if (l.flaggedCount <= 0) return false;
+            const mQ = !q || l.name.toLowerCase().includes(q) || l.owner.toLowerCase().includes(q) || l.flagReason.toLowerCase().includes(q);
+            const mR = !reason || l.flagReason.toLowerCase().includes(reason);
+            return mQ && mR;
+          });
+
+          const tbody = document.getElementById('flagBody');
+          if (!flagged.length) {
+            tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:28px;color:var(--text-muted);">No flagged listings found 🎉</td></tr>`;
+            document.getElementById('kpiFlagged').textContent = 0;
+            document.getElementById('flagCount').textContent  = '0 listings';
+            return;
+          }
+
+          tbody.innerHTML = flagged.map(l => `
+            <tr style="background:#fffcf3;cursor:pointer;" onclick="openFlagModal(${l.id})">
+              <td><div style="display:flex;align-items:center;gap:9px;">
+                <div style="width:38px;height:38px;border-radius:11px;background:var(--brand-xlight);display:grid;place-items:center;font-size:1.1rem;border:1px solid var(--brand-light);flex-shrink:0;">${petEmoji(l.animalType)}</div>
+                <div class="cell-title">${l.name}</div>
+              </div></td>
+              <td>${l.animalLabel}</td>
+              <td style="font-size:.78rem;color:var(--text-muted);">${l.flaggedCount} user(s)</td>
+              <td style="font-size:.78rem;color:var(--text-muted);">${l.owner}</td>
+              <td>${l.city}</td>
+              <td><span style="background:var(--danger-soft);color:var(--danger);font-size:.72rem;font-weight:900;padding:4px 9px;border-radius:999px;">🚩 ${l.flaggedCount}</span></td>
+              <td><span class="badge badge-warning">${l.flagReason || 'Reported'}</span></td>
+              <td style="font-size:.78rem;color:var(--text-muted);">${l.date}</td>
+              <td><div class="action-group" onclick="event.stopPropagation()">
+                <button class="btn btn-success btn-xs" onclick="markSafe(${l.id})">✓ Safe</button>
+                <button class="btn btn-warning btn-xs" onclick="openFlagModal(${l.id})">🔍 Review</button>
+                <button class="btn btn-danger btn-xs" onclick="deleteListing(${l.id})">🗑 Delete</button>
+              </div></td>
+            </tr>`).join('');
+          document.getElementById('kpiFlagged').textContent = flagged.length;
+          document.getElementById('flagCount').textContent  = flagged.length + ' listings';
+        }
+
+        function resetFilters() {
+          document.getElementById('searchInput').value = '';
+          document.getElementById('reasonFilter').selectedIndex = 0;
+          renderFlagged();
+        }
+
+        function openFlagModal(id) {
+          const l = state.listings.find(x => x.id === id);
+          if (!l) return;
+          state.selectedListingId = id;
+          document.getElementById('flagWarnBox').innerHTML = `⚠️ Reported by <strong>${l.flaggedCount}</strong> user(s) for: <strong>${l.flagReason || 'Reported content'}</strong>`;
+          document.getElementById('flagPreview').innerHTML = `<div style="font-weight:900;font-size:.9rem;color:var(--brand-dark);">${petEmoji(l.animalType)} ${l.name} — ${l.animalLabel}</div><div style="font-size:.78rem;color:var(--text-muted);margin-top:4px;">${l.owner} — ${l.city} — ${l.date}</div>`;
+          document.getElementById('flagNote').value = '';
+          openModal('flagModal');
+        }
+
+        function applyFlagDecision() {
+          const decision = document.getElementById('flagDecision').value;
+          const l = state.listings.find(x => x.id === state.selectedListingId);
+          if (!l) return;
+          if (decision === 'safe')    { markSafe(l.id); return; }
+          if (decision === 'warn')    { showToast(`⚠️ Warning sent to ${l.owner}.`); }
+          if (decision === 'hide')    { l.adStatus = 'pending'; l.flaggedCount = 0; l.flagReason = ''; showToast('👁 Listing hidden temporarily.'); }
+          if (decision === 'delete')  { deleteListing(l.id); return; }
+          if (decision === 'suspend') { showToast(`🔒 Account action recorded for ${l.owner}.`); }
+          closeModal('flagModal');
+          renderFlagged();
+        }
+
+        function markSafe(id) {
+          const l = state.listings.find(x => x.id === id);
+          if (!l) return;
+          l.flaggedCount = 0; l.flagReason = '';
+          closeModal('flagModal');
+          renderFlagged();
+          showToast('✅ Report closed — listing marked safe.');
+        }
+
+        function deleteListing(id) {
+          const l = state.listings.find(x => x.id === id);
+          if (!l || !confirm(`Delete listing for ${l.name}?`)) return;
+          state.listings = state.listings.filter(x => x.id !== id);
+          closeModal('flagModal');
+          renderFlagged();
+          showToast('🗑 Listing deleted.');
+        }
+
+        function openModal(id)  { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        function showToast(msg) {
+          const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'flex';
+          setTimeout(() => t.style.display = 'none', 3000);
+        }
+
+        renderFlagged();
+    </script>
+</body>
+</html>

@@ -1,0 +1,1291 @@
+﻿@{
+    ViewData["Title"] = "Waffy — Super Admin | User Details";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+    
+    <style>
+        @@keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .detail-hero {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow);
+            padding: 22px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .dh-avatar {
+            width: 84px;
+            height: 84px;
+            border-radius: 22px;
+            font-size: 2.2rem;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .dh-online {
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            width: 17px;
+            height: 17px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            background: var(--success);
+        }
+
+        .dh-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .dh-name {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+        }
+
+        .dh-meta {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            font-size: .83rem;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .dh-tags {
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .dh-tag {
+            padding: 5px 12px;
+            border-radius: var(--pill);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            font-size: .76rem;
+            font-weight: 800;
+            color: var(--brand-dark);
+        }
+
+        .trust-box {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 16px 22px;
+            text-align: center;
+            min-width: 130px;
+            box-shadow: var(--shadow);
+            flex-shrink: 0;
+        }
+
+        .trust-val {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .trust-label {
+            font-size: .75rem;
+            color: var(--text-muted);
+            font-weight: 800;
+            margin-top: 4px;
+        }
+
+        .alert-box {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: #FFF9EE;
+            border: 1.5px solid #E8D9A0;
+            border-radius: var(--r);
+            padding: 14px 18px;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow);
+        }
+
+            .alert-box.show {
+                display: flex;
+                animation: fadeUp .22s ease;
+            }
+
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow);
+        }
+
+        .mini-stats {
+            display: grid;
+            grid-template-columns: repeat(6,1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .mini-stat {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 14px;
+            text-align: center;
+            box-shadow: var(--shadow);
+            transition: .18s;
+        }
+
+            .mini-stat:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 22px rgba(78,58,39,.1);
+            }
+
+        .mini-val {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.45rem;
+            color: var(--brand-dark);
+            font-weight: 700;
+        }
+
+        .mini-label {
+            font-size: .73rem;
+            color: var(--text-muted);
+            font-weight: 800;
+            margin-top: 5px;
+        }
+
+        .tabs-row {
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            margin-bottom: 14px;
+            padding-bottom: 2px;
+        }
+
+            .tabs-row::-webkit-scrollbar {
+                display: none;
+            }
+
+        .inner-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .inner-card-head {
+            padding: 13px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .inner-card-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: .97rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+        }
+
+        .inner-card-body {
+            padding: 16px 18px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .pet-row, .coupon-row, .report-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(221,209,191,.55);
+            flex-wrap: wrap;
+        }
+
+            .pet-row:last-child, .coupon-row:last-child, .report-row:last-child {
+                border-bottom: none;
+            }
+
+        .row-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .row-grow {
+            flex: 1;
+            min-width: 140px;
+        }
+
+        .row-title {
+            font-weight: 900;
+            color: var(--brand-dark);
+            font-size: .88rem;
+        }
+
+        .row-sub {
+            font-size: .74rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        .info-list {
+            display: grid;
+        }
+
+        .info-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(221,209,191,.55);
+            font-size: .84rem;
+        }
+
+            .info-line:last-child {
+                border-bottom: none;
+            }
+
+        .info-key {
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .info-val {
+            font-weight: 900;
+            color: var(--brand-dark);
+            text-align: right;
+        }
+
+        .tl-wrap {
+            position: relative;
+            padding-left: 20px;
+        }
+
+            .tl-wrap::before {
+                content: "";
+                position: absolute;
+                left: 7px;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                background: var(--border);
+            }
+
+        .tl-row {
+            position: relative;
+            padding: 10px 0 10px 12px;
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+        }
+
+        .tl-dot {
+            position: absolute;
+            left: -5px;
+            top: 18px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            flex-shrink: 0;
+        }
+
+        .compose-field {
+            display: grid;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .compose-label {
+            font-size: .8rem;
+            font-weight: 900;
+            color: var(--brand-dark);
+        }
+
+        .compose-input, .compose-select, .compose-textarea {
+            width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            background: #FAFAF8;
+            color: var(--text);
+            font-size: .86rem;
+            font-weight: 700;
+            font-family: 'Nunito',sans-serif;
+            outline: none;
+            transition: .18s;
+        }
+
+        .compose-input {
+            height: 44px;
+            padding: 0 14px;
+        }
+
+        .compose-select {
+            height: 44px;
+            padding: 0 14px;
+            cursor: pointer;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .compose-textarea {
+            padding: 12px 14px;
+            min-height: 120px;
+            resize: vertical;
+        }
+
+            .compose-input:focus, .compose-select:focus, .compose-textarea:focus {
+                border-color: var(--brand);
+                box-shadow: 0 0 0 3px rgba(151,173,77,.12);
+            }
+
+        .type-toggle {
+            display: flex;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .type-toggle-btn {
+            flex: 1;
+            padding: 10px 8px;
+            border: none;
+            background: #fff;
+            font-size: .77rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: .18s;
+            border-right: 1px solid var(--border);
+            text-align: center;
+            font-family: 'Nunito',sans-serif;
+        }
+
+            .type-toggle-btn:last-child {
+                border-right: none;
+            }
+
+            .type-toggle-btn.active {
+                background: linear-gradient(135deg,var(--brand),var(--brand-dark));
+                color: #fff;
+            }
+
+        .priority-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .priority-btn {
+            flex: 1;
+            min-width: 72px;
+            padding: 10px 8px;
+            border-radius: 12px;
+            border: 2px solid var(--border);
+            background: #fff;
+            font-size: .78rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: .18s;
+            text-align: center;
+            font-family: 'Nunito',sans-serif;
+        }
+
+            .priority-btn:hover {
+                transform: translateY(-1px);
+            }
+
+            .priority-btn.p-low.sel {
+                border-color: var(--success);
+                background: var(--success-soft);
+                color: #2e7d32;
+            }
+
+            .priority-btn.p-normal.sel {
+                border-color: var(--info);
+                background: var(--info-soft);
+                color: #1565c0;
+            }
+
+            .priority-btn.p-high.sel {
+                border-color: var(--warning);
+                background: var(--warning-soft);
+                color: #9b6000;
+            }
+
+            .priority-btn.p-urgent.sel {
+                border-color: var(--danger);
+                background: var(--danger-soft);
+                color: var(--danger);
+            }
+
+        .msg-history-item {
+            display: flex;
+            gap: 12px;
+            padding: 14px;
+            border-bottom: 1px solid rgba(221,209,191,.55);
+            transition: .15s;
+        }
+
+            .msg-history-item:last-child {
+                border-bottom: none;
+            }
+
+            .msg-history-item:hover {
+                background: #FAFAF8;
+            }
+
+        .msg-hdot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 5px;
+        }
+
+        .fraud-ok {
+            background: var(--success-soft);
+            border: 1px solid rgba(47,158,95,.2);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+        }
+
+        .fraud-warn {
+            background: var(--danger-soft);
+            border: 1px solid rgba(217,83,79,.2);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 12px;
+        }
+
+        @@media(max-width:900px) {
+            .mini-stats {
+                grid-template-columns: repeat(3,1fr);
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media(max-width:600px) {
+            .mini-stats {
+                grid-template-columns: repeat(2,1fr);
+            }
+
+            .detail-hero {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .dh-meta {
+                justify-content: center;
+            }
+
+            .dh-tags {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
+    <div class="wa-shell" id="waShell">
+
+        <!-- SIDEBAR -->
+        <aside class="wa-sb" id="waSb">
+            <div class="sb-logo">
+                <div class="sb-mark">
+                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img">
+                </div>
+                <div class="sb-wordmark">
+                    <div class="sb-wm-name">Waffy</div>
+                    <div class="sb-wm-tag">Super Admin</div>
+                </div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard" data-tip="Dashboard">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
+                        <span class="sb-lbl">Dashboard</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Management</div>
+                    <div>
+                        <button class="sb-row open active" id="t-users" onclick="acc('g-users','t-users')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
+                            <span class="sb-lbl">Users</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub open" id="g-users" style="height:auto;">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Users">
+                                    <span class="sb-dot"></span><span class="sb-child-lbl">All Users</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
+                            <span class="sb-lbl">Clinics</span><span class="sb-bdg bd-y">4</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-clinics">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_C"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
+                            <span class="sb-lbl">Shop</span><span class="sb-bdg bd-r">3</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-shop">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_S"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_S"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" data-tip="Adoption" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                            <span class="sb-lbl">Adoption</span><span class="sb-bdg bd-y">5</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-adopt">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Listings"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span><span class="sb-bdg bd-y sb-child-bdg">5</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span><span class="sb-bdg bd-r sb-child-bdg">3</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Adopted_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_A"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" data-tip="Reports" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
+                            <span class="sb-lbl">Reports</span><span class="sb-bdg bd-y">8</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-rep">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span><span class="sb-bdg bd-y sb-child-bdg">8</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span><span class="sb-bdg bd-g sb-child-bdg">5</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span><span class="sb-bdg bd-r sb-child-bdg">4</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Donations"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Laws_Regulations"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Tools</div>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Map">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span>
+                        <span class="sb-lbl">Map</span>
+                    </a>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
+                        <span class="sb-lbl">Notifications</span><span class="sb-bdg bd-r">12</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row">
+                    <div class="sb-av">DC</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">Daniel Carter</div>
+                        <div class="sb-user-role">Operations Director</div>
+                    </div>
+                </div>
+                <button class="sb-logout" onclick="alert('Sign out')" type="button">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                    <span class="sb-logout-lbl">Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- TOPNAV -->
+        <header class="wa-tn" id="waTn">
+            <button class="tn-toggle" onclick="toggleSb()" type="button">
+                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+            </button>
+            <nav class="tn-bread">
+                <span>Management</span><span>/</span>
+                <a asp-controller="SuperAdmin" asp-action="Users" style="color:var(--text-muted);font-weight:800;">Users</a>
+                <span>/</span><b id="tnUserName">Profile</b>
+            </nav>
+            <div class="tn-center">
+                <div class="tn-center-main" id="tnTitle">User Profile</div>
+                <div class="tn-center-sub">360° View</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <button class="tn-btn" type="button">
+                    <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                </button>
+                <a class="tn-btn" asp-controller="SuperAdmin" asp-action="Notifications">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+                    <span class="tn-count">12</span>
+                </a>
+                <a class="tn-btn" href="#">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                    <span class="tn-dot dot-g"></span>
+                </a>
+                <div class="tn-sep"></div>
+                <div class="tn-profile" onclick="alert('Profile')">
+                    <div class="tn-av">DC</div>
+                    <div>
+                        <div class="tn-pname">Daniel Carter</div>
+                        <div class="tn-prole">Operations Director</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN -->
+        <main class="wa-main" id="waMain">
+            <section class="page-hero">
+                <div>
+                    <h1>User 360° Profile</h1>
+                    <p id="heroDesc">Full view — pets, appointments, reports, rewards, activity and communication.</p>
+                </div>
+                <div class="page-hero-actions">
+                    <a asp-controller="SuperAdmin" asp-action="Users" class="btn btn-outline btn-sm">← Back to Users</a>
+                    <button class="btn btn-primary btn-sm" onclick="openM('editUserModal')">✏️ Edit User</button>
+                </div>
+            </section>
+
+            <div class="page-body">
+
+                <!-- Risk Alert -->
+                <div class="alert-box" id="riskAlert">
+                    <div>
+                        <div style="font-weight:900;color:#9b6000;">⚠️ High Risk User Alert</div>
+                        <div style="font-size:.8rem;color:#8b7751;font-weight:700;margin-top:2px;">Suspicious pattern: repeated lost pet reports and reward coupons in a short time.</div>
+                    </div>
+                    <div style="display:flex;gap:8px;">
+                        <button class="btn btn-warning btn-sm">🔍 Investigate</button>
+                        <button class="btn btn-danger btn-sm" onclick="quickAction('suspend')">🔒 Suspend</button>
+                    </div>
+                </div>
+
+                <!-- Detail Hero -->
+                <div class="detail-hero">
+                    <div class="dh-avatar" id="heroAvatar">👤<div class="dh-online" id="heroOnline"></div></div>
+                    <div class="dh-info">
+                        <div class="dh-name" id="heroName">—</div>
+                        <div class="dh-meta" id="heroMeta"></div>
+                        <div class="dh-tags" id="heroTags"></div>
+                    </div>
+                    <div class="trust-box">
+                        <div class="trust-val" id="trustVal">—</div>
+                        <div class="trust-label">Trust Score</div>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <button class="btn btn-warning btn-sm" onclick="quickAction('warn')">⚠️ Warning</button>
+                    <button class="btn btn-danger btn-sm" onclick="quickAction('suspend')">🔒 Suspend</button>
+                    <button class="btn btn-outline btn-sm" onclick="quickAction('reset')">🔑 Reset Password</button>
+                    <button class="btn btn-outline btn-sm" onclick="quickAction('restrict')">🚫 Restrict Reports</button>
+                    <button class="btn btn-outline btn-sm" onclick="quickAction('cancelRewards')">🎟️ Cancel Rewards</button>
+                    <button class="btn btn-danger btn-sm" onclick="quickAction('delete')">🗑️ Delete</button>
+                </div>
+
+                <!-- Mini Stats -->
+                <div class="mini-stats">
+                    <div class="mini-stat"><div class="mini-val" id="mPets">—</div><div class="mini-label">🐾 Pets</div></div>
+                    <div class="mini-stat"><div class="mini-val" id="mAppts">—</div><div class="mini-label">📅 Appointments</div></div>
+                    <div class="mini-stat"><div class="mini-val" id="mOrders">—</div><div class="mini-label">🛍️ Orders</div></div>
+                    <div class="mini-stat"><div class="mini-val" id="mReports">—</div><div class="mini-label">🔍 Lost Reports</div></div>
+                    <div class="mini-stat"><div class="mini-val" id="mCoupons">—</div><div class="mini-label">🎟️ Coupons</div></div>
+                    <div class="mini-stat"><div class="mini-val" id="mAdoption">—</div><div class="mini-label">🏠 Adoptions</div></div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs-row">
+                    <button class="tab-btn active" onclick="showTab('pets',this)">🐾 Pets</button>
+                    <button class="tab-btn" onclick="showTab('lost',this)">🔍 Lost</button>
+                    <button class="tab-btn" onclick="showTab('adoption',this)">🏠 Adoption</button>
+                    <button class="tab-btn" onclick="showTab('rewards',this)">🎟️ Rewards</button>
+                    <button class="tab-btn" onclick="showTab('orders',this)">🛍️ Orders</button>
+                    <button class="tab-btn" onclick="showTab('appointments',this)">📅 Appointments</button>
+                    <button class="tab-btn" onclick="showTab('timeline',this)">⏱️ Timeline</button>
+                    <button class="tab-btn" onclick="showTab('complaints',this)">🚨 Complaints</button>
+                    <button class="tab-btn" onclick="showTab('fraud',this)">🕵️ Fraud</button>
+                    <button class="tab-btn" onclick="showTab('contact',this)">✉️ Contact</button>
+                </div>
+
+                <!-- TAB: PETS -->
+                <div class="tab-pane active" id="tab-pets">
+                    <div class="inner-card">
+                        <div class="inner-card-head">
+                            <div class="inner-card-title">Connected Pets</div>
+                            <button class="btn btn-primary btn-sm" onclick="openM('addPetModal')">+ Add Pet</button>
+                        </div>
+                        <div class="inner-card-body" id="petsList">
+                            <div class="pet-row"><div class="row-icon">🐕</div><div class="row-grow"><div class="row-title">Max</div><div class="row-sub">Labrador · 3 yrs · Male</div></div><span style="font-size:.78rem;color:var(--text-muted);font-weight:700;">Vaccine: Mar 2025</span><span class="badge badge-success">Normal</span><div style="display:flex;gap:5px;"><button class="btn btn-outline btn-xs">Edit</button><button class="btn btn-outline btn-xs">Record</button><button class="btn btn-danger btn-xs">Delete</button></div></div>
+                            <div class="pet-row"><div class="row-icon">🐈</div><div class="row-grow"><div class="row-title">Luna</div><div class="row-sub">Persian · 1 yr · Female</div></div><span style="font-size:.78rem;color:var(--text-muted);font-weight:700;">Vaccine: Jan 2025</span><span class="badge badge-danger">Lost</span><div style="display:flex;gap:5px;"><button class="btn btn-outline btn-xs">Edit</button><button class="btn btn-success btn-xs">Found</button><button class="btn btn-danger btn-xs">Delete</button></div></div>
+                            <div class="pet-row"><div class="row-icon">🐇</div><div class="row-grow"><div class="row-title">Bebo</div><div class="row-sub">Rabbit · 8 mo · Female</div></div><span style="font-size:.78rem;color:var(--text-muted);font-weight:700;">No vaccine recorded</span><span class="badge badge-info">For Adoption</span><div style="display:flex;gap:5px;"><button class="btn btn-outline btn-xs">Edit</button><button class="btn btn-outline btn-xs">Feature</button><button class="btn btn-danger btn-xs">Delete</button></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: LOST -->
+                <div class="tab-pane" id="tab-lost">
+                    <div class="grid-2">
+                        <div class="inner-card">
+                            <div class="inner-card-head"><div class="inner-card-title">Lost Reports</div><span class="badge badge-warning">1 Active</span></div>
+                            <div class="inner-card-body">
+                                <div class="report-row"><div class="row-icon">🐈</div><div class="row-grow"><div class="row-title">Luna — Missing Persian</div><div class="row-sub">Al Jubaiha · 12 Feb 2025</div></div><span class="badge badge-danger">Not Found</span><button class="btn btn-outline btn-xs">View</button></div>
+                            </div>
+                        </div>
+                        <div class="inner-card">
+                            <div class="inner-card-head"><div class="inner-card-title">Statistics</div></div>
+                            <div class="inner-card-body">
+                                <div class="info-list">
+                                    <div class="info-line"><span class="info-key">Total Reports</span><span class="info-val">1</span></div>
+                                    <div class="info-line"><span class="info-key">Pets Found</span><span class="info-val" style="color:var(--success);">0</span></div>
+                                    <div class="info-line"><span class="info-key">Coupons Earned</span><span class="info-val">0</span></div>
+                                    <div class="info-line"><span class="info-key">Suspicion Level</span><span class="info-val"><span class="badge badge-success">Normal</span></span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: ADOPTION -->
+                <div class="tab-pane" id="tab-adoption">
+                    <div class="inner-card">
+                        <div class="inner-card-head"><div class="inner-card-title">Adoption Listings</div><span class="badge badge-info">1 Active</span></div>
+                        <div class="inner-card-body">
+                            <div class="pet-row"><div class="row-icon">🐇</div><div class="row-grow"><div class="row-title">Bebo — White Rabbit</div><div class="row-sub">Published 20 Mar 2025 · 3 requests</div></div><div style="display:flex;gap:5px;"><button class="btn btn-success btn-xs">Approve</button><button class="btn btn-outline btn-xs">Feature</button><button class="btn btn-danger btn-xs">Remove</button></div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: REWARDS -->
+                <div class="tab-pane" id="tab-rewards">
+                    <div class="grid-2">
+                        <div class="inner-card">
+                            <div class="inner-card-head"><div class="inner-card-title">Badges</div></div>
+                            <div class="inner-card-body">
+                                <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px;">
+                                    <span style="padding:6px 12px;border-radius:var(--pill);background:var(--surface-2);border:1px solid var(--border);font-size:.76rem;font-weight:800;color:var(--brand-dark);">🌟 Pet Helper</span>
+                                    <span style="padding:6px 12px;border-radius:var(--pill);background:var(--surface-2);border:1px solid var(--border);font-size:.76rem;font-weight:800;color:var(--brand-dark);">🦁 Guardian</span>
+                                    <span style="padding:6px 12px;border-radius:var(--pill);background:var(--surface-2);border:1px solid var(--border);font-size:.76rem;font-weight:800;color:var(--brand-dark);">🔍 Finder</span>
+                                </div>
+                                <div class="info-list">
+                                    <div class="info-line"><span class="info-key">Pets Helped</span><span class="info-val">3</span></div>
+                                    <div class="info-line"><span class="info-key">Contributions</span><span class="info-val">2</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="inner-card">
+                            <div class="inner-card-head"><div class="inner-card-title">Coupons (2)</div><button class="btn btn-danger btn-xs">Cancel All</button></div>
+                            <div class="inner-card-body">
+                                <div class="coupon-row"><div class="row-icon">🎟️</div><div class="row-grow"><div class="row-title">10 JD Reward Coupon</div><div class="row-sub">Feb 2025 · Valid until May 2025</div></div><span class="badge badge-success">Active</span><button class="btn btn-danger btn-xs">Cancel</button></div>
+                                <div class="coupon-row"><div class="row-icon">🎟️</div><div class="row-grow"><div class="row-title">15 JD Reward Coupon</div><div class="row-sub">Mar 2025 · Valid until Jun 2025</div></div><span class="badge badge-success">Active</span><button class="btn btn-danger btn-xs">Cancel</button></div>
+                                <div style="margin-top:12px;"><button class="btn btn-warning btn-sm">🚫 Restrict Rewards (30 days)</button></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: ORDERS -->
+                <div class="tab-pane" id="tab-orders">
+                    <div class="inner-card">
+                        <div class="inner-card-head"><div class="inner-card-title">Orders &amp; Purchases</div><span class="badge badge-success">Total: 45 JD</span></div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead><tr><th>Order ID</th><th>Store</th><th>Product</th><th>Amount</th><th>Date</th><th>Status</th></tr></thead>
+                                <tbody>
+                                    <tr><td>#1023</td><td>Pet World</td><td>Dog Food 5kg</td><td>22 JD</td><td>15 Mar 2025</td><td><span class="badge badge-success">Delivered</span></td></tr>
+                                    <tr><td>#982</td><td>Hayawani</td><td>Cat Toys</td><td>12 JD</td><td>2 Mar 2025</td><td><span class="badge badge-success">Delivered</span></td></tr>
+                                    <tr><td>#841</td><td>Pet World</td><td>Dog Shampoo</td><td>11 JD</td><td>10 Feb 2025</td><td><span class="badge badge-success">Delivered</span></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: APPOINTMENTS -->
+                <div class="tab-pane" id="tab-appointments">
+                    <div class="inner-card">
+                        <div class="inner-card-head"><div class="inner-card-title">Appointments (12)</div></div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead><tr><th>Pet</th><th>Doctor</th><th>Clinic</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                                <tbody>
+                                    <tr><td>🐕 Max</td><td>Dr. Ahmad Al-Zoubi</td><td>Al Amanah</td><td>15 Apr 2025</td><td><span class="badge badge-info">Upcoming</span></td><td><div style="display:flex;gap:5px;"><button class="btn btn-outline btn-xs">View</button><button class="btn btn-danger btn-xs">Cancel</button></div></td></tr>
+                                    <tr><td>🐕 Max</td><td>Dr. Ahmad Al-Zoubi</td><td>Al Amanah</td><td>10 Mar 2025</td><td><span class="badge badge-success">Attended</span></td><td><button class="btn btn-outline btn-xs">View</button></td></tr>
+                                    <tr><td>🐈 Luna</td><td>Dr. Sarah</td><td>Pet Care</td><td>1 Feb 2025</td><td><span class="badge badge-success">Attended</span></td><td><button class="btn btn-outline btn-xs">View</button></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: TIMELINE -->
+                <div class="tab-pane" id="tab-timeline">
+                    <div class="inner-card">
+                        <div class="inner-card-head"><div class="inner-card-title">Activity Timeline</div></div>
+                        <div class="inner-card-body">
+                            <div class="tl-wrap">
+                                <div class="tl-row"><span class="tl-dot" style="background:var(--success);"></span><div class="row-grow"><div class="row-title">Bought dog food from Pet World</div><div class="row-sub">Today · 10:30 AM · 22 JD</div></div></div>
+                                <div class="tl-row"><span class="tl-dot" style="background:var(--info);"></span><div class="row-grow"><div class="row-title">Attended Max's appointment at Al Amanah</div><div class="row-sub">10 Mar 2025</div></div></div>
+                                <div class="tl-row"><span class="tl-dot" style="background:var(--danger);"></span><div class="row-grow"><div class="row-title">Published lost pet report for Luna</div><div class="row-sub">12 Feb 2025 · Al Jubaiha</div></div></div>
+                                <div class="tl-row"><span class="tl-dot" style="background:var(--purple);"></span><div class="row-grow"><div class="row-title">Added Bebo to platform</div><div class="row-sub">20 Jan 2025</div></div></div>
+                                <div class="tl-row"><span class="tl-dot" style="background:var(--brand);"></span><div class="row-grow"><div class="row-title">Registered on Waffy</div><div class="row-sub">10 Jan 2025 · via email</div></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: COMPLAINTS -->
+                <div class="tab-pane" id="tab-complaints">
+                    <div class="inner-card">
+                        <div class="inner-card-head"><div class="inner-card-title">Complaints &amp; Reports</div></div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead><tr><th>Type</th><th>Location</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                                <tbody>
+                                    <tr><td>🐕 Aggressive stray</td><td>Shmeisani</td><td>5 Mar 2025</td><td><span class="badge badge-info">Under Review</span></td><td><div style="display:flex;gap:5px;"><button class="btn btn-success btn-xs">Approve</button><button class="btn btn-outline btn-xs">Forward</button><button class="btn btn-danger btn-xs">Reject</button></div></td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: FRAUD -->
+                <div class="tab-pane" id="tab-fraud">
+                    <div class="grid-2">
+                        <div class="inner-card">
+                            <div class="inner-card-head"><div class="inner-card-title">Fraud Indicators</div></div>
+                            <div class="inner-card-body">
+                                <div class="info-list">
+                                    <div class="info-line"><span class="info-key">Lost Reports</span><span class="info-val" id="fLost">1 ✅ Normal</span></div>
+                                    <div class="info-line"><span class="info-key">Reward Coupons</span><span class="info-val" id="fCoupons">2 ✅ Normal</span></div>
+                                    <div class="info-line"><span class="info-key">Repeated Adoption</span><span class="info-val">0 ✅ Normal</span></div>
+                                    <div class="info-line"><span class="info-key">Account Age</span><span class="info-val" id="fAge">—</span></div>
+                                    <div class="info-line"><span class="info-key">Unusual Activity</span><span class="info-val" id="fActivity" style="color:var(--success);">None</span></div>
+                                </div>
+                                <div id="fraudNote" class="fraud-ok">
+                                    <strong style="color:#2e7d32;">✅ Trusted user — no suspicious activity.</strong>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="inner-card">
+                            <div class="inner-card-head"><div class="inner-card-title">Restriction Controls</div></div>
+                            <div class="inner-card-body">
+                                <div class="info-list">
+                                    <div class="info-line"><span class="info-key">Max reports/month</span><span class="info-val">5</span></div>
+                                    <div class="info-line"><span class="info-key">Max coupons</span><span class="info-val">3</span></div>
+                                </div>
+                                <div style="margin-top:14px;display:grid;gap:8px;">
+                                    <button class="btn btn-warning btn-sm" onclick="toast('Reports restricted for 30 days.','warning')">🚫 Restrict Reports</button>
+                                    <button class="btn btn-danger btn-sm" onclick="toast('Rewards blocked.','danger')">🎟️ Block Rewards</button>
+                                    <button class="btn btn-outline btn-sm" onclick="toast('User marked for monitoring.','success')">👁️ Mark for Monitoring</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB: CONTACT -->
+                <div class="tab-pane" id="tab-contact">
+                    <div class="grid-2">
+                        <div class="inner-card">
+                            <div class="inner-card-head"><div class="inner-card-title">✉️ Compose Message</div></div>
+                            <div class="inner-card-body">
+                                <div style="font-size:.78rem;font-weight:900;color:var(--brand-dark);margin-bottom:6px;">Message Type</div>
+                                <div class="type-toggle">
+                                    <button class="type-toggle-btn active" onclick="setMsgType(this)">⚠️ Warning</button>
+                                    <button class="type-toggle-btn" onclick="setMsgType(this)">🔔 Notification</button>
+                                    <button class="type-toggle-btn" onclick="setMsgType(this)">📧 Email</button>
+                                    <button class="type-toggle-btn" onclick="setMsgType(this)">⚡ Action</button>
+                                </div>
+                                <div class="compose-field"><div class="compose-label">Title <span style="color:var(--danger);">*</span></div><input class="compose-input" id="msgTitle" placeholder="Message subject..." /></div>
+                                <div class="compose-field"><div class="compose-label">📅 Send Date</div><input class="compose-input" type="datetime-local" id="msgDate" /></div>
+                                <div class="compose-field">
+                                    <div class="compose-label">🎯 Priority</div>
+                                    <div class="priority-row">
+                                        <button class="priority-btn p-low" data-p="low" onclick="setPriority(this)">🟢 Low</button>
+                                        <button class="priority-btn p-normal sel" data-p="normal" onclick="setPriority(this)">🔵 Normal</button>
+                                        <button class="priority-btn p-high" data-p="high" onclick="setPriority(this)">🟡 High</button>
+                                        <button class="priority-btn p-urgent" data-p="urgent" onclick="setPriority(this)">🔴 Urgent</button>
+                                    </div>
+                                </div>
+                                <div class="compose-field">
+                                    <div class="compose-label">📋 Template</div>
+                                    <select class="compose-select" onchange="applyTemplate(this.value)">
+                                        <option value="">Select a template...</option>
+                                        <option value="warn_policy">⚠️ Policy Violation Warning</option>
+                                        <option value="warn_suspicious">⚠️ Suspicious Activity Warning</option>
+                                        <option value="notif_appt">🔔 Appointment Reminder</option>
+                                        <option value="notif_found">🔔 Pet Found Match</option>
+                                        <option value="positive">🌟 Community Thanks</option>
+                                    </select>
+                                </div>
+                                <div class="compose-field"><div class="compose-label">Message <span style="color:var(--danger);">*</span></div><textarea class="compose-textarea" id="msgBody" placeholder="Write your message here..."></textarea></div>
+                                <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                                    <button class="btn btn-primary btn-sm" onclick="sendMsg()">📤 Send</button>
+                                    <button class="btn btn-outline btn-sm" onclick="previewMsg()">👁️ Preview</button>
+                                    <button class="btn btn-outline btn-sm" onclick="saveDraft()">💾 Draft</button>
+                                    <span id="msgStatus" style="font-size:.8rem;color:var(--text-muted);font-weight:700;"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="inner-card">
+                            <div class="inner-card-head"><div class="inner-card-title">Communication History</div><span class="badge badge-muted">2 messages</span></div>
+                            <div>
+                                <div class="msg-history-item"><div class="msg-hdot" style="background:var(--info);"></div><div style="flex:1;"><div style="display:flex;justify-content:space-between;gap:8px;"><div style="font-weight:900;color:var(--brand-dark);font-size:.87rem;">Max appointment reminder</div><span class="badge badge-info">🔔 Notification</span></div><div style="font-size:.76rem;color:var(--text-muted);margin-top:3px;">10 Mar 2025 · by Admin · Normal</div><div style="font-size:.8rem;color:var(--text);margin-top:5px;">Your appointment for Max is scheduled for April 15. Please confirm.</div></div></div>
+                                <div class="msg-history-item"><div class="msg-hdot" style="background:var(--success);"></div><div style="flex:1;"><div style="display:flex;justify-content:space-between;gap:8px;"><div style="font-weight:900;color:var(--brand-dark);font-size:.87rem;">Account verification completed</div><span class="badge badge-success">✅ Action</span></div><div style="font-size:.76rem;color:var(--text-muted);margin-top:3px;">5 Feb 2025 · by Admin · Low</div><div style="font-size:.8rem;color:var(--text);margin-top:5px;">Your account has been successfully verified. Welcome to Waffy!</div></div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: Edit User -->
+    <div class="modal-overlay" id="editUserModal">
+        <div class="modal-box" style="max-width:640px;">
+            <div class="modal-head"><div class="modal-title">✏️ Edit User</div><button class="dp-close" onclick="closeM('editUserModal')">✕</button></div>
+            <div class="modal-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="field"><label>Full Name *</label><input type="text" id="editName" /></div>
+                    <div class="field"><label>Email *</label><input type="email" id="editEmail" /></div>
+                    <div class="field"><label>Phone</label><input type="text" id="editPhone" /></div>
+                    <div class="field"><label>Location</label><input type="text" id="editLocation" /></div>
+                    <div class="field"><label>User Type</label><select id="editType"><option value="owner">🐾 Pet Owner</option><option value="vet">👨‍⚕️ Veterinarian</option><option value="store">🏪 Store Owner</option></select></div>
+                    <div class="field"><label>Status</label><select id="editStatus"><option value="active">✅ Active</option><option value="suspicious">⚠️ Suspicious</option><option value="suspended">🔒 Suspended</option></select></div>
+                    <div class="field"><label>Trust Score (0–100)</label><input type="number" id="editTrust" min="0" max="100" /></div>
+                    <div class="field"><label>Pets Count</label><input type="number" id="editPets" min="0" /></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('editUserModal')">Cancel</button><button class="btn btn-primary" onclick="saveEdit()">Save Changes</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Pet -->
+    <div class="modal-overlay" id="addPetModal">
+        <div class="modal-box" style="max-width:580px;">
+            <div class="modal-head"><div class="modal-title">🐾 Add Pet</div><button class="dp-close" onclick="closeM('addPetModal')">✕</button></div>
+            <div class="modal-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="field"><label>Pet Name *</label><input type="text" id="petName" placeholder="Max" /></div>
+                    <div class="field"><label>Type *</label><select id="petType"><option value="">Select...</option><option>Dog</option><option>Cat</option><option>Rabbit</option><option>Bird</option><option>Other</option></select></div>
+                    <div class="field"><label>Breed</label><input type="text" id="petBreed" placeholder="Labrador" /></div>
+                    <div class="field"><label>Age</label><input type="text" id="petAge" placeholder="3 years" /></div>
+                    <div class="field"><label>Gender</label><select id="petGender"><option value="">Select</option><option>Male</option><option>Female</option></select></div>
+                    <div class="field"><label>Status</label><select id="petStatus"><option value="Normal">Normal</option><option value="Lost">Lost</option><option value="For Adoption">For Adoption</option></select></div>
+                    <div class="field" style="grid-column:1/-1;"><label>Last Vaccine</label><input type="text" id="petVaccine" placeholder="Mar 2025" /></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('addPetModal')">Cancel</button><button class="btn btn-primary" onclick="savePet()">Save Pet</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Warn -->
+    <div class="modal-overlay" id="warnModal">
+        <div class="modal-box" style="max-width:500px;">
+            <div class="modal-head"><div class="modal-title">⚠️ Send Warning</div><button class="dp-close" onclick="closeM('warnModal')">✕</button></div>
+            <div class="modal-body">
+                <div class="field"><label>Target User</label><input type="text" id="warnTarget" readonly style="background:#f5f0e8;" /></div>
+                <div class="field"><label>Warning Type</label><select><option>Policy violation</option><option>Suspicious activity</option><option>False report</option><option>Coupon abuse</option></select></div>
+                <div class="field"><label>Message</label><textarea placeholder="Write warning message..."></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('warnModal')">Cancel</button><button class="btn btn-warning" onclick="closeM('warnModal');toast('Warning sent.','warning')">Send Warning</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Suspend -->
+    <div class="modal-overlay" id="suspendModal">
+        <div class="modal-box" style="max-width:500px;">
+            <div class="modal-head"><div class="modal-title">🔒 Suspend Account</div><button class="dp-close" onclick="closeM('suspendModal')">✕</button></div>
+            <div class="modal-body">
+                <div class="field"><label>Target User</label><input type="text" id="suspendTarget" readonly style="background:#f5f0e8;" /></div>
+                <div class="field"><label>Duration</label><select><option>7 days</option><option>30 days</option><option>90 days</option><option>Permanent</option></select></div>
+                <div class="field"><label>Reason</label><textarea placeholder="Explain reason..."></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('suspendModal')">Cancel</button><button class="btn btn-danger" onclick="closeM('suspendModal');toast('Account suspended.','danger')">Suspend</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Delete Confirm -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-box" style="max-width:420px;">
+            <div class="modal-head"><div class="modal-title">🗑 Delete User</div><button class="dp-close" onclick="closeM('deleteModal')">✕</button></div>
+            <div class="modal-body" style="text-align:center;padding:24px 20px;">
+                <div style="font-size:2.5rem;margin-bottom:12px;">⚠️</div>
+                <div style="font-family:'Fredoka',sans-serif;font-size:1rem;font-weight:700;color:var(--brand-dark);margin-bottom:8px;">Are you sure?</div>
+                <div style="font-size:.86rem;color:var(--text-muted);font-weight:700;">This action cannot be undone.</div>
+            </div>
+            <div class="modal-footer" style="justify-content:center;"><button class="btn btn-outline" onclick="closeM('deleteModal')">Cancel</button><button class="btn btn-danger" onclick="doDelete()">Yes, Delete</button></div>
+        </div>
+    </div>
+
+    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
+    <script>
+        const USERS = [
+          {id:'sara',   name:'Sara Al-Khatib',    email:'sara@email.com',     phone:'0791234567', location:'Amman — Al Jubaiha',     joined:'2025-01-10', joinedLabel:'Jan 2025', type:'owner', status:'active',    trust:87, pets:3, appointments:12,  orders:8,   lastActive:'Today',       avatar:'👩'},
+          {id:'batool', name:'Batool Almasalmeh', email:'batool@email.com',   phone:'0799876543', location:'Amman — Khalda',          joined:'2025-02-02', joinedLabel:'Feb 2025', type:'owner', status:'active',    trust:72, pets:2, appointments:8,   orders:6,   lastActive:'Yesterday',   avatar:'👩'},
+          {id:'risk',   name:'Mohammad Salameh',  email:'m.salama@email.com', phone:'0785432109', location:'Amman — Tlaa Al-Ali',     joined:'2025-03-01', joinedLabel:'Mar 2025', type:'owner', status:'suspicious', trust:31, pets:1, appointments:0,   orders:0,   lastActive:'3 days ago',  avatar:'👤'},
+          {id:'vet',    name:'Dr. Ahmad Al-Zoubi',email:'dr.ahmad@email.com', phone:'0796543210', location:'Amman — Medical Complex', joined:'2025-01-15', joinedLabel:'Jan 2025', type:'vet',   status:'active',    trust:95, pets:0, appointments:142, orders:0,   lastActive:'Today',       avatar:'👨‍⚕️'},
+          {id:'store',  name:'Batool Jaber',      email:'batool@petworld.jo', phone:'0798765432', location:'Amman — Sweifieh',        joined:'2025-03-04', joinedLabel:'Mar 2025', type:'store', status:'active',    trust:88, pets:0, appointments:0,   orders:320, lastActive:'Yesterday',   avatar:'🏪'},
+          {id:'rana',   name:'Rana Al-Haddad',    email:'rana@email.com',     phone:'0793210987', location:'Amman — Shmeisani',       joined:'2024-12-18', joinedLabel:'Dec 2024', type:'owner', status:'suspended',  trust:22, pets:1, appointments:1,   orders:5,   lastActive:'45 days ago', avatar:'👩'},
+          {id:'khaled', name:'Khaled Nasser',     email:'khaled@email.com',   phone:'0771122334', location:'Zarqa — New Zarqa',       joined:'2025-02-20', joinedLabel:'Feb 2025', type:'owner', status:'active',    trust:65, pets:4, appointments:5,   orders:12,  lastActive:'2 days ago',  avatar:'👨'},
+          {id:'layan',  name:'Layan Mugdadi',     email:'layan@email.com',    phone:'0792223344', location:'Irbid — Downtown',        joined:'2025-03-10', joinedLabel:'Mar 2025', type:'vet',   status:'active',    trust:91, pets:0, appointments:88,  orders:0,   lastActive:'Today',       avatar:'👩‍⚕️'},
+        ];
+
+        let currentUser = null;
+
+        function loadUser(){
+          const params = new URLSearchParams(window.location.search);
+          const id = params.get('id') || 'sara';
+          currentUser = USERS.find(u=>u.id===id) || USERS[0];
+          renderProfile();
+        }
+
+        function renderProfile(){
+          const u = currentUser;
+          const tc = t => t>=80?'var(--success)':t>=50?'var(--warning)':'var(--danger)';
+          const typeLbl = {owner:'🐾 Pet Owner', vet:'👨‍⚕️ Veterinarian', store:'🏪 Store Owner'};
+
+          document.getElementById('tnUserName').textContent = u.name;
+          document.getElementById('tnTitle').textContent = u.name;
+          document.title = `Waffy Admin | ${u.name}`;
+
+          document.getElementById('heroAvatar').childNodes[0].textContent = u.avatar;
+          document.getElementById('heroOnline').style.display = u.status==='active'?'block':'none';
+          document.getElementById('heroName').textContent = u.name;
+          document.getElementById('heroMeta').innerHTML = `
+            <span>📧 ${u.email}</span>
+            <span>📞 ${u.phone}</span>
+            <span>📍 ${u.location}</span>
+            <span>📅 Joined ${u.joinedLabel}</span>
+            <span>${statusBadge(u.status)}</span>`;
+          document.getElementById('heroTags').innerHTML = [
+            '<span class="dh-tag">✅ Verified</span>',
+            `<span class="dh-tag">${typeLbl[u.type]||u.type}</span>`,
+            u.trust>=80?'<span class="dh-tag">🏅 Trusted</span>':'',
+            u.trust<50?'<span class="dh-tag" style="background:var(--danger-soft);border-color:rgba(217,83,79,.2);color:var(--danger);">⚠️ High Risk</span>':'',
+          ].join('');
+
+          const tv = document.getElementById('trustVal');
+          tv.textContent = u.trust+'%'; tv.style.color = tc(u.trust);
+
+          document.getElementById('riskAlert').classList.toggle('show', u.trust<50);
+
+          document.getElementById('mPets').textContent      = u.pets;
+          document.getElementById('mAppts').textContent     = u.appointments;
+          document.getElementById('mOrders').textContent    = u.orders || '—';
+          document.getElementById('mReports').textContent   = u.trust<50 ? '5' : '1';
+          document.getElementById('mCoupons').textContent   = u.trust<50 ? '4' : '2';
+          document.getElementById('mAdoption').textContent  = u.type==='owner' ? '0' : '—';
+
+          const months = Math.floor((Date.now()-new Date(u.joined))/2592000000);
+          document.getElementById('fAge').textContent      = months + ' months';
+          document.getElementById('fLost').textContent     = u.trust<50 ? '5 ⚠️ High' : '1 ✅ Normal';
+          document.getElementById('fCoupons').textContent  = u.trust<50 ? '4 ⚠️ High' : '2 ✅ Normal';
+          document.getElementById('fActivity').textContent = u.trust<50 ? 'Detected' : 'None';
+          document.getElementById('fActivity').style.color = u.trust<50 ? 'var(--danger)' : 'var(--success)';
+          const fn = document.getElementById('fraudNote');
+          fn.className = u.trust<50 ? 'fraud-warn' : 'fraud-ok';
+          fn.innerHTML = u.trust<50
+            ? '<strong style="color:var(--danger);">⚠️ Suspicious activity detected — review recommended.</strong>'
+            : '<strong style="color:#2e7d32;">✅ Trusted user — no suspicious activity.</strong>';
+
+          document.getElementById('editName').value     = u.name;
+          document.getElementById('editEmail').value    = u.email;
+          document.getElementById('editPhone').value    = u.phone;
+          document.getElementById('editLocation').value = u.location;
+          document.getElementById('editType').value     = u.type;
+          document.getElementById('editStatus').value   = u.status;
+          document.getElementById('editTrust').value    = u.trust;
+          document.getElementById('editPets').value     = u.pets;
+
+          document.getElementById('warnTarget').value    = u.name;
+          document.getElementById('suspendTarget').value = u.name;
+        }
+
+        function statusBadge(s){
+          const m={active:'badge-success ✅ Active',suspended:'badge-danger 🔒 Suspended',suspicious:'badge-warning ⚠️ Suspicious'};
+          const parts=(m[s]||'badge-muted '+s).split(' ');
+          const cls=parts.shift(); const lbl=parts.join(' ');
+          return `<span class="badge ${cls}">${lbl}</span>`;
+        }
+
+        function showTab(id, btn){
+          document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+          document.querySelectorAll('.tabs-row .tab-btn').forEach(b=>b.classList.remove('active'));
+          document.getElementById('tab-'+id)?.classList.add('active');
+          if(btn) btn.classList.add('active');
+        }
+
+        function quickAction(type){
+          const u = currentUser;
+          if(type==='warn')          { openM('warnModal'); }
+          else if(type==='suspend')  { openM('suspendModal'); }
+          else if(type==='reset')    { toast('Password reset link sent to '+u.email,'success'); }
+          else if(type==='restrict') { toast('Reports restricted for 30 days.','warning'); }
+          else if(type==='cancelRewards'){ toast('All rewards cancelled.','danger'); }
+          else if(type==='delete')   { openM('deleteModal'); }
+        }
+        function doDelete(){
+          closeM('deleteModal');
+          toast('User deleted. Redirecting...','danger');
+          setTimeout(()=>window.location.href='/SuperAdmin/Users',1800);
+        }
+
+        function saveEdit(){
+          const u = currentUser;
+          u.name     = document.getElementById('editName').value.trim() || u.name;
+          u.email    = document.getElementById('editEmail').value.trim() || u.email;
+          u.phone    = document.getElementById('editPhone').value.trim() || u.phone;
+          u.location = document.getElementById('editLocation').value.trim() || u.location;
+          u.type     = document.getElementById('editType').value;
+          u.status   = document.getElementById('editStatus').value;
+          u.trust    = +document.getElementById('editTrust').value || u.trust;
+          u.pets     = +document.getElementById('editPets').value;
+          closeM('editUserModal');
+          renderProfile();
+          toast('User updated successfully.','success');
+        }
+
+        function savePet(){
+          const name = document.getElementById('petName').value.trim();
+          if(!name){ toast('Pet name required.','danger'); return; }
+          const icons={Dog:'🐕',Cat:'🐈',Rabbit:'🐇',Bird:'🐦'};
+          const type   = document.getElementById('petType').value;
+          const status = document.getElementById('petStatus').value;
+          const scls   = status==='Lost'?'badge-danger':status==='For Adoption'?'badge-info':'badge-success';
+          const row = document.createElement('div');
+          row.className='pet-row';
+          row.innerHTML=`<div class="row-icon">${icons[type]||'🐾'}</div><div class="row-grow"><div class="row-title">${name}</div><div class="row-sub">${document.getElementById('petBreed').value||'—'} · ${document.getElementById('petAge').value||'—'}</div></div><span style="font-size:.78rem;color:var(--text-muted);font-weight:700;">Vaccine: ${document.getElementById('petVaccine').value||'—'}</span><span class="badge ${scls}">${status}</span><div style="display:flex;gap:5px;"><button class="btn btn-outline btn-xs">Edit</button><button class="btn btn-danger btn-xs" onclick="this.closest('.pet-row').remove()">Delete</button></div>`;
+          document.getElementById('petsList').prepend(row);
+          closeM('addPetModal');
+          toast(name+' added.','success');
+        }
+
+        function setMsgType(btn){document.querySelectorAll('.type-toggle-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');}
+        function setPriority(btn){document.querySelectorAll('.priority-btn').forEach(b=>b.classList.remove('sel'));btn.classList.add('sel');}
+        const TEMPLATES={
+          warn_policy:   {title:'⚠️ Policy Violation Warning',     body:'Your account activity has been reviewed and a policy violation was detected. Please review our community guidelines to avoid further action.'},
+          warn_suspicious:{title:'⚠️ Suspicious Activity Detected',body:'We have noticed unusual activity on your account. Please verify your recent actions or contact support if you did not perform them.'},
+          notif_appt:    {title:'🔔 Upcoming Appointment Reminder', body:'You have a scheduled appointment coming up. Please ensure you are available and confirm your attendance.'},
+          notif_found:   {title:'🔔 Pet Match Found!',             body:'A possible match has been found for your lost pet report. Please check the found pet listings and contact the finder.'},
+          positive:      {title:'🌟 Thank You for Helping the Community!', body:'Your contributions to the Waffy community have been recognized. You have been awarded a new badge for your efforts!'}
+        };
+        function applyTemplate(v){const t=TEMPLATES[v];if(t){document.getElementById('msgTitle').value=t.title;document.getElementById('msgBody').value=t.body;}}
+        function sendMsg(){
+          const title=document.getElementById('msgTitle').value.trim();
+          const body=document.getElementById('msgBody').value.trim();
+          if(!title||!body){toast('Please fill title and message.','danger');return;}
+          const s=document.getElementById('msgStatus');
+          s.textContent='✅ Sent!';s.style.color='var(--success)';
+          setTimeout(()=>{s.textContent='';document.getElementById('msgTitle').value='';document.getElementById('msgBody').value='';},2500);
+          toast('Message sent to '+currentUser.name,'success');
+        }
+        function previewMsg(){
+          const title=document.getElementById('msgTitle').value||'(no title)';
+          const body=document.getElementById('msgBody').value||'(no message)';
+          alert(`PREVIEW:\n\nTitle: ${title}\n\n${body}`);
+        }
+        function saveDraft(){
+          const s=document.getElementById('msgStatus');s.textContent='💾 Draft saved';s.style.color='var(--text-muted)';setTimeout(()=>s.textContent='',2000);
+        }
+
+        function openM(id){const m=document.getElementById(id);if(m)m.classList.add('open');}
+        function closeM(id){const m=document.getElementById(id);if(m)m.classList.remove('open');}
+        document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
+
+        function toast(msg,type='success'){
+          const bg={success:'var(--success-soft)',danger:'var(--danger-soft)',warning:'var(--warning-soft)'};
+          const col={success:'var(--success)',danger:'var(--danger)',warning:'#9b6000'};
+          const t=document.createElement('div');
+          t.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:9999;padding:14px 20px;border-radius:14px;background:${bg[type]};border:1px solid ${col[type]}40;color:${col[type]};font-weight:800;font-size:.86rem;font-family:'Nunito',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.12);animation:fadeUp .25s ease;max-width:320px;`;
+          t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);
+        }
+
+        loadUser();
+    </script>
+</body>
+</html>

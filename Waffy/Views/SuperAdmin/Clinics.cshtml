@@ -1,0 +1,590 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waffy — Super Admin | Clinic Management</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
+    <div class="wa-shell" id="waShell">
+
+        <!-- SIDEBAR -->
+        <aside class="wa-sb" id="waSb">
+            <div class="sb-logo">
+                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
+                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" href="@Url.Action("Dashboard", "SuperAdmin")" data-tip="Dashboard"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span><span class="sb-lbl">Dashboard</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Management</div>
+                    <div><button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" data-tip="Users" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span><span class="sb-lbl">Users</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-users"><div class="sb-sub-inner"><a class="sb-child" href="@Url.Action("Users", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a></div></div></div>
+                    <div>
+                        <button class="sb-row open active" id="t-clinics" onclick="acc('g-clinics','t-clinics')" data-tip="Clinics" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span><span class="sb-lbl">Clinics</span><span class="sb-bdg bd-y">4</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button>
+                        <div class="sb-sub open" id="g-clinics" style="height:auto;">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child active" href="@Url.Action("Clinics", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span><span class="sb-bdg bd-y sb-child-bdg">4</span></a>
+                                <a class="sb-child" href="@Url.Action("Reviews_Complaints_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews & Complaints</span><span class="sb-bdg bd-r sb-child-bdg">5</span></a>
+                                <a class="sb-child" href="@Url.Action("Analytics_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" data-tip="Shop" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
+                            <span class="sb-lbl">Shop</span><span class="sb-bdg bd-r">3</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-shop">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" href="@Url.Action("Stores", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span><span class="sb-bdg bd-y sb-child-bdg">3</span></a>
+                                <a class="sb-child" href="@Url.Action("Reviews_Complaints_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews & Complaints</span><span class="sb-bdg bd-r sb-child-bdg">6</span></a>
+                                <a class="sb-child" href="@Url.Action("Analytics_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" data-tip="Adoption" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                            <span class="sb-lbl">Adoption</span><span class="sb-bdg bd-y">5</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-adopt">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" href="@Url.Action("Listings", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span><span class="sb-bdg bd-y sb-child-bdg">5</span></a>
+                                <a class="sb-child" href="@Url.Action("Flagged", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span><span class="sb-bdg bd-r sb-child-bdg">3</span></a>
+                                <a class="sb-child" href="@Url.Action("Adopted_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
+                                <a class="sb-child" href="@Url.Action("Analytics_A", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" data-tip="Reports" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
+                            <span class="sb-lbl">Reports</span><span class="sb-bdg bd-y">8</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-rep">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" href="@Url.Action("Lost_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span><span class="sb-bdg bd-y sb-child-bdg">8</span></a>
+                                <a class="sb-child" href="@Url.Action("Found_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span><span class="sb-bdg bd-g sb-child-bdg">5</span></a>
+                                <a class="sb-child" href="@Url.Action("Dangerous_Animals", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span><span class="sb-bdg bd-r sb-child-bdg">4</span></a>
+                                <a class="sb-child" href="@Url.Action("Donations", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
+                                <a class="sb-child" href="@Url.Action("Laws_Regulations", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Laws & Regulations</span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Tools</div>
+                    <a class="sb-row" href="@Url.Action("Map", "SuperAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span><span class="sb-lbl">Map</span></a>
+                    <a class="sb-row" href="@Url.Action("Notifications", "SuperAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span><span class="sb-lbl">Notifications</span><span class="sb-bdg bd-r">12</span></a>
+                </div>
+            </nav>
+            <div class="sb-foot"><div class="sb-user-row"><div class="sb-av">DC</div><div class="sb-user-info"><div class="sb-user-name">Daniel Carter</div><div class="sb-user-role">Operations Director</div></div></div><button class="sb-logout" onclick="alert('Sign out')" type="button"><svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg><span class="sb-logout-lbl">Sign Out</span></button></div>
+        </aside>
+
+        <!-- TOPNAV -->
+        <header class="wa-tn" id="waTn">
+            <button class="tn-toggle" onclick="toggleSb()" type="button"><svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg></button>
+            <nav class="tn-bread"><span>Management</span><span>/</span><b>Clinics</b></nav>
+            <div class="tn-center"><div class="tn-center-main">Clinic Management</div><div class="tn-center-sub">Super Admin Panel</div></div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <button class="tn-btn" type="button"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg></button>
+                <a class="tn-btn" href="@Url.Action("Notifications", "SuperAdmin")"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg><span class="tn-count">12</span></a>
+                <a class="tn-btn" href="#"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg><span class="tn-dot dot-g"></span></a>
+                <div class="tn-sep"></div>
+                <div class="tn-profile" onclick="alert('Profile')"><div class="tn-av">DC</div><div><div class="tn-pname">Daniel Carter</div><div class="tn-prole">Operations Director</div></div></div>
+            </div>
+        </header>
+
+        <!-- MAIN -->
+        <main class="wa-main" id="waMain">
+            <section class="page-hero">
+                <div>
+                    <h1>Clinic Management</h1>
+                    <p>Approve, suspend, or reject clinics. Click any row to view doctors, appointments, and revenue details.</p>
+                </div>
+                <div class="page-hero-actions">
+                    <button class="btn btn-outline btn-sm" onclick="exportClinics()">📥 Export</button>
+                    <button class="btn btn-primary btn-sm" onclick="openM('addClinicModal')">+ Add Clinic</button>
+                </div>
+            </section>
+
+            <div class="page-body">
+                <!-- KPIs -->
+                <div class="kpi-grid kpi-grid-4">
+                    <div class="kpi-card c1"><div class="kpi-ico green">🏥</div><div class="kpi-val" id="kpiTotal">38</div><div class="kpi-label">Total Clinics</div><div class="kpi-chip chip-green">+3 this month</div></div>
+                    <div class="kpi-card c2"><div class="kpi-ico blue">✅</div><div class="kpi-val" id="kpiActive">32</div><div class="kpi-label">Active</div><div class="kpi-chip chip-blue">84% rate</div></div>
+                    <div class="kpi-card c3"><div class="kpi-ico yellow">⏳</div><div class="kpi-val" id="kpiPending">4</div><div class="kpi-label">Pending Approval</div><div class="kpi-chip chip-yellow">Needs review</div></div>
+                    <div class="kpi-card c4"><div class="kpi-ico red">🔒</div><div class="kpi-val" id="kpiSuspended">2</div><div class="kpi-label">Suspended</div><div class="kpi-chip chip-red">Action needed</div></div>
+                </div>
+
+                <!-- Filters -->
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+                    <div class="search-wrap" style="flex:1 1 260px;"><span style="color:var(--text-muted)">🔍</span><input type="text" id="searchInput" placeholder="Search by clinic name, city, owner..." oninput="renderTable()" /></div>
+                    <select class="sel-wrap" style="width:auto;min-width:150px;" id="statusFilter" onchange="renderTable()"><option value="">All Statuses</option><option value="active">Active</option><option value="pending">Pending</option><option value="suspended">Suspended</option><option value="rejected">Rejected</option></select>
+                    <select class="sel-wrap" style="width:auto;min-width:150px;" id="cityFilter" onchange="renderTable()"><option value="">All Cities</option><option>Amman</option><option>Zarqa</option><option>Irbid</option><option>Aqaba</option></select>
+                    <button class="btn btn-outline btn-sm" onclick="resetFilters()">Reset</button>
+                </div>
+
+                <!-- Chips -->
+                <div class="chips-row" id="chipsRow">
+                    <button class="filter-chip active" data-f="" onclick="setChip(this)">All <span id="chipAll"></span></button>
+                    <button class="filter-chip" data-f="pending" onclick="setChip(this)">⏳ Pending <span id="chipPending"></span></button>
+                    <button class="filter-chip" data-f="active" onclick="setChip(this)">✅ Active <span id="chipActive"></span></button>
+                    <button class="filter-chip" data-f="suspended" onclick="setChip(this)">🔒 Suspended <span id="chipSuspended"></span></button>
+                    <button class="filter-chip" data-f="rejected" onclick="setChip(this)">❌ Rejected <span id="chipRejected"></span></button>
+                </div>
+
+                <!-- Table -->
+                <div class="table-card">
+                    <div class="table-head-bar">
+                        <div class="table-head-title">All Clinics</div>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <span class="table-count" id="tableCount"></span>
+                            <select class="sel-wrap" style="height:36px;font-size:.78rem;width:auto;min-width:160px;" onchange="sortClinics(this.value)">
+                                <option value="newest">Newest First</option>
+                                <option value="name">Name A–Z</option>
+                                <option value="rating">Highest Rating</option>
+                                <option value="appts">Most Appointments</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Clinic</th><th>City</th><th>Plan</th><th>Doctors</th><th>Appts/Mo</th><th>Rating</th><th>Revenue</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+                            <tbody id="clinicsTBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-bar">
+                        <div class="pag-info" id="pagInfo"></div>
+                        <div class="pag-pages" id="pagPages"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- DETAIL PANEL -->
+    <div class="detail-overlay" id="clinicDetailPanel">
+        <div class="detail-panel" style="max-width:1000px;">
+            <div class="dp-header">
+                <div class="dp-title" id="dpTitle">🏥 Clinic Details</div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <a class="btn btn-outline btn-sm" id="dpViewFullBtn" href="#">View Full Details →</a>
+                    <button class="dp-close" onclick="closeM('clinicDetailPanel')">✕</button>
+                </div>
+            </div>
+            <div class="dp-body">
+                <!-- Profile -->
+                <div class="dp-profile" id="dpProfile">
+                    <div class="dp-avatar" id="dpAvatar">🏥</div>
+                    <div style="flex:1;">
+                        <div class="dp-name" id="dpName"></div>
+                        <div class="dp-meta" id="dpMeta"></div>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;" id="dpBadges"></div>
+                    </div>
+                    <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;" id="dpActions">
+                        <button class="btn btn-success btn-sm" id="dpApproveBtn" onclick="dpApprove()">✅ Approve</button>
+                        <button class="btn btn-warning btn-sm" onclick="openWarnFromDetail()">⚠️ Warn</button>
+                        <button class="btn btn-danger btn-sm" onclick="openSuspendFromDetail()">🔒 Suspend</button>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="dp-section">
+                    <div class="dp-section-title">Quick Stats</div>
+                    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+                        <div class="dp-info-item" style="text-align:center;"><div class="dp-info-label">Doctors</div><div class="dp-info-val" id="dpDoctors" style="font-family:'Fredoka',sans-serif;font-size:1.5rem;"></div></div>
+                        <div class="dp-info-item" style="text-align:center;"><div class="dp-info-label">Appts/Month</div><div class="dp-info-val green" id="dpAppts" style="font-family:'Fredoka',sans-serif;font-size:1.5rem;"></div></div>
+                        <div class="dp-info-item" style="text-align:center;"><div class="dp-info-label">Revenue</div><div class="dp-info-val green" id="dpRevenue" style="font-family:'Fredoka',sans-serif;font-size:1.5rem;"></div></div>
+                        <div class="dp-info-item" style="text-align:center;"><div class="dp-info-label">Rating</div><div class="dp-info-val" id="dpRating" style="font-family:'Fredoka',sans-serif;font-size:1.5rem;"></div></div>
+                    </div>
+                </div>
+
+                <!-- Info Grid -->
+                <div class="dp-section">
+                    <div class="dp-section-title">Clinic Information</div>
+                    <div class="dp-grid">
+                        <div class="dp-info-item"><div class="dp-info-label">Owner</div><div class="dp-info-val" id="dpOwner"></div></div>
+                        <div class="dp-info-item"><div class="dp-info-label">Email</div><div class="dp-info-val" id="dpEmail"></div></div>
+                        <div class="dp-info-item"><div class="dp-info-label">Phone</div><div class="dp-info-val" id="dpPhone"></div></div>
+                        <div class="dp-info-item"><div class="dp-info-label">City</div><div class="dp-info-val" id="dpCity"></div></div>
+                        <div class="dp-info-item"><div class="dp-info-label">Plan</div><div class="dp-info-val" id="dpPlan"></div></div>
+                        <div class="dp-info-item"><div class="dp-info-label">Joined</div><div class="dp-info-val" id="dpJoined"></div></div>
+                    </div>
+                </div>
+
+                <!-- Doctors Preview -->
+                <div class="dp-section">
+                    <div class="dp-section-title">Doctors <span style="font-size:.75rem;color:var(--text-muted);font-weight:700;">(latest 3)</span></div>
+                    <div id="dpDoctorsList"></div>
+                </div>
+
+                <!-- Appointments Preview -->
+                <div class="dp-section">
+                    <div class="dp-section-title">Recent Appointments <span style="font-size:.75rem;color:var(--text-muted);font-weight:700;">(latest 3)</span></div>
+                    <div id="dpAppointmentsList"></div>
+                </div>
+
+                <!-- Documents -->
+                <div class="dp-section">
+                    <div class="dp-section-title">Documents</div>
+                    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;" id="dpDocs"></div>
+                </div>
+            </div>
+            <div class="dp-footer">
+                <button class="btn btn-danger btn-sm" onclick="openDeleteFromDetail()">🗑 Delete Clinic</button>
+                <button class="btn btn-outline btn-sm" onclick="closeM('clinicDetailPanel')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Clinic -->
+    <div class="modal-overlay" id="addClinicModal">
+        <div class="modal-box" style="max-width:660px;">
+            <div class="modal-head"><div class="modal-title">🏥 Add New Clinic</div><button class="dp-close" onclick="closeM('addClinicModal')">✕</button></div>
+            <div class="modal-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="field" style="grid-column:1/-1;"><label>Clinic Name *</label><input type="text" id="addClinicName" placeholder="e.g. Al Amanah Veterinary Clinic" /></div>
+                    <div class="field"><label>Owner Name *</label><input type="text" id="addClinicOwner" placeholder="Dr. Ahmad Al-Zoubi" /></div>
+                    <div class="field"><label>Email *</label><input type="email" id="addClinicEmail" placeholder="clinic@email.jo" /></div>
+                    <div class="field"><label>Phone *</label><input type="text" id="addClinicPhone" placeholder="06-XXXXXXX" /></div>
+                    <div class="field"><label>City *</label><select id="addClinicCity"><option value="">Select city</option><option>Amman</option><option>Zarqa</option><option>Irbid</option><option>Aqaba</option></select></div>
+                    <div class="field"><label>Plan</label><select id="addClinicPlan"><option>Free</option><option>Basic</option><option>Professional</option></select></div>
+                    <div class="field"><label>Initial Status</label><select id="addClinicStatus"><option value="pending">Pending</option><option value="active">Active</option></select></div>
+                    <div class="field" style="grid-column:1/-1;"><label>District / Address</label><input type="text" id="addClinicDistrict" placeholder="e.g. Shmeisani" /></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('addClinicModal')">Cancel</button><button class="btn btn-primary" onclick="saveNewClinic()">Save Clinic</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Warn -->
+    <div class="modal-overlay" id="warnModal">
+        <div class="modal-box" style="max-width:500px;">
+            <div class="modal-head"><div class="modal-title">⚠️ Send Warning</div><button class="dp-close" onclick="closeM('warnModal')">✕</button></div>
+            <div class="modal-body">
+                <div class="field"><label>Target Clinic</label><input type="text" id="warnTarget" readonly style="background:#f5f0e8;" /></div>
+                <div class="field"><label>Warning Type</label><select id="warnType"><option>Policy violation</option><option>High no-show rate</option><option>Multiple complaints</option><option>Document issue</option><option>Terms of service violation</option></select></div>
+                <div class="field"><label>Message</label><textarea id="warnMessage" placeholder="Write the official warning..."></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('warnModal')">Cancel</button><button class="btn btn-warning" onclick="sendWarning()">Send Warning</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Suspend -->
+    <div class="modal-overlay" id="suspendModal">
+        <div class="modal-box" style="max-width:500px;">
+            <div class="modal-head"><div class="modal-title">🔒 Suspend Clinic</div><button class="dp-close" onclick="closeM('suspendModal')">✕</button></div>
+            <div class="modal-body">
+                <div class="field"><label>Target Clinic</label><input type="text" id="suspendTarget" readonly style="background:#f5f0e8;" /></div>
+                <div class="field"><label>Reason</label><select id="suspendReason"><option>Policy violation</option><option>Multiple complaints</option><option>High no-show rate</option><option>Invalid documents</option><option>Suspicious activity</option></select></div>
+                <div class="field"><label>Duration</label><select id="suspendDuration"><option>7 days</option><option>30 days</option><option>90 days</option><option>Permanent</option></select></div>
+                <div class="field"><label>Message to Clinic</label><textarea id="suspendMessage" placeholder="Explain the reason..."></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('suspendModal')">Cancel</button><button class="btn btn-danger" onclick="confirmSuspend()">Suspend Clinic</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Reject -->
+    <div class="modal-overlay" id="rejectModal">
+        <div class="modal-box" style="max-width:500px;">
+            <div class="modal-head"><div class="modal-title">❌ Reject Clinic</div><button class="dp-close" onclick="closeM('rejectModal')">✕</button></div>
+            <div class="modal-body">
+                <div class="field"><label>Target Clinic</label><input type="text" id="rejectTarget" readonly style="background:#f5f0e8;" /></div>
+                <div class="field"><label>Reason</label><select><option>Incomplete documents</option><option>Does not meet requirements</option><option>Duplicate registration</option><option>Other</option></select></div>
+                <div class="field"><label>Message to Applicant</label><textarea id="rejectMessage" placeholder="Explain why..."></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('rejectModal')">Cancel</button><button class="btn btn-danger" onclick="confirmReject()">Confirm Rejection</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Delete -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-box" style="max-width:420px;">
+            <div class="modal-head"><div class="modal-title">🗑 Delete Clinic</div><button class="dp-close" onclick="closeM('deleteModal')">✕</button></div>
+            <div class="modal-body" style="text-align:center;padding:24px 20px;">
+                <div style="font-size:2.5rem;margin-bottom:12px;">⚠️</div>
+                <div style="font-family:'Fredoka',sans-serif;font-size:1rem;font-weight:700;color:var(--brand-dark);margin-bottom:8px;">Are you sure?</div>
+                <div style="font-size:.86rem;color:var(--text-muted);font-weight:700;">You are about to permanently delete <strong id="deleteClinicName" style="color:var(--danger);"></strong>. This cannot be undone.</div>
+            </div>
+            <div class="modal-footer" style="justify-content:center;"><button class="btn btn-outline" onclick="closeM('deleteModal')">Cancel</button><button class="btn btn-danger" onclick="confirmDelete()">Yes, Delete</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Approve -->
+    <div class="modal-overlay" id="approveModal">
+        <div class="modal-box" style="max-width:520px;">
+            <div class="modal-head"><div class="modal-title">✅ Approve Clinic</div><button class="dp-close" onclick="closeM('approveModal')">✕</button></div>
+            <div class="modal-body">
+                <div style="background:#fff;border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:14px;">
+                    <div style="font-size:.92rem;font-weight:900;color:var(--brand-dark);" id="approveClinicName"></div>
+                    <div style="font-size:.78rem;color:var(--text-muted);" id="approveClinicMeta"></div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;" id="approveDocGrid"></div>
+                <div class="field"><label>Admin Note (optional)</label><textarea id="approveNote" placeholder="Add an internal note..."></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('approveModal')">Cancel</button><button class="btn btn-success" onclick="confirmApprove()">✅ Approve Clinic</button></div>
+        </div>
+    </div>
+
+    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
+    <script>
+        /* ═══ DATA ═══ */
+        const clinics = [
+          { id:1, name:"Al Amanah Veterinary Clinic", emoji:"🏥", owner:"Dr. Ahmad Al-Zoubi", email:"amanah@waffy.jo", phone:"06-1234567", city:"Amman", district:"Shmeisani", plan:"Basic", status:"active", doctors:5, appts:638, revenue:510, rating:4.9, joined:"2024-01-15",
+            documents:{municipality:true, practice:true, ownerId:true},
+            recentDoctors:[{name:"Dr. Ahmad Al-Zoubi",spec:"Veterinary Surgery",status:"active"},{name:"Dr. Sarah Al-Hussein",spec:"Dermatology",status:"active"},{name:"Dr. Lina Al-Shami",spec:"Internal Medicine",status:"active"}],
+            recentAppts:[{id:"#A1023",patient:"Omar Khalil",doctor:"Dr. Ahmad",date:"2026-03-28",status:"completed"},{id:"#A1021",patient:"Sara Nasser",doctor:"Dr. Sarah",date:"2026-03-27",status:"completed"},{id:"#A1019",patient:"Rana Haddad",doctor:"Dr. Lina",date:"2026-03-26",status:"pending"}]
+          },
+          { id:2, name:"Al Noor Veterinary Clinic", emoji:"🏥", owner:"Dr. Mahmoud Al-Najjar", email:"noor@waffy.jo", phone:"06-9876543", city:"Amman", district:"Jubaiha", plan:"Professional", status:"active", doctors:3, appts:420, revenue:336, rating:4.6, joined:"2024-03-10",
+            documents:{municipality:true, practice:true, ownerId:true},
+            recentDoctors:[{name:"Dr. Mahmoud Al-Najjar",spec:"Veterinary Surgery",status:"active"},{name:"Dr. Omar Al-Rashid",spec:"Dentistry",status:"active"},{name:"Dr. Khaled Hassan",spec:"General Practice",status:"warning"}],
+            recentAppts:[{id:"#A988",patient:"Ahmad Sami",doctor:"Dr. Mahmoud",date:"2026-03-28",status:"completed"},{id:"#A985",patient:"Dina Khalaf",doctor:"Dr. Omar",date:"2026-03-27",status:"canceled"},{id:"#A981",patient:"Walid Aziz",doctor:"Dr. Khaled",date:"2026-03-25",status:"completed"}]
+          },
+          { id:3, name:"Al Ferdous Clinic", emoji:"🏥", owner:"Dr. Khaled Al-Ajlouni", email:"ferdous@waffy.jo", phone:"02-5511223", city:"Irbid", district:"Downtown", plan:"Free", status:"suspended", doctors:2, appts:98, revenue:15, rating:3.2, joined:"2024-11-21",
+            documents:{municipality:true, practice:true, ownerId:false},
+            recentDoctors:[{name:"Dr. Khaled Al-Ajlouni",spec:"General Practice",status:"warning"},{name:"Dr. Reem Salim",spec:"Pediatrics",status:"active"}],
+            recentAppts:[{id:"#A720",patient:"Hana Salem",doctor:"Dr. Khaled",date:"2026-03-20",status:"no-show"},{id:"#A715",patient:"Sami Obeid",doctor:"Dr. Reem",date:"2026-03-18",status:"completed"}]
+          },
+          { id:4, name:"Al Rahma Veterinary Hospital", emoji:"🏥", owner:"Dr. Raneem Al-Obeid", email:"rahma@waffy.jo", phone:"06-5558800", city:"Amman", district:"Sweifieh", plan:"Basic", status:"active", doctors:8, appts:1240, revenue:1240, rating:4.8, joined:"2023-06-05",
+            documents:{municipality:true, practice:true, ownerId:true},
+            recentDoctors:[{name:"Dr. Raneem Al-Obeid",spec:"Surgery",status:"active"},{name:"Dr. Faris Khalil",spec:"Internal Medicine",status:"active"},{name:"Dr. Yasmin Nour",spec:"Dermatology",status:"active"}],
+            recentAppts:[{id:"#A2100",patient:"Layla Ahmad",doctor:"Dr. Raneem",date:"2026-03-28",status:"completed"},{id:"#A2098",patient:"Karim Safi",doctor:"Dr. Faris",date:"2026-03-28",status:"completed"},{id:"#A2095",patient:"Nour Badawi",doctor:"Dr. Yasmin",date:"2026-03-27",status:"pending"}]
+          },
+          { id:5, name:"Happy Paws Clinic", emoji:"🏥", owner:"Dr. Lina Al-Shami", email:"happypaws@clinic.jo", phone:"02-7778899", city:"Irbid", district:"University Road", plan:"Basic", status:"pending", doctors:0, appts:0, revenue:0, rating:0, joined:"2026-03-05",
+            documents:{municipality:false, practice:true, ownerId:true},
+            recentDoctors:[], recentAppts:[]
+          },
+          { id:6, name:"Sunrise Animal Clinic", emoji:"🏥", owner:"Dr. Omar Al-Rashid", email:"sunrise@clinic.jo", phone:"05-3334455", city:"Zarqa", district:"New Zarqa", plan:"Free", status:"pending", doctors:0, appts:0, revenue:0, rating:0, joined:"2026-03-08",
+            documents:{municipality:true, practice:true, ownerId:true},
+            recentDoctors:[], recentAppts:[]
+          }
+        ];
+
+        let currentClinicId = null;
+        let currentSort     = 'newest';
+        let currentChip     = '';
+        let currentPage     = 1;
+        const PAGE_SIZE     = 6;
+        const detailsBaseUrl = '@Url.Action("Details_C", "SuperAdmin")';
+
+        /* ═══ HELPERS ═══ */
+        function statusBadge(s) {
+          const m = {active:['badge-success','✅ Active'],pending:['badge-warning','⏳ Pending'],suspended:['badge-danger','🔒 Suspended'],rejected:['badge-muted','❌ Rejected'],completed:['badge-success','✅ Done'],canceled:['badge-danger','❌ Canceled'],'no-show':['badge-warning','⚠️ No-Show'],warning:['badge-warning','⚠️ Warning']};
+          const [cls,lbl] = m[s]||['badge-muted',s];
+          return `<span class="badge ${cls}">${lbl}</span>`;
+        }
+        function planBadge(p) {
+          const m = {Free:['badge-success','🆓 Free'],Basic:['badge-info','💳 Basic'],Professional:['badge-purple','⭐ Pro']};
+          const [cls,lbl] = m[p]||['badge-muted',p];
+          return `<span class="badge ${cls}">${lbl}</span>`;
+        }
+        function starsHtml(r) { return r ? '⭐'.repeat(Math.round(r))+`<strong style="margin-left:4px;">${r.toFixed(1)}</strong>` : '<span style="color:var(--text-muted);font-size:.78rem;">No rating</span>'; }
+
+        function getFiltered() {
+          const q  = (document.getElementById('searchInput')?.value||'').toLowerCase();
+          const sf = document.getElementById('statusFilter')?.value||'';
+          const cf = document.getElementById('cityFilter')?.value||'';
+          return clinics.filter(c => {
+            const mQ = !q || [c.name,c.owner,c.email,c.city].some(v=>v.toLowerCase().includes(q));
+            const mS = (!sf && !currentChip) ? true : (currentChip ? c.status===currentChip : c.status===sf);
+            const mC = !cf || c.city===cf;
+            return mQ && mS && mC;
+          }).sort((a,b) => {
+            if (currentSort==='name')   return a.name.localeCompare(b.name);
+            if (currentSort==='rating') return b.rating-a.rating;
+            if (currentSort==='appts')  return b.appts-a.appts;
+            return new Date(b.joined)-new Date(a.joined);
+          });
+        }
+
+        /* ═══ RENDER TABLE ═══ */
+        function renderTable() {
+          const data   = getFiltered();
+          const total  = data.length;
+          const pages  = Math.ceil(total/PAGE_SIZE);
+          if (currentPage>pages) currentPage=1;
+          const slice  = data.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+          const tbody  = document.getElementById('clinicsTBody');
+          tbody.innerHTML = slice.length ? slice.map(c=>`
+            <tr style="cursor:pointer;" onclick="openDetail(${c.id})">
+              <td>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <div style="width:40px;height:40px;border-radius:12px;background:var(--brand-xlight);border:1px solid var(--border);display:grid;place-items:center;font-size:1.2rem;flex-shrink:0;">${c.emoji}</div>
+                  <div><div class="cell-title">${c.name}</div><div class="cell-sub">${c.district}, ${c.city}</div></div>
+                </div>
+              </td>
+              <td>📍 ${c.city}</td>
+              <td>${planBadge(c.plan)}</td>
+              <td>${c.doctors>0?c.doctors+' 👨‍⚕️':'—'}</td>
+              <td>${c.appts>0?c.appts+' 📅':'—'}</td>
+              <td>${starsHtml(c.rating)}</td>
+              <td>${c.revenue>0?'<strong style="color:var(--success);">'+c.revenue.toLocaleString()+' JD</strong>':'—'}</td>
+              <td>${statusBadge(c.status)}</td>
+              <td style="font-size:.78rem;color:var(--text-muted);">${c.joined}</td>
+              <td onclick="event.stopPropagation()">
+                <div style="display:flex;gap:5px;">
+                  <button class="btn btn-outline btn-xs" onclick="openDetail(${c.id})">👁 View</button>
+                  ${c.status==='pending'?`<button class="btn btn-success btn-xs" onclick="quickApprove(${c.id})">✅</button><button class="btn btn-danger btn-xs" onclick="openRejectModal(${c.id})">❌</button>`:''}
+                  ${c.status==='active'?`<button class="btn btn-warning btn-xs" onclick="openSuspendModal(${c.id})">🔒</button>`:''}
+                  ${c.status==='suspended'?`<button class="btn btn-success btn-xs" onclick="setStatus(${c.id},'active','Re-activated')">✅</button>`:''}
+                  <button class="btn btn-danger btn-xs" onclick="openDeleteModal(${c.id})">🗑</button>
+                </div>
+              </td>
+            </tr>`).join('')
+          : `<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--text-muted);">No clinics found.</td></tr>`;
+
+          // pagination
+          document.getElementById('pagInfo').textContent = total===0?'No clinics found':`Showing ${(currentPage-1)*PAGE_SIZE+1}–${Math.min(currentPage*PAGE_SIZE,total)} of ${total} clinics`;
+          const pagEl = document.getElementById('pagPages'); pagEl.innerHTML='';
+          if (pages>1) {
+            const addBtn=(label,page,active=false,disabled=false)=>{const b=document.createElement('button');b.className='pag-btn'+(active?' active':'');b.textContent=label;b.disabled=disabled;b.onclick=()=>{currentPage=page;renderTable();};pagEl.appendChild(b);};
+            addBtn('‹',currentPage-1,false,currentPage===1);
+            for(let i=1;i<=pages;i++){if(pages>7&&i>2&&i<pages-1&&Math.abs(i-currentPage)>1){if(i===3||i===pages-2){const s=document.createElement('button');s.className='pag-btn';s.textContent='…';s.disabled=true;pagEl.appendChild(s);}continue;}addBtn(i,i,i===currentPage);}
+            addBtn('›',currentPage+1,false,currentPage===pages);
+          }
+
+          // KPI + chips
+          const cnt=s=>clinics.filter(x=>x.status===s).length;
+          document.getElementById('kpiTotal').textContent=clinics.length;
+          document.getElementById('kpiActive').textContent=cnt('active');
+          document.getElementById('kpiPending').textContent=cnt('pending');
+          document.getElementById('kpiSuspended').textContent=cnt('suspended');
+          document.getElementById('chipAll').textContent=`(${clinics.length})`;
+          document.getElementById('chipPending').textContent=`(${cnt('pending')})`;
+          document.getElementById('chipActive').textContent=`(${cnt('active')})`;
+          document.getElementById('chipSuspended').textContent=`(${cnt('suspended')})`;
+          document.getElementById('chipRejected').textContent=`(${cnt('rejected')})`;
+          document.getElementById('tableCount').textContent=total+' clinics';
+        }
+
+        /* ═══ DETAIL PANEL ═══ */
+        function openDetail(id) {
+          const c = clinics.find(x=>x.id===id); if(!c) return;
+          currentClinicId = id;
+          document.getElementById('dpTitle').textContent = `🏥 ${c.name}`;
+          document.getElementById('dpAvatar').textContent = c.emoji;
+          document.getElementById('dpName').textContent   = c.name;
+          document.getElementById('dpMeta').textContent   = `${c.district}, ${c.city} · ${c.owner}`;
+          document.getElementById('dpBadges').innerHTML   = statusBadge(c.status)+planBadge(c.plan)+`<span class="badge badge-muted">📍 ${c.city}</span>`;
+          document.getElementById('dpOwner').textContent  = c.owner;
+          document.getElementById('dpEmail').textContent  = c.email;
+          document.getElementById('dpPhone').textContent  = c.phone;
+          document.getElementById('dpCity').textContent   = c.city;
+          document.getElementById('dpPlan').innerHTML     = planBadge(c.plan);
+          document.getElementById('dpJoined').textContent = c.joined;
+          document.getElementById('dpDoctors').textContent = c.doctors||'—';
+          document.getElementById('dpAppts').textContent   = c.appts>0?c.appts:'—';
+          document.getElementById('dpRevenue').textContent = c.revenue>0?c.revenue.toLocaleString()+' JD':'—';
+          document.getElementById('dpRating').textContent  = c.rating>0?'⭐'+c.rating.toFixed(1):'—';
+          document.getElementById('dpApproveBtn').style.display = c.status==='pending'?'block':'none';
+          document.getElementById('dpViewFullBtn').href = detailsBaseUrl + '?id=' + c.id;
+
+          // Doctors
+          const dEl = document.getElementById('dpDoctorsList');
+          dEl.innerHTML = c.recentDoctors.length ? c.recentDoctors.map(d=>`
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(221,209,191,.5);">
+              <div style="display:flex;align-items:center;gap:10px;"><div style="width:34px;height:34px;border-radius:10px;background:var(--brand-xlight);border:1px solid var(--border);display:grid;place-items:center;font-size:.9rem;">👨‍⚕️</div><div><div style="font-size:.86rem;font-weight:900;color:var(--brand-dark);">${d.name}</div><div style="font-size:.74rem;color:var(--text-muted);">${d.spec}</div></div></div>
+              ${statusBadge(d.status)}
+            </div>`).join('')
+          : '<div style="padding:10px 0;font-size:.84rem;color:var(--text-muted);">No doctors assigned yet.</div>';
+
+          // Appointments
+          const aEl = document.getElementById('dpAppointmentsList');
+          aEl.innerHTML = c.recentAppts.length ? c.recentAppts.map(a=>`
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(221,209,191,.5);">
+              <div style="display:flex;gap:10px;align-items:center;">
+                <span style="font-family:'Fredoka',sans-serif;color:var(--brand-dark);font-weight:700;">${a.id}</span>
+                <div><div style="font-size:.83rem;font-weight:800;">${a.patient}</div><div style="font-size:.74rem;color:var(--text-muted);">${a.doctor} · ${a.date}</div></div>
+              </div>
+              ${statusBadge(a.status)}
+            </div>`).join('')
+          : '<div style="padding:10px 0;font-size:.84rem;color:var(--text-muted);">No appointments yet.</div>';
+
+          // Documents
+          const docLabels={municipality:'🏛 Municipality License',practice:'⚕️ Practice License',ownerId:'🪪 Owner ID'};
+          document.getElementById('dpDocs').innerHTML = Object.entries(c.documents).map(([k,v])=>`
+            <div style="background:${v?'var(--success-soft)':'var(--danger-soft)'};border:1px solid ${v?'rgba(47,158,95,.2)':'rgba(217,83,79,.2)'};border-radius:12px;padding:12px;">
+              <div style="font-size:.72rem;color:var(--text-muted);font-weight:900;">${docLabels[k]}</div>
+              <div style="margin-top:5px;font-size:.84rem;font-weight:900;color:${v?'var(--success)':'var(--danger)'};">${v?'✅ Verified':'❌ Missing'}</div>
+            </div>`).join('');
+
+          openM('clinicDetailPanel');
+        }
+
+        /* ═══ ACTIONS ═══ */
+        function dpApprove()         { openApproveModal(currentClinicId); }
+        function openWarnFromDetail(){ const c=clinics.find(x=>x.id===currentClinicId);if(c){document.getElementById('warnTarget').value=c.name;openM('warnModal');}}
+        function openSuspendFromDetail(){ openSuspendModal(currentClinicId); }
+        function openDeleteFromDetail() { openDeleteModal(currentClinicId); }
+
+        function quickApprove(id)  { currentClinicId=id; openApproveModal(id); }
+        function openApproveModal(id) {
+          const c=clinics.find(x=>x.id===id); if(!c) return; currentClinicId=id;
+          document.getElementById('approveClinicName').textContent=c.name;
+          document.getElementById('approveClinicMeta').textContent=`Owner: ${c.owner} · ${c.city} · ${c.plan}`;
+          const docLabels={municipality:'🏛 Municipality License',practice:'⚕️ Practice License',ownerId:'🪪 Owner ID'};
+          document.getElementById('approveDocGrid').innerHTML=Object.entries(c.documents).map(([k,v])=>`<div style="background:${v?'var(--success-soft)':'var(--danger-soft)'};border:1px solid ${v?'rgba(47,158,95,.2)':'rgba(217,83,79,.2)'};border-radius:12px;padding:12px;"><div style="font-size:.72rem;color:var(--text-muted);font-weight:900;">${docLabels[k]}</div><div style="font-size:.84rem;font-weight:900;color:${v?'var(--success)':'var(--danger)'};">${v?'✅ Verified':'❌ Missing'}</div></div>`).join('');
+          openM('approveModal');
+        }
+        function confirmApprove() { setStatus(currentClinicId,'active','Approved'); closeM('approveModal'); if(document.getElementById('clinicDetailPanel').classList.contains('open')) openDetail(currentClinicId); }
+
+        function openRejectModal(id) { const c=clinics.find(x=>x.id===id); if(!c) return; currentClinicId=id; document.getElementById('rejectTarget').value=c.name; openM('rejectModal'); }
+        function confirmReject()     { setStatus(currentClinicId,'rejected','Rejected'); closeM('rejectModal'); if(document.getElementById('clinicDetailPanel').classList.contains('open')) closeM('clinicDetailPanel'); }
+
+        function openSuspendModal(id) { const c=clinics.find(x=>x.id===id); if(!c) return; currentClinicId=id; document.getElementById('suspendTarget').value=c.name; openM('suspendModal'); }
+        function confirmSuspend()     { setStatus(currentClinicId,'suspended','Suspended'); closeM('suspendModal'); if(document.getElementById('clinicDetailPanel').classList.contains('open')) openDetail(currentClinicId); }
+
+        function openDeleteModal(id) { const c=clinics.find(x=>x.id===id); if(!c) return; currentClinicId=id; document.getElementById('deleteClinicName').textContent=c.name; openM('deleteModal'); }
+        function confirmDelete() { const idx=clinics.findIndex(x=>x.id===currentClinicId); if(idx>-1) clinics.splice(idx,1); closeM('deleteModal'); closeM('clinicDetailPanel'); renderTable(); toast('Clinic deleted.','danger'); }
+
+        function sendWarning() { const n=document.getElementById('warnTarget').value; closeM('warnModal'); toast(`Warning sent to ${n}.`,'warning'); }
+
+        function setStatus(id, newStatus, label) {
+          const c=clinics.find(x=>x.id===id); if(!c) return; c.status=newStatus; renderTable();
+          toast(`${c.name} — ${label}.`, newStatus==='active'?'success':newStatus==='rejected'?'danger':'warning');
+        }
+
+        function saveNewClinic() {
+          const name=document.getElementById('addClinicName').value.trim();
+          const owner=document.getElementById('addClinicOwner').value.trim();
+          const email=document.getElementById('addClinicEmail').value.trim();
+          const phone=document.getElementById('addClinicPhone').value.trim();
+          const city=document.getElementById('addClinicCity').value;
+          if(!name||!owner||!email||!phone||!city){toast('Please fill all required fields.','danger');return;}
+          clinics.unshift({id:Date.now(),name,emoji:'🏥',owner,email,phone,city,district:document.getElementById('addClinicDistrict').value,plan:document.getElementById('addClinicPlan').value,status:document.getElementById('addClinicStatus').value,doctors:0,appts:0,revenue:0,rating:0,joined:new Date().toISOString().split('T')[0],documents:{municipality:false,practice:false,ownerId:false},recentDoctors:[],recentAppts:[]});
+          closeM('addClinicModal'); renderTable(); toast(`${name} added.`,'success');
+        }
+
+        function setChip(btn) { document.querySelectorAll('#chipsRow .filter-chip').forEach(c=>c.classList.remove('active')); btn.classList.add('active'); currentChip=btn.dataset.f; document.getElementById('statusFilter').value=''; currentPage=1; renderTable(); }
+        function sortClinics(v) { currentSort=v; currentPage=1; renderTable(); }
+        function resetFilters() { document.getElementById('searchInput').value=''; document.getElementById('statusFilter').value=''; document.getElementById('cityFilter').value=''; currentChip=''; currentPage=1; document.querySelectorAll('#chipsRow .filter-chip').forEach((c,i)=>c.classList.toggle('active',i===0)); renderTable(); }
+        function exportClinics() { toast('Exporting '+getFiltered().length+' clinics...','success'); }
+
+        /* ═══ MODAL HELPERS ═══ */
+        function openM(id){const m=document.getElementById(id);if(m)m.classList.add('open');}
+        function closeM(id){const m=document.getElementById(id);if(m)m.classList.remove('open');}
+        document.querySelectorAll('.modal-overlay,.detail-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
+
+        function toast(msg,type='success'){const bg={success:'var(--success-soft)',danger:'var(--danger-soft)',warning:'var(--warning-soft)'};const col={success:'var(--success)',danger:'var(--danger)',warning:'#9b6000'};const t=document.createElement('div');t.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:9999;padding:14px 20px;border-radius:14px;background:${bg[type]};border:1px solid ${col[type]}40;color:${col[type]};font-weight:800;font-size:.86rem;font-family:'Nunito',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.12);animation:fadeUp .25s ease;max-width:320px;`;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);}
+        const ts=document.createElement('style');ts.textContent=`@@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`;document.head.appendChild(ts);
+
+        renderTable();
+    </script>
+</body>
+</html>

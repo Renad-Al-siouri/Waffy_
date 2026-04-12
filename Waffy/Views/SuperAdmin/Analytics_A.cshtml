@@ -1,0 +1,491 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Waffy — Super Admin | Adoption Analytics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+    <style>
+        .chart-wrap {
+            position: relative;
+            min-height: 240px;
+            padding: 14px;
+        }
+
+            .chart-wrap.sm {
+                min-height: 190px;
+            }
+
+        .city-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 18px;
+            border-bottom: 1px solid rgba(221,209,191,.55);
+        }
+
+            .city-item:last-child {
+                border-bottom: none;
+            }
+
+        .city-name {
+            font-size: .84rem;
+            font-weight: 800;
+            color: var(--text);
+            min-width: 88px;
+        }
+
+        .city-track {
+            flex: 1;
+            height: 7px;
+            background: var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .city-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg,var(--brand),var(--brand-dark));
+        }
+
+        .city-count {
+            font-size: .82rem;
+            font-weight: 900;
+            color: var(--brand-dark);
+            min-width: 26px;
+            text-align: right;
+        }
+
+        .rate-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .rate-track {
+            flex: 1;
+            height: 6px;
+            background: var(--border);
+            border-radius: 999px;
+            overflow: hidden;
+            min-width: 44px;
+        }
+
+        .rate-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg,var(--brand),var(--brand-dark));
+        }
+
+        @@media (max-width:960px) {
+            .row1, .row2 {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        @@media (max-width:700px) {
+            .kpi-grid {
+                grid-template-columns: 1fr 1fr !important;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
+    <div class="wa-shell" id="waShell">
+
+        <!-- ═══ SIDEBAR ═══ -->
+        <aside class="wa-sb" id="waSb">
+            <div class="sb-logo">
+                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy Logo" class="sb-logo-img"></div>
+                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" href="@Url.Action("Dashboard", "SuperAdmin")" data-tip="Dashboard">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
+                        <span class="sb-lbl">Dashboard</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Management</div>
+                    <div>
+                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" data-tip="Users" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span>
+                            <span class="sb-lbl">Users</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-users">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" href="@Url.Action("Users", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
+                            <span class="sb-lbl">Clinics</span><span class="sb-bdg bd-y">4</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-clinics">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" href="@Url.Action("Clinics", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
+                                <a class="sb-child" href="@Url.Action("Reviews_Complaints_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews & Complaints</span></a>
+                                <a class="sb-child" href="@Url.Action("Analytics_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" data-tip="Shop" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
+                            <span class="sb-lbl">Shop</span><span class="sb-bdg bd-r">3</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-shop">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" href="@Url.Action("Stores", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span><span class="sb-bdg bd-y sb-child-bdg">3</span></a>
+                                <a class="sb-child" href="@Url.Action("Reviews_Complaints_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews & Complaints</span><span class="sb-bdg bd-r sb-child-bdg">6</span></a>
+                                <a class="sb-child" href="@Url.Action("Analytics_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row open active" id="t-adopt" onclick="acc('g-adopt','t-adopt')" data-tip="Adoption" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                            <span class="sb-lbl">Adoption</span><span class="sb-bdg bd-y">5</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub open" id="g-adopt" style="height:auto;">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" href="@Url.Action("Listings", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span><span class="sb-bdg bd-y sb-child-bdg">5</span></a>
+                                <a class="sb-child" href="@Url.Action("Flagged", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span><span class="sb-bdg bd-r sb-child-bdg">3</span></a>
+                                <a class="sb-child" href="@Url.Action("Adopted_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
+                                <a class="sb-child active" href="@Url.Action("Analytics_A", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" data-tip="Reports" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
+                            <span class="sb-lbl">Reports</span><span class="sb-bdg bd-y">8</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-rep">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" href="@Url.Action("Lost_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span><span class="sb-bdg bd-y sb-child-bdg">8</span></a>
+                                <a class="sb-child" href="@Url.Action("Found_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span><span class="sb-bdg bd-g sb-child-bdg">5</span></a>
+                                <a class="sb-child" href="@Url.Action("Dangerous_Animals", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span><span class="sb-bdg bd-r sb-child-bdg">4</span></a>
+                                <a class="sb-child" href="@Url.Action("Donations", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
+                                <a class="sb-child" href="@Url.Action("Laws_Regulations", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Laws & Regulations</span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Tools</div>
+                    <a class="sb-row" href="@Url.Action("Map", "SuperAdmin")" data-tip="Map"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span><span class="sb-lbl">Map</span></a>
+                    <a class="sb-row" href="@Url.Action("Notifications", "SuperAdmin")" data-tip="Notifications"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span><span class="sb-lbl">Notifications</span><span class="sb-bdg bd-r">12</span></a>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row">
+                    <div class="sb-av">DC</div>
+                    <div class="sb-user-info"><div class="sb-user-name">Daniel Carter</div><div class="sb-user-role">Operations Director</div></div>
+                </div>
+                <button class="sb-logout" onclick="alert('Sign out')" type="button">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                    <span class="sb-logout-lbl">Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- ═══ TOPNAV ═══ -->
+        <header class="wa-tn" id="waTn">
+            <button class="tn-toggle" onclick="toggleSb()" type="button">
+                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+            </button>
+            <nav class="tn-bread"><span>Adoption</span><span>/</span><b>Analytics</b></nav>
+            <div class="tn-center">
+                <div class="tn-center-main">Adoption Analytics</div>
+                <div class="tn-center-sub">Super Admin Panel</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <a class="tn-btn" href="@Url.Action("Notifications", "SuperAdmin")" title="Notifications">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+                    <span class="tn-count">12</span>
+                </a>
+                <div class="tn-sep"></div>
+                <div class="tn-profile" onclick="alert('Profile')">
+                    <div class="tn-av">DC</div>
+                    <div><div class="tn-pname">Daniel Carter</div><div class="tn-prole">Operations Director</div></div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ═══ MAIN ═══ -->
+        <main class="wa-main" id="waMain">
+
+            <section class="page-hero">
+                <div>
+                    <h1>📊 Adoption Analytics</h1>
+                    <p>Performance insights and adoption trends across the platform.</p>
+                </div>
+                <div class="page-hero-actions">
+                    <select class="sel-wrap" style="height:40px;width:auto;min-width:160px;font-size:.82rem;">
+                        <option>This Month</option>
+                        <option>Last 3 Months</option>
+                        <option>This Year</option>
+                    </select>
+                    <button class="btn btn-outline btn-sm">📥 Export</button>
+                </div>
+            </section>
+
+            <div class="page-body">
+
+                <!-- KPI Cards -->
+                <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
+                    <div class="kpi-card c1">
+                        <div class="kpi-ico green">✅</div>
+                        <div class="kpi-val" id="kpiAdopted">28</div>
+                        <div class="kpi-label">Total Adoptions</div>
+                        <div class="kpi-chip chip-green">▲ 18% vs last month</div>
+                    </div>
+                    <div class="kpi-card c2">
+                        <div class="kpi-ico blue">📋</div>
+                        <div class="kpi-val" id="kpiRate">91%</div>
+                        <div class="kpi-label">Approval Rate</div>
+                        <div class="kpi-chip chip-blue">112 of 123 approved</div>
+                    </div>
+                    <div class="kpi-card c5" style="--ignore:0;">
+                        <div class="kpi-ico purple">🐾</div>
+                        <div class="kpi-val" id="kpiTopType" style="font-size:1.4rem;">🐈 Cats</div>
+                        <div class="kpi-label">Most Adopted Type</div>
+                        <div class="kpi-chip" style="background:var(--purple-soft);color:#5c3e99;">44% of all adoptions</div>
+                    </div>
+                    <div class="kpi-card c3">
+                        <div class="kpi-ico yellow">⏱</div>
+                        <div class="kpi-val">4.2</div>
+                        <div class="kpi-label">Avg. Days to Adopt</div>
+                        <div class="kpi-chip chip-yellow">From listing to match</div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 1 -->
+                <div class="row1" style="display:grid;grid-template-columns:1.65fr 1fr;gap:14px;margin-bottom:14px;">
+                    <div class="table-card">
+                        <div class="table-head-bar">
+                            <div class="table-head-title">📈 Monthly Adoptions</div>
+                            <span style="display:flex;align-items:center;gap:5px;font-size:.76rem;font-weight:800;color:var(--text-muted);">
+                                <span style="width:10px;height:10px;border-radius:3px;background:var(--brand);display:inline-block;"></span>Adoptions 2026
+                            </span>
+                        </div>
+                        <div class="chart-wrap"><canvas id="adoptChart"></canvas></div>
+                    </div>
+                    <div class="table-card">
+                        <div class="table-head-bar"><div class="table-head-title">🍩 By Animal Type</div></div>
+                        <div class="chart-wrap"><canvas id="typeChart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Charts Row 2 -->
+                <div class="row2" style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                    <div class="table-card">
+                        <div class="table-head-bar">
+                            <div class="table-head-title">🏙 Most Active Cities</div>
+                            <span class="table-count" id="cityCount">—</span>
+                        </div>
+                        <div id="cityList"></div>
+                    </div>
+                    <div class="table-card">
+                        <div class="table-head-bar"><div class="table-head-title">📌 By Source</div></div>
+                        <div class="chart-wrap sm"><canvas id="sourceChart"></canvas></div>
+                    </div>
+                </div>
+
+                <!-- Breakdown table -->
+                <div class="table-card">
+                    <div class="table-head-bar">
+                        <div class="table-head-title">📋 Breakdown by Animal Type</div>
+                        <span class="table-count">4 types</span>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Animal Type</th>
+                                    <th>Total</th>
+                                    <th>Available</th>
+                                    <th>Adopted</th>
+                                    <th>Pending</th>
+                                    <th>Flagged</th>
+                                    <th>Adoption Rate</th>
+                                </tr>
+                            </thead>
+                            <tbody id="statsBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
+    <script src="~/js/superAdminAdoption.js" asp-append-version="true"></script>
+    <script>
+        setPageInfo('Adoption Analytics', 'Super Admin Panel', 'Adoption', 'Analytics');
+
+        /* ── shared chart config ── */
+        const TICK = { color:'#7d6d5f', font:{ size:10, family:'Nunito' } };
+        const GRID = { color:'rgba(90,75,49,.07)' };
+        const LEG  = { position:'bottom', labels:{ color:'#7d6d5f', font:{ size:11, family:'Nunito' }, padding:12, boxWidth:12 } };
+        const C    = {
+          olive :'rgba(139,169,74,.72)',  blue  :'rgba(58,134,255,.72)',
+          purple:'rgba(143,121,198,.72)', yellow:'rgba(226,163,58,.72)',
+          orange:'rgba(191,122,35,.72)',  green :'rgba(47,158,95,.72)',
+        };
+
+        /* ── KPIs ── */
+        function renderKpis() {
+          const total    = state.listings.length;
+          const adopted  = state.listings.filter(l => l.adoptionStatus === 'adopted').length;
+          const approved = state.listings.filter(l => l.adStatus === 'approved').length;
+          const rate     = total ? Math.round((approved / total) * 100) : 0;
+
+          const tc = {cat:0,dog:0,bird:0,other:0};
+          state.listings.forEach(l => {
+            if (['cat','dog','bird'].includes(l.animalType)) tc[l.animalType]++;
+            else tc.other++;
+          });
+          const top = Object.entries(tc).sort((a,b) => b[1]-a[1])[0];
+          const lbl = {cat:'🐈 Cats', dog:'🐕 Dogs', bird:'🐦 Birds', other:'🐾 Others'};
+
+          document.getElementById('kpiAdopted').textContent = adopted;
+          document.getElementById('kpiRate').textContent    = rate + '%';
+          document.getElementById('kpiTopType').textContent = lbl[top[0]];
+        }
+
+        /* ── City list ── */
+        function renderCityList() {
+          const counts = {};
+          state.listings.forEach(l => { counts[l.city] = (counts[l.city]||0) + 1; });
+          const entries = Object.entries(counts).sort((a,b) => b[1]-a[1]);
+          const max = entries[0]?.[1] || 1;
+
+          document.getElementById('cityCount').textContent = entries.length + ' cities';
+          document.getElementById('cityList').innerHTML = entries.map(([city, count]) => `
+            <div class="city-item">
+              <span class="city-name">${city}</span>
+              <div class="city-track"><div class="city-fill" style="width:${Math.round((count/max)*100)}%"></div></div>
+              <span class="city-count">${count}</span>
+            </div>`).join('');
+        }
+
+        /* ── Stats table ── */
+        function renderStatsTable() {
+          const types  = ['cat','dog','bird','other'];
+          const labels = {cat:'🐈 Cats', dog:'🐕 Dogs', bird:'🐦 Birds', other:'🐾 Others'};
+          const chips  = {cat:'badge-purple', dog:'badge-info', bird:'badge-warning', other:'badge-orange'};
+
+          document.getElementById('statsBody').innerHTML = types.map(type => {
+            const group   = state.listings.filter(l => type === 'other'
+              ? !['cat','dog','bird'].includes(l.animalType) : l.animalType === type);
+            const total   = group.length;
+            if (!total) return '';
+            const avail   = group.filter(l => l.adoptionStatus === 'available').length;
+            const adopted = group.filter(l => l.adoptionStatus === 'adopted').length;
+            const pending = group.filter(l => l.adStatus === 'pending').length;
+            const flagged = group.filter(l => l.flaggedCount > 0).length;
+            const rate    = Math.round((adopted/total)*100);
+
+            return `<tr>
+              <td><span class="badge ${chips[type]}">${labels[type]}</span></td>
+              <td style="font-weight:800;color:var(--brand-dark);">${total}</td>
+              <td><span class="badge badge-info">${avail}</span></td>
+              <td><span class="badge badge-success">${adopted}</span></td>
+              <td><span class="badge badge-warning">${pending}</span></td>
+              <td>${flagged > 0
+                ? `<span class="badge badge-danger">🚩 ${flagged}</span>`
+                : `<span class="badge badge-muted">0</span>`}</td>
+              <td>
+                <div class="rate-wrap">
+                  <div class="rate-track"><div class="rate-fill" style="width:${rate}%"></div></div>
+                  <strong style="font-size:.82rem;color:var(--brand-dark);min-width:34px;">${rate}%</strong>
+                </div>
+              </td>
+            </tr>`;
+          }).join('');
+        }
+
+        /* ── Charts ── */
+        function initCharts() {
+          new Chart(document.getElementById('adoptChart'), {
+            type: 'bar',
+            data: {
+              labels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+              datasets: [{
+                label: 'Adoptions',
+                data: [12,15,18,14,22,28,24,31,19,26,30,28],
+                backgroundColor: C.olive,
+                borderColor: '#5f7430',
+                borderWidth: 1.5,
+                borderRadius: 7,
+                borderSkipped: false,
+              }]
+            },
+            options: {
+              responsive: true, maintainAspectRatio: false,
+              plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} adoptions` } } },
+              scales: { y: { grid: GRID, ticks: TICK, beginAtZero: true }, x: { grid: { display: false }, ticks: TICK } }
+            }
+          });
+
+          const tc = [
+            state.listings.filter(l => l.animalType === 'cat').length,
+            state.listings.filter(l => l.animalType === 'dog').length,
+            state.listings.filter(l => l.animalType === 'bird').length,
+            state.listings.filter(l => !['cat','dog','bird'].includes(l.animalType)).length,
+          ];
+          new Chart(document.getElementById('typeChart'), {
+            type: 'doughnut',
+            data: {
+              labels: ['🐈 Cats','🐕 Dogs','🐦 Birds','🐾 Others'],
+              datasets: [{ data: tc, backgroundColor: [C.purple, C.blue, C.yellow, C.orange], borderColor: ['#8f79c6','#3a86ff','#e2a33a','#bf7a23'], borderWidth: 2, hoverOffset: 6 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: LEG } }
+          });
+
+          const sc = [
+            state.listings.filter(l => l.source === 'user').length,
+            state.listings.filter(l => l.source === 'clinic').length,
+            state.listings.filter(l => l.source === 'store').length,
+          ];
+          new Chart(document.getElementById('sourceChart'), {
+            type: 'doughnut',
+            data: {
+              labels: ['👤 Users','🏥 Clinics','🏪 Stores'],
+              datasets: [{ data: sc, backgroundColor: [C.blue, C.green, C.purple], borderColor: ['#3a86ff','#2f9e5f','#8f79c6'], borderWidth: 2, hoverOffset: 6 }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '58%', plugins: { legend: LEG } }
+          });
+        }
+
+        /* ── Init ── */
+        renderKpis();
+        renderCityList();
+        renderStatsTable();
+        initCharts();
+    </script>
+</body>
+</html>

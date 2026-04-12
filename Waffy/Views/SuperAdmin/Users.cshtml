@@ -1,0 +1,590 @@
+﻿@{
+    ViewData["Title"] = "Waffy — Super Admin | Users";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+    
+    <style>
+        /* ── Page-specific only ── */
+        .selected-row {
+            background: #f5fbec !important;
+        }
+
+            .selected-row td {
+                border-bottom-color: rgba(139,169,74,.2) !important;
+            }
+
+        .trust-bar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .trust-track {
+            width: 56px;
+            height: 5px;
+            background: #ECE3D6;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .trust-fill {
+            height: 100%;
+            border-radius: 999px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
+    <div class="wa-shell" id="waShell">
+
+        <!-- SIDEBAR -->
+        <aside class="wa-sb" id="waSb">
+            <div class="sb-logo">
+                <div class="sb-mark">
+                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img">
+                </div>
+                <div class="sb-wordmark">
+                    <div class="sb-wm-name">Waffy</div>
+                    <div class="sb-wm-tag">Super Admin</div>
+                </div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard" data-tip="Dashboard">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
+                        <span class="sb-lbl">Dashboard</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Management</div>
+                    <div>
+                        <button class="sb-row open active" id="t-users" onclick="acc('g-users','t-users')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
+                            <span class="sb-lbl">Users</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub open" id="g-users" style="height:auto;">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Users">
+                                    <span class="sb-dot"></span><span class="sb-child-lbl">All Users</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
+                            <span class="sb-lbl">Clinics</span><span class="sb-bdg bd-y">4</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-clinics">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_C"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
+                            <span class="sb-lbl">Shop</span><span class="sb-bdg bd-r">3</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-shop">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_S"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_S"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" data-tip="Adoption" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                            <span class="sb-lbl">Adoption</span><span class="sb-bdg bd-y">5</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-adopt">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Listings"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span><span class="sb-bdg bd-y sb-child-bdg">5</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span><span class="sb-bdg bd-r sb-child-bdg">3</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Adopted_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_A"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" data-tip="Reports" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
+                            <span class="sb-lbl">Reports</span><span class="sb-bdg bd-y">8</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-rep">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span><span class="sb-bdg bd-y sb-child-bdg">8</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span><span class="sb-bdg bd-g sb-child-bdg">5</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span><span class="sb-bdg bd-r sb-child-bdg">4</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Donations"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Laws_Regulations"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Tools</div>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Map">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span>
+                        <span class="sb-lbl">Map</span>
+                    </a>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
+                        <span class="sb-lbl">Notifications</span><span class="sb-bdg bd-r">12</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row">
+                    <div class="sb-av">DC</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">Daniel Carter</div>
+                        <div class="sb-user-role">Operations Director</div>
+                    </div>
+                </div>
+                <button class="sb-logout" onclick="alert('Sign out')" type="button">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                    <span class="sb-logout-lbl">Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- TOPNAV -->
+        <header class="wa-tn" id="waTn">
+            <button class="tn-toggle" onclick="toggleSb()" type="button">
+                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+            </button>
+            <nav class="tn-bread"><span>Management</span><span>/</span><b>Users</b></nav>
+            <div class="tn-center">
+                <div class="tn-center-main">User Management</div>
+                <div class="tn-center-sub">Super Admin Panel</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <button class="tn-btn" type="button">
+                    <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
+                </button>
+                <a class="tn-btn" asp-controller="SuperAdmin" asp-action="Notifications">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+                    <span class="tn-count">12</span>
+                </a>
+                <a class="tn-btn" href="#">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                    <span class="tn-dot dot-g"></span>
+                </a>
+                <div class="tn-sep"></div>
+                <div class="tn-profile" onclick="alert('Profile')">
+                    <div class="tn-av">DC</div>
+                    <div>
+                        <div class="tn-pname">Daniel Carter</div>
+                        <div class="tn-prole">Operations Director</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN -->
+        <main class="wa-main" id="waMain">
+            <section class="page-hero">
+                <div>
+                    <h1>User Management</h1>
+                    <p>Monitor and manage all platform users — trust scores, pets, activity, and moderation actions.</p>
+                </div>
+                <div class="page-hero-actions">
+                    <button class="btn btn-outline btn-sm" onclick="exportUsers()">📥 Export</button>
+                    <button class="btn btn-primary btn-sm" onclick="openM('addUserModal')">+ Add User</button>
+                </div>
+            </section>
+
+            <div class="page-body">
+
+                <!-- KPIs -->
+                <div class="kpi-grid kpi-grid-4" style="grid-template-columns:repeat(5,1fr);">
+                    <div class="kpi-card c1"><div class="kpi-ico green">👥</div><div class="kpi-val">4,280</div><div class="kpi-label">Total Users</div><div class="kpi-chip chip-green">+12% this month</div></div>
+                    <div class="kpi-card c2"><div class="kpi-ico blue">🆕</div><div class="kpi-val">148</div><div class="kpi-label">New This Month</div><div class="kpi-chip chip-blue">↑ Growing</div></div>
+                    <div class="kpi-card c3"><div class="kpi-ico yellow">⚡</div><div class="kpi-val">2,940</div><div class="kpi-label">Active (30 Days)</div><div class="kpi-chip chip-yellow">68% rate</div></div>
+                    <div class="kpi-card c4"><div class="kpi-ico red">🔒</div><div class="kpi-val">23</div><div class="kpi-label">Suspended</div><div class="kpi-chip chip-red">5 pending review</div></div>
+                    <div class="kpi-card c5"><div class="kpi-ico purple">🚨</div><div class="kpi-val">7</div><div class="kpi-label">High Risk</div><div class="kpi-chip chip-red">Review needed</div></div>
+                </div>
+
+                <!-- Filters -->
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+                    <div class="search-wrap" style="flex:1 1 260px;"><span style="color:var(--text-muted);">🔍</span><input type="text" id="searchInput" placeholder="Search name, email, phone..." oninput="filterTable()" /></div>
+                    <select class="sel-wrap" style="width:auto;min-width:160px;" id="typeFilter" onchange="filterTable()">
+                        <option value="">All Types</option>
+                        <option value="owner">🐾 Pet Owner</option>
+                        <option value="vet">👨‍⚕️ Veterinarian</option>
+                        <option value="store">🏪 Store Owner</option>
+                    </select>
+                    <select class="sel-wrap" style="width:auto;min-width:160px;" id="statusFilter" onchange="filterTable()">
+                        <option value="">All Statuses</option>
+                        <option value="active">✅ Active</option>
+                        <option value="suspended">🔒 Suspended</option>
+                        <option value="suspicious">⚠️ Suspicious</option>
+                    </select>
+                    <select class="sel-wrap" style="width:auto;min-width:160px;" id="trustFilter" onchange="filterTable()">
+                        <option value="">All Trust Scores</option>
+                        <option value="high">🟢 High (80%+)</option>
+                        <option value="mid">🟡 Medium (50–80%)</option>
+                        <option value="low">🔴 Low (&lt;50%)</option>
+                    </select>
+                    <button class="btn btn-outline btn-sm" onclick="resetFilters()">Reset</button>
+                </div>
+
+                <!-- Chips -->
+                <div class="chips-row">
+                    <button class="filter-chip active" data-f="all" onclick="setChip(this)">All (4,280)</button>
+                    <button class="filter-chip" data-f="owner" onclick="setChip(this)">🐾 Owners (3,340)</button>
+                    <button class="filter-chip" data-f="vet" onclick="setChip(this)">👨‍⚕️ Vets (642)</button>
+                    <button class="filter-chip" data-f="store" onclick="setChip(this)">🏪 Store Owners (298)</button>
+                    <button class="filter-chip" data-f="risk" onclick="setChip(this)">🚨 High Risk (7)</button>
+                    <button class="filter-chip" data-f="new" onclick="setChip(this)">🆕 New Today (23)</button>
+                </div>
+
+                <!-- Bulk Bar -->
+                <div class="bulk-bar" id="bulkBar">
+                    <div class="bulk-info" id="bulkCount">0 selected</div>
+                    <div class="bulk-actions">
+                        <button class="btn btn-warning btn-sm" onclick="bulkAction('warn')">⚠️ Send Warning</button>
+                        <button class="btn btn-danger btn-sm" onclick="bulkAction('suspend')">🔒 Suspend</button>
+                        <button class="btn btn-outline btn-sm" onclick="bulkAction('export')">📥 Export</button>
+                        <button class="btn btn-outline btn-sm" onclick="clearSelection()">✕ Clear</button>
+                    </div>
+                </div>
+
+                <!-- Table -->
+                <div class="table-card">
+                    <div class="table-head-bar">
+                        <div class="table-head-title">User List</div>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <span class="table-count" id="tableCount"></span>
+                            <select class="sel-wrap" style="height:36px;font-size:.78rem;width:auto;min-width:180px;" onchange="sortTable(this.value)">
+                                <option value="newest">Latest Sign Up</option>
+                                <option value="activity">Last Activity</option>
+                                <option value="trust">Trust Score</option>
+                                <option value="pets">Pets Count</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="checkAll" onchange="toggleAll(this)" /></th>
+                                    <th>User</th>
+                                    <th>Type</th>
+                                    <th>Status</th>
+                                    <th>Trust</th>
+                                    <th>Risk</th>
+                                    <th>Pets</th>
+                                    <th>Appts</th>
+                                    <th>Orders</th>
+                                    <th>Last Active</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersBody"></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination-bar">
+                        <div class="pag-info" id="pagInfo">Showing 1–6 users</div>
+                        <div class="pag-pages" id="pagPages"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: Add User -->
+    <div class="modal-overlay" id="addUserModal">
+        <div class="modal-box" style="max-width:640px;">
+            <div class="modal-head"><div class="modal-title">➕ Add New User</div><button class="dp-close" onclick="closeM('addUserModal')">✕</button></div>
+            <div class="modal-body">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="field"><label>Full Name *</label><input type="text" id="addName" placeholder="Sara Al-Khatib" /></div>
+                    <div class="field"><label>Email *</label><input type="email" id="addEmail" placeholder="sara@email.com" /></div>
+                    <div class="field"><label>Phone *</label><input type="text" id="addPhone" placeholder="079XXXXXXX" /></div>
+                    <div class="field"><label>Location *</label><input type="text" id="addLocation" placeholder="Amman — Al Jubaiha" /></div>
+                    <div class="field"><label>User Type</label><select id="addType"><option value="owner">🐾 Pet Owner</option><option value="vet">👨‍⚕️ Veterinarian</option><option value="store">🏪 Store Owner</option></select></div>
+                    <div class="field"><label>Status</label><select id="addStatus"><option value="active">✅ Active</option><option value="suspicious">⚠️ Suspicious</option><option value="suspended">🔒 Suspended</option></select></div>
+                    <div class="field"><label>Trust Score (0–100)</label><input type="number" id="addTrust" value="80" min="0" max="100" /></div>
+                    <div class="field"><label>Pets Count</label><input type="number" id="addPets" value="0" min="0" /></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('addUserModal')">Cancel</button><button class="btn btn-primary" onclick="saveUser()">Save User</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Warn -->
+    <div class="modal-overlay" id="warnModal">
+        <div class="modal-box" style="max-width:500px;">
+            <div class="modal-head"><div class="modal-title">⚠️ Send Warning</div><button class="dp-close" onclick="closeM('warnModal')">✕</button></div>
+            <div class="modal-body">
+                <div class="field"><label>Target User</label><input type="text" id="warnTarget" readonly style="background:#f5f0e8;" /></div>
+                <div class="field"><label>Warning Type</label><select><option>Policy violation</option><option>Suspicious activity</option><option>False report</option><option>Coupon abuse</option></select></div>
+                <div class="field"><label>Message</label><textarea id="warnMessage" placeholder="Write warning message..."></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('warnModal')">Cancel</button><button class="btn btn-warning" onclick="sendWarning()">Send Warning</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Suspend -->
+    <div class="modal-overlay" id="suspendModal">
+        <div class="modal-box" style="max-width:500px;">
+            <div class="modal-head"><div class="modal-title">🔒 Suspend Account</div><button class="dp-close" onclick="closeM('suspendModal')">✕</button></div>
+            <div class="modal-body">
+                <div class="field"><label>Target User</label><input type="text" id="suspendTarget" readonly style="background:#f5f0e8;" /></div>
+                <div class="field"><label>Duration</label><select><option>7 days</option><option>30 days</option><option>90 days</option><option>Permanent</option></select></div>
+                <div class="field"><label>Reason</label><textarea placeholder="Explain reason..."></textarea></div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('suspendModal')">Cancel</button><button class="btn btn-danger" onclick="confirmSuspend()">Suspend Account</button></div>
+        </div>
+    </div>
+
+    <!-- MODAL: Delete Confirm -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-box" style="max-width:420px;">
+            <div class="modal-head"><div class="modal-title">🗑 Delete User</div><button class="dp-close" onclick="closeM('deleteModal')">✕</button></div>
+            <div class="modal-body" style="text-align:center;padding:24px 20px;">
+                <div style="font-size:2.5rem;margin-bottom:12px;">⚠️</div>
+                <div style="font-family:'Fredoka',sans-serif;font-size:1rem;font-weight:700;color:var(--brand-dark);margin-bottom:8px;">Are you sure?</div>
+                <div style="font-size:.86rem;color:var(--text-muted);font-weight:700;">Permanently delete <strong id="deleteUserName" style="color:var(--danger);"></strong>? This cannot be undone.</div>
+            </div>
+            <div class="modal-footer" style="justify-content:center;"><button class="btn btn-outline" onclick="closeM('deleteModal')">Cancel</button><button class="btn btn-danger" onclick="confirmDelete()">Yes, Delete</button></div>
+        </div>
+    </div>
+
+    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
+    <script>
+        /* ═══ DATA ═══ */
+        const users = [
+          {id:'sara',name:'Sara Al-Khatib',email:'sara@email.com',phone:'0791234567',location:'Amman — Al Jubaiha',joined:'2025-01-10',joinedLabel:'Jan 2025',type:'owner',status:'active',trust:87,pets:3,appointments:12,orders:8,lastActive:'Today',avatar:'👩'},
+          {id:'batool',name:'Batool Almasalmeh',email:'batool@email.com',phone:'0799876543',location:'Amman — Khalda',joined:'2025-02-02',joinedLabel:'Feb 2025',type:'owner',status:'active',trust:72,pets:2,appointments:8,orders:6,lastActive:'Yesterday',avatar:'👩'},
+          {id:'risk',name:'Mohammad Salameh',email:'m.salama@email.com',phone:'0785432109',location:'Amman — Tlaa Al-Ali',joined:'2025-03-01',joinedLabel:'Mar 2025',type:'owner',status:'suspicious',trust:31,pets:1,appointments:0,orders:0,lastActive:'3 days ago',avatar:'👤'},
+          {id:'vet',name:'Dr. Ahmad Al-Zoubi',email:'dr.ahmad@email.com',phone:'0796543210',location:'Amman — Medical Complex',joined:'2025-01-15',joinedLabel:'Jan 2025',type:'vet',status:'active',trust:95,pets:0,appointments:142,orders:0,lastActive:'Today',avatar:'👨‍⚕️'},
+          {id:'store',name:'Batool Jaber',email:'batool@petworld.jo',phone:'0798765432',location:'Amman — Sweifieh',joined:'2025-03-04',joinedLabel:'Mar 2025',type:'store',status:'active',trust:88,pets:0,appointments:0,orders:320,lastActive:'Yesterday',avatar:'🏪'},
+          {id:'rana',name:'Rana Al-Haddad',email:'rana@email.com',phone:'0793210987',location:'Amman — Shmeisani',joined:'2024-12-18',joinedLabel:'Dec 2024',type:'owner',status:'suspended',trust:22,pets:1,appointments:1,orders:5,lastActive:'45 days ago',avatar:'👩'},
+          {id:'khaled',name:'Khaled Nasser',email:'khaled@email.com',phone:'0771122334',location:'Zarqa — New Zarqa',joined:'2025-02-20',joinedLabel:'Feb 2025',type:'owner',status:'active',trust:65,pets:4,appointments:5,orders:12,lastActive:'2 days ago',avatar:'👨'},
+          {id:'layan',name:'Layan Mugdadi',email:'layan@email.com',phone:'0792223344',location:'Irbid — Downtown',joined:'2025-03-10',joinedLabel:'Mar 2025',type:'vet',status:'active',trust:91,pets:0,appointments:88,orders:0,lastActive:'Today',avatar:'👩‍⚕️'},
+        ];
+
+        let filteredUsers=[...users], selectedIds=new Set(), currentDeleteId=null, currentSuspendId=null;
+        const PAGE_SIZE=6; let currentPage=1, currentSort='newest';
+
+        /* ═══ HELPERS ═══ */
+        function typeBadge(t){const m={owner:['badge-purple','🐾 Owner'],vet:['badge-info','👨‍⚕️ Vet'],store:['badge-orange','🏪 Store']};const[c,l]=m[t]||['badge-muted',t];return`<span class="badge ${c}">${l}</span>`;}
+        function statusBadge(s){const m={active:['badge-success','✅ Active'],suspended:['badge-danger','🔒 Suspended'],suspicious:['badge-warning','⚠️ Suspicious']};const[c,l]=m[s]||['badge-muted',s];return`<span class="badge ${c}">${l}</span>`;}
+        function tc(t){return t>=80?'var(--success)':t>=50?'var(--warning)':'var(--danger)';}
+        function riskBadge(t){return t>=80?'<span class="badge badge-success">🟢 Low</span>':t>=50?'<span class="badge badge-warning">🟡 Medium</span>':'<span class="badge badge-danger">🔴 High</span>';}
+
+        /* ═══ RENDER ═══ */
+        function renderTable(){
+          const total=filteredUsers.length;
+          const pages=Math.ceil(total/PAGE_SIZE);
+          if(currentPage>pages) currentPage=1;
+          const slice=filteredUsers.slice((currentPage-1)*PAGE_SIZE, currentPage*PAGE_SIZE);
+          const tbody=document.getElementById('usersBody');
+
+          tbody.innerHTML = slice.length ? slice.map(u=>`
+            <tr style="cursor:pointer;${u.trust<50?'background:#fffcf3;':''}" class="${selectedIds.has(u.id)?'selected-row':''}" onclick="goToDetail('${u.id}')">
+              <td onclick="event.stopPropagation()"><input type="checkbox" class="row-chk" data-id="${u.id}" ${selectedIds.has(u.id)?'checked':''} onchange="toggleRow(this)"/></td>
+              <td>
+                <div class="user-cell">
+                  <div class="user-ava">${u.avatar}</div>
+                  <div>
+                    <div class="user-name">${u.name}</div>
+                    <div class="user-sub">${u.email} · ${u.phone}</div>
+                  </div>
+                </div>
+              </td>
+              <td>${typeBadge(u.type)}</td>
+              <td>${statusBadge(u.status)}</td>
+              <td>
+                <div class="trust-bar">
+                  <div class="trust-track"><div class="trust-fill" style="width:${u.trust}%;background:${tc(u.trust)};"></div></div>
+                  <strong style="color:${tc(u.trust)};font-size:.82rem;">${u.trust}%</strong>
+                </div>
+              </td>
+              <td>${riskBadge(u.trust)}</td>
+              <td>${u.pets>0?u.pets+' 🐾':'—'}</td>
+              <td>${u.appointments}</td>
+              <td>${u.orders>0?u.orders+' JD':'—'}</td>
+              <td style="color:var(--text-muted);font-size:.8rem;">${u.lastActive}</td>
+              <td style="color:var(--text-muted);font-size:.8rem;">${u.joinedLabel}</td>
+              <td onclick="event.stopPropagation()">
+                <div style="display:flex;gap:5px;">
+                  <button class="btn btn-outline btn-xs" onclick="goToDetail('${u.id}')">👁 View</button>
+                  <button class="btn btn-warning btn-xs" onclick="openWarn('${u.id}')">⚠️</button>
+                  <button class="btn btn-danger btn-xs" onclick="openSuspendFor('${u.id}')">🔒</button>
+                  <button class="btn btn-danger btn-xs" onclick="openDeleteModal('${u.id}')">🗑</button>
+                </div>
+              </td>
+            </tr>`).join('')
+          : `<tr><td colspan="12" style="text-align:center;padding:32px;color:var(--text-muted);">No users found.</td></tr>`;
+
+          document.getElementById('pagInfo').textContent=total===0?'No users found':`Showing ${(currentPage-1)*PAGE_SIZE+1}–${Math.min(currentPage*PAGE_SIZE,total)} of ${total} users`;
+          const pagEl=document.getElementById('pagPages'); pagEl.innerHTML='';
+          if(pages>1){
+            const mk=(lbl,pg,active,disabled)=>{const b=document.createElement('button');b.className='pag-btn'+(active?' active':'');b.textContent=lbl;b.disabled=disabled;b.onclick=()=>{currentPage=pg;renderTable();};pagEl.appendChild(b);};
+            mk('‹',currentPage-1,false,currentPage===1);
+            for(let i=1;i<=pages;i++){if(pages>7&&i>2&&i<pages-1&&Math.abs(i-currentPage)>1){if(i===3||i===pages-2){const s=document.createElement('button');s.className='pag-btn';s.textContent='…';s.disabled=true;pagEl.appendChild(s);}continue;}mk(i,i,i===currentPage);}
+            mk('›',currentPage+1,false,currentPage===pages);
+          }
+          document.getElementById('tableCount').textContent=total+' users';
+          updateBulkBar();
+        }
+
+        /* ═══ FILTER / SORT ═══ */
+        function filterTable(){
+          const q=document.getElementById('searchInput').value.toLowerCase();
+          const type=document.getElementById('typeFilter').value;
+          const status=document.getElementById('statusFilter').value;
+          const trust=document.getElementById('trustFilter').value;
+          filteredUsers=users.filter(u=>{
+            const mQ=!q||[u.name,u.email,u.phone,u.location].some(v=>v.toLowerCase().includes(q));
+            const mT=!type||u.type===type;
+            const mS=!status||u.status===status;
+            const mTr=!trust||(trust==='high'&&u.trust>=80)||(trust==='mid'&&u.trust>=50&&u.trust<80)||(trust==='low'&&u.trust<50);
+            return mQ&&mT&&mS&&mTr;
+          });
+          applySort(); currentPage=1; renderTable();
+        }
+        function applySort(){
+          const m={newest:(a,b)=>new Date(b.joined)-new Date(a.joined),trust:(a,b)=>b.trust-a.trust,pets:(a,b)=>b.pets-a.pets,activity:()=>0};
+          filteredUsers.sort(m[currentSort]||(()=>0));
+        }
+        function sortTable(v){currentSort=v;applySort();renderTable();}
+        function resetFilters(){
+          document.getElementById('searchInput').value='';
+          ['typeFilter','statusFilter','trustFilter'].forEach(id=>document.getElementById(id).selectedIndex=0);
+          document.querySelectorAll('.filter-chip').forEach((c,i)=>c.classList.toggle('active',i===0));
+          filteredUsers=[...users]; currentPage=1; applySort(); renderTable();
+        }
+        function setChip(btn){
+          document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+          btn.classList.add('active');
+          const f=btn.dataset.f;
+          if(f==='all') filteredUsers=[...users];
+          else if(f==='owner') filteredUsers=users.filter(u=>u.type==='owner');
+          else if(f==='vet')   filteredUsers=users.filter(u=>u.type==='vet');
+          else if(f==='store') filteredUsers=users.filter(u=>u.type==='store');
+          else if(f==='risk')  filteredUsers=users.filter(u=>u.trust<50);
+          else if(f==='new')   filteredUsers=users.filter(u=>u.joinedLabel==='Mar 2025');
+          currentPage=1; applySort(); renderTable();
+        }
+
+        /* ═══ SELECTION ═══ */
+        function toggleRow(cb){const id=cb.dataset.id;if(cb.checked)selectedIds.add(id);else selectedIds.delete(id);cb.closest('tr').classList.toggle('selected-row',cb.checked);document.getElementById('checkAll').checked=filteredUsers.slice((currentPage-1)*PAGE_SIZE,currentPage*PAGE_SIZE).every(u=>selectedIds.has(u.id));updateBulkBar();}
+        function toggleAll(master){filteredUsers.slice((currentPage-1)*PAGE_SIZE,currentPage*PAGE_SIZE).forEach(u=>{master.checked?selectedIds.add(u.id):selectedIds.delete(u.id);});renderTable();}
+        function clearSelection(){selectedIds.clear();document.getElementById('checkAll').checked=false;renderTable();}
+        function updateBulkBar(){const bar=document.getElementById('bulkBar');const cnt=document.getElementById('bulkCount');bar.classList.toggle('show',selectedIds.size>0);cnt.textContent=selectedIds.size+' user(s) selected';}
+        function bulkAction(type){
+          if(!selectedIds.size){toast('Please select users first.','warning');return;}
+          const names=[...selectedIds].map(id=>users.find(u=>u.id===id)?.name).filter(Boolean);
+          if(type==='warn'){toast('Warning sent to '+names.length+' user(s).','warning');}
+          else if(type==='suspend'){users.forEach(u=>{if(selectedIds.has(u.id))u.status='suspended';});filteredUsers.forEach(u=>{if(selectedIds.has(u.id))u.status='suspended';});toast('Suspended '+names.length+' user(s).','danger');}
+          else if(type==='export'){toast('Exporting '+selectedIds.size+' users...','success');}
+          selectedIds.clear(); renderTable();
+        }
+
+        /* ═══ NAVIGATE TO DETAILS ═══ */
+        function goToDetail(id){
+          window.location.href=`/SuperAdmin/Details_U?id=${id}`;
+        }
+
+        /* ═══ ADD USER ═══ */
+        function saveUser(){
+          const name=document.getElementById('addName').value.trim();
+          const email=document.getElementById('addEmail').value.trim();
+          const phone=document.getElementById('addPhone').value.trim();
+          const location=document.getElementById('addLocation').value.trim();
+          if(!name||!email||!phone||!location){toast('Please fill all required fields.','danger');return;}
+          const u={
+            id:'u_'+Date.now(), name, email, phone, location,
+            joined:new Date().toISOString().split('T')[0], joinedLabel:'Today',
+            type:document.getElementById('addType').value,
+            status:document.getElementById('addStatus').value,
+            trust:+document.getElementById('addTrust').value||80,
+            pets:+document.getElementById('addPets').value||0,
+            appointments:0, orders:0, lastActive:'Just now', avatar:'👤'
+          };
+          users.unshift(u); filteredUsers.unshift(u);
+          closeM('addUserModal'); renderTable(); toast(`${name} added.`,'success');
+        }
+
+        /* ═══ WARN ═══ */
+        function openWarn(id){const u=users.find(x=>x.id===id);if(u){document.getElementById('warnTarget').value=u.name;}openM('warnModal');}
+        function sendWarning(){closeM('warnModal');toast('Warning sent to '+document.getElementById('warnTarget').value,'warning');}
+
+        /* ═══ SUSPEND ═══ */
+        function openSuspendFor(id){
+          currentSuspendId=id;
+          const u=users.find(x=>x.id===id);
+          if(u)document.getElementById('suspendTarget').value=u.name;
+          openM('suspendModal');
+        }
+        function confirmSuspend(){
+          const u=users.find(x=>x.id===currentSuspendId);
+          if(u){u.status='suspended';const fu=filteredUsers.find(x=>x.id===currentSuspendId);if(fu)fu.status='suspended';}
+          closeM('suspendModal'); renderTable(); toast('Account suspended.','danger');
+        }
+
+        /* ═══ DELETE ═══ */
+        function openDeleteModal(id){
+          currentDeleteId=id;
+          const u=users.find(x=>x.id===id);
+          if(u)document.getElementById('deleteUserName').textContent=u.name;
+          openM('deleteModal');
+        }
+        function confirmDelete(){
+          const idx=users.findIndex(x=>x.id===currentDeleteId);
+          if(idx>-1)users.splice(idx,1);
+          filteredUsers=filteredUsers.filter(x=>x.id!==currentDeleteId);
+          closeM('deleteModal'); renderTable(); toast('User deleted.','danger');
+        }
+
+        /* ═══ EXPORT ═══ */
+        function exportUsers(){toast('Exporting '+filteredUsers.length+' users...','success');}
+
+        /* ═══ MODAL HELPERS ═══ */
+        function openM(id){const m=document.getElementById(id);if(m)m.classList.add('open');}
+        function closeM(id){const m=document.getElementById(id);if(m)m.classList.remove('open');}
+        document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
+
+        /* ═══ TOAST ═══ */
+        function toast(msg,type='success'){
+          const bg={success:'var(--success-soft)',danger:'var(--danger-soft)',warning:'var(--warning-soft)'};
+          const col={success:'var(--success)',danger:'var(--danger)',warning:'#9b6000'};
+          const t=document.createElement('div');
+          t.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:9999;padding:14px 20px;border-radius:14px;background:${bg[type]};border:1px solid ${col[type]}40;color:${col[type]};font-weight:800;font-size:.86rem;font-family:'Nunito',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.12);animation:fadeUp .25s ease;max-width:320px;`;
+          t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3000);
+        }
+        const ts=document.createElement('style');ts.textContent=`@@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`;document.head.appendChild(ts);
+
+        /* INIT */
+        applySort();
+        renderTable();
+    </script>
+</body>
+</html>

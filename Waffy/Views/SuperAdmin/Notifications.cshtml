@@ -1,0 +1,1144 @@
+﻿@{
+    ViewData["Title"] = "Waffy — Super Admin | Notifications";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+
+    <style>
+        .tab-switcher {
+            display: inline-flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 6px;
+            box-shadow: var(--shadow);
+            margin-bottom: 18px;
+        }
+
+        .tsw-btn {
+            padding: 10px 18px;
+            border-radius: 14px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-weight: 900;
+            color: var(--text-muted);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'Nunito',sans-serif;
+            font-size: .87rem;
+            transition: .18s;
+        }
+
+            .tsw-btn:hover {
+                background: var(--surface-2);
+                color: var(--brand-dark);
+            }
+
+            .tsw-btn.on {
+                background: var(--brand-ghost);
+                color: var(--brand-dark);
+                box-shadow: inset 0 0 0 1.5px rgba(151,173,77,.35);
+            }
+
+        .type-ico {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .type-cell {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+        }
+
+        .unread td:first-child {
+            border-left: 3px solid var(--brand);
+        }
+
+        .priority-grid {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 10px;
+        }
+
+        .pri-btn {
+            padding: 13px 10px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: .2s;
+            background: #fff;
+            color: var(--text-muted);
+            font-weight: 900;
+            font-family: 'Nunito',sans-serif;
+        }
+
+            .pri-btn:hover {
+                border-color: var(--brand);
+                background: var(--brand-ghost);
+                transform: translateY(-1px);
+            }
+
+            .pri-btn.on.normal {
+                border-color: rgba(47,158,95,.28);
+                background: var(--success-soft);
+                color: #2e7d32;
+            }
+
+            .pri-btn.on.important {
+                border-color: rgba(226,163,58,.28);
+                background: var(--warning-soft);
+                color: #9b6000;
+            }
+
+            .pri-btn.on.urgent {
+                border-color: rgba(217,83,79,.28);
+                background: var(--danger-soft);
+                color: var(--danger);
+            }
+
+        .pri-ico {
+            display: block;
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .send-layout {
+            display: grid;
+            grid-template-columns: 1.35fr 1fr;
+            gap: 18px;
+            align-items: start;
+        }
+
+        .send-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+            .send-grid .full {
+                grid-column: 1/-1;
+            }
+
+        .usr-srch-wrap {
+            position: relative;
+        }
+
+        .usr-dropdown {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: calc(100% + 8px);
+            z-index: 30;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 8px 28px rgba(78,58,39,.1);
+            overflow: hidden;
+            max-height: 220px;
+            overflow-y: auto;
+            display: none;
+        }
+
+            .usr-dropdown.show {
+                display: block;
+            }
+
+        .usr-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 14px;
+            cursor: pointer;
+            transition: .15s;
+            font-size: .84rem;
+            font-weight: 700;
+        }
+
+            .usr-option:hover {
+                background: var(--surface-2);
+            }
+
+        .usr-chip-av {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg,var(--brand-light),var(--brand-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: .7rem;
+            font-weight: 900;
+            flex-shrink: 0;
+        }
+
+        .selected-chip {
+            display: none;
+            align-items: center;
+            gap: 10px;
+            background: var(--brand-xlight);
+            border: 1px solid rgba(151,173,77,.3);
+            border-radius: 14px;
+            padding: 9px 12px;
+            font-size: .82rem;
+            color: var(--brand-dark);
+            font-weight: 900;
+            margin-top: 8px;
+        }
+
+            .selected-chip.show {
+                display: flex;
+            }
+
+        .chip-x {
+            margin-left: auto;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 1rem;
+        }
+
+            .chip-x:hover {
+                color: var(--danger);
+            }
+
+        .preview-card {
+            background: linear-gradient(180deg,#fff 0%,#fbf8f4 100%);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 16px;
+        }
+
+        .preview-label {
+            font-size: .7rem;
+            font-weight: 900;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .confirm-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(66,53,37,.38);
+            z-index: 1350;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+            .confirm-overlay.show {
+                display: flex;
+            }
+
+        .confirm-box {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: 0 24px 60px rgba(38,31,23,.25);
+            width: min(360px,90vw);
+            padding: 24px;
+            text-align: center;
+            animation: modalIn .22s ease;
+        }
+
+        @@keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(.97)
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1)
+            }
+        }
+
+        .confirm-ico {
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .confirm-title {
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--brand-dark);
+        }
+
+        .confirm-sub {
+            font-size: .82rem;
+            color: var(--text-muted);
+            margin: 8px 0 18px;
+        }
+
+        .confirm-btns {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .detail-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(38,31,23,.45);
+            backdrop-filter: blur(5px);
+            z-index: 1300;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+            .detail-overlay.show {
+                display: flex;
+            }
+
+        .detail-box {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: 0 24px 60px rgba(38,31,23,.25);
+            width: min(560px,100%);
+            max-height: 88vh;
+            overflow: auto;
+            animation: modalIn .22s ease;
+        }
+
+        .detail-hd {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-close {
+            width: 34px;
+            height: 34px;
+            border: none;
+            border-radius: 12px;
+            background: var(--surface-2);
+            color: var(--text-muted);
+            cursor: pointer;
+            font-family: 'Nunito',sans-serif;
+            font-size: .95rem;
+        }
+
+            .detail-close:hover {
+                background: var(--danger-soft);
+                color: var(--danger);
+            }
+
+        .detail-body {
+            padding: 18px;
+        }
+
+        .drow {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(221,209,191,.55);
+            font-size: .84rem;
+        }
+
+            .drow:last-child {
+                border-bottom: none;
+            }
+
+        .drow-key {
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .drow-val {
+            font-weight: 900;
+            text-align: right;
+            max-width: 280px;
+        }
+
+        .detail-msg {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px;
+            font-size: .84rem;
+            color: var(--text);
+            line-height: 1.75;
+            margin-top: 12px;
+        }
+
+        .notif-bulk {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: #FFF9EE;
+            border: 1.5px solid #E8D9A0;
+            border-radius: var(--r);
+            padding: 12px 16px;
+            box-shadow: var(--shadow);
+        }
+
+            .notif-bulk.show {
+                display: flex;
+            }
+
+        #wa-toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg,var(--brand),var(--brand-dark));
+            color: #fff;
+            padding: 11px 22px;
+            border-radius: var(--pill);
+            font-weight: 800;
+            font-size: .85rem;
+            z-index: 1999;
+            display: none;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 8px 22px rgba(89,101,42,.3);
+            white-space: nowrap;
+        }
+
+        .field {
+            display: grid;
+            gap: 6px;
+            margin-bottom: 0;
+        }
+
+            .field label {
+                font-size: .8rem;
+                font-weight: 900;
+                color: var(--brand-dark);
+            }
+
+            .field input, .field select, .field textarea {
+                width: 100%;
+                min-height: 44px;
+                border: 1.5px solid var(--border);
+                border-radius: 12px;
+                background: #fff;
+                color: var(--text);
+                padding: 0 14px;
+                outline: none;
+                font-size: .86rem;
+                font-weight: 700;
+                font-family: 'Nunito',sans-serif;
+                transition: .18s;
+            }
+
+            .field textarea {
+                padding: 11px 14px;
+                min-height: 110px;
+                resize: vertical;
+            }
+
+                .field input:focus, .field select:focus, .field textarea:focus {
+                    border-color: var(--brand);
+                    box-shadow: 0 0 0 3px rgba(151,173,77,.12);
+                }
+
+        .recent-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(221,209,191,.55);
+        }
+
+            .recent-item:last-child {
+                border-bottom: none;
+            }
+
+        @@media(max-width:1200px) {
+            .send-layout {
+                grid-template-columns: 1fr
+            }
+        }
+
+        @@media(max-width:768px) {
+            .send-grid {
+                grid-template-columns: 1fr
+            }
+
+            .priority-grid {
+                grid-template-columns: 1fr
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
+    <div id="wa-toast"></div>
+
+    <div class="wa-shell" id="waShell">
+
+        <!-- SIDEBAR -->
+        <aside class="wa-sb" id="waSb">
+            <div class="sb-logo">
+                <div class="sb-mark">
+                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img">
+                </div>
+                <div class="sb-wordmark">
+                    <div class="sb-wm-name">Waffy</div>
+                    <div class="sb-wm-tag">Super Admin</div>
+                </div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard" data-tip="Dashboard">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
+                        <span class="sb-lbl">Dashboard</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Management</div>
+                    <div>
+                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
+                            <span class="sb-lbl">Users</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-users">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Users"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
+                            <span class="sb-lbl">Clinics</span><span class="sb-bdg bd-y">4</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-clinics">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_C"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
+                            <span class="sb-lbl">Shop</span><span class="sb-bdg bd-r">3</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-shop">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_S"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_S"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                            <span class="sb-lbl">Adoption</span><span class="sb-bdg bd-y">5</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-adopt">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Listings"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span><span class="sb-bdg bd-y sb-child-bdg">5</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span><span class="sb-bdg bd-r sb-child-bdg">3</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Adopted_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_A"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
+                            <span class="sb-lbl">Reports</span><span class="sb-bdg bd-y">8</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub" id="g-rep">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span><span class="sb-bdg bd-y sb-child-bdg">8</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span><span class="sb-bdg bd-g sb-child-bdg">5</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span><span class="sb-bdg bd-r sb-child-bdg">4</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Donations"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Laws_Regulations"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Tools</div>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Map">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span>
+                        <span class="sb-lbl">Map</span>
+                    </a>
+                    <a class="sb-row active" asp-controller="SuperAdmin" asp-action="Notifications">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
+                        <span class="sb-lbl">Notifications</span><span class="sb-bdg bd-r">12</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row">
+                    <div class="sb-av">DC</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">Daniel Carter</div>
+                        <div class="sb-user-role">Operations Director</div>
+                    </div>
+                </div>
+                <button class="sb-logout" onclick="alert('Sign out')" type="button">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                    <span class="sb-logout-lbl">Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- TOPNAV -->
+        <header class="wa-tn" id="waTn">
+            <button class="tn-toggle" onclick="toggleSb()" type="button">
+                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+            </button>
+            <nav class="tn-bread"><span>Tools</span><span>/</span><b>Notifications</b></nav>
+            <div class="tn-center">
+                <div class="tn-center-main">Notifications</div>
+                <div class="tn-center-sub">Super Admin Panel</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <a class="tn-btn" asp-controller="SuperAdmin" asp-action="Notifications" title="Notifications">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+                    <span class="tn-count">12</span>
+                </a>
+                <div class="tn-sep"></div>
+                <div class="tn-profile" onclick="alert('Profile')">
+                    <div class="tn-av">DC</div>
+                    <div>
+                        <div class="tn-pname">Daniel Carter</div>
+                        <div class="tn-prole">Operations Director</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN -->
+        <main class="wa-main" id="waMain">
+            <section class="page-hero">
+                <div>
+                    <h1>🔔 Notifications</h1>
+                    <p>Unified center — send, filter, review and manage all admin notifications in one place.</p>
+                </div>
+                <div class="page-hero-actions">
+                    <button class="btn btn-outline btn-sm" onclick="markAllRead()">✓ Mark All Read</button>
+                    <button class="btn btn-primary btn-sm" onclick="switchTab('send',document.querySelectorAll('.tsw-btn')[1])">✉️ New Notification</button>
+                </div>
+            </section>
+
+            <div class="page-body">
+
+                <!-- KPI -->
+                <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
+                    <div class="kpi-card c2"><div class="kpi-ico blue">📨</div><div class="kpi-val" id="kpiTotal">47</div><div class="kpi-label">Total Sent</div></div>
+                    <div class="kpi-card c3"><div class="kpi-ico yellow">📬</div><div class="kpi-val" id="kpiUnread">12</div><div class="kpi-label">Unread</div><div class="kpi-chip chip-yellow">Need attention</div></div>
+                    <div class="kpi-card c4"><div class="kpi-ico red">⏳</div><div class="kpi-val" id="kpiPending">5</div><div class="kpi-label">Pending</div></div>
+                    <div class="kpi-card c1"><div class="kpi-ico green">📅</div><div class="kpi-val" id="kpiToday">8</div><div class="kpi-label">Sent Today</div></div>
+                </div>
+
+                <!-- Tab switcher -->
+                <div class="tab-switcher">
+                    <button class="tsw-btn on" onclick="switchTab('list',this)">🔔 All Notifications <span class="badge badge-danger" style="padding:3px 7px;">12</span></button>
+                    <button class="tsw-btn" onclick="switchTab('send',this)">✉️ Send Notification</button>
+                </div>
+
+                <!-- LIST TAB -->
+                <div id="tab-list">
+                    <div class="toolbar" style="grid-template-columns:1fr auto auto auto auto auto;margin-bottom:10px;">
+                        <div class="search-wrap"><span style="color:var(--text-muted);font-size:1rem;flex-shrink:0;">🔍</span><input id="searchInp" placeholder="Search target or message..." oninput="filterNotifs()" /></div>
+                        <select class="sel-wrap" id="fType" onchange="filterNotifs()" style="height:48px;width:auto;min-width:140px;"><option value="">All Types</option><option>Warning</option><option>Suspension</option><option>Rejection</option><option>Request Edit</option><option>General</option></select>
+                        <select class="sel-wrap" id="fStatus" onchange="filterNotifs()" style="height:48px;width:auto;min-width:130px;"><option value="">All Status</option><option>Sent</option><option>Pending</option><option>Read</option></select>
+                        <select class="sel-wrap" id="fTarget" onchange="filterNotifs()" style="height:48px;width:auto;min-width:120px;"><option value="">All Targets</option><option>User</option><option>Clinic</option><option>Store</option></select>
+                        <button class="btn btn-outline btn-sm" onclick="exportList()">📥 Export</button>
+                        <button class="btn btn-outline btn-sm" onclick="resetFilters()">Reset</button>
+                    </div>
+
+                    <div class="notif-bulk" id="bulkBar" style="margin-bottom:10px;">
+                        <span id="selectedCount" style="font-size:.82rem;color:var(--brand-dark);font-weight:900;">0 selected</span>
+                        <div style="display:flex;gap:8px;">
+                            <button class="btn btn-success btn-xs" onclick="bulkMarkRead()">✓ Mark Read</button>
+                            <button class="btn btn-danger btn-xs" onclick="bulkDelete()">🗑 Delete</button>
+                        </div>
+                    </div>
+
+                    <div class="table-card">
+                        <div class="table-head-bar"><div class="table-head-title">All Notifications</div><span class="table-count" id="tableInfo">—</span></div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width:38px;"><input type="checkbox" id="selectAll" onchange="toggleSelectAll(this)" style="accent-color:var(--brand);"></th>
+                                        <th>Type</th>
+                                        <th>Target</th>
+                                        <th>Related To</th>
+                                        <th>Message Preview</th>
+                                        <th>Priority</th>
+                                        <th>Date</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="notifsTable"></tbody>
+                            </table>
+                        </div>
+                        <div style="padding:12px 18px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+                            <span style="font-size:.78rem;color:var(--text-muted);font-weight:800;" id="pageInfo">—</span>
+                            <div style="display:flex;gap:8px;"><button class="btn btn-outline btn-xs">← Prev</button><button class="btn btn-outline btn-xs">Next →</button></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SEND TAB -->
+                <div id="tab-send" style="display:none;">
+                    <div class="send-layout">
+                        <div class="table-card" style="overflow:visible;">
+                            <div class="table-head-bar"><div class="table-head-title">✉️ Send New Notification</div></div>
+                            <div style="padding:20px;">
+                                <div class="send-grid">
+                                    <div class="field">
+                                        <label>Target Type <span style="color:var(--danger)">*</span></label>
+                                        <select id="fTargetType" onchange="onTargetTypeChange()" style="min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;">
+                                            <option value="">Select target type</option>
+                                            <option value="User">👤 User</option>
+                                            <option value="Clinic">🏥 Clinic</option>
+                                            <option value="Store">🏪 Store</option>
+                                            <option value="All">📢 All Users (Broadcast)</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="field" id="userSearchField">
+                                        <label>Select <span id="targetLabel">User</span> <span style="color:var(--danger)">*</span></label>
+                                        <div class="usr-srch-wrap">
+                                            <input id="fUserSearch" style="width:100%;min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;" placeholder="Search by name or email..." oninput="searchUsers(this.value)" autocomplete="off">
+                                            <div class="usr-dropdown" id="userDropdown"></div>
+                                        </div>
+                                        <div class="selected-chip" id="selectedChip"><span id="selectedText">—</span><span class="chip-x" onclick="clearUser()">✕</span></div>
+                                    </div>
+
+                                    <div class="field">
+                                        <label>Notification Type <span style="color:var(--danger)">*</span></label>
+                                        <select id="fNotifType" onchange="updatePreview()" style="min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;">
+                                            <option value="">Select type</option>
+                                            <option>Warning</option>
+                                            <option>Suspension</option>
+                                            <option>Rejection</option>
+                                            <option>Request Edit</option>
+                                            <option>General</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="field">
+                                        <label>Related To</label>
+                                        <select id="fRelated" onchange="updatePreview()" style="min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;">
+                                            <option value="">— Not specified —</option>
+                                            <option>Adoption Post</option>
+                                            <option>Pet Information</option>
+                                            <option>Clinic Registration</option>
+                                            <option>Store Registration</option>
+                                            <option>Lost Pet Report</option>
+                                            <option>Dangerous Animal Report</option>
+                                            <option>Payment</option>
+                                            <option>Document Verification</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="field full">
+                                        <label>Message Content <span style="color:var(--danger)">*</span></label>
+                                        <textarea id="fMessage" style="width:100%;min-height:110px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:12px 14px;font-weight:700;font-size:.86rem;outline:none;font-family:'Nunito',sans-serif;resize:vertical;" placeholder="Write a clear, professional message..." oninput="updatePreview();document.getElementById('charCount').textContent=this.value.length+' / 500';"></textarea>
+                                        <div style="display:flex;justify-content:space-between;margin-top:3px;"><span style="font-size:.74rem;color:var(--text-muted);font-weight:700;">Be clear, professional and specific.</span><span id="charCount" style="font-size:.72rem;color:var(--text-muted);font-weight:800;">0 / 500</span></div>
+                                    </div>
+
+                                    <div class="field full">
+                                        <label>Quick Templates</label>
+                                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                            <button class="btn btn-outline btn-xs" onclick="applyTpl('incomplete')">Incomplete Info</button>
+                                            <button class="btn btn-outline btn-xs" onclick="applyTpl('photo')">Unclear Photo</button>
+                                            <button class="btn btn-outline btn-xs" onclick="applyTpl('docs')">Docs Required</button>
+                                            <button class="btn btn-outline btn-xs" onclick="applyTpl('suspended')">Suspended</button>
+                                            <button class="btn btn-outline btn-xs" onclick="applyTpl('approved')">Approved</button>
+                                        </div>
+                                    </div>
+
+                                    <div class="field full">
+                                        <label>Priority</label>
+                                        <div class="priority-grid">
+                                            <div class="pri-btn on normal" onclick="selPri(this,'Normal')"><span class="pri-ico">🟢</span>Normal</div>
+                                            <div class="pri-btn important" onclick="selPri(this,'Important')"><span class="pri-ico">🟡</span>Important</div>
+                                            <div class="pri-btn urgent" onclick="selPri(this,'Urgent')"><span class="pri-ico">🔴</span>Urgent</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button class="btn btn-primary" style="width:100%;margin-top:16px;" onclick="sendNotification()">✉️ Send Notification</button>
+                                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+                                    <button class="btn btn-outline" onclick="saveDraft()" style="width:100%;">📋 Save Draft</button>
+                                    <button class="btn btn-outline" onclick="resetForm()" style="width:100%;">↺ Reset</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="table-card" style="margin-bottom:14px;overflow:visible;">
+                                <div class="table-head-bar"><div class="table-head-title">👁 Live Preview</div></div>
+                                <div style="padding:16px;">
+                                    <div class="preview-card">
+                                        <div class="preview-label">Notification Preview</div>
+                                        <div style="display:flex;align-items:flex-start;gap:12px;">
+                                            <div id="previewIco" class="type-ico" style="background:var(--brand-xlight);">📢</div>
+                                            <div style="flex:1;">
+                                                <div id="previewType" style="font-size:.9rem;font-weight:900;color:var(--brand-dark);margin-bottom:3px;">General</div>
+                                                <div id="previewTarget" style="font-size:.78rem;color:var(--text-muted);font-weight:800;margin-bottom:6px;">— No target —</div>
+                                                <div id="previewMsg" style="font-size:.82rem;color:var(--text);line-height:1.7;">Your message will appear here...</div>
+                                                <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:9px;">
+                                                    <span class="badge badge-success" id="previewPri">🟢 Normal</span>
+                                                    <span class="badge badge-muted" id="previewRelated" style="display:none;"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="table-card" style="margin-bottom:14px;">
+                                <div class="table-head-bar"><div class="table-head-title">🕐 Recently Sent</div></div>
+                                <div id="recentSent"></div>
+                            </div>
+
+                            <div class="table-card">
+                                <div style="padding:16px;">
+                                    <div style="font-size:.74rem;font-weight:900;color:var(--brand-dark);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px;">💡 Best Practices</div>
+                                    <div style="display:flex;flex-direction:column;gap:7px;font-size:.82rem;color:var(--text);font-weight:700;line-height:1.5;">
+                                        <div>✅ Be specific and mention the exact issue.</div>
+                                        <div>✅ Give a clear action the receiver should take.</div>
+                                        <div>✅ Use Urgent only for critical actions.</div>
+                                        <div>✅ Use templates for faster consistency.</div>
+                                        <div>⚠️ Suspension messages must include a reason.</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <span class="confirm-ico" id="cIco">🗑</span>
+            <div class="confirm-title" id="cTitle">Confirm</div>
+            <div class="confirm-sub" id="cSub">This action cannot be undone.</div>
+            <div class="confirm-btns">
+                <button class="btn btn-outline btn-sm" onclick="closeConfirm()">Cancel</button>
+                <button class="btn btn-danger btn-sm" id="cOkBtn" onclick="execConfirm()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="detail-overlay" id="detailOverlay">
+        <div class="detail-box">
+            <div class="detail-hd"><div style="font-size:1rem;font-weight:900;color:var(--brand-dark);">Notification Details</div><button class="detail-close" onclick="closeDetail()">✕</button></div>
+            <div class="detail-body" id="detailBody"></div>
+        </div>
+    </div>
+
+    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
+    <script>
+        const TYPE_MAP = {
+          'Warning':      {ico:'⚠️',bg:'var(--warning-soft)',color:'#9b6000',   badge:'badge-warning'},
+          'Suspension':   {ico:'🚫',bg:'var(--danger-soft)', color:'var(--danger)', badge:'badge-danger'},
+          'Rejection':    {ico:'❌',bg:'var(--orange-soft)', color:'var(--orange)', badge:'badge-orange'},
+          'Request Edit': {ico:'✏️',bg:'var(--info-soft)',   color:'#1565c0',  badge:'badge-info'},
+          'General':      {ico:'📢',bg:'var(--brand-xlight)',color:'var(--brand-dark)', badge:'badge-success'},
+        };
+        const PRI_MAP = {
+          'Normal':    {ico:'🟢',cls:'badge-success'},
+          'Important': {ico:'🟡',cls:'badge-warning'},
+          'Urgent':    {ico:'🔴',cls:'badge-danger'},
+        };
+
+        let notifs = [
+          {id:1,type:'Warning',     target:'Ahmed Al-Naser',   targetType:'User',  related:'Pet Information',      message:'Please update your pet profile as the current photo is unclear. Update within 48 hours.',          priority:'Important',date:'Today, 9:14 AM', status:'Unread', read:false},
+          {id:2,type:'Suspension',  target:'Sara Khalidi',     targetType:'User',  related:'Adoption Post',        message:'Your account has been temporarily suspended due to a violation of our community guidelines.',       priority:'Urgent',   date:'Today, 8:30 AM', status:'Sent',   read:true},
+          {id:3,type:'General',     target:'Al-Amanah Clinic', targetType:'Clinic',related:'Document Verification',message:'Your clinic documents are expiring in 30 days. Please upload renewed copies.',                     priority:'Normal',   date:'Yesterday',      status:'Read',   read:true},
+          {id:4,type:'Rejection',   target:'PetCare Store',    targetType:'Store', related:'Store Registration',   message:'Your store registration has been rejected. Reason: Missing commercial license. Please re-apply.',  priority:'Important',date:'Mar 27',          status:'Sent',   read:true},
+          {id:5,type:'Request Edit',target:'Layan Mugdadi',    targetType:'User',  related:'Lost Pet Report',      message:'Your lost pet report requires additional details. Please add a more specific location.',            priority:'Normal',   date:'Mar 26',         status:'Pending',read:false},
+          {id:6,type:'Warning',     target:'PetFriends Store', targetType:'Store', related:'Payment',              message:'Your subscription payment is overdue by 5 days. Please complete payment to avoid suspension.',      priority:'Urgent',   date:'Mar 25',         status:'Sent',   read:true},
+          {id:7,type:'General',     target:'Karim Saeed',      targetType:'User',  related:'Adoption Post',        message:'Great news! Your adoption post for Luna has received 7 interested adopters. Log in to review.',     priority:'Normal',   date:'Mar 24',         status:'Read',   read:true},
+          {id:8,type:'Request Edit',target:'Dr. Rania Hassan', targetType:'Clinic',related:'Clinic Registration',  message:'Please update your clinic working hours. The current schedule shows a conflict on Thursdays.',      priority:'Normal',   date:'Mar 23',         status:'Pending',read:false},
+        ];
+
+        const USERS_LIST = [
+          {name:'Ahmed Al-Naser',   email:'ahmed@email.com', type:'User',   init:'AA'},
+          {name:'Sara Khalidi',     email:'sara@email.com',  type:'User',   init:'SK'},
+          {name:'Al-Amanah Clinic', email:'clinic@email.com',type:'Clinic', init:'AC'},
+          {name:'PetCare Store',    email:'store@email.com', type:'Store',  init:'PC'},
+          {name:'Layan Mugdadi',    email:'layan@email.com', type:'User',   init:'LM'},
+          {name:'Karim Saeed',      email:'karim@email.com', type:'User',   init:'KS'},
+          {name:'Dr. Rania Hassan', email:'rania@email.com', type:'Clinic', init:'RH'},
+        ];
+
+        const TEMPLATES = {
+          incomplete: {type:'Warning',      priority:'Normal',    msg:'Your profile information is incomplete. Please fill in all required fields including name, contact details, and location.'},
+          photo:      {type:'Request Edit', priority:'Normal',    msg:'The photo in your recent submission is unclear or low quality. Please upload a high-resolution image that clearly shows the subject.'},
+          docs:       {type:'Warning',      priority:'Important', msg:'Your account requires document verification. Please upload the required documents as soon as possible to avoid temporary restrictions.'},
+          suspended:  {type:'Suspension',   priority:'Urgent',    msg:'Your account has been temporarily suspended due to a violation of Waffy terms. For more information or to appeal, please contact support.'},
+          approved:   {type:'General',      priority:'Normal',    msg:"Great news! Your recent request has been approved and your account is now fully active. Welcome to Waffy!"},
+        };
+
+        let selectedPriority = 'Normal';
+        let selectedUser = null;
+        let selectedRows = new Set();
+        let confirmCb = null;
+
+        function showToast(msg) { const t=document.getElementById('wa-toast'); t.textContent=msg; t.style.display='flex'; clearTimeout(showToast._t); showToast._t=setTimeout(()=>t.style.display='none',3000); }
+        function tc(t) { const m=TYPE_MAP[t]||TYPE_MAP.General; return m; }
+
+        function renderTable(data) {
+          const tbody = document.getElementById('notifsTable');
+          if (!data.length) { tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:28px;color:var(--text-muted);font-weight:800;">No notifications found</td></tr>'; document.getElementById('tableInfo').textContent='0 results'; return; }
+          tbody.innerHTML = data.map(n => {
+            const t = tc(n.type); const p = PRI_MAP[n.priority]||PRI_MAP.Normal;
+            const stCls = n.status==='Read'?'badge-muted':n.status==='Pending'?'badge-warning':'badge-success';
+            return `<tr class="${!n.read?'unread':''}" id="row-${n.id}" onclick="openDetail(${n.id})" style="cursor:pointer;">
+              <td onclick="event.stopPropagation()"><input type="checkbox" style="accent-color:var(--brand);" onchange="toggleRow(${n.id},this)"></td>
+              <td><div class="type-cell"><div class="type-ico" style="background:${t.bg};">${t.ico}</div><span style="font-weight:900;color:${t.color};font-size:.83rem;">${n.type}</span></div></td>
+              <td><div style="font-weight:900;font-size:.85rem;">${n.target}</div><div style="font-size:.72rem;color:var(--text-muted);font-weight:700;">${n.targetType}</div></td>
+              <td style="font-size:.82rem;color:var(--text-muted);font-weight:700;">${n.related||'—'}</td>
+              <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.82rem;" title="${n.message}">${n.message}</td>
+              <td><span class="badge ${p.cls}">${p.ico} ${n.priority}</span></td>
+              <td style="font-size:.8rem;color:var(--text-muted);font-weight:700;white-space:nowrap;">${n.date}</td>
+              <td><span class="badge ${stCls}">${n.read&&n.status!=='Pending'?'✓ ':''}${n.status}</span></td>
+              <td><div class="action-group" onclick="event.stopPropagation()">
+                <button class="btn btn-outline btn-xs" onclick="openDetail(${n.id})">👁</button>
+                <button class="btn btn-success btn-xs" onclick="markRead(${n.id})">✓</button>
+                <button class="btn btn-danger btn-xs" onclick="confirmDelete(${n.id})">🗑</button>
+              </div></td>
+            </tr>`;
+          }).join('');
+          document.getElementById('tableInfo').textContent = `${data.length} of ${notifs.length} notifications`;
+          document.getElementById('pageInfo').textContent  = `Showing ${data.length} notifications`;
+        }
+
+        function filterNotifs() {
+          const q   = document.getElementById('searchInp').value.toLowerCase();
+          const typ = document.getElementById('fType').value;
+          const st  = document.getElementById('fStatus').value;
+          const tgt = document.getElementById('fTarget').value;
+          const res = notifs.filter(n =>
+            (!q  || n.target.toLowerCase().includes(q)||n.message.toLowerCase().includes(q)) &&
+            (!typ || n.type===typ) && (!st || n.status===st || (st==='Read'&&n.read)) && (!tgt || n.targetType===tgt)
+          );
+          renderTable(res);
+        }
+        function resetFilters() {
+          ['searchInp','fType','fStatus','fTarget'].forEach(id=>{ const e=document.getElementById(id); e.tagName==='INPUT'?e.value='':e.selectedIndex=0; });
+          filterNotifs();
+        }
+
+        function markRead(id) { const n=notifs.find(x=>x.id===id); if(!n)return; n.read=true; n.status='Read'; filterNotifs(); updateStats(); showToast('✓ Marked as read'); }
+        function markAllRead() { notifs.forEach(n=>{n.read=true; n.status='Read';}); filterNotifs(); updateStats(); showToast('✓ All marked as read'); }
+        function exportList() { showToast('📥 Exporting notifications...'); }
+
+        function confirmDelete(id) {
+          confirmCb = () => { notifs=notifs.filter(x=>x.id!==id); filterNotifs(); updateStats(); renderRecent(); showToast('🗑 Deleted'); };
+          showConfirm('🗑','Delete Notification?','This action cannot be undone.','Delete');
+        }
+
+        function openDetail(id) {
+          const n=notifs.find(x=>x.id===id); if(!n) return;
+          n.read=true; if(n.status!=='Pending') n.status='Read'; filterNotifs(); updateStats();
+          const t=tc(n.type); const p=PRI_MAP[n.priority]||PRI_MAP.Normal;
+          document.getElementById('detailBody').innerHTML = `
+            <div class="drow"><span class="drow-key">Type</span><span class="drow-val"><span class="badge ${t.badge}">${t.ico} ${n.type}</span></span></div>
+            <div class="drow"><span class="drow-key">Target</span><span class="drow-val">${n.target} <span style="color:var(--text-muted);font-size:.74rem;">(${n.targetType})</span></span></div>
+            <div class="drow"><span class="drow-key">Related To</span><span class="drow-val">${n.related||'—'}</span></div>
+            <div class="drow"><span class="drow-key">Priority</span><span class="drow-val"><span class="badge ${p.cls}">${p.ico} ${n.priority}</span></span></div>
+            <div class="drow"><span class="drow-key">Date</span><span class="drow-val">${n.date}</span></div>
+            <div class="drow"><span class="drow-key">Status</span><span class="drow-val"><span class="badge ${n.read?'badge-muted':'badge-warning'}">${n.status}</span></span></div>
+            <div class="detail-msg">${n.message}</div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+              <button class="btn btn-success btn-sm" onclick="markRead(${n.id});closeDetail()">✓ Mark Read</button>
+              <button class="btn btn-danger btn-sm" onclick="closeDetail();confirmDelete(${n.id})">🗑 Delete</button>
+            </div>`;
+          document.getElementById('detailOverlay').classList.add('show');
+        }
+        function closeDetail() { document.getElementById('detailOverlay').classList.remove('show'); }
+
+        function toggleRow(id, cb) { cb.checked?selectedRows.add(id):selectedRows.delete(id); updateBulkBar(); }
+        function toggleSelectAll(cb) {
+          document.querySelectorAll('#notifsTable input[type=checkbox]').forEach(c=>{ c.checked=cb.checked; });
+          notifs.forEach(n=>{ cb.checked?selectedRows.add(n.id):selectedRows.delete(n.id); });
+          updateBulkBar();
+        }
+        function updateBulkBar() { const b=document.getElementById('bulkBar'); document.getElementById('selectedCount').textContent=selectedRows.size+' selected'; b.classList.toggle('show',selectedRows.size>0); }
+        function bulkMarkRead() { const cnt=selectedRows.size; notifs.forEach(n=>{ if(selectedRows.has(n.id)){n.read=true;n.status='Read';} }); selectedRows.clear(); filterNotifs(); updateBulkBar(); updateStats(); showToast(`✓ Marked ${cnt} as read`); }
+        function bulkDelete()   { const cnt=selectedRows.size; confirmCb=()=>{ notifs=notifs.filter(n=>!selectedRows.has(n.id)); selectedRows.clear(); filterNotifs(); updateBulkBar(); updateStats(); renderRecent(); showToast(`🗑 Deleted ${cnt}`); }; showConfirm('🗑',`Delete ${cnt} Notifications?`,'Cannot be undone.','Delete All'); }
+
+        function showConfirm(ico,title,sub,btnTxt) { document.getElementById('cIco').textContent=ico; document.getElementById('cTitle').textContent=title; document.getElementById('cSub').textContent=sub; document.getElementById('cOkBtn').textContent=btnTxt; document.getElementById('confirmOverlay').classList.add('show'); }
+        function closeConfirm() { document.getElementById('confirmOverlay').classList.remove('show'); confirmCb=null; }
+        function execConfirm()  { const cb=confirmCb; closeConfirm(); if(cb)cb(); }
+        document.getElementById('confirmOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('confirmOverlay'))closeConfirm(); });
+        document.getElementById('detailOverlay').addEventListener('click',e=>{ if(e.target===document.getElementById('detailOverlay'))closeDetail(); });
+
+        function updateStats() {
+          document.getElementById('kpiTotal').textContent   = notifs.length;
+          document.getElementById('kpiUnread').textContent  = notifs.filter(n=>!n.read).length;
+          document.getElementById('kpiPending').textContent = notifs.filter(n=>n.status==='Pending').length;
+          document.getElementById('kpiToday').textContent   = notifs.filter(n=>n.date.includes('Today')||n.date.includes('Just now')).length;
+        }
+        function renderRecent() {
+          document.getElementById('recentSent').innerHTML = notifs.slice(0,4).map(n=>{
+            const t=tc(n.type);
+            return `<div class="recent-item"><div class="type-ico" style="background:${t.bg};width:34px;height:34px;border-radius:12px;">${t.ico}</div><div style="flex:1;overflow:hidden;"><div style="font-size:.82rem;font-weight:900;color:var(--brand-dark);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${n.target}</div><div style="font-size:.74rem;color:var(--text-muted);font-weight:700;">${n.type} · ${n.date}</div></div></div>`;
+          }).join('');
+        }
+
+        function switchTab(id, btn) {
+          document.querySelectorAll('.tsw-btn').forEach(b=>b.classList.remove('on'));
+          if(btn) btn.classList.add('on');
+          document.getElementById('tab-list').style.display = id==='list'?'block':'none';
+          document.getElementById('tab-send').style.display = id==='send'?'block':'none';
+          if(id==='list') filterNotifs();
+          window.scrollTo({top:0,behavior:'smooth'});
+        }
+
+        function onTargetTypeChange() {
+          const val=document.getElementById('fTargetType').value;
+          const field=document.getElementById('userSearchField');
+          document.getElementById('targetLabel').textContent=val||'User';
+          if(val==='All') { field.style.opacity='.5'; field.style.pointerEvents='none'; clearUser(); }
+          else            { field.style.opacity='1';  field.style.pointerEvents='auto'; }
+          updatePreview();
+        }
+        function searchUsers(q) {
+          const type=document.getElementById('fTargetType').value;
+          const dd=document.getElementById('userDropdown');
+          if(!q.trim()){dd.classList.remove('show');return;}
+          const matches=USERS_LIST.filter(u=>(u.name.toLowerCase().includes(q.toLowerCase())||u.email.toLowerCase().includes(q.toLowerCase()))&&(!type||type==='All'||u.type===type));
+          if(!matches.length){dd.classList.remove('show');return;}
+          dd.innerHTML=matches.map(u=>`<div class="usr-option" onclick="selectUser('${u.name}','${u.email}','${u.type}','${u.init}')"><div class="usr-chip-av">${u.init}</div><div><div style="font-weight:900;font-size:.84rem;">${u.name}</div><div style="font-size:.72rem;color:var(--text-muted);">${u.email} · ${u.type}</div></div></div>`).join('');
+          dd.classList.add('show');
+        }
+        function selectUser(name,email,type,init) {
+          selectedUser={name,email,type,init};
+          document.getElementById('fUserSearch').value='';
+          document.getElementById('userDropdown').classList.remove('show');
+          document.getElementById('selectedText').textContent=`${name} · ${type}`;
+          document.getElementById('selectedChip').classList.add('show');
+          updatePreview();
+        }
+        function clearUser() {
+          selectedUser=null;
+          document.getElementById('fUserSearch').value='';
+          document.getElementById('userDropdown').classList.remove('show');
+          document.getElementById('selectedChip').classList.remove('show');
+          updatePreview();
+        }
+        document.addEventListener('click',e=>{ if(!e.target.closest('.usr-srch-wrap')) document.getElementById('userDropdown').classList.remove('show'); });
+
+        function selPri(btn, val) { document.querySelectorAll('.pri-btn').forEach(b=>{b.classList.remove('on','normal','important','urgent');}); btn.classList.add('on',val.toLowerCase()); selectedPriority=val; updatePreview(); }
+
+        function updatePreview() {
+          const type   = document.getElementById('fNotifType').value || 'General';
+          const msg    = document.getElementById('fMessage').value;
+          const related= document.getElementById('fRelated').value;
+          const tgtType= document.getElementById('fTargetType').value;
+          const t = tc(type); const p = PRI_MAP[selectedPriority] || PRI_MAP.Normal;
+          document.getElementById('previewIco').textContent  = t.ico;
+          document.getElementById('previewIco').style.background = t.bg;
+          document.getElementById('previewType').textContent = type;
+          document.getElementById('previewMsg').textContent  = msg || 'Your message will appear here...';
+          document.getElementById('previewPri').textContent  = `${p.ico} ${selectedPriority}`;
+          document.getElementById('previewPri').className    = `badge ${p.cls}`;
+          document.getElementById('previewTarget').textContent = tgtType==='All'?'📢 All Users (Broadcast)':selectedUser?`${selectedUser.name} · ${selectedUser.type}`:'— No target selected —';
+          const relEl=document.getElementById('previewRelated');
+          if(related){relEl.style.display='inline-flex'; relEl.textContent=related;}
+          else relEl.style.display='none';
+        }
+        function applyTpl(key) {
+          const t=TEMPLATES[key]; if(!t) return;
+          document.getElementById('fNotifType').value=t.type;
+          document.getElementById('fMessage').value=t.msg;
+          document.getElementById('charCount').textContent=t.msg.length+' / 500';
+          document.querySelectorAll('.pri-btn').forEach(b=>{b.classList.remove('on','normal','important','urgent');});
+          document.querySelectorAll('.pri-btn').forEach(b=>{ if(b.textContent.trim().includes(t.priority)){b.classList.add('on',t.priority.toLowerCase());} });
+          selectedPriority=t.priority; updatePreview(); showToast('📋 Template applied');
+        }
+        function sendNotification() {
+          const tgtType = document.getElementById('fTargetType').value;
+          const type    = document.getElementById('fNotifType').value;
+          const msg     = document.getElementById('fMessage').value.trim();
+          if(!tgtType){showToast('⚠️ Please select a target type');return;}
+          if(tgtType!=='All'&&!selectedUser){showToast('⚠️ Please select a specific target');return;}
+          if(!type){showToast('⚠️ Please select a notification type');return;}
+          if(!msg){showToast('⚠️ Please write a message');return;}
+          if(msg.length>500){showToast('⚠️ Message too long (max 500 chars)');return;}
+          const newN = {
+            id:notifs.length?Math.max(...notifs.map(n=>n.id))+1:1,
+            type, message:msg,
+            target: tgtType==='All'?'All Users':selectedUser.name,
+            targetType: tgtType==='All'?'Broadcast':selectedUser.type,
+            related: document.getElementById('fRelated').value||null,
+            priority:selectedPriority, date:'Just now', status:'Sent', read:true,
+          };
+          notifs.unshift(newN); updateStats(); renderRecent();
+          showToast('✅ Notification sent!'); resetForm();
+          setTimeout(()=>{ switchTab('list',document.querySelectorAll('.tsw-btn')[0]); filterNotifs(); },600);
+        }
+        function saveDraft() { showToast('📋 Draft saved'); }
+        function resetForm() {
+          ['fTargetType','fNotifType','fRelated'].forEach(id=>document.getElementById(id).selectedIndex=0);
+          document.getElementById('fMessage').value=''; document.getElementById('charCount').textContent='0 / 500';
+          clearUser(); onTargetTypeChange();
+          document.querySelectorAll('.pri-btn').forEach(b=>{b.classList.remove('on','normal','important','urgent');});
+          document.querySelector('.pri-btn.normal').classList.add('on','normal');
+          selectedPriority='Normal'; updatePreview();
+        }
+
+        filterNotifs();
+        updateStats();
+        renderRecent();
+        updatePreview();
+    </script>
+</body>
+</html>
