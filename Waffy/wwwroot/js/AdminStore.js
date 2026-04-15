@@ -11,33 +11,11 @@ const categories = [
     { name: "Toys", icon: "🧸", count: 9 }
 ];
 
-let products = [
-    { name: "Royal Canin Adult Cat 2kg", cat: "Food", price: 18.5, stock: 24, maxStock: 50, status: "active", emoji: "🐱", image: "" },
-    { name: "GPS Dog Collar", cat: "Accessories", price: 35.0, stock: 8, maxStock: 20, status: "active", emoji: "🐕", image: "" },
-    { name: "Anti-Flea Shampoo", cat: "Health Care", price: 7.5, stock: 2, maxStock: 30, status: "active", emoji: "🧴", image: "" },
-    { name: "Large Bird Cage", cat: "Accessories", price: 45.0, stock: 5, maxStock: 10, status: "active", emoji: "🕊️", image: "" },
-    { name: "Cat Ball Toy", cat: "Toys", price: 4.0, stock: 0, maxStock: 40, status: "out", emoji: "🎾", image: "" },
-    { name: "Frontline Flea Treatment", cat: "Health Care", price: 22.0, stock: 15, maxStock: 25, status: "active", emoji: "💊", image: "" },
-    { name: "Automatic Water Bowl", cat: "Accessories", price: 12.0, stock: 11, maxStock: 20, status: "hidden", emoji: "💧", image: "" }
-];
+let products = window.serverProducts || [];
 
-let orders = [
-    { id: "ORD-2847", cust: "Sarah Al-Khaldi", date: "13 Mar 2026", prods: 3, total: 47.5, status: "pending", items: ["Royal Canin Adult Cat 2kg × 2", "Cat Ball Toy × 1"], phone: "0791234567", email: "sara@email.com", address: "Amman, Al-Jubeiha" },
-    { id: "ORD-2846", cust: "Ahmad Mansour", date: "13 Mar 2026", prods: 1, total: 22.0, status: "confirmed", items: ["Frontline Flea Treatment × 1"], phone: "0798881122", email: "ahmad@email.com", address: "Amman" },
-    { id: "ORD-2845", cust: "Lama Hussein", date: "12 Mar 2026", prods: 2, total: 65.0, status: "shipped", items: ["GPS Dog Collar × 1", "Automatic Water Bowl × 1"], phone: "0782223344", email: "lama@email.com", address: "Zarqa" },
-    { id: "ORD-2844", cust: "Karim Saeed", date: "12 Mar 2026", prods: 4, total: 88.0, status: "delivered", items: ["Large Bird Cage × 1", "Bird Food × 3"], phone: "0764567890", email: "karim@email.com", address: "Irbid" },
-    { id: "ORD-2843", cust: "Nour Eddin", date: "11 Mar 2026", prods: 1, total: 18.5, status: "delivered", items: ["Royal Canin Adult Cat 2kg × 1"], phone: "0755678901", email: "nour@email.com", address: "Amman" },
-    { id: "ORD-2842", cust: "Huda Al-Omar", date: "11 Mar 2026", prods: 2, total: 31.0, status: "cancelled", items: ["Cat Ball Toy × 2"], phone: "0796677889", email: "huda@email.com", address: "Salt" },
-    { id: "ORD-2841", cust: "Rami Khalil", date: "11 Mar 2026", prods: 3, total: 54.0, status: "preparing", items: ["GPS Dog Collar × 1", "Pet Bowl × 2"], phone: "0791112233", email: "rami@email.com", address: "Amman" }
-];
+let orders = window.serverOrders || [];
 
-let customers = [
-    { name: "Karim Saeed", email: "karim@email.com", phone: "0764567890", orders: 3, spent: 144.0, last: "12 Mar 2026" },
-    { name: "Nour Eddin", email: "nour@email.com", phone: "0755678901", orders: 7, spent: 263.5, last: "11 Mar 2026" },
-    { name: "Sarah Al-Khaldi", email: "sara@email.com", phone: "0791234567", orders: 6, spent: 210.0, last: "13 Mar 2026" },
-    { name: "Ahmad Mansour", email: "ahmad@email.com", phone: "0799876543", orders: 4, spent: 155.0, last: "13 Mar 2026" },
-    { name: "Lama Hussein", email: "lama@email.com", phone: "0785554443", orders: 3, spent: 98.0, last: "12 Mar 2026" }
-];
+let customers = window.serverCustomers || [];
 
 let reviews = [
     { user: "Sarah M.", prod: "Royal Canin Cat 2kg", rating: 5, text: "Excellent product quality and fast delivery. Thank you!", replied: false, time: "1 hour ago" },

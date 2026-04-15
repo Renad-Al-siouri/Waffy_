@@ -1,11 +1,22 @@
 ﻿using Waffy.Models;
+using Waffy.Models.DTOs;
 
 namespace Waffy.Interfaces
 {
     public interface IUserRepository
     {
         Task<IEnumerable<User>> GetAllAsync();
+        Task<IEnumerable<UserAdminDto>> GetAllForAdminAsync(
+         string? search, string? status, string? roleName,
+         string sortBy, int page, int pageSize);
 
+        Task<UserAdminDto?> GetByIdForAdminAsync(int userId);
+
+        Task<int> CountFilteredAsync(string? search, string? status, string? roleName);
+        Task<int> CountByStatusAsync(string status);
+        Task<int> CountNewThisMonthAsync();
+        Task<int> CountTotalAsync();
+        Task UpdateStatusAsync(int userId, string newStatus);
         Task<User?> GetByIdAsync(int userId);
 
         Task<User?> GetByEmailAsync(string email);

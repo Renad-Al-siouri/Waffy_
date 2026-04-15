@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using Waffy.Interfaces;
 using Waffy.Models;
+using Waffy.Models.DTOs;
 
 namespace Waffy.Repositories
 {
@@ -17,43 +18,32 @@ namespace Waffy.Repositories
             _roleRepository = roleRepository;
         }
 
-        // -----------------------------------------------
-        // Get all users
-        // -----------------------------------------------
+        // ── Get All ──────────────────────────────────────
         public async Task<IEnumerable<User>> GetAllAsync()
         {
-            var sql = "SELECT * FROM Users";
-
             using var connection = new SqlConnection(_connectionString);
-            return await connection.QueryAsync<User>(sql);
+            return await connection.QueryAsync<User>("SELECT * FROM Users");
         }
 
-        // -----------------------------------------------
-        // Get user by ID
-        // -----------------------------------------------
+        // ── Get By ID ─────────────────────────────────────
         public async Task<User?> GetByIdAsync(int userId)
         {
-            var sql = "SELECT * FROM Users WHERE UserId = @UserId";
-
             using var connection = new SqlConnection(_connectionString);
-            return await connection.QueryFirstOrDefaultAsync<User>(sql, new { UserId = userId });
+            return await connection.QueryFirstOrDefaultAsync<User>(
+                "SELECT * FROM Users WHERE UserId = @UserId",
+                new { UserId = userId });
         }
 
-        // -----------------------------------------------
-        // Get user by email
-        // -----------------------------------------------
+        // ── Get By Email ──────────────────────────────────
         public async Task<User?> GetByEmailAsync(string email)
         {
-            var sql = "SELECT * FROM Users WHERE Email = @Email";
-
             using var connection = new SqlConnection(_connectionString);
-            return await connection.QueryFirstOrDefaultAsync<User>(sql, new { Email = email });
+            return await connection.QueryFirstOrDefaultAsync<User>(
+                "SELECT * FROM Users WHERE Email = @Email",
+                new { Email = email });
         }
 
-        // -----------------------------------------------
-        // Shared private insert method
-        // All Add methods call this after setting RoleId
-        // -----------------------------------------------
+        // ── Insert (shared) ───────────────────────────────
         private async Task InsertUserAsync(User user)
         {
             var sql = @"
@@ -78,105 +68,83 @@ namespace Waffy.Repositories
             await connection.ExecuteAsync(sql, user);
         }
 
-        // -----------------------------------------------
-        // Register a normal User (Role = "User")
-        // -----------------------------------------------
+        // ── Add Normal User ───────────────────────────────
         public async Task AddNormalUserAsync(User user)
         {
-            // Always fetch RoleId by name — never hardcode numbers
             user.RoleId = await _roleRepository.GetRoleIdByNameAsync("User");
             user.CreatedAt = DateTime.UtcNow;
             user.WarningCount = 0;
-
             await InsertUserAsync(user);
         }
 
-        // -----------------------------------------------
-        // Register a Clinic (Role = "Clinic")
-        // -----------------------------------------------
+        // ── Add Clinic User ───────────────────────────────
         public async Task AddClinicAsync(User user)
         {
             user.RoleId = await _roleRepository.GetRoleIdByNameAsync("Clinic");
             user.CreatedAt = DateTime.UtcNow;
             user.WarningCount = 0;
-
             await InsertUserAsync(user);
         }
 
-        // -----------------------------------------------
-        // Register a Store (Role = "Store")
-        // -----------------------------------------------
+        // ── Add Store User ────────────────────────────────
         public async Task AddStoreAsync(User user)
         {
             user.RoleId = await _roleRepository.GetRoleIdByNameAsync("Store");
             user.CreatedAt = DateTime.UtcNow;
             user.WarningCount = 0;
-
             await InsertUserAsync(user);
         }
 
-        // -----------------------------------------------
-        // A Clinic creates a Doctor account (Role = "Doctor")
-        // Doctor does NOT register themselves
-        // -----------------------------------------------
+        // ── Add Doctor User ───────────────────────────────
         public async Task AddDoctorAsync(User user)
         {
             user.RoleId = await _roleRepository.GetRoleIdByNameAsync("Doctor");
             user.CreatedAt = DateTime.UtcNow;
             user.WarningCount = 0;
-
             await InsertUserAsync(user);
         }
 
-        // -----------------------------------------------
-        // Update user profile
-        // -----------------------------------------------
+        // ── Update ────────────────────────────────────────
         public async Task UpdateAsync(User user)
         {
             var sql = @"
                 UPDATE Users SET
-                    Email               = @Email,
-                    PasswordHash        = @PasswordHash,
-                    Phone               = @Phone,
-                    IsPhoneVerified     = @IsPhoneVerified,
-                    IsEmailVerified     = @IsEmailVerified,
-                    FullName            = @FullName,
-                    City                = @City,
-                    ProfileImage        = @ProfileImage,
-                    Area                = @Area,
-                    AddressDetail       = @AddressDetail,
-                    Latitude            = @Latitude,
-                    Longitude           = @Longitude,
-                    WhatsAppPhone       = @WhatsAppPhone,
-                    BirthDate           = @BirthDate,
-                    Gender              = @Gender,
-                    Bio                 = @Bio,
-                    AccountStatus       = @AccountStatus,
-                    WarningCount        = @WarningCount,
-                    SuspensionReason    = @SuspensionReason,
-                    LastActiveAt        = @LastActiveAt
+                    Email            = @Email,
+                    PasswordHash     = @PasswordHash,
+                    Phone            = @Phone,
+                    IsPhoneVerified  = @IsPhoneVerified,
+                    IsEmailVerified  = @IsEmailVerified,
+                    FullName         = @FullName,
+                    City             = @City,
+                    ProfileImage     = @ProfileImage,
+                    Area             = @Area,
+                    AddressDetail    = @AddressDetail,
+                    Latitude         = @Latitude,
+                    Longitude        = @Longitude,
+                    WhatsAppPhone    = @WhatsAppPhone,
+                    BirthDate        = @BirthDate,
+                    Gender           = @Gender,
+                    Bio              = @Bio,
+                    AccountStatus    = @AccountStatus,
+                    WarningCount     = @WarningCount,
+                    SuspensionReason = @SuspensionReason,
+                    LastActiveAt     = @LastActiveAt
                 WHERE UserId = @UserId";
 
             using var connection = new SqlConnection(_connectionString);
             await connection.ExecuteAsync(sql, user);
         }
 
-        // -----------------------------------------------
-        // Delete a user by ID
-        // -----------------------------------------------
+        // ── Delete ────────────────────────────────────────
         public async Task DeleteAsync(int userId)
         {
-            var sql = "DELETE FROM Users WHERE UserId = @UserId";
-
             using var connection = new SqlConnection(_connectionString);
-            await connection.ExecuteAsync(sql, new { UserId = userId });
+            await connection.ExecuteAsync(
+                "DELETE FROM Users WHERE UserId = @UserId",
+                new { UserId = userId });
         }
 
-        // -----------------------------------------------
-        // Login
-        // JOINs with Roles to return RoleName
-        // Used to redirect user to the correct dashboard
-        // -----------------------------------------------
+        // ── Login ─────────────────────────────────────────
         public async Task<LoginUserResult?> LoginAsync(string email, string passwordHash)
         {
             var sql = @"
@@ -199,5 +167,130 @@ namespace Waffy.Repositories
                 PasswordHash = passwordHash
             });
         }
-    }
+
+        // ════════════════════════════════════════════════
+        // Admin Methods
+        // ════════════════════════════════════════════════
+
+        // ── Get All For Admin (with filters + pagination) ─
+        public async Task<IEnumerable<UserAdminDto>> GetAllForAdminAsync(
+            string? search, string? status, string? roleName,
+            string sortBy, int page, int pageSize)
+        {
+            var orderBy = sortBy switch
+            {
+                "oldest" => "u.CreatedAt ASC",
+                "name" => "u.FullName ASC",
+                "status" => "u.AccountStatus ASC",
+                _ => "u.CreatedAt DESC"
+            };
+
+            var sql = $@"
+                SELECT u.UserId, u.FullName, u.Email, u.Phone,
+                       u.City, u.Area, u.Gender, u.Bio,
+                       u.ProfileImage, u.AccountStatus, u.CreatedAt,
+                       r.RoleName
+                FROM   Users u
+                JOIN   Roles r ON u.RoleId = r.RoleId
+                WHERE  r.RoleName != 'Admin'
+                  AND (@Search   IS NULL OR u.FullName LIKE '%'+@Search+'%'
+                                         OR u.Email    LIKE '%'+@Search+'%'
+                                         OR u.Phone    LIKE '%'+@Search+'%')
+                  AND (@Status   IS NULL OR u.AccountStatus = @Status)
+                  AND (@RoleName IS NULL OR r.RoleName      = @RoleName)
+                ORDER BY {orderBy}
+                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<UserAdminDto>(sql, new
+            {
+                Search = string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
+                Status = string.IsNullOrWhiteSpace(status) ? null : status,
+                RoleName = string.IsNullOrWhiteSpace(roleName) ? null : roleName,
+                Offset = (page - 1) * pageSize,
+                PageSize = pageSize
+            });
+        }
+
+        // ── Get Single User For Admin ─────────────────────
+        public async Task<UserAdminDto?> GetByIdForAdminAsync(int userId)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryFirstOrDefaultAsync<UserAdminDto>(@"
+                SELECT u.UserId, u.FullName, u.Email, u.Phone,
+                       u.City, u.Area, u.Gender, u.Bio,
+                       u.ProfileImage, u.AccountStatus, u.CreatedAt,
+                       r.RoleName
+                FROM   Users u
+                JOIN   Roles r ON u.RoleId = r.RoleId
+                WHERE  u.UserId = @UserId",
+                new { UserId = userId });
+        }
+
+        // ── Count Filtered ────────────────────────────────
+        public async Task<int> CountFilteredAsync(
+            string? search, string? status, string? roleName)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.ExecuteScalarAsync<int>(@"
+                SELECT COUNT(*) FROM Users u
+                JOIN Roles r ON u.RoleId = r.RoleId
+                WHERE r.RoleName != 'Admin'
+                  AND (@Search   IS NULL OR u.FullName LIKE '%'+@Search+'%'
+                                         OR u.Email    LIKE '%'+@Search+'%'
+                                         OR u.Phone    LIKE '%'+@Search+'%')
+                  AND (@Status   IS NULL OR u.AccountStatus = @Status)
+                  AND (@RoleName IS NULL OR r.RoleName      = @RoleName)",
+                new
+                {
+                    Search = string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
+                    Status = string.IsNullOrWhiteSpace(status) ? null : status,
+                    RoleName = string.IsNullOrWhiteSpace(roleName) ? null : roleName
+                });
+        }
+
+        // ── Count By Status ───────────────────────────────
+        public async Task<int> CountByStatusAsync(string status)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.ExecuteScalarAsync<int>(@"
+                SELECT COUNT(*) FROM Users u
+                JOIN Roles r ON u.RoleId = r.RoleId
+                WHERE r.RoleName != 'Admin'
+                  AND u.AccountStatus = @Status",
+                new { Status = status });
+        }
+
+        // ── Count New This Month ──────────────────────────
+        public async Task<int> CountNewThisMonthAsync()
+        {
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.ExecuteScalarAsync<int>(@"
+                SELECT COUNT(*) FROM Users u
+                JOIN Roles r ON u.RoleId = r.RoleId
+                WHERE r.RoleName != 'Admin'
+                  AND MONTH(u.CreatedAt) = MONTH(GETDATE())
+                  AND YEAR(u.CreatedAt)  = YEAR(GETDATE())");
+        }
+
+        // ── Count Total ───────────────────────────────────
+        public async Task<int> CountTotalAsync()
+        {
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.ExecuteScalarAsync<int>(@"
+                SELECT COUNT(*) FROM Users u
+                JOIN Roles r ON u.RoleId = r.RoleId
+                WHERE r.RoleName != 'Admin'");
+        }
+
+        // ── Update Status ─────────────────────────────────
+        public async Task UpdateStatusAsync(int userId, string newStatus)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(
+                "UPDATE Users SET AccountStatus = @Status WHERE UserId = @UserId",
+                new { Status = newStatus, UserId = userId });
+        }
+
+    } // ← إغلاق واحد فقط للكلاس ✅
 }

@@ -98,6 +98,18 @@ namespace Waffy.Repository
             using var connection = new SqlConnection(_connectionString);
             await connection.ExecuteAsync(sql, new { IdStore = idStore });
         }
+        public async Task UpdateVerificationAsync(int idStore, string status)
+        {
+            var sql = @"UPDATE Store SET VerificationStatus = @Status WHERE IdStore = @IdStore";
+            using var connection = new SqlConnection(_connectionString);
+            await connection.ExecuteAsync(sql, new { IdStore = idStore, Status = status });
+        }
 
+        public async Task<IEnumerable<Store>> GetPendingStoresAsync()
+        {
+            var sql = "SELECT * FROM Store ORDER BY CreatedAt DESC";
+            using var connection = new SqlConnection(_connectionString);
+            return await connection.QueryAsync<Store>(sql);
+        }
     }
 }

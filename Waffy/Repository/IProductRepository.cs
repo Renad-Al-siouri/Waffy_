@@ -1,0 +1,15 @@
+﻿using Waffy.Models;
+
+namespace Waffy.Interfaces
+{
+    public interface IProductRepository
+    {
+        Task<IEnumerable<Product>> GetByStoreIdAsync(int idStore);
+        Task<Product?> GetByIdAsync(int id);
+        Task<int> AddAsync(Product product);
+        Task UpdateAsync(Product product);
+        Task DeleteAsync(int id);
+        Task UpdateVisibilityAsync(int id, bool isVisible);
+        Task UpdateStockAsync(int id, int newQuantity);
+    }
+}

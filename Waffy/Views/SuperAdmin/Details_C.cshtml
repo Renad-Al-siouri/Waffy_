@@ -1,79 +1,383 @@
-﻿@{
+﻿@model Waffy.Models.ViewModels.UserDetailViewModel
+@{
+    ViewData["Title"] = $"Waffy — Admin | {Model.User.FullName}";
     Layout = null;
+    var u = Model.User;
+    var adminName = ViewBag.AdminName as string ?? "Admin";
+    var adminInitials = ViewBag.AdminInitials as string ?? "AD";
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Waffy — Super Admin | Clinic Details</title>
+    <title>@ViewData["Title"]</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+    <style>
+        /* ── كل الـ styles من الـ View الأصلي محفوظة ── */
+        @@keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .detail-hero {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow);
+            padding: 22px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .dh-avatar {
+            width: 84px;
+            height: 84px;
+            border-radius: 22px;
+            font-size: 2.2rem;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .dh-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .dh-online {
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            width: 17px;
+            height: 17px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            background: var(--success);
+        }
+
+        .dh-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .dh-name {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+        }
+
+        .dh-meta {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            font-size: .83rem;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .dh-tags {
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .dh-tag {
+            padding: 5px 12px;
+            border-radius: var(--pill);
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            font-size: .76rem;
+            font-weight: 800;
+            color: var(--brand-dark);
+        }
+
+        .trust-box {
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 16px 22px;
+            text-align: center;
+            min-width: 130px;
+            box-shadow: var(--shadow);
+            flex-shrink: 0;
+        }
+
+        .trust-val {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .trust-label {
+            font-size: .75rem;
+            color: var(--text-muted);
+            font-weight: 800;
+            margin-top: 4px;
+        }
+
+        .alert-box {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            background: #FFF9EE;
+            border: 1.5px solid #E8D9A0;
+            border-radius: var(--r);
+            padding: 14px 18px;
+            margin-bottom: 14px;
+        }
+
+            .alert-box.show {
+                display: flex;
+                animation: fadeUp .22s ease;
+            }
+
+        .quick-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            box-shadow: var(--shadow);
+        }
+
+        .mini-stats {
+            display: grid;
+            grid-template-columns: repeat(6,1fr);
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .mini-stat {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 14px;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .mini-val {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.45rem;
+            color: var(--brand-dark);
+            font-weight: 700;
+        }
+
+        .mini-label {
+            font-size: .73rem;
+            color: var(--text-muted);
+            font-weight: 800;
+            margin-top: 5px;
+        }
+
+        .tabs-row {
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            margin-bottom: 14px;
+            padding-bottom: 2px;
+        }
+
+            .tabs-row::-webkit-scrollbar {
+                display: none;
+            }
+
+        .inner-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .inner-card-head {
+            padding: 13px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .inner-card-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: .97rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+        }
+
+        .inner-card-body {
+            padding: 16px 18px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .info-list {
+            display: grid;
+        }
+
+        .info-line {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(221,209,191,.55);
+            font-size: .84rem;
+        }
+
+            .info-line:last-child {
+                border-bottom: none;
+            }
+
+        .info-key {
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .info-val {
+            font-weight: 900;
+            color: var(--brand-dark);
+            text-align: right;
+        }
+
+        .flash-toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 9999;
+            padding: 14px 20px;
+            border-radius: 14px;
+            font-weight: 800;
+            font-size: .86rem;
+            font-family: 'Nunito',sans-serif;
+            box-shadow: 0 8px 24px rgba(0,0,0,.12);
+            max-width: 320px;
+            animation: fadeUp .25s ease;
+        }
+
+        .flash-success {
+            background: var(--success-soft);
+            border: 1px solid rgba(76,175,80,.3);
+            color: var(--success);
+        }
+
+        .flash-danger {
+            background: var(--danger-soft);
+            border: 1px solid rgba(244,67,54,.3);
+            color: var(--danger);
+        }
+
+        @@media(max-width:900px) {
+            .mini-stats {
+                grid-template-columns: repeat(3,1fr);
+            }
+
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @@media(max-width:600px) {
+            .mini-stats {
+                grid-template-columns: repeat(2,1fr);
+            }
+
+            .detail-hero {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .dh-meta {
+                justify-content: center;
+            }
+
+            .dh-tags {
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
     <div class="wa-shell" id="waShell">
+
+        <!-- ══ SIDEBAR (نفس Users.cshtml بالضبط) ═══════════════════ -->
         <aside class="wa-sb" id="waSb">
-            <div class="sb-logo"><div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div><div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div></div>
+            <div class="sb-logo">
+                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
+                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
+            </div>
             <nav class="sb-nav">
-                <div class="sb-group sb-group-flat"><a class="sb-row" href="@Url.Action("Dashboard", "SuperAdmin")" data-tip="Dashboard"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span><span class="sb-lbl">Dashboard</span></a></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
+                        <span class="sb-lbl">Dashboard</span>
+                    </a>
+                </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Management</div>
-                    <div><button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span><span class="sb-lbl">Users</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-users"><div class="sb-sub-inner"><a class="sb-child" href="@Url.Action("Users", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a></div></div></div>
                     <div>
-                        <button class="sb-row open active" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span><span class="sb-lbl">Clinics</span><span class="sb-bdg bd-y">4</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button>
-                        <div class="sb-sub open" id="g-clinics" style="height:auto;">
+                        <button class="sb-row open active" id="t-users" onclick="acc('g-users','t-users')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
+                            <span class="sb-lbl">Users</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub open" id="g-users" style="height:auto;">
                             <div class="sb-sub-inner">
-                                <a class="sb-child active" href="@Url.Action("Clinics", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
-                                <a class="sb-child" href="@Url.Action("Reviews_Complaints_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews & Complaints</span><span class="sb-bdg bd-r sb-child-bdg">5</span></a>
-                                <a class="sb-child" href="@Url.Action("Analytics_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Users">
+                                    <span class="sb-dot"></span><span class="sb-child-lbl">All Users</span>
+                                </a>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" data-tip="Shop" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
-                            <span class="sb-lbl">Shop</span><span class="sb-bdg bd-r">3</span>
+                        <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
+                            <span class="sb-lbl">Clinics</span>
                             <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
                         </button>
-                        <div class="sb-sub" id="g-shop">
+                        <div class="sb-sub" id="g-clinics">
                             <div class="sb-sub-inner">
-                                <a class="sb-child" href="@Url.Action("Stores", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span><span class="sb-bdg bd-y sb-child-bdg">3</span></a>
-                                <a class="sb-child" href="@Url.Action("Reviews_Complaints_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews & Complaints</span><span class="sb-bdg bd-r sb-child-bdg">6</span></a>
-                                <a class="sb-child" href="@Url.Action("Analytics_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" data-tip="Adoption" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
-                            <span class="sb-lbl">Adoption</span><span class="sb-bdg bd-y">5</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-adopt">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" href="@Url.Action("Listings", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span><span class="sb-bdg bd-y sb-child-bdg">5</span></a>
-                                <a class="sb-child" href="@Url.Action("Flagged", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span><span class="sb-bdg bd-r sb-child-bdg">3</span></a>
-                                <a class="sb-child" href="@Url.Action("Adopted_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
-                                <a class="sb-child" href="@Url.Action("Analytics_A", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" data-tip="Reports" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
-                            <span class="sb-lbl">Reports</span><span class="sb-bdg bd-y">8</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-rep">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" href="@Url.Action("Lost_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span><span class="sb-bdg bd-y sb-child-bdg">8</span></a>
-                                <a class="sb-child" href="@Url.Action("Found_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span><span class="sb-bdg bd-g sb-child-bdg">5</span></a>
-                                <a class="sb-child" href="@Url.Action("Dangerous_Animals", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span><span class="sb-bdg bd-r sb-child-bdg">4</span></a>
-                                <a class="sb-child" href="@Url.Action("Donations", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
-                                <a class="sb-child" href="@Url.Action("Laws_Regulations", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Laws & Regulations</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_C"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
                             </div>
                         </div>
                     </div>
@@ -81,436 +385,352 @@
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Tools</div>
-                    <a class="sb-row" href="@Url.Action("Map", "SuperAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span><span class="sb-lbl">Map</span></a>
-                    <a class="sb-row" href="@Url.Action("Notifications", "SuperAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span><span class="sb-lbl">Notifications</span><span class="sb-bdg bd-r">12</span></a>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
+                        <span class="sb-lbl">Notifications</span>
+                    </a>
                 </div>
             </nav>
-            <div class="sb-foot"><div class="sb-user-row"><div class="sb-av">DC</div><div class="sb-user-info"><div class="sb-user-name">Daniel Carter</div><div class="sb-user-role">Operations Director</div></div></div><button class="sb-logout" onclick="alert('Sign out')" type="button"><svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg><span class="sb-logout-lbl">Sign Out</span></button></div>
+            <div class="sb-foot">
+                <div class="sb-user-row">
+                    <div class="sb-av">@adminInitials</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">@adminName</div>
+                        <div class="sb-user-role">Super Admin</div>
+                    </div>
+                </div>
+                <a class="sb-logout" asp-controller="Account" asp-action="Logout">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                    <span class="sb-logout-lbl">Sign Out</span>
+                </a>
+            </div>
         </aside>
 
+        <!-- ══ TOPNAV ════════════════════════════════════════════════ -->
         <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button"><svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg></button>
-            <nav class="tn-bread"><span>Clinics</span><span>/</span><a href="@Url.Action("Clinics", "SuperAdmin")" style="color:var(--text-muted);font-weight:800;">All Clinics</a><span>/</span><b id="tnCur">Details</b></nav>
-            <div class="tn-center"><div class="tn-center-main" id="tnTitle">Clinic Details</div><div class="tn-center-sub">Super Admin Panel</div></div>
+            <button class="tn-toggle" onclick="toggleSb()" type="button">
+                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24">
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+            </button>
+            <nav class="tn-bread">
+                <span>Management</span><span>/</span>
+                <a asp-controller="SuperAdmin" asp-action="Users"
+                   asp-route-search="@Model.ReturnSearch"
+                   asp-route-status="@Model.ReturnStatus"
+                   asp-route-role="@Model.ReturnRole"
+                   asp-route-page="@Model.ReturnPage"
+                   style="color:var(--text-muted);font-weight:800;">Users</a>
+                <span>/</span><b>@u.FullName</b>
+            </nav>
+            <div class="tn-center">
+                <div class="tn-center-main">@u.FullName</div>
+                <div class="tn-center-sub">360° Profile View</div>
+            </div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-                <button class="tn-btn" type="button"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg></button>
-                <a class="tn-btn" href="@Url.Action("Notifications", "SuperAdmin")"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg><span class="tn-count">12</span></a>
-                <div class="tn-sep"></div>
-                <div class="tn-profile" onclick="alert('Profile')"><div class="tn-av">DC</div><div><div class="tn-pname">Daniel Carter</div><div class="tn-prole">Operations Director</div></div></div>
+                <div class="tn-profile">
+                    <div class="tn-av">@adminInitials</div>
+                    <div>
+                        <div class="tn-pname">@adminName</div>
+                        <div class="tn-prole">Super Admin</div>
+                    </div>
+                </div>
             </div>
         </header>
 
+        <!-- ══ MAIN ══════════════════════════════════════════════════ -->
         <main class="wa-main" id="waMain">
-            <section class="page-hero" id="clinicHero">
+
+            @* Flash *@
+            @if (ViewBag.Success != null)
+            {
+                <div class="flash-toast flash-success" id="flashMsg">@ViewBag.Success</div>
+            }
+            @if (ViewBag.Error != null)
+            {
+                <div class="flash-toast flash-danger" id="flashMsg">@ViewBag.Error</div>
+            }
+
+            <section class="page-hero">
                 <div>
-                    <h1 id="heroTitle">🏥 Clinic Details</h1>
-                    <p id="heroSub">Full clinic profile — doctors, appointments, revenue, and documents.</p>
+                    <h1>User 360° Profile</h1>
+                    <p>@u.FullName — @u.RoleName · @u.AccountStatus</p>
                 </div>
                 <div class="page-hero-actions">
-                    <a class="btn btn-outline btn-sm" href="@Url.Action("Clinics", "SuperAdmin")">← Back to Clinics</a>
-                    <button class="btn btn-warning btn-sm" onclick="openM('warnModal')">⚠️ Warn</button>
-                    <button class="btn btn-danger btn-sm" onclick="openM('suspendModal')">🔒 Suspend</button>
+                    <a asp-controller="SuperAdmin" asp-action="Users"
+                       asp-route-search="@Model.ReturnSearch"
+                       asp-route-status="@Model.ReturnStatus"
+                       asp-route-role="@Model.ReturnRole"
+                       asp-route-page="@Model.ReturnPage"
+                       class="btn btn-outline btn-sm">← Back to Users</a>
                 </div>
             </section>
 
             <div class="page-body">
-                <!-- Profile Card -->
-                <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r-xl);padding:22px;margin-bottom:16px;box-shadow:var(--shadow);">
-                    <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;">
-                        <div style="width:80px;height:80px;border-radius:22px;background:var(--brand-xlight);border:1px solid var(--border);display:grid;place-items:center;font-size:2.2rem;flex-shrink:0;">🏥</div>
-                        <div style="flex:1;min-width:200px;">
-                            <div style="font-family:'Fredoka',sans-serif;font-size:1.6rem;font-weight:700;color:var(--brand-dark);" id="clinicName">Al Amanah Veterinary Clinic</div>
-                            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;" id="clinicBadges"></div>
-                            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:.84rem;font-weight:700;color:var(--text-muted);" id="clinicMeta"></div>
+
+                @* Suspended Alert *@
+                @if (u.AccountStatus == "Suspended")
+                {
+                    <div class="alert-box show">
+                        <div>
+                            <div style="font-weight:900;color:#9b6000;">🔒 This account is currently suspended.</div>
+                            <div style="font-size:.8rem;color:#8b7751;font-weight:700;margin-top:2px;">
+                                The user cannot log in. You can reactivate it below.
+                            </div>
                         </div>
-                        <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;" id="clinicActions"></div>
+                        <form method="post" asp-controller="SuperAdmin" asp-action="ActivateUser" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="userId" value="@u.UserId" />
+                            <input type="hidden" name="returnSearch" value="@Model.ReturnSearch" />
+                            <input type="hidden" name="returnStatus" value="@Model.ReturnStatus" />
+                            <input type="hidden" name="returnRole" value="@Model.ReturnRole" />
+                            <input type="hidden" name="returnPage" value="@Model.ReturnPage" />
+                            <input type="hidden" name="from" value="details" />
+                            <button type="submit" class="btn btn-outline btn-sm"
+                                    onclick="return confirm('Activate this account?')">
+                                ✅ Reactivate
+                            </button>
+                        </form>
+                    </div>
+                }
+
+                @* Pending Alert *@
+                @if (u.AccountStatus == "Pending")
+                {
+                    <div class="alert-box show">
+                        <div>
+                            <div style="font-weight:900;color:#9b6000;">⏳ Account pending review.</div>
+                            <div style="font-size:.8rem;color:#8b7751;font-weight:700;margin-top:2px;">
+                                Review the user's documents and activate or reject their account.
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:8px;">
+                            <form method="post" asp-controller="SuperAdmin" asp-action="ActivateUser" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="userId" value="@u.UserId" />
+                                <input type="hidden" name="returnSearch" value="@Model.ReturnSearch" />
+                                <input type="hidden" name="returnStatus" value="@Model.ReturnStatus" />
+                                <input type="hidden" name="returnRole" value="@Model.ReturnRole" />
+                                <input type="hidden" name="returnPage" value="@Model.ReturnPage" />
+                                <input type="hidden" name="from" value="details" />
+                                <button type="submit" class="btn btn-primary btn-sm"
+                                        onclick="return confirm('Activate this account?')">
+                                    ✅ Approve
+                                </button>
+                            </form>
+                            <form method="post" asp-controller="SuperAdmin" asp-action="SuspendUser" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="userId" value="@u.UserId" />
+                                <input type="hidden" name="returnSearch" value="@Model.ReturnSearch" />
+                                <input type="hidden" name="returnStatus" value="@Model.ReturnStatus" />
+                                <input type="hidden" name="returnRole" value="@Model.ReturnRole" />
+                                <input type="hidden" name="returnPage" value="@Model.ReturnPage" />
+                                <input type="hidden" name="from" value="details" />
+                                <button type="submit" class="btn btn-danger btn-sm"
+                                        onclick="return confirm('Reject and suspend this account?')">
+                                    🔒 Reject
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+
+                <!-- ── Detail Hero ────────────────────────────────── -->
+                <div class="detail-hero">
+                    <div class="dh-avatar">
+                        @if (!string.IsNullOrEmpty(u.ProfileImage))
+                        {
+                            <img src="~/uploads/@u.ProfileImage" alt="@u.FullName" />
+                        }
+                        else
+                        {
+                            @u.AvatarInitials
+                        }
+                        @if (u.AccountStatus == "Active")
+                        {
+                            <div class="dh-online"></div>
+                        }
+                    </div>
+                    <div class="dh-info">
+                        <div class="dh-name">@u.FullName</div>
+                        <div class="dh-meta">
+                            <span>📧 @u.Email</span>
+                            <span>📞 @u.Phone</span>
+                            @if (!string.IsNullOrEmpty(u.City))
+                            {
+                                <span>📍 @u.City@(!string.IsNullOrEmpty(u.Area) ? $" — {u.Area}" : "")</span>
+                            }
+                            <span>📅 Joined @u.JoinedLabel</span>
+                            <span class="badge @u.StatusBadgeClass">@u.StatusIcon @u.AccountStatus</span>
+                        </div>
+                        <div class="dh-tags">
+                            <span class="dh-tag">@u.RoleIcon @u.RoleName</span>
+                            @if (!string.IsNullOrEmpty(u.Gender))
+                            {
+                                <span class="dh-tag">@u.Gender</span>
+                            }
+                            @if (!string.IsNullOrEmpty(u.Bio))
+                            {
+                                <span class="dh-tag" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                                    @u.Bio
+                                </span>
+                            }
+                        </div>
+                    </div>
+                    <div class="trust-box">
+                        <div class="trust-val">ID</div>
+                        <div style="font-family:'Fredoka',sans-serif;font-size:1.4rem;font-weight:700;color:var(--brand-dark);">
+                            #@u.UserId
+                        </div>
+                        <div class="trust-label">User ID</div>
                     </div>
                 </div>
 
-                <!-- KPI mini -->
-                <div class="kpi-grid kpi-grid-4" style="margin-bottom:16px;">
-                    <div class="kpi-card c1"><div class="kpi-ico green">👨‍⚕️</div><div class="kpi-val" id="ksDocCount">—</div><div class="kpi-label">Doctors</div></div>
-                    <div class="kpi-card c2"><div class="kpi-ico blue">📅</div><div class="kpi-val" id="ksAppts">—</div><div class="kpi-label">Appts / Month</div></div>
-                    <div class="kpi-card c1"><div class="kpi-ico green">💰</div><div class="kpi-val" id="ksRevenue">—</div><div class="kpi-label">Revenue (JD)</div></div>
-                    <div class="kpi-card c2"><div class="kpi-ico blue">⭐</div><div class="kpi-val" id="ksRating">—</div><div class="kpi-label">Rating</div></div>
+                <!-- ── Quick Actions (POST forms) ─────────────────── -->
+                <div class="quick-actions">
+                    @if (u.AccountStatus == "Active")
+                    {
+                        <form method="post" asp-controller="SuperAdmin" asp-action="SuspendUser" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="userId" value="@u.UserId" />
+                            <input type="hidden" name="returnSearch" value="@Model.ReturnSearch" />
+                            <input type="hidden" name="returnStatus" value="@Model.ReturnStatus" />
+                            <input type="hidden" name="returnRole" value="@Model.ReturnRole" />
+                            <input type="hidden" name="returnPage" value="@Model.ReturnPage" />
+                            <input type="hidden" name="from" value="details" />
+                            <button type="submit" class="btn btn-danger btn-sm"
+                                    onclick="return confirm('Suspend @u.FullName.Replace("'", "\\'")?')">
+                                🔒 Suspend
+                            </button>
+                        </form>
+                    }
+                    else if (u.AccountStatus is "Suspended" or "Pending")
+                    {
+                        <form method="post" asp-controller="SuperAdmin" asp-action="ActivateUser" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="userId" value="@u.UserId" />
+                            <input type="hidden" name="returnSearch" value="@Model.ReturnSearch" />
+                            <input type="hidden" name="returnStatus" value="@Model.ReturnStatus" />
+                            <input type="hidden" name="returnRole" value="@Model.ReturnRole" />
+                            <input type="hidden" name="returnPage" value="@Model.ReturnPage" />
+                            <input type="hidden" name="from" value="details" />
+                            <button type="submit" class="btn btn-primary btn-sm"
+                                    onclick="return confirm('Activate @u.FullName.Replace("'", "\\'")?')">
+                                ✅ Activate
+                            </button>
+                        </form>
+                    }
+
+                    <form method="post" asp-controller="SuperAdmin" asp-action="DeleteUser" style="display:inline;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="userId" value="@u.UserId" />
+                        <input type="hidden" name="returnSearch" value="@Model.ReturnSearch" />
+                        <input type="hidden" name="returnStatus" value="@Model.ReturnStatus" />
+                        <input type="hidden" name="returnRole" value="@Model.ReturnRole" />
+                        <input type="hidden" name="returnPage" value="@Model.ReturnPage" />
+                        <button type="submit" class="btn btn-danger btn-sm"
+                                onclick="return confirm('Delete @u.FullName.Replace("'", "\\'")\npermanently? This cannot be undone.')">
+                            🗑️ Delete User
+                        </button>
+                    </form>
+
+                    <a asp-controller="SuperAdmin" asp-action="Users"
+                       asp-route-search="@Model.ReturnSearch"
+                       asp-route-status="@Model.ReturnStatus"
+                       asp-route-role="@Model.ReturnRole"
+                       asp-route-page="@Model.ReturnPage"
+                       class="btn btn-outline btn-sm">← Back</a>
                 </div>
 
-                <!-- Tabs -->
-                <div class="tabs-bar" id="tabsBar">
-                    <button class="tab-btn active" onclick="showTab('doctors',this)">👨‍⚕️ Doctors</button>
+                <!-- ── Info Cards ──────────────────────────────────── -->
+                <div class="grid-2">
+                    <div class="inner-card">
+                        <div class="inner-card-head"><div class="inner-card-title">👤 Account Information</div></div>
+                        <div class="inner-card-body">
+                            <div class="info-list">
+                                <div class="info-line"><span class="info-key">User ID</span>     <span class="info-val">#@u.UserId</span></div>
+                                <div class="info-line"><span class="info-key">Full Name</span>   <span class="info-val">@u.FullName</span></div>
+                                <div class="info-line"><span class="info-key">Email</span>       <span class="info-val">@u.Email</span></div>
+                                <div class="info-line"><span class="info-key">Phone</span>       <span class="info-val">@(u.Phone ?? "—")</span></div>
+                                <div class="info-line"><span class="info-key">Gender</span>      <span class="info-val">@(u.Gender ?? "—")</span></div>
+                                <div class="info-line"><span class="info-key">Role</span>        <span class="info-val"><span class="badge @u.RoleBadgeClass">@u.RoleIcon @u.RoleName</span></span></div>
+                                <div class="info-line"><span class="info-key">Status</span>      <span class="info-val"><span class="badge @u.StatusBadgeClass">@u.StatusIcon @u.AccountStatus</span></span></div>
+                                <div class="info-line"><span class="info-key">Joined</span>      <span class="info-val">@(u.CreatedAt?.ToString("dd MMM yyyy") ?? "—")</span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="inner-card">
+                        <div class="inner-card-head"><div class="inner-card-title">📍 Location & Bio</div></div>
+                        <div class="inner-card-body">
+                            <div class="info-list">
+                                <div class="info-line"><span class="info-key">City</span>          <span class="info-val">@(u.City ?? "—")</span></div>
+                                <div class="info-line"><span class="info-key">Area</span>          <span class="info-val">@(u.Area ?? "—")</span></div>
+                                <div class="info-line">
+                                    <span class="info-key">Bio</span>
+                                    <span class="info-val" style="max-width:200px;text-align:right;">
+                                        @(string.IsNullOrEmpty(u.Bio) ? "—" : u.Bio)
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Tabs — المحتوى مؤقت حتى تُربط الـ repos ────── -->
+                <div class="tabs-row">
+                    <button class="tab-btn active" onclick="showTab('info',this)">📋 Info</button>
+                    <button class="tab-btn" onclick="showTab('pets',this)">🐾 Pets</button>
                     <button class="tab-btn" onclick="showTab('appointments',this)">📅 Appointments</button>
-                    <button class="tab-btn" onclick="showTab('revenue',this)">💰 Revenue</button>
-                    <button class="tab-btn" onclick="showTab('documents',this)">📋 Documents</button>
-                    <button class="tab-btn" onclick="showTab('info',this)">ℹ️ Info</button>
+                    <button class="tab-btn" onclick="showTab('orders',this)">🛍️ Orders</button>
+                    <button class="tab-btn" onclick="showTab('lost',this)">🔍 Lost Reports</button>
+                    <button class="tab-btn" onclick="showTab('adoption',this)">🏠 Adoption</button>
+                    <button class="tab-btn" onclick="showTab('timeline',this)">⏱️ Timeline</button>
+                    <button class="tab-btn" onclick="showTab('complaints',this)">🚨 Complaints</button>
                 </div>
 
-                <!-- TAB: DOCTORS -->
-                <div id="tab-doctors">
-                    <div class="table-card">
-                        <div class="table-head-bar">
-                            <div class="table-head-title">Clinic Doctors</div>
-                            <div style="display:flex;gap:8px;">
-                                <select class="sel-wrap" style="height:36px;width:auto;min-width:150px;font-size:.78rem;" id="docStatusFilter" onchange="renderDoctors()"><option value="">All Statuses</option><option value="active">Active</option><option value="warning">Warning</option><option value="suspended">Suspended</option></select>
-                                <div class="search-wrap" style="height:36px;min-width:200px;border-radius:10px;"><span style="font-size:.9rem;color:var(--text-muted);">🔍</span><input type="text" id="docSearch" placeholder="Search doctor..." oninput="renderDoctors()" style="font-size:.82rem;" /></div>
+                <div class="tab-pane active" id="tab-info">
+                    <div class="inner-card">
+                        <div class="inner-card-head"><div class="inner-card-title">Summary</div></div>
+                        <div class="inner-card-body" style="color:var(--text-muted);font-size:.86rem;font-weight:700;">
+                            Full user activity data (Pets, Appointments, Orders, Reports) will be connected here once the corresponding repositories are built. The account management actions above are fully functional.
+                        </div>
+                    </div>
+                </div>
+
+                @* باقي الـ tabs — placeholder حتى تُبنى الـ repos *@
+                @foreach (var tabId in new[] { "pets", "appointments", "orders", "lost", "adoption", "timeline", "complaints" })
+                {
+                    <div class="tab-pane" id="tab-@tabId">
+                        <div class="inner-card">
+                            <div class="inner-card-head">
+                                <div class="inner-card-title">@tabId.ToUpper()</div>
+                                <span class="badge badge-muted">Coming soon</span>
+                            </div>
+                            <div class="inner-card-body" style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">
+                                🔧 This tab will be connected when the corresponding repository is built.
                             </div>
                         </div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead><tr><th>Doctor</th><th>Specialty</th><th>Appts/Mo</th><th>Rating</th><th>No-Show</th><th>Status</th><th>Actions</th></tr></thead>
-                                <tbody id="doctorsTBody"></tbody>
-                            </table>
-                        </div>
-                        <div class="pagination-bar"><div class="pag-info" id="docPagInfo"></div></div>
                     </div>
-                </div>
+                }
 
-                <!-- TAB: APPOINTMENTS -->
-                <div id="tab-appointments" style="display:none;">
-                    <div class="table-card">
-                        <div class="table-head-bar">
-                            <div class="table-head-title">All Appointments</div>
-                            <div style="display:flex;gap:8px;">
-                                <select class="sel-wrap" style="height:36px;width:auto;min-width:150px;font-size:.78rem;" id="apptStatusFilter" onchange="renderAppointments()"><option value="">All Statuses</option><option value="completed">Completed</option><option value="pending">Pending</option><option value="canceled">Canceled</option><option value="no-show">No-Show</option></select>
-                                <div class="search-wrap" style="height:36px;min-width:200px;border-radius:10px;"><span style="font-size:.9rem;color:var(--text-muted);">🔍</span><input type="text" id="apptSearch" placeholder="Search..." oninput="renderAppointments()" style="font-size:.82rem;" /></div>
-                            </div>
-                        </div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead><tr><th>ID</th><th>Patient</th><th>Doctor</th><th>Service</th><th>Fee (JD)</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
-                                <tbody id="apptsTBody"></tbody>
-                            </table>
-                        </div>
-                        <div class="pagination-bar"><div class="pag-info" id="apptPagInfo"></div></div>
-                    </div>
-                </div>
-
-                <!-- TAB: REVENUE -->
-                <div id="tab-revenue" style="display:none;">
-                    <div class="kpi-grid kpi-grid-4" style="margin-bottom:16px;">
-                        <div class="kpi-card c1"><div class="kpi-ico green">💰</div><div class="kpi-val" id="revTotal">510 JD</div><div class="kpi-label">This Month Revenue</div><div class="kpi-chip chip-green">+12%</div></div>
-                        <div class="kpi-card c2"><div class="kpi-ico blue">📊</div><div class="kpi-val" id="revCommission">51 JD</div><div class="kpi-label">Waffy Commission (10%)</div></div>
-                        <div class="kpi-card c1"><div class="kpi-ico green">📅</div><div class="kpi-val" id="revAppts">638</div><div class="kpi-label">Paid Appointments</div></div>
-                        <div class="kpi-card c2"><div class="kpi-ico blue">💵</div><div class="kpi-val" id="revAvg">25 JD</div><div class="kpi-label">Avg. Session Fee</div></div>
-                    </div>
-                    <div class="table-card">
-                        <div class="table-head-bar">
-                            <div class="table-head-title">Monthly Revenue Breakdown</div>
-                            <select class="sel-wrap" style="height:36px;width:auto;min-width:150px;font-size:.78rem;"><option>Last 6 Months</option><option>Last 3 Months</option><option>This Year</option></select>
-                        </div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead><tr><th>Month</th><th>Appointments</th><th>Gross Revenue</th><th>Waffy Commission</th><th>Net to Clinic</th><th>Growth</th></tr></thead>
-                                <tbody id="revenueTBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- TAB: DOCUMENTS -->
-                <div id="tab-documents" style="display:none;">
-                    <div class="table-card">
-                        <div class="table-head-bar"><div class="table-head-title">Verification Documents</div></div>
-                        <div style="padding:20px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;" id="docsGrid"></div>
-                    </div>
-                </div>
-
-                <!-- TAB: INFO -->
-                <div id="tab-info" style="display:none;">
-                    <div class="table-card">
-                        <div class="table-head-bar"><div class="table-head-title">Clinic Information</div><button class="btn btn-outline btn-sm" onclick="openM('editInfoModal')">✏️ Edit Info</button></div>
-                        <div style="padding:20px;" id="clinicInfoGrid"></div>
-                    </div>
-                </div>
             </div>
         </main>
     </div>
 
-    <!-- MODAL: Warn Doctor -->
-    <div class="modal-overlay" id="warnDoctorModal">
-        <div class="modal-box" style="max-width:460px;">
-            <div class="modal-head"><div class="modal-title">⚠️ Warn Doctor</div><button class="dp-close" onclick="closeM('warnDoctorModal')">✕</button></div>
-            <div class="modal-body">
-                <div class="field"><label>Target Doctor</label><input type="text" id="warnDoctorTarget" readonly style="background:#f5f0e8;" /></div>
-                <div class="field"><label>Warning Type</label><select><option>Low performance</option><option>High no-show rate</option><option>Patient complaints</option><option>Policy violation</option></select></div>
-                <div class="field"><label>Message</label><textarea placeholder="Write the warning message..."></textarea></div>
-            </div>
-            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('warnDoctorModal')">Cancel</button><button class="btn btn-warning" onclick="sendDoctorWarning()">Send Warning</button></div>
-        </div>
-    </div>
-
-    <!-- MODAL: Appt Details -->
-    <div class="modal-overlay" id="apptDetailModal">
-        <div class="modal-box" style="max-width:520px;">
-            <div class="modal-head"><div class="modal-title">📅 Appointment Details</div><button class="dp-close" onclick="closeM('apptDetailModal')">✕</button></div>
-            <div class="modal-body" id="apptDetailBody"></div>
-            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('apptDetailModal')">Close</button><button class="btn btn-danger btn-sm" id="cancelApptBtn" onclick="cancelCurrentAppt()">❌ Cancel Appointment</button></div>
-        </div>
-    </div>
-
-    <!-- MODAL: Warn Clinic -->
-    <div class="modal-overlay" id="warnModal">
-        <div class="modal-box" style="max-width:500px;">
-            <div class="modal-head"><div class="modal-title">⚠️ Warn Clinic</div><button class="dp-close" onclick="closeM('warnModal')">✕</button></div>
-            <div class="modal-body">
-                <div class="field"><label>Type</label><select><option>Policy violation</option><option>High no-show rate</option><option>Multiple complaints</option><option>Document issue</option></select></div>
-                <div class="field"><label>Message</label><textarea placeholder="Write the warning..."></textarea></div>
-            </div>
-            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('warnModal')">Cancel</button><button class="btn btn-warning" onclick="sendClinicWarn()">Send Warning</button></div>
-        </div>
-    </div>
-
-    <!-- MODAL: Suspend Clinic -->
-    <div class="modal-overlay" id="suspendModal">
-        <div class="modal-box" style="max-width:500px;">
-            <div class="modal-head"><div class="modal-title">🔒 Suspend Clinic</div><button class="dp-close" onclick="closeM('suspendModal')">✕</button></div>
-            <div class="modal-body">
-                <div class="field"><label>Reason</label><select><option>Policy violation</option><option>Multiple complaints</option><option>High no-show rate</option><option>Invalid documents</option></select></div>
-                <div class="field"><label>Duration</label><select><option>7 days</option><option>30 days</option><option>Permanent</option></select></div>
-                <div class="field"><label>Message</label><textarea placeholder="Explain..."></textarea></div>
-            </div>
-            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('suspendModal')">Cancel</button><button class="btn btn-danger" onclick="confirmSuspend()">Suspend Clinic</button></div>
-        </div>
-    </div>
-
-    <!-- MODAL: Edit Info -->
-    <div class="modal-overlay" id="editInfoModal">
-        <div class="modal-box" style="max-width:560px;">
-            <div class="modal-head"><div class="modal-title">✏️ Edit Clinic Info</div><button class="dp-close" onclick="closeM('editInfoModal')">✕</button></div>
-            <div class="modal-body">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                    <div class="field" style="grid-column:1/-1;"><label>Clinic Name</label><input type="text" id="editCName" /></div>
-                    <div class="field"><label>Owner</label><input type="text" id="editCOwner" /></div>
-                    <div class="field"><label>Email</label><input type="email" id="editCEmail" /></div>
-                    <div class="field"><label>Phone</label><input type="text" id="editCPhone" /></div>
-                    <div class="field"><label>City</label><select id="editCCity"><option>Amman</option><option>Zarqa</option><option>Irbid</option><option>Aqaba</option></select></div>
-                    <div class="field"><label>Plan</label><select id="editCPlan"><option>Free</option><option>Basic</option><option>Professional</option></select></div>
-                    <div class="field" style="grid-column:1/-1;"><label>District</label><input type="text" id="editCDistrict" /></div>
-                </div>
-            </div>
-            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('editInfoModal')">Cancel</button><button class="btn btn-primary" onclick="saveClinicInfo()">Save Changes</button></div>
-        </div>
-    </div>
-
     <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
     <script>
-        /* ═══ DATA ═══ */
-        const clinic = {
-          id:1, name:"Al Amanah Veterinary Clinic", owner:"Dr. Ahmad Al-Zoubi",
-          email:"amanah@waffy.jo", phone:"06-1234567", city:"Amman", district:"Shmeisani",
-          plan:"Basic", status:"active", joined:"2024-01-15",
-          documents:{municipality:{label:"🏛 Municipality License",ok:true,expiry:"Expires Dec 2026"},practice:{label:"⚕️ Practice License",ok:true,expiry:"Expires Mar 2027"},ownerId:{label:"🪪 Owner ID",ok:true,expiry:"Verified"}}
-        };
-
-        const doctors = [
-          {id:1,name:"Dr. Ahmad Al-Zoubi",spec:"Veterinary Surgery",appts:142,rating:4.9,noShow:6,complaints:0,status:"active",joined:"Jan 2024"},
-          {id:2,name:"Dr. Sarah Al-Hussein",spec:"Dermatology",appts:118,rating:4.7,noShow:9,complaints:1,status:"active",joined:"Feb 2024"},
-          {id:3,name:"Dr. Lina Al-Shami",spec:"Internal Medicine",appts:96,rating:4.5,noShow:11,complaints:0,status:"active",joined:"Apr 2024"},
-          {id:4,name:"Dr. Omar Al-Rashid",spec:"Dentistry",appts:72,rating:4.3,noShow:14,complaints:2,status:"active",joined:"Jun 2024"},
-          {id:5,name:"Dr. Khaled Hassan",spec:"General Practice",appts:28,rating:2.9,noShow:38,complaints:4,status:"warning",joined:"Nov 2024"},
-        ];
-
-        const appointments = [
-          {id:"#A1023",patient:"Omar Khalil",doctor:"Dr. Ahmad Al-Zoubi",service:"Surgery Consult",fee:35,date:"2026-03-28",status:"completed"},
-          {id:"#A1022",patient:"Sara Nasser",doctor:"Dr. Sarah Al-Hussein",service:"Skin Exam",fee:25,date:"2026-03-28",status:"completed"},
-          {id:"#A1021",patient:"Rana Haddad",doctor:"Dr. Lina Al-Shami",service:"Internal Checkup",fee:30,date:"2026-03-27",status:"completed"},
-          {id:"#A1020",patient:"Ahmad Sami",doctor:"Dr. Ahmad Al-Zoubi",service:"Post-Op Follow",fee:20,date:"2026-03-27",status:"pending"},
-          {id:"#A1019",patient:"Dina Khalaf",doctor:"Dr. Omar Al-Rashid",service:"Dental Cleaning",fee:40,date:"2026-03-26",status:"canceled"},
-          {id:"#A1018",patient:"Walid Aziz",doctor:"Dr. Khaled Hassan",service:"General Checkup",fee:20,date:"2026-03-25",status:"no-show"},
-          {id:"#A1017",patient:"Hana Salem",doctor:"Dr. Sarah Al-Hussein",service:"Skin Treatment",fee:45,date:"2026-03-25",status:"completed"},
-          {id:"#A1016",patient:"Sami Obeid",doctor:"Dr. Ahmad Al-Zoubi",service:"Surgery",fee:80,date:"2026-03-24",status:"completed"},
-        ];
-
-        const revenueRows = [
-          {month:"March 2026",appts:638,gross:510,commission:51,net:459,growth:"+12%"},
-          {month:"February 2026",appts:590,gross:456,commission:46,net:410,growth:"+8%"},
-          {month:"January 2026",appts:540,gross:422,commission:42,net:380,growth:"+5%"},
-          {month:"December 2025",appts:510,gross:402,commission:40,net:362,growth:"+3%"},
-          {month:"November 2025",appts:480,gross:390,commission:39,net:351,growth:"+2%"},
-          {month:"October 2025",appts:460,gross:382,commission:38,net:344,growth:"-1%"},
-        ];
-
-        let currentApptId = null;
-
-        /* ═══ HELPERS ═══ */
-        function statusBadge(s) {
-          const m={active:['badge-success','✅ Active'],pending:['badge-warning','⏳ Pending'],suspended:['badge-danger','🔒 Suspended'],completed:['badge-success','✅ Done'],canceled:['badge-danger','❌ Canceled'],'no-show':['badge-warning','⚠️ No-Show'],warning:['badge-warning','⚠️ Warning']};
-          const [cls,lbl]=m[s]||['badge-muted',s];
-          return `<span class="badge ${cls}">${lbl}</span>`;
+        function showTab(id, btn) {
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tabs-row .tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('tab-' + id)?.classList.add('active');
+            if (btn) btn.classList.add('active');
         }
-
-        /* ═══ INIT PAGE ═══ */
-        function initPage() {
-          document.getElementById('tnCur').textContent   = clinic.name;
-          document.getElementById('tnTitle').textContent = clinic.name;
-          document.getElementById('heroTitle').textContent = `🏥 ${clinic.name}`;
-          document.getElementById('heroSub').textContent   = `${clinic.district}, ${clinic.city} · ${clinic.plan} Plan · Joined ${clinic.joined}`;
-          document.getElementById('clinicName').textContent = clinic.name;
-
-          const planBadge=p=>{const m={Free:['badge-success','🆓 Free'],Basic:['badge-info','💳 Basic'],Professional:['badge-purple','⭐ Pro']};const[cl,lb]=m[p]||['badge-muted',p];return`<span class="badge ${cl}">${lb}</span>`;};
-          const stBadge=s=>{const m={active:['badge-success','✅ Active'],pending:['badge-warning','⏳ Pending'],suspended:['badge-danger','🔒 Suspended']};const[cl,lb]=m[s]||['badge-muted',s];return`<span class="badge ${cl}">${lb}</span>`;};
-
-          document.getElementById('clinicBadges').innerHTML = stBadge(clinic.status)+planBadge(clinic.plan)+`<span class="badge badge-muted">📍 ${clinic.city}</span>`;
-          document.getElementById('clinicMeta').innerHTML = `<span>👤 ${clinic.owner}</span><span>📧 ${clinic.email}</span><span>📞 ${clinic.phone}</span><span>📅 Joined ${clinic.joined}</span>`;
-          document.getElementById('clinicActions').innerHTML = `<button class="btn btn-success btn-sm" onclick="activateClinic()">✅ Activate</button><button class="btn btn-warning btn-sm" onclick="openM('warnModal')">⚠️ Warn</button><button class="btn btn-danger btn-sm" onclick="openM('suspendModal')">🔒 Suspend</button>`;
-
-          document.getElementById('ksDocCount').textContent = doctors.length;
-          document.getElementById('ksAppts').textContent    = appointments.filter(a=>a.status==='completed').length + ' completed';
-          document.getElementById('ksRevenue').textContent  = revenueRows[0].gross+' JD';
-          document.getElementById('ksRating').textContent   = '⭐ '+(doctors.reduce((a,d)=>a+d.rating,0)/doctors.length).toFixed(1);
-
-          renderDoctors();
-          renderRevenue();
-          renderDocuments();
-          renderClinicInfo();
-        }
-
-        /* ═══ DOCTORS ═══ */
-        function renderDoctors() {
-          const q  = (document.getElementById('docSearch')?.value||'').toLowerCase();
-          const sf = document.getElementById('docStatusFilter')?.value||'';
-          const data = doctors.filter(d=>(!q||d.name.toLowerCase().includes(q)||d.spec.toLowerCase().includes(q))&&(!sf||d.status===sf));
-          document.getElementById('doctorsTBody').innerHTML = data.length ? data.map(d=>`
-            <tr>
-              <td><div style="display:flex;align-items:center;gap:10px;"><div style="width:38px;height:38px;border-radius:10px;background:var(--brand-xlight);display:grid;place-items:center;font-size:1rem;flex-shrink:0;">👨‍⚕️</div><div><div class="cell-title">${d.name}</div><div class="cell-sub">${d.joined}</div></div></div></td>
-              <td><span class="badge badge-info" style="font-size:.7rem;">${d.spec}</span></td>
-              <td><strong>${d.appts}</strong></td>
-              <td>${'⭐'.repeat(Math.round(d.rating))}<strong style="margin-left:4px;">${d.rating}</strong></td>
-              <td style="color:${d.noShow>20?'var(--danger)':d.noShow>10?'#9b6000':'var(--success)'};">${d.noShow}%</td>
-              <td>${statusBadge(d.status)}</td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-xs">👁 Profile</button>
-                <button class="btn btn-warning btn-xs" onclick="warnDoctor('${d.name}')">⚠️ Warn</button>
-                ${d.status==='warning'?`<button class="btn btn-danger btn-xs">🔒 Suspend</button>`:''}
-              </div></td>
-            </tr>`).join('')
-          : `<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text-muted);">No doctors found.</td></tr>`;
-          document.getElementById('docPagInfo').textContent = `Showing ${data.length} of ${doctors.length} doctors`;
-        }
-
-        function warnDoctor(name) { document.getElementById('warnDoctorTarget').value=name; openM('warnDoctorModal'); }
-        function sendDoctorWarning() { closeM('warnDoctorModal'); toast('Warning sent to '+document.getElementById('warnDoctorTarget').value,'warning'); }
-
-        /* ═══ APPOINTMENTS ═══ */
-        function renderAppointments() {
-          const q  = (document.getElementById('apptSearch')?.value||'').toLowerCase();
-          const sf = document.getElementById('apptStatusFilter')?.value||'';
-          const data = appointments.filter(a=>(!q||a.patient.toLowerCase().includes(q)||a.id.toLowerCase().includes(q))&&(!sf||a.status===sf));
-          document.getElementById('apptsTBody').innerHTML = data.length ? data.map(a=>`
-            <tr>
-              <td><strong style="font-family:'Fredoka',sans-serif;color:var(--brand-dark);">${a.id}</strong></td>
-              <td>${a.patient}</td>
-              <td style="font-size:.82rem;">${a.doctor}</td>
-              <td style="font-size:.82rem;color:var(--text-muted);">${a.service}</td>
-              <td><strong style="color:var(--success);">${a.fee} JD</strong></td>
-              <td style="font-size:.78rem;color:var(--text-muted);">${a.date}</td>
-              <td>${statusBadge(a.status)}</td>
-              <td><div style="display:flex;gap:5px;">
-                <button class="btn btn-outline btn-xs" onclick="viewAppt('${a.id}')">👁 View</button>
-                ${a.status==='pending'?`<button class="btn btn-danger btn-xs" onclick="cancelAppt('${a.id}')">❌ Cancel</button>`:''}
-              </div></td>
-            </tr>`).join('')
-          : `<tr><td colspan="8" style="text-align:center;padding:28px;color:var(--text-muted);">No appointments found.</td></tr>`;
-          document.getElementById('apptPagInfo').textContent = `Showing ${data.length} of ${appointments.length} appointments`;
-        }
-
-        function viewAppt(id) {
-          const a=appointments.find(x=>x.id===id); if(!a) return;
-          currentApptId=id;
-          document.getElementById('cancelApptBtn').style.display=a.status==='pending'?'inline-flex':'none';
-          document.getElementById('apptDetailBody').innerHTML=`
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
-              <div class="dp-info-item"><div class="dp-info-label">Appointment ID</div><div class="dp-info-val" style="font-family:'Fredoka',sans-serif;">${a.id}</div></div>
-              <div class="dp-info-item"><div class="dp-info-label">Status</div><div style="margin-top:4px;">${statusBadge(a.status)}</div></div>
-              <div class="dp-info-item"><div class="dp-info-label">Patient</div><div class="dp-info-val">${a.patient}</div></div>
-              <div class="dp-info-item"><div class="dp-info-label">Doctor</div><div class="dp-info-val">${a.doctor}</div></div>
-              <div class="dp-info-item"><div class="dp-info-label">Service</div><div class="dp-info-val">${a.service}</div></div>
-              <div class="dp-info-item"><div class="dp-info-label">Date</div><div class="dp-info-val">${a.date}</div></div>
-              <div class="dp-info-item" style="grid-column:1/-1;background:var(--success-soft);border-color:rgba(47,158,95,.2);"><div class="dp-info-label">Session Fee</div><div class="dp-info-val green" style="font-family:'Fredoka',sans-serif;font-size:1.4rem;">${a.fee} JD</div></div>
-            </div>`;
-          openM('apptDetailModal');
-        }
-        function cancelAppt(id) { const a=appointments.find(x=>x.id===id); if(a) a.status='canceled'; renderAppointments(); toast(`Appointment ${id} canceled.`,'danger'); }
-        function cancelCurrentAppt() { cancelAppt(currentApptId); closeM('apptDetailModal'); }
-
-        /* ═══ REVENUE ═══ */
-        function renderRevenue() {
-          document.getElementById('revenueTBody').innerHTML = revenueRows.map(r=>`
-            <tr>
-              <td style="font-weight:900;color:var(--brand-dark);">${r.month}</td>
-              <td>${r.appts}</td>
-              <td><strong style="color:var(--success);">${r.gross} JD</strong></td>
-              <td style="color:var(--info);">${r.commission} JD</td>
-              <td><strong>${r.net} JD</strong></td>
-              <td><span class="badge ${r.growth.startsWith('+')?'badge-success':'badge-danger'}">${r.growth}</span></td>
-            </tr>`).join('');
-        }
-
-        /* ═══ DOCUMENTS ═══ */
-        function renderDocuments() {
-          document.getElementById('docsGrid').innerHTML = Object.entries(clinic.documents).map(([k,d])=>`
-            <div style="background:${d.ok?'var(--success-soft)':'var(--danger-soft)'};border:1.5px solid ${d.ok?'rgba(47,158,95,.22)':'rgba(217,83,79,.22)'};border-radius:var(--r-lg);padding:18px;">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;"><div style="font-size:.92rem;font-weight:900;color:var(--brand-dark);">${d.label}</div><span class="badge ${d.ok?'badge-success':'badge-danger'}">${d.ok?'✅ Verified':'❌ Missing'}</span></div>
-              <div style="font-size:.78rem;color:var(--text-muted);font-weight:700;">${d.expiry}</div>
-              ${d.ok?`<button class="btn btn-outline btn-sm" style="margin-top:12px;width:100%;">👁 View Document</button>`:`<button class="btn btn-outline btn-sm" style="margin-top:12px;width:100%;" onclick="requestDoc('${k}')">📩 Request Upload</button>`}
-            </div>`).join('');
-        }
-        function requestDoc(k) { toast(`Document request sent: ${k}`,'warning'); }
-
-        /* ═══ CLINIC INFO ═══ */
-        function renderClinicInfo() {
-          document.getElementById('clinicInfoGrid').innerHTML=`
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-              <div class="dp-info-item"><div class="dp-info-label">Clinic Name</div><div class="dp-info-val">${clinic.name}</div></div>
-              <div class="dp-info-item"><div class="dp-info-label">Owner</div><div class="dp-info-val">${clinic.owner}</div></div>
-              <div class="dp-info-item"><div class="dp-info-label">Email</div><div class="dp-info-val">${clinic.email}</div></div>
-              <div class="dp-info-item"><div class="dp-info-label">Phone</div><div class="dp-info-val">${clinic.phone}</div></div>
-              <div class="dp-info-item"><div class="dp-info-label">City</div><div class="dp-info-val">📍 ${clinic.city}</div></div>
-              <div class="dp-info-item"><div class="dp-info-label">District</div><div class="dp-info-val">${clinic.district}</div></div>
-              <div class="dp-info-item"><div class="dp-info-label">Plan</div><div class="dp-info-val">${clinic.plan}</div></div>
-              <div class="dp-info-item"><div class="dp-info-label">Joined</div><div class="dp-info-val">${clinic.joined}</div></div>
-            </div>`;
-          document.getElementById('editCName').value    = clinic.name;
-          document.getElementById('editCOwner').value   = clinic.owner;
-          document.getElementById('editCEmail').value   = clinic.email;
-          document.getElementById('editCPhone').value   = clinic.phone;
-          document.getElementById('editCCity').value    = clinic.city;
-          document.getElementById('editCPlan').value    = clinic.plan;
-          document.getElementById('editCDistrict').value= clinic.district;
-        }
-        function saveClinicInfo() {
-          clinic.name=document.getElementById('editCName').value;
-          clinic.owner=document.getElementById('editCOwner').value;
-          clinic.email=document.getElementById('editCEmail').value;
-          clinic.phone=document.getElementById('editCPhone').value;
-          clinic.city=document.getElementById('editCCity').value;
-          clinic.plan=document.getElementById('editCPlan').value;
-          clinic.district=document.getElementById('editCDistrict').value;
-          closeM('editInfoModal'); initPage(); renderClinicInfo(); toast('Clinic info updated.','success');
-        }
-
-        /* ═══ TABS ═══ */
-        const TABS=['doctors','appointments','revenue','documents','info'];
-        function showTab(id,btn) {
-          TABS.forEach(t=>document.getElementById('tab-'+t).style.display=t===id?'block':'none');
-          document.querySelectorAll('#tabsBar .tab-btn').forEach(b=>b.classList.remove('active'));
-          btn.classList.add('active');
-          if(id==='appointments') renderAppointments();
-        }
-
-        /* ═══ CLINIC ACTIONS ═══ */
-        function activateClinic() { clinic.status='active'; initPage(); toast('Clinic activated.','success'); }
-        function confirmSuspend()  { clinic.status='suspended'; closeM('suspendModal'); initPage(); toast('Clinic suspended.','danger'); }
-        function sendClinicWarn()  { closeM('warnModal'); toast('Warning sent to clinic owner.','warning'); }
-
-        /* ═══ MODAL HELPERS ═══ */
-        function openM(id){const m=document.getElementById(id);if(m)m.classList.add('open');}
-        function closeM(id){const m=document.getElementById(id);if(m)m.classList.remove('open');}
-        document.querySelectorAll('.modal-overlay,.detail-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');});});
-        function toast(msg,type='success'){const bg={success:'var(--success-soft)',danger:'var(--danger-soft)',warning:'var(--warning-soft)'};const col={success:'var(--success)',danger:'var(--danger)',warning:'#9b6000'};const t=document.createElement('div');t.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:9999;padding:14px 20px;border-radius:14px;background:${bg[type]};border:1px solid ${col[type]}40;color:${col[type]};font-weight:800;font-size:.86rem;font-family:'Nunito',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.12);animation:fadeUp .25s ease;max-width:320px;`;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);}
-        const ts=document.createElement('style');ts.textContent=`@@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`;document.head.appendChild(ts);
-
-        initPage();
+        // Auto-hide flash
+        const fm = document.getElementById('flashMsg');
+        if (fm) { setTimeout(() => fm.style.opacity = '0', 3000); setTimeout(() => fm.remove(), 3400); }
     </script>
 </body>
 </html>

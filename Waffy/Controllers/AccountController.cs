@@ -51,6 +51,43 @@ namespace Waffy.Controllers
                 return RedirectToAction("Login");
             }
 
+            // ── حساب متجر — فحص خاص ──────────────────────────
+            if (user.RoleName == "Store")
+            {
+                var store = await _storeRepository.GetByOwnerUserIdAsync(user.UserId);
+
+                if (store == null)
+                {
+                    TempData["LoginError"] = "No store found.";
+                    return RedirectToAction("Login");
+                }
+
+                if (store.VerificationStatus == "Pending")
+                {
+                    TempData["LoginError"] = "Your store is under review. Please wait for approval.";
+                    return RedirectToAction("Login");
+                }
+
+                if (store.VerificationStatus == "Rejected")
+                {
+                    TempData["LoginError"] = "Your store was rejected. Contact support.";
+                    return RedirectToAction("Login");
+                }
+
+                if (store.VerificationStatus == "Suspended")
+                {
+                    TempData["LoginError"] = "Your store is suspended.";
+                    return RedirectToAction("Login");
+                }
+
+                // ✅ Approved — يدخل للداشبورد
+                HttpContext.Session.SetInt32("UserId", user.UserId);
+                HttpContext.Session.SetString("FullName", user.FullName);
+                HttpContext.Session.SetString("RoleName", user.RoleName);
+                return RedirectToAction("Dashboard", "StoreAdmin");
+            }
+
+            // ── باقي الأدوار ──────────────────────────────────
             if (user.AccountStatus != "Active")
             {
                 TempData["LoginError"] = "Your account is not active.";
@@ -58,13 +95,14 @@ namespace Waffy.Controllers
             }
 
             HttpContext.Session.SetInt32("UserId", user.UserId);
-            TempData["LoginSuccess"] = "Logged in successfully.";
+            HttpContext.Session.SetString("FullName", user.FullName);
+            HttpContext.Session.SetString("RoleName", user.RoleName);
 
             return user.RoleName switch
             {
+                "Admin" => RedirectToAction("Users", "SuperAdmin"),
                 "User" => RedirectToAction("Home_After", "Home"),
-                "Clinic" => RedirectToAction("Clinic_step1", "Account"),
-                "Store" => RedirectToAction("Stor_step1", "Account"),
+                "Clinic" => RedirectToAction("Dashboard", "ClinicAdmin"),
                 _ => RedirectToAction("Home_After", "Home")
             };
         }

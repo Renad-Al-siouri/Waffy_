@@ -21,5 +21,9 @@ namespace Waffy.Interfaces
 
         // حذف متجر
         Task DeleteAsync(int idStore);
+
+        // أضف هذين السطرين في نهاية الـ interface
+        Task UpdateVerificationAsync(int idStore, string status);
+        Task<IEnumerable<Store>> GetPendingStoresAsync();
     }
 }
