@@ -222,6 +222,8 @@ namespace Waffy.Controllers
             return RedirectToAction("Login");
         }
 
+
+
         // =========================
         // Profile
         // =========================
@@ -599,30 +601,8 @@ namespace Waffy.Controllers
         [HttpGet] public IActionResult OTP() => View();
         [HttpGet] public IActionResult ResetPass() => View();
 
-        // ══════════════════════════════════════════════════════════
-        // PROFILE
-        // ══════════════════════════════════════════════════════════
+        
 
-        public async Task<IActionResult> Profile()
-        {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null) return RedirectToAction("Login");
-
-            var user = await _userRepository.GetByIdAsync(userId.Value);
-            if (user == null) return NotFound();
-
-            return View(user);
-        }
-
-        // ══════════════════════════════════════════════════════════
-        // LOGOUT
-        // ══════════════════════════════════════════════════════════
-
-        [HttpGet]
-        public IActionResult Logout()
-        {
-            HttpContext.Session.Clear();
-            return RedirectToAction("Login");
-        }
+        
     }
 }
