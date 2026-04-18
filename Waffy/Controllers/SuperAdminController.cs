@@ -1,5 +1,4 @@
-﻿// Controllers/SuperAdminController.cs
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using Waffy.Interfaces;
 using Waffy.Models.ViewModels;
@@ -28,7 +27,10 @@ namespace Waffy.Controllers
             _docRepo = docRepo;
         }
 
-        // ── Guard ────────────────────────────────────────────
+        // ══════════════════════════════════════════════════════════
+        // HELPERS
+        // ══════════════════════════════════════════════════════════
+
         private bool IsAdmin() =>
             HttpContext.Session.GetString("RoleName") == "Admin";
 
@@ -45,31 +47,67 @@ namespace Waffy.Controllers
                 var parts = AdminName.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                 return parts.Length >= 2
                     ? $"{parts[0][0]}{parts[1][0]}".ToUpper()
-                    : parts.Length > 0 ? parts[0][0].ToString().ToUpper() : "AD";
+                    : parts.Length > 0
+                        ? parts[0][0].ToString().ToUpper()
+                        : "AD";
             }
         }
 
-        // ════════════════════════════════════════════════════
-        // Dashboard
-        // ════════════════════════════════════════════════════
+        private void SetAdminBag()
+        {
+            ViewBag.AdminName = AdminName;
+            ViewBag.AdminInitials = AdminInitials;
+            if (TempData["SuccessMessage"] != null) ViewBag.Success = TempData["SuccessMessage"];
+            if (TempData["ErrorMessage"] != null) ViewBag.Error = TempData["ErrorMessage"];
+        }
+
+        private static string MapStoreStatus(string? v) => v switch
+        {
+            "Approved" => "active",
+            "Pending" => "pending",
+            "Suspended" => "suspended",
+            "Rejected" => "rejected",
+            _ => "pending"
+        };
+
+        /// <summary>اسم مقروء للوثيقة حسب نوعها</summary>
+        private static string MapDocLabel(string? docType) => docType switch
+        {
+            "CommercialRegister" => "📜 Commercial Registration",
+            "BusinessLicense" => "🏢 Business License",
+            "TrademarkCertificate" => "™️ Trademark Certificate",
+            "AdditionalFile" => "💼 Additional Document",
+            _ => docType ?? "Document"
+        };
+
+        /// <summary>هل الملف صورة أم PDF؟</summary>
+        private static bool IsImageFile(string? url)
+        {
+            if (string.IsNullOrEmpty(url)) return false;
+            var ext = Path.GetExtension(url).ToLowerInvariant();
+            return ext is ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp";
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // DASHBOARD
+        // ══════════════════════════════════════════════════════════
+
         public IActionResult Dashboard()
         {
             if (!IsAdmin()) return NotAdmin();
-            ViewBag.AdminName = AdminName;
-            ViewBag.AdminInitials = AdminInitials;
+            SetAdminBag();
             return View();
         }
 
-        // ════════════════════════════════════════════════════
-        // GET: /SuperAdmin/Stores  ← جلب الكل بدل Pending فقط
-        // ════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════
+        // STORES
+        // ══════════════════════════════════════════════════════════
+
         public async Task<IActionResult> Stores()
         {
             if (!IsAdmin()) return NotAdmin();
-            ViewBag.AdminName = AdminName;
-            ViewBag.AdminInitials = AdminInitials;
+            SetAdminBag();
 
-            // ✅ GetAllAsync بدل GetPendingStoresAsync
             var stores = (await _storeRepo.GetAllAsync()).ToList();
 
             ViewBag.TotalStores = stores.Count;
@@ -77,7 +115,6 @@ namespace Waffy.Controllers
             ViewBag.PendingStores = stores.Count(s => s.VerificationStatus == "Pending");
             ViewBag.SuspendedStores = stores.Count(s => s.VerificationStatus == "Suspended");
 
-            // جلب اسم المالك لكل متجر
             var ownerIds = stores.Select(s => s.OwnerUserId).Distinct().ToList();
             var owners = new Dictionary<int, string>();
             foreach (var oid in ownerIds)
@@ -90,89 +127,61 @@ namespace Waffy.Controllers
             {
                 id = s.IdStore,
                 name = s.Name ?? "",
-                emoji = "🏪",
                 owner = owners.TryGetValue(s.OwnerUserId, out var on) ? on : "",
                 email = s.Email ?? "",
                 phone = s.Phone ?? "",
                 city = s.City ?? "",
-                model = "Subscription",
-                status = s.VerificationStatus == "Approved" ? "active"
-                         : s.VerificationStatus == "Pending" ? "pending"
-                         : s.VerificationStatus == "Suspended" ? "suspended"
-                         : "rejected",
-                products = 0,
-                orders = 0,
-                revenue = 0,
+                status = MapStoreStatus(s.VerificationStatus),
                 rating = s.Rating ?? 0,
                 joined = s.CreatedAt.ToString("yyyy-MM-dd"),
-                logoUrl = s.LogoUrl ?? ""
+                logoUrl = s.LogoUrl ?? "",
+                products = 0,
+                orders = 0,
+                revenue = 0
             });
 
             ViewBag.StoresJson = JsonSerializer.Serialize(storesJs);
-
-            if (TempData["SuccessMessage"] != null) ViewBag.Success = TempData["SuccessMessage"];
-
             return View();
         }
 
-        // ════════════════════════════════════════════════════
-        // GET: /SuperAdmin/Details_S?id=5  ← تنفيذ حقيقي
-        // ════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════
+        // STORE DETAILS
+        // ══════════════════════════════════════════════════════════
+
         public async Task<IActionResult> Details_S(int id)
         {
             if (!IsAdmin()) return NotAdmin();
-            ViewBag.AdminName = AdminName;
-            ViewBag.AdminInitials = AdminInitials;
+            SetAdminBag();
 
             var store = await _storeRepo.GetByIdAsync(id);
             if (store == null) return NotFound();
 
-            // اسم المالك
             var owner = await _userRepo.GetByIdForAdminAsync(store.OwnerUserId);
-            var ownerName = owner?.FullName ?? "—";
-
-            // المنتجات
             var products = (await _productRepo.GetByStoreIdAsync(id)).ToList();
-
-            // الطلبات
             var orders = (await _orderRepo.GetByStoreIdAsync(id)).ToList();
-
-            // الوثائق
             var docs = (await _docRepo.GetByStoreIdAsync(id)).ToList();
-
-            // الإيرادات
             var revenue = await _orderRepo.GetTotalRevenueByStoreAsync(id);
 
-            // ══ storeData JSON ══
+            // ── storeData JSON ──
             var storeData = new
             {
                 id = store.IdStore,
                 name = store.Name ?? "",
-                owner = ownerName,
+                owner = owner?.FullName ?? "—",
                 email = store.Email ?? "",
                 phone = store.Phone ?? "",
                 city = store.City ?? "",
                 description = store.Description ?? "",
-                status = store.VerificationStatus == "Approved" ? "active"
-                                 : store.VerificationStatus == "Pending" ? "pending"
-                                 : store.VerificationStatus == "Suspended" ? "suspended"
-                                 : "rejected",
+                status = MapStoreStatus(store.VerificationStatus),
                 joined = store.CreatedAt.ToString("yyyy-MM-dd"),
                 deliveryAvailable = store.DeliveryAvailable,
                 products = products.Count,
                 orders = orders.Count,
-                revenue = revenue,
-                rating = store.Rating ?? 0,
-                documents = new
-                {
-                    registration = docs.Any(d => d.DocumentType == "CommercialRegister"),
-                    license = docs.Any(d => d.DocumentType == "BusinessLicense"),
-                    trademark = docs.Any(d => d.DocumentType == "TrademarkCertificate"),
-                    tax = docs.Any(d => d.DocumentType == "AdditionalFile")
-                }
+                revenue,
+                rating = store.Rating ?? 0
             };
 
-            // ══ products JSON ══
+            // ── products JSON ──
             var productsJs = products.Select(p => new
             {
                 id = p.Id,
@@ -185,15 +194,30 @@ namespace Waffy.Controllers
                        : "hidden"
             });
 
-            // ══ orders JSON ══
+            // ── orders JSON ──
             var ordersJs = orders.Select(o => new
             {
                 id = o.IdOrder.ToString(),
-                cust = o.CustomerName ?? "—",
-                total = o.TotalAmount,
+                orderCode = o.OrderCode ?? "",
+                cust = o.RecipientName ?? "—",
+                phone = o.RecipientPhone ?? "",
+                address = o.DeliveryAddress ?? "",
+                deliveryFee = o.DeliveryFee,
                 date = o.CreatedAt.ToString("dd MMM yyyy"),
                 status = (o.Status ?? "pending").ToLower(),
-                items = new string[0]
+                items = Array.Empty<string>()
+            });
+
+            // ── documents JSON — بيانات كاملة للعرض والتحقق ──
+            var docsJs = docs.Select(d => new
+            {
+                id = d.Id,
+                type = d.DocumentType ?? "",
+                label = MapDocLabel(d.DocumentType),
+                fileUrl = d.FileUrl ?? "",
+                status = (d.Status ?? "pending").ToLower(),
+                uploadedAt = d.UploadedAt.ToString("dd MMM yyyy"),
+                isImage = IsImageFile(d.FileUrl)
             });
 
             ViewBag.StoreId = id;
@@ -201,15 +225,39 @@ namespace Waffy.Controllers
             ViewBag.StoreDataJson = JsonSerializer.Serialize(storeData);
             ViewBag.ProductsJson = JsonSerializer.Serialize(productsJs);
             ViewBag.OrdersJson = JsonSerializer.Serialize(ordersJs);
-
-            if (TempData["SuccessMessage"] != null) ViewBag.Success = TempData["SuccessMessage"];
+            ViewBag.DocsJson = JsonSerializer.Serialize(docsJs);   // ← جديد
 
             return View();
         }
 
-        // ════════════════════════════════════════════════════
-        // POST Actions
-        // ════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════
+        // DOCUMENT ACTIONS — جديد
+        // ══════════════════════════════════════════════════════════
+
+        /// <summary>الأدمن يوافق على وثيقة واحدة</summary>
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveDocument(int docId, int storeId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _docRepo.UpdateStatusAsync(docId, "Approved");
+            TempData["SuccessMessage"] = "✅ Document approved.";
+            return RedirectToAction("Details_S", new { id = storeId });
+        }
+
+        /// <summary>الأدمن يرفض وثيقة واحدة</summary>
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectDocument(int docId, int storeId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _docRepo.UpdateStatusAsync(docId, "Rejected");
+            TempData["SuccessMessage"] = "❌ Document rejected.";
+            return RedirectToAction("Details_S", new { id = storeId });
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // STORE ACTIONS
+        // ══════════════════════════════════════════════════════════
+
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> ApproveStore(int storeId, string? from = null)
         {
@@ -217,7 +265,7 @@ namespace Waffy.Controllers
             await _storeRepo.UpdateVerificationAsync(storeId, "Approved");
             var store = await _storeRepo.GetByIdAsync(storeId);
             if (store != null) await _userRepo.UpdateStatusAsync(store.OwnerUserId, "Active");
-            TempData["SuccessMessage"] = "✅ Store approved.";
+            TempData["SuccessMessage"] = "✅ Store approved successfully.";
             return from == "details"
                 ? RedirectToAction("Details_S", new { id = storeId })
                 : RedirectToAction("Stores");
@@ -269,14 +317,16 @@ namespace Waffy.Controllers
             return RedirectToAction("Stores");
         }
 
-        // ════════════════════════════════════════════════════
-        // Users Actions (كما كانت)
-        // ════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════
+        // USERS
+        // ══════════════════════════════════════════════════════════
+
         public async Task<IActionResult> Users(
             string? search, string? status, string? role,
             string? sort, int page = 1)
         {
             if (!IsAdmin()) return NotAdmin();
+            SetAdminBag();
             const int pageSize = 8;
             sort ??= "newest";
             var vm = new UserManagementViewModel
@@ -288,8 +338,7 @@ namespace Waffy.Controllers
                 CurrentPage = page,
                 PageSize = pageSize
             };
-            var users = await _userRepo.GetAllForAdminAsync(search, status, role, sort, page, pageSize);
-            vm.Users = users.ToList();
+            vm.Users = (await _userRepo.GetAllForAdminAsync(search, status, role, sort, page, pageSize)).ToList();
             vm.TotalUsers = await _userRepo.CountTotalAsync();
             vm.NewThisMonth = await _userRepo.CountNewThisMonthAsync();
             vm.ActiveUsers = await _userRepo.CountByStatusAsync("Active");
@@ -297,28 +346,34 @@ namespace Waffy.Controllers
             vm.PendingUsers = await _userRepo.CountByStatusAsync("Pending");
             vm.TotalFiltered = await _userRepo.CountFilteredAsync(search, status, role);
             vm.TotalPages = (int)Math.Ceiling((double)vm.TotalFiltered / pageSize);
-            if (vm.CurrentPage > vm.TotalPages && vm.TotalPages > 0) vm.CurrentPage = vm.TotalPages;
-            ViewBag.AdminName = AdminName; ViewBag.AdminInitials = AdminInitials;
-            if (TempData["SuccessMessage"] != null) ViewBag.Success = TempData["SuccessMessage"];
-            if (TempData["ErrorMessage"] != null) ViewBag.Error = TempData["ErrorMessage"];
+            if (vm.CurrentPage > vm.TotalPages && vm.TotalPages > 0)
+                vm.CurrentPage = vm.TotalPages;
             return View(vm);
         }
 
-        public async Task<IActionResult> Details_U(int id,
-            string? returnSearch, string? returnStatus, string? returnRole, int returnPage = 1)
+        public async Task<IActionResult> Details_U(
+            int id, string? returnSearch, string? returnStatus,
+            string? returnRole, int returnPage = 1)
         {
             if (!IsAdmin()) return NotAdmin();
+            SetAdminBag();
             var user = await _userRepo.GetByIdForAdminAsync(id);
             if (user == null) return NotFound();
-            var vm = new UserDetailViewModel { User = user, ReturnSearch = returnSearch, ReturnStatus = returnStatus, ReturnRole = returnRole, ReturnPage = returnPage };
-            ViewBag.AdminName = AdminName; ViewBag.AdminInitials = AdminInitials;
-            if (TempData["SuccessMessage"] != null) ViewBag.Success = TempData["SuccessMessage"];
-            if (TempData["ErrorMessage"] != null) ViewBag.Error = TempData["ErrorMessage"];
+            var vm = new UserDetailViewModel
+            {
+                User = user,
+                ReturnSearch = returnSearch,
+                ReturnStatus = returnStatus,
+                ReturnRole = returnRole,
+                ReturnPage = returnPage
+            };
             return View(vm);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> SuspendUser(int userId, string? returnSearch, string? returnStatus, string? returnRole, int returnPage = 1, string? from = null)
+        public async Task<IActionResult> SuspendUser(
+            int userId, string? returnSearch, string? returnStatus,
+            string? returnRole, int returnPage = 1, string? from = null)
         {
             if (!IsAdmin()) return NotAdmin();
             await _userRepo.UpdateStatusAsync(userId, "Suspended");
@@ -329,7 +384,9 @@ namespace Waffy.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> ActivateUser(int userId, string? returnSearch, string? returnStatus, string? returnRole, int returnPage = 1, string? from = null)
+        public async Task<IActionResult> ActivateUser(
+            int userId, string? returnSearch, string? returnStatus,
+            string? returnRole, int returnPage = 1, string? from = null)
         {
             if (!IsAdmin()) return NotAdmin();
             await _userRepo.UpdateStatusAsync(userId, "Active");
@@ -340,7 +397,9 @@ namespace Waffy.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteUser(int userId, string? returnSearch, string? returnStatus, string? returnRole, int returnPage = 1)
+        public async Task<IActionResult> DeleteUser(
+            int userId, string? returnSearch, string? returnStatus,
+            string? returnRole, int returnPage = 1)
         {
             if (!IsAdmin()) return NotAdmin();
             await _userRepo.DeleteAsync(userId);
@@ -348,13 +407,16 @@ namespace Waffy.Controllers
             return RedirectToAction("Users", new { search = returnSearch, status = returnStatus, role = returnRole, page = returnPage });
         }
 
-        // ── Stubs ─────────────────────────────────────────────
-        public IActionResult Clinics() { if (!IsAdmin()) return NotAdmin(); return View(); }
-        public IActionResult Details_C() { if (!IsAdmin()) return NotAdmin(); return View(); }
-        public IActionResult Analytics_S() { if (!IsAdmin()) return NotAdmin(); return View(); }
-        public IActionResult Reviews_Complaints_S() { if (!IsAdmin()) return NotAdmin(); return View(); }
-        public IActionResult Listings() { if (!IsAdmin()) return NotAdmin(); return View(); }
-        public IActionResult Flagged() { if (!IsAdmin()) return NotAdmin(); return View(); }
-        public IActionResult Notifications() { if (!IsAdmin()) return NotAdmin(); return View(); }
+        // ══════════════════════════════════════════════════════════
+        // STUBS
+        // ══════════════════════════════════════════════════════════
+
+        public IActionResult Clinics() { if (!IsAdmin()) return NotAdmin(); SetAdminBag(); return View(); }
+        public IActionResult Details_C() { if (!IsAdmin()) return NotAdmin(); SetAdminBag(); return View(); }
+        public IActionResult Analytics_S() { if (!IsAdmin()) return NotAdmin(); SetAdminBag(); return View(); }
+        public IActionResult Reviews_Complaints_S() { if (!IsAdmin()) return NotAdmin(); SetAdminBag(); return View(); }
+        public IActionResult Listings() { if (!IsAdmin()) return NotAdmin(); SetAdminBag(); return View(); }
+        public IActionResult Flagged() { if (!IsAdmin()) return NotAdmin(); SetAdminBag(); return View(); }
+        public IActionResult Notifications() { if (!IsAdmin()) return NotAdmin(); SetAdminBag(); return View(); }
     }
 }

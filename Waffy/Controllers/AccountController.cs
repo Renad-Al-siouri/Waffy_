@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Waffy.Interfaces;
 using Waffy.Models;
-using Waffy.Repository;
 
 namespace Waffy.Controllers
 {
@@ -27,9 +26,34 @@ namespace Waffy.Controllers
             _clinicDocumentRepository = clinicDocumentRepository;
         }
 
-        // =========================
-        // Login
-        // =========================
+        // ══════════════════════════════════════════════════════════
+        // HELPERS
+        // ══════════════════════════════════════════════════════════
+
+        /// <summary>حفظ ملف على القرص وإرجاع المسار النسبي</summary>
+        private async Task<string> SaveFileAsync(IFormFile file, string subFolder)
+        {
+            var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", subFolder);
+            Directory.CreateDirectory(folder);
+            var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+            var fullPath = Path.Combine(folder, fileName);
+            await using var stream = new FileStream(fullPath, FileMode.Create);
+            await file.CopyToAsync(stream);
+            return $"/uploads/{subFolder}/{fileName}";
+        }
+
+        /// <summary>تفعيل الـ Session بعد تسجيل الدخول الناجح</summary>
+        private void SetSession(LoginUserResult user)
+        {
+            HttpContext.Session.SetInt32("UserId", user.UserId);
+            HttpContext.Session.SetString("FullName", user.FullName ?? "");
+            HttpContext.Session.SetString("RoleName", user.RoleName ?? "");
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // LOGIN
+        // ══════════════════════════════════════════════════════════
+
         [HttpGet]
         public IActionResult Login() => View();
 
@@ -44,74 +68,92 @@ namespace Waffy.Controllers
             }
 
             var user = await _userRepository.LoginAsync(email, password);
-
             if (user == null)
             {
                 TempData["LoginError"] = "Invalid email or password.";
                 return RedirectToAction("Login");
             }
 
-            // ── حساب متجر — فحص خاص ──────────────────────────
+            // ── حساب متجر — فحص الـ VerificationStatus ──────────
             if (user.RoleName == "Store")
             {
                 var store = await _storeRepository.GetByOwnerUserIdAsync(user.UserId);
-
                 if (store == null)
                 {
-                    TempData["LoginError"] = "No store found.";
+                    TempData["LoginError"] = "No store found for this account.";
                     return RedirectToAction("Login");
                 }
 
-                if (store.VerificationStatus == "Pending")
+                switch (store.VerificationStatus)
                 {
-                    TempData["LoginError"] = "Your store is under review. Please wait for approval.";
-                    return RedirectToAction("Login");
+                    case "Pending":
+                        TempData["LoginError"] = "Your store is under review. Please wait for admin approval.";
+                        return RedirectToAction("Login");
+                    case "Rejected":
+                        TempData["LoginError"] = "Your store application was rejected. Please contact support.";
+                        return RedirectToAction("Login");
+                    case "Suspended":
+                        TempData["LoginError"] = "Your store has been suspended. Please contact support.";
+                        return RedirectToAction("Login");
                 }
 
-                if (store.VerificationStatus == "Rejected")
-                {
-                    TempData["LoginError"] = "Your store was rejected. Contact support.";
-                    return RedirectToAction("Login");
-                }
-
-                if (store.VerificationStatus == "Suspended")
-                {
-                    TempData["LoginError"] = "Your store is suspended.";
-                    return RedirectToAction("Login");
-                }
-
-                // ✅ Approved — يدخل للداشبورد
-                HttpContext.Session.SetInt32("UserId", user.UserId);
-                HttpContext.Session.SetString("FullName", user.FullName);
-                HttpContext.Session.SetString("RoleName", user.RoleName);
+                // ✅ Approved
+                SetSession(user);
                 return RedirectToAction("Dashboard", "StoreAdmin");
             }
 
-            // ── باقي الأدوار ──────────────────────────────────
+            // ── حساب عيادة — فحص الـ VerificationStatus ─────────
+            if (user.RoleName == "Clinic")
+            {
+                var clinic = await _clinicRepository.GetByOwnerUserIdAsync(user.UserId);
+                if (clinic == null)
+                {
+                    TempData["LoginError"] = "No clinic found for this account.";
+                    return RedirectToAction("Login");
+                }
+
+                switch (clinic.VerificationStatus)
+                {
+                    case "Pending":
+                        TempData["LoginError"] = "Your clinic is under review. Please wait for admin approval.";
+                        return RedirectToAction("Login");
+                    case "Rejected":
+                        TempData["LoginError"] = "Your clinic application was rejected. Please contact support.";
+                        return RedirectToAction("Login");
+                    case "Suspended":
+                        TempData["LoginError"] = "Your clinic has been suspended. Please contact support.";
+                        return RedirectToAction("Login");
+                }
+
+                // ✅ Approved
+                SetSession(user);
+                return RedirectToAction("Dashboard", "ClinicAdmin");
+            }
+
+            // ── باقي الأدوار (Admin / User) ───────────────────────
             if (user.AccountStatus != "Active")
             {
-                TempData["LoginError"] = "Your account is not active.";
+                TempData["LoginError"] = "Your account is not active. Please contact support.";
                 return RedirectToAction("Login");
             }
 
-            HttpContext.Session.SetInt32("UserId", user.UserId);
-            HttpContext.Session.SetString("FullName", user.FullName);
-            HttpContext.Session.SetString("RoleName", user.RoleName);
+            SetSession(user);
 
             return user.RoleName switch
             {
                 "Admin" => RedirectToAction("Users", "SuperAdmin"),
                 "User" => RedirectToAction("Home_After", "Home"),
-                "Clinic" => RedirectToAction("Dashboard", "ClinicAdmin"),
                 _ => RedirectToAction("Home_After", "Home")
             };
         }
 
-        // =========================
-        // Signup
-        // =========================
-        [HttpGet]
-        public IActionResult Signup() => View();
+        // ══════════════════════════════════════════════════════════
+        // SIGNUP
+        // ══════════════════════════════════════════════════════════
+
+        [HttpGet] public IActionResult Signup() => View();
+
+        // ── User Signup ──────────────────────────────────────────
 
         [HttpGet]
         public IActionResult user_signup() => View();
@@ -142,8 +184,7 @@ namespace Waffy.Controllers
                 return RedirectToAction("user_signup");
             }
 
-            var existingUser = await _userRepository.GetByEmailAsync(email);
-            if (existingUser != null)
+            if (await _userRepository.GetByEmailAsync(email) != null)
             {
                 TempData["SignupError"] = "This email is already registered.";
                 return RedirectToAction("user_signup");
@@ -166,42 +207,10 @@ namespace Waffy.Controllers
             return RedirectToAction("Login");
         }
 
-        // =========================
-        // Forgot Password / OTP / Reset
-        // =========================
-        [HttpGet] public IActionResult ForgotPass() => View();
-        [HttpGet] public IActionResult OTP() => View();
-        [HttpGet] public IActionResult ResetPass() => View();
+        // ══════════════════════════════════════════════════════════
+        // STORE SIGNUP — Step 1 (بيانات المالك)
+        // ══════════════════════════════════════════════════════════
 
-        // =========================
-        // Logout
-        // =========================
-        [HttpGet]
-        public IActionResult Logout()
-        {
-            HttpContext.Session.Clear();
-            return RedirectToAction("Login");
-        }
-
-        // =========================
-        // Profile
-        // =========================
-        public async Task<IActionResult> Profile()
-        {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null) return RedirectToAction("Login");
-
-            var user = await _userRepository.GetByIdAsync(userId.Value);
-            if (user == null) return NotFound();
-
-            return View(user);
-        }
-
-       
-
-        // =========================
-        // Store Signup — Step 1
-        // =========================
         [HttpGet]
         public IActionResult Stor_step1() => View();
 
@@ -211,6 +220,7 @@ namespace Waffy.Controllers
             string firstName, string lastName, string email,
             string phone, string password, string confirmPassword)
         {
+            // ── Validation ──
             if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName) ||
                 string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(phone) ||
                 string.IsNullOrWhiteSpace(password))
@@ -223,11 +233,9 @@ namespace Waffy.Controllers
                 return RedirectToAction("Stor_step1");
             }
 
-            if (password != confirmPassword || password.Length < 8)
+            if (password.Length < 8)
             {
-                TempData["StoreError"] = password.Length < 8
-                    ? "Password must be at least 8 characters."
-                    : "Passwords do not match.";
+                TempData["StoreError"] = "Password must be at least 8 characters.";
                 TempData["firstName"] = firstName;
                 TempData["lastName"] = lastName;
                 TempData["email"] = email;
@@ -235,17 +243,27 @@ namespace Waffy.Controllers
                 return RedirectToAction("Stor_step1");
             }
 
-            var existing = await _userRepository.GetByEmailAsync(email);
-            if (existing != null)
+            if (password != confirmPassword)
+            {
+                TempData["StoreError"] = "Passwords do not match.";
+                TempData["firstName"] = firstName;
+                TempData["lastName"] = lastName;
+                TempData["email"] = email;
+                TempData["phone"] = phone;
+                return RedirectToAction("Stor_step1");
+            }
+
+            if (await _userRepository.GetByEmailAsync(email) != null)
             {
                 TempData["StoreError"] = "This email is already registered.";
                 TempData["email"] = email;
                 return RedirectToAction("Stor_step1");
             }
 
+            // ── إنشاء المستخدم ──
             var user = new User
             {
-                FullName = $"{firstName} {lastName}",
+                FullName = $"{firstName.Trim()} {lastName.Trim()}",
                 Email = email,
                 PasswordHash = password,
                 Phone = phone,
@@ -259,9 +277,10 @@ namespace Waffy.Controllers
             return RedirectToAction("Stor_step2");
         }
 
-        // =========================
-        // Store Signup — Step 2
-        // =========================
+        // ══════════════════════════════════════════════════════════
+        // STORE SIGNUP — Step 2 (بيانات المتجر + الوثائق)
+        // ══════════════════════════════════════════════════════════
+
         [HttpGet]
         public IActionResult Stor_step2()
         {
@@ -279,7 +298,10 @@ namespace Waffy.Controllers
             IFormFile? trademarkCertificate, IFormFile? additionalFile)
         {
             var ownerId = HttpContext.Session.GetInt32("NewStoreOwnerId");
+            if (ownerId == null)
+                return RedirectToAction("Stor_step1");
 
+            // ── Validation ──
             if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(email) ||
                 string.IsNullOrWhiteSpace(phone) || string.IsNullOrWhiteSpace(city))
             {
@@ -290,13 +312,14 @@ namespace Waffy.Controllers
             if (commercialRegister == null || commercialRegister.Length == 0 ||
                 businessLicense == null || businessLicense.Length == 0)
             {
-                TempData["StoreStep2Error"] = "Please upload the mandatory documents.";
+                TempData["StoreStep2Error"] = "Please upload the mandatory documents (Commercial Register & Business License).";
                 return RedirectToAction("Stor_step2");
             }
 
+            // ── إنشاء المتجر ──
             var store = new Store
             {
-                OwnerUserId = ownerId!.Value,
+                OwnerUserId = ownerId.Value,
                 Name = name,
                 Description = description,
                 Email = email,
@@ -310,28 +333,25 @@ namespace Waffy.Controllers
 
             int newStoreId = await _storeRepository.AddAsync(store);
 
-            async Task SaveStoreDoc(IFormFile? file, string docType)
+            // ── حفظ الوثائق ──
+            async Task SaveDoc(IFormFile? file, string docType)
             {
                 if (file == null || file.Length == 0) return;
-                var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "store-docs");
-                Directory.CreateDirectory(folder);
-                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
-                using var stream = new FileStream(Path.Combine(folder, fileName), FileMode.Create);
-                await file.CopyToAsync(stream);
+                var url = await SaveFileAsync(file, "store-docs");
                 await _documentRepository.AddAsync(new StoreDocument
                 {
                     IdStore = newStoreId,
                     DocumentType = docType,
-                    FileUrl = $"/uploads/store-docs/{fileName}",
+                    FileUrl = url,
                     Status = "Pending",
                     UploadedAt = DateTime.UtcNow
                 });
             }
 
-            await SaveStoreDoc(commercialRegister, "CommercialRegister");
-            await SaveStoreDoc(businessLicense, "BusinessLicense");
-            await SaveStoreDoc(trademarkCertificate, "TrademarkCertificate");
-            await SaveStoreDoc(additionalFile, "AdditionalFile");
+            await SaveDoc(commercialRegister, "CommercialRegister");
+            await SaveDoc(businessLicense, "BusinessLicense");
+            await SaveDoc(trademarkCertificate, "TrademarkCertificate");
+            await SaveDoc(additionalFile, "AdditionalFile");
 
             HttpContext.Session.Remove("NewStoreOwnerId");
             return RedirectToAction("Stor_success");
@@ -340,24 +360,19 @@ namespace Waffy.Controllers
         [HttpGet]
         public IActionResult Stor_success() => View();
 
-        // =========================
-        // Clinic Signup — Step 1
-        // حفظ بيانات العيادة + الوثائق في Session والانتقال لـ Step 2
-        // =========================
+        // ══════════════════════════════════════════════════════════
+        // CLINIC SIGNUP — Step 1 (بيانات العيادة + الوثائق)
+        // ══════════════════════════════════════════════════════════
+
         [HttpGet]
         public IActionResult Clinic_step1() => View();
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Clinic_step1(
-            string name,
-            string city,
-            string phone,
-            string? description,
-            IFormFile? docMunicipal,
-            IFormFile? docVet,
-            IFormFile? docId,
-            IFormFile? docLogo)
+            string name, string city, string phone, string? description,
+            IFormFile? docMunicipal, IFormFile? docVet,
+            IFormFile? docId, IFormFile? docLogo)
         {
             // ── Validation ──
             if (string.IsNullOrWhiteSpace(name) ||
@@ -384,25 +399,14 @@ namespace Waffy.Controllers
                 return RedirectToAction("Clinic_step1");
             }
 
-            // ── رفع الوثائق وحفظ المسارات مؤقتاً في Session ──
-            async Task<string> SaveClinicDoc(IFormFile file, string subFolder)
-            {
-                var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", subFolder);
-                Directory.CreateDirectory(folder);
-                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
-                using var stream = new FileStream(Path.Combine(folder, fileName), FileMode.Create);
-                await file.CopyToAsync(stream);
-                return $"/uploads/{subFolder}/{fileName}";
-            }
-
-            var municipalUrl = await SaveClinicDoc(docMunicipal, "clinic-docs");
-            var vetUrl = await SaveClinicDoc(docVet, "clinic-docs");
-            var idUrl = await SaveClinicDoc(docId, "clinic-docs");
+            // ── رفع الوثائق وحفظ المسارات في Session ──
+            var municipalUrl = await SaveFileAsync(docMunicipal, "clinic-docs");
+            var vetUrl = await SaveFileAsync(docVet, "clinic-docs");
+            var idUrl = await SaveFileAsync(docId, "clinic-docs");
             var logoUrl = docLogo != null && docLogo.Length > 0
-                                   ? await SaveClinicDoc(docLogo, "clinic-logos")
-                                   : null;
+                                ? await SaveFileAsync(docLogo, "clinic-logos")
+                                : null;
 
-            // ── حفظ في Session ──
             HttpContext.Session.SetString("Clinic_Name", name);
             HttpContext.Session.SetString("Clinic_City", city);
             HttpContext.Session.SetString("Clinic_Phone", phone);
@@ -415,33 +419,27 @@ namespace Waffy.Controllers
             return RedirectToAction("Clinic_step2");
         }
 
-        // =========================
-        // Clinic Signup — Step 2
-        // إنشاء User + Clinic + ClinicDocuments
-        // =========================
+        // ══════════════════════════════════════════════════════════
+        // CLINIC SIGNUP — Step 2 (بيانات المالك)
+        // ══════════════════════════════════════════════════════════
+
         [HttpGet]
         public IActionResult Clinic_step2()
         {
-            // إذا لم تكمل Step 1 أعده
             if (string.IsNullOrEmpty(HttpContext.Session.GetString("Clinic_Name")))
                 return RedirectToAction("Clinic_step1");
 
-            // تمرير بيانات Review للـ View
             ViewBag.ReviewName = HttpContext.Session.GetString("Clinic_Name");
             ViewBag.ReviewCity = HttpContext.Session.GetString("Clinic_City");
             ViewBag.ReviewPhone = HttpContext.Session.GetString("Clinic_Phone");
-
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Clinic_step2(
-            string fullName,
-            string ownerPhone,
-            string email,
-            string password,
-            string confirmPassword)
+            string fullName, string ownerPhone, string email,
+            string password, string confirmPassword)
         {
             // ── استرجاع بيانات Step 1 من Session ──
             var clinicName = HttpContext.Session.GetString("Clinic_Name");
@@ -456,43 +454,41 @@ namespace Waffy.Controllers
             if (string.IsNullOrEmpty(clinicName))
                 return RedirectToAction("Clinic_step1");
 
+            void SetReviewBag()
+            {
+                ViewBag.ReviewName = clinicName;
+                ViewBag.ReviewCity = clinicCity;
+                ViewBag.ReviewPhone = clinicPhone;
+            }
+
             // ── Validation ──
             if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(ownerPhone) ||
                 string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password) ||
                 string.IsNullOrWhiteSpace(confirmPassword))
             {
                 TempData["ClinicStep2Error"] = "Please fill in all required fields.";
-                ViewBag.ReviewName = clinicName;
-                ViewBag.ReviewCity = clinicCity;
-                ViewBag.ReviewPhone = clinicPhone;
-                return View();
-            }
-
-            if (password != confirmPassword)
-            {
-                TempData["ClinicStep2Error"] = "Passwords do not match.";
-                ViewBag.ReviewName = clinicName;
-                ViewBag.ReviewCity = clinicCity;
-                ViewBag.ReviewPhone = clinicPhone;
+                SetReviewBag();
                 return View();
             }
 
             if (password.Length < 8)
             {
                 TempData["ClinicStep2Error"] = "Password must be at least 8 characters.";
-                ViewBag.ReviewName = clinicName;
-                ViewBag.ReviewCity = clinicCity;
-                ViewBag.ReviewPhone = clinicPhone;
+                SetReviewBag();
                 return View();
             }
 
-            var existing = await _userRepository.GetByEmailAsync(email);
-            if (existing != null)
+            if (password != confirmPassword)
+            {
+                TempData["ClinicStep2Error"] = "Passwords do not match.";
+                SetReviewBag();
+                return View();
+            }
+
+            if (await _userRepository.GetByEmailAsync(email) != null)
             {
                 TempData["ClinicStep2Error"] = "This email is already registered.";
-                ViewBag.ReviewName = clinicName;
-                ViewBag.ReviewCity = clinicCity;
-                ViewBag.ReviewPhone = clinicPhone;
+                SetReviewBag();
                 return View();
             }
 
@@ -507,10 +503,9 @@ namespace Waffy.Controllers
             };
 
             await _userRepository.AddClinicAsync(user);
-
             var createdUser = await _userRepository.GetByEmailAsync(email);
 
-            // ── 2. إنشاء Clinic وربطها بالـ User ──
+            // ── 2. إنشاء Clinic ──
             var clinic = new Clinic
             {
                 OwnerUserId = createdUser!.UserId,
@@ -524,15 +519,15 @@ namespace Waffy.Controllers
                 Address = "",
                 HasEmergency = false,
                 VerificationStatus = "Pending",
-                Rating = 0.00m,        // ✅ هذا هو الإصلاح
+                Rating = 0.00m,
                 LogoUrl = string.IsNullOrEmpty(logoUrl) ? null : logoUrl,
                 CreatedAt = DateTime.UtcNow
             };
 
             int newClinicId = await _clinicRepository.AddAsync(clinic);
 
-            // ── 3. حفظ الوثائق في ClinicDocument ──
-            async Task SaveClinicDocument(string? fileUrl, string docType)
+            // ── 3. حفظ الوثائق ──
+            async Task SaveClinicDoc(string? fileUrl, string docType)
             {
                 if (string.IsNullOrEmpty(fileUrl)) return;
                 await _clinicDocumentRepository.AddAsync(new ClinicDocument
@@ -545,28 +540,59 @@ namespace Waffy.Controllers
                 });
             }
 
-            await SaveClinicDocument(docMunicipal, "MunicipalLicense");
-            await SaveClinicDocument(docVet, "VeterinaryLicense");
-            await SaveClinicDocument(docId, "NationalId");
-            await SaveClinicDocument(logoUrl, "Logo");
+            await SaveClinicDoc(docMunicipal, "MunicipalLicense");
+            await SaveClinicDoc(docVet, "VeterinaryLicense");
+            await SaveClinicDoc(docId, "NationalId");
+            await SaveClinicDoc(logoUrl, "Logo");
 
             // ── 4. مسح Session ──
-            HttpContext.Session.Remove("Clinic_Name");
-            HttpContext.Session.Remove("Clinic_City");
-            HttpContext.Session.Remove("Clinic_Phone");
-            HttpContext.Session.Remove("Clinic_Description");
-            HttpContext.Session.Remove("Clinic_DocMunicipal");
-            HttpContext.Session.Remove("Clinic_DocVet");
-            HttpContext.Session.Remove("Clinic_DocId");
-            HttpContext.Session.Remove("Clinic_LogoUrl");
+            foreach (var key in new[]
+            {
+                "Clinic_Name", "Clinic_City", "Clinic_Phone", "Clinic_Description",
+                "Clinic_DocMunicipal", "Clinic_DocVet", "Clinic_DocId", "Clinic_LogoUrl"
+            })
+            {
+                HttpContext.Session.Remove(key);
+            }
 
             return RedirectToAction("Clinic_success");
         }
 
-        // =========================
-        // Clinic Signup — Success
-        // =========================
         [HttpGet]
         public IActionResult Clinic_success() => View();
+
+        // ══════════════════════════════════════════════════════════
+        // FORGOT PASSWORD / OTP / RESET
+        // ══════════════════════════════════════════════════════════
+
+        [HttpGet] public IActionResult ForgotPass() => View();
+        [HttpGet] public IActionResult OTP() => View();
+        [HttpGet] public IActionResult ResetPass() => View();
+
+        // ══════════════════════════════════════════════════════════
+        // PROFILE
+        // ══════════════════════════════════════════════════════════
+
+        public async Task<IActionResult> Profile()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login");
+
+            var user = await _userRepository.GetByIdAsync(userId.Value);
+            if (user == null) return NotFound();
+
+            return View(user);
+        }
+
+        // ══════════════════════════════════════════════════════════
+        // LOGOUT
+        // ══════════════════════════════════════════════════════════
+
+        [HttpGet]
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login");
+        }
     }
 }
