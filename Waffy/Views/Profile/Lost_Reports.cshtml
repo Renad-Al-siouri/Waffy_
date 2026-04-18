@@ -1,4 +1,5 @@
-﻿@{
+﻿@model Waffy.Models.ViewModels.LostReportsViewModel
+@{
     ViewData["Title"] = "Lost Reports";
     Layout = null;
 }
@@ -105,8 +106,8 @@
                         <input type="file" id="avatarFile" accept="image/*" hidden onchange="changeAvatar(this)">
                     </div>
                     <div class="sb-profile-text">
-                        <div class="sb-name" id="sidebarName">Batool Jaber</div>
-                        <div class="sb-email" id="sidebarEmail">Batool@@email.com</div>
+                        <div class="sb-name" id="sidebarName">@Model.User.FullName</div>
+                        <div class="sb-email" id="sidebarEmail">@Model.User.Email</div>
                         <div class="sb-wallet-mini">
                             <span>&#128155; Wallet</span>
                             <strong id="sidebarBalance">100.50 JOD</strong>
@@ -138,28 +139,88 @@
 
         <main class="main-content">
             <div class="page-header">
-                <div><h2>Lost Reports &#128269;</h2><p>Active and resolved lost pet ads</p></div>
-                <a href="#" class="btn btn-primary"><i class="fa-solid fa-plus"></i> New Report</a>
-            </div>
+    <div>
+        <h2>Lost Reports 🔍</h2>
+        <p>Active and resolved lost pet ads</p>
+    </div>
+    <a asp-controller="Account" asp-action="Profile"
+       class="btn btn-primary">
+        + New Report
+    </a>
+</div>
 
-            <div class="s-card">
-                <div class="s-card-head"><span class="s-card-title">My Lost Pet Ads</span></div>
-                <div class="s-card-body">
-                    <div class="report-row" id="activeReport">
-                        <div class="report-icon lost">&#128269;</div>
-                        <div class="report-info"><h4>Buddy &mdash; Golden Husky</h4><p>Lost near Al Jubaiha &middot; Mar 10 &middot; Reward: 25 JOD</p></div>
-                        <div style="text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-                            <span class="badge badge-orange">Active</span>
-                            <button class="btn btn-danger btn-sm" onclick="closeReport()">Close Ad</button>
-                        </div>
-                    </div>
-                    <div class="report-row">
-                        <div class="report-icon lost" style="opacity:.5">&#128269;</div>
-                        <div class="report-info" style="opacity:.6"><h4>Milo &mdash; Persian Cat</h4><p>Found &middot; Feb 2026 &middot; Reward released</p></div>
-                        <span class="badge badge-green">Found &#10003;</span>
-                    </div>
+@* رسائل *@
+@if (TempData["LostSuccess"] != null)
+{
+    <div style="background:#f0fff0;border:1px solid #b2dfb2;color:#2d7a2d;
+                padding:.8rem 1rem;border-radius:10px;margin-bottom:1rem;font-weight:700">
+        ✅ @TempData["LostSuccess"]
+    </div>
+}
+
+<div class="s-card">
+    <div class="s-card-head">
+        <span class="s-card-title">My Lost Pet Ads</span>
+    </div>
+    <div class="s-card-body">
+
+        @if (!Model.Reports.Any())
+        {
+            <p style="color:#6b7c5a;text-align:center;padding:2rem">
+                No lost reports yet.
+            </p>
+        }
+
+        @foreach (var r in Model.Reports)
+        {
+            var isActive = r.Status == "Active";
+
+            <div class="report-row" style="opacity:@(isActive ? "1" : ".65")">
+
+                <div class="report-icon lost"
+                     style="opacity:@(isActive ? "1" : ".5")">🔍</div>
+
+                <div class="report-info">
+                    <h4>@r.PetName — @r.Breed</h4>
+                    <p>
+                        Lost near @r.Area, @r.City ·
+                        @r.CreatedAt.ToString("MMM dd, yyyy") ·
+                        @(r.RewardAmount > 0 ? $"Reward: {r.RewardAmount} JOD" : "No reward")
+                    </p>
+                    <small>Code: @r.ReportCode</small>
+                </div>
+
+                <div style="text-align:right;display:flex;flex-direction:column;
+                            gap:6px;align-items:flex-end">
+
+                    @if (isActive)
+                    {
+                        <span class="badge badge-orange">Active</span>
+
+                        <form method="post"
+                              asp-controller="Profile"
+                              asp-action="CloseLostReport"
+                              onsubmit="return confirm('Mark as found and close?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="reportId" value="@r.IdLostReport" />
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                Close Ad
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <span class="badge badge-green">Found ✓</span>
+                    }
                 </div>
             </div>
+
+            <hr style="border:none;border-top:1px solid #e8f0d8;margin:0.5rem 0">
+        }
+
+    </div>
+</div>
+            
         </main>
     </div>
 

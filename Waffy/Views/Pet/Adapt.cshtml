@@ -1,8 +1,6 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Waffy.Models.ViewModels.AdoptionPageViewModel
 @{
-    Layout = null;  
+    Layout = null;
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -195,7 +193,47 @@
                     </div>
                 </div>
 
-                <div id="petsGrid" class="pet-list"></div>
+                <div id="petsGrid" class="pet-list">
+                    @if (!Model.Posts.Any())
+                    {
+                        <div class="empty-state">
+                            <h3>No pets available</h3>
+                            <p>Check back soon for new listings.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var pet in Model.Posts)
+                        {
+                            <article class="pet-item" data-type="@pet.Type">
+                                <div class="pet-thumb">
+                                    <img src="@(string.IsNullOrEmpty(pet.Image) ? "../Images/adapt/golden.png" : pet.Image)"
+                                         alt="@pet.Name">
+                                </div>
+                                <div class="pet-info">
+                                    <h3>@pet.Name</h3>
+                                    <p><strong>Breed:</strong> @pet.Breed</p>
+                                    <p><strong>Age:</strong> @pet.Age</p>
+                                    <p><strong>Size:</strong> @pet.Size</p>
+                                    <p><strong>Temperament:</strong> @pet.Temperament</p>
+                                </div>
+                                <div class="pet-actions">
+                                    <div class="like-wrap">
+                                        <button class="like-btn" data-like="@pet.Id">❤</button>
+                                        <span class="likes-count">
+                                            <span id="likes-@pet.Id">@pet.Likes</span> likes
+                                        </span>
+                                    </div>
+                                    <button class="olive-btn" data-reserve="@pet.Id">Reserve</button>
+                                    <button class="olive-btn secondary-btn"
+                                            data-details="@pet.Id">
+                                        View Details
+                                    </button>
+                                </div>
+                            </article>
+                        }
+                    }
+                </div>
             </section>
         </section>
     </main>
@@ -227,6 +265,7 @@
     </div>
 
     <div id="toast" class="toast"></div>
+    
 
     <script src="~/js/adaptjs.js"></script>
 </body>

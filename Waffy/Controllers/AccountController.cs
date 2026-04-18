@@ -1,7 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Waffy.Interfaces;
 using Waffy.Models;
-using Waffy.Repository;
+using Waffy.Models.ViewModels;
+using Waffy.Repository; 
 
 namespace Waffy.Controllers
 {
@@ -12,19 +13,21 @@ namespace Waffy.Controllers
         private readonly IStoreDocumentRepository _documentRepository;
         private readonly IClinicRepository _clinicRepository;
         private readonly IClinicDocumentRepository _clinicDocumentRepository;
-
+        private readonly IPetRepository _petRepository;
         public AccountController(
             IUserRepository userRepository,
             IStoreRepository storeRepository,
             IStoreDocumentRepository documentRepository,
             IClinicRepository clinicRepository,
-            IClinicDocumentRepository clinicDocumentRepository)
+            IClinicDocumentRepository clinicDocumentRepository,
+            IPetRepository petRepository)    
         {
             _userRepository = userRepository;
             _storeRepository = storeRepository;
             _documentRepository = documentRepository;
             _clinicRepository = clinicRepository;
             _clinicDocumentRepository = clinicDocumentRepository;
+            _petRepository = petRepository;
         }
 
         // =========================
@@ -194,10 +197,18 @@ namespace Waffy.Controllers
             var user = await _userRepository.GetByIdAsync(userId.Value);
             if (user == null) return NotFound();
 
-            return View(user);
+            var pets = await _petRepository.GetByUserIdAsync(userId.Value);
+
+            var vm = new PetProfileViewModel
+            {
+                User = user,
+                Pets = pets.ToList()
+            };
+
+            return View(vm);
         }
 
-       
+
 
         // =========================
         // Store Signup — Step 1

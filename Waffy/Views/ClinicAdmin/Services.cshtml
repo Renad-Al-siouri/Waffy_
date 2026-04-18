@@ -1,0 +1,198 @@
+﻿@{
+    ViewData["Title"] = "Waffy — Clinic Services";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+    <link rel="stylesheet" href="~/css/clinic-setting.css">
+    <style>
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+
+        .service-chip {
+            padding: 10px;
+            text-align: center;
+            border-radius: 10px;
+            border: 1.5px solid var(--b2);
+            background: #fff;
+            font-family: 'Nunito', sans-serif;
+            font-size: .82rem;
+            font-weight: 800;
+            color: var(--muted);
+            cursor: pointer;
+            transition: .2s ease;
+            user-select: none;
+        }
+
+            .service-chip.on,
+            .service-chip:hover {
+                background: var(--gd);
+                color: #fff;
+                border-color: var(--gd);
+            }
+
+        @@media (max-width: 540px) {
+            .services-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body class="admin-shell">
+
+    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <div class="wa-shell" id="waShell">
+
+        <!-- ── Sidebar ──────────────────────────────────────── -->
+        <aside class="wa-sb" id="sidebar">
+            <div class="sb-logo">
+                <div class="sb-mark">
+                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img">
+                </div>
+                <div class="sb-wordmark">
+                    <div class="sb-wm-name">Waffy</div>
+                    <div class="sb-wm-tag">Clinic Admin</div>
+                </div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" href="@Url.Action("Dashboard", "ClinicAdmin")" data-tip="Dashboard"><span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Daily Management</div>
+                    <a class="sb-row" href="@Url.Action("Appointments", "ClinicAdmin")" data-tip="Appointments"><span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span><span class="sb-bdg bd-g">5</span></a>
+                    <a class="sb-row" href="@Url.Action("Patients", "ClinicAdmin")" data-tip="Patients"><span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span></a>
+                    <a class="sb-row" href="@Url.Action("Medical_Records", "ClinicAdmin")" data-tip="Medical Records"><span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group" id="managerSection">
+                    <div class="sb-grp-hd">Clinic Management</div>
+                    <a class="sb-row" href="@Url.Action("Doctors", "ClinicAdmin")" data-tip="Doctors"><span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span></a>
+                    <a class="sb-row active" href="@Url.Action("Basic_Information", "ClinicAdmin")" data-tip="Clinic Settings"><span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span></a>
+                    <a class="sb-row" href="@Url.Action("Revenue", "ClinicAdmin")" data-tip="Revenue &amp; Payments"><span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" href="@Url.Action("Adoption", "ClinicAdmin")" data-tip="Adoption"><span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Analytics</div>
+                    <a class="sb-row" href="@Url.Action("Reviews", "ClinicAdmin")" data-tip="Reviews"><span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span><span class="sb-bdg bd-g">2</span></a>
+                    <a class="sb-row" href="@Url.Action("Reports", "ClinicAdmin")" data-tip="Reports"><span class="sb-icon">📈</span><span class="sb-lbl">Reports</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row " asp-controller="ClinicAdmin" asp-action="Personal_nformation" data-tip="My Settings">
+                        <span class="sb-icon">⚙️</span>
+                        <span class="sb-lbl">My Settings</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row" onclick="openSidebarProfile()">
+                    <div class="sb-av">DC</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">Daniel Carter</div>
+                        <div class="sb-user-role">Clinic Manager 👑</div>
+                    </div>
+                </div>
+                <button class="sb-logout" onclick="doLogout()" type="button">
+                    <span class="sb-icon">↩</span><span class="sb-logout-lbl">Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- ── Topnav ───────────────────────────────────────── -->
+        <header class="wa-tn">
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
+            <div class="tn-bread"><span>Clinic Management</span><span>/</span><b>Clinic Settings</b></div>
+            <div class="tn-center">
+                <div class="tn-center-main">Clinic Settings</div>
+                <div class="tn-center-sub">Waffy Clinic Dashboard</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-identity">🏥 Al Amanah Veterinary Clinic</div>
+                <button class="tn-btn notif-btn" type="button" aria-label="Notifications">🔔<span class="tn-count">3</span></button>
+                <div class="tn-sep"></div>
+                <div class="tn-profile user-btn">
+                    <div class="tn-av">M</div>
+                    <div>
+                        <div class="tn-pname">Clinic Manager</div>
+                        <div class="tn-prole">Clinic Manager 👑</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ── Main ─────────────────────────────────────────── -->
+        <main class="wa-main">
+            <section class="page-hero">
+                <div>
+                    <h1>Clinic Settings</h1>
+                    <p>Update clinic profile, working hours, location, and operational preferences.</p>
+                </div>
+                <button class="btn btn-primary" onclick="saveServices(this)">💾 Save Changes</button>
+            </section>
+
+            <div class="page-body">
+
+                <!-- Tab navigation -->
+                <nav class="tabs cs-tab-nav">
+                    <a class="tab" href="@Url.Action("Basic_Information", "ClinicAdmin")">📋 Basic Information</a>
+                    <a class="tab" href="@Url.Action("Working_Hours", "ClinicAdmin")">⏰ Working Hours</a>
+                    <a class="tab active" href="@Url.Action("Services", "ClinicAdmin")">🩺 Services</a>
+                    <a class="tab" href="@Url.Action("Documents_C", "ClinicAdmin")">📄 Documents</a>
+                    <a class="tab" href="@Url.Action("Images", "ClinicAdmin")">🖼 Images</a>
+                </nav>
+
+                <!-- ── Services Form ─────────────────────────────── -->
+                <div class="chart-card">
+                    <div class="sec-label">Available services (select all that apply)</div>
+
+                    <div class="services-grid" id="servicesGrid">
+                        <div class="service-chip on" data-service="vaccinations" onclick="this.classList.toggle('on')">💉 Vaccinations</div>
+                        <div class="service-chip on" data-service="checkup" onclick="this.classList.toggle('on')">🔬 General checkup</div>
+                        <div class="service-chip" data-service="surgery" onclick="this.classList.toggle('on')">🔪 Surgery</div>
+                        <div class="service-chip" data-service="dentistry" onclick="this.classList.toggle('on')">🦷 Dentistry</div>
+                        <div class="service-chip on" data-service="labTests" onclick="this.classList.toggle('on')">🧪 Lab Tests</div>
+                        <div class="service-chip" data-service="xray" onclick="this.classList.toggle('on')">📷 X-Ray</div>
+                        <div class="service-chip" data-service="grooming" onclick="this.classList.toggle('on')">✂️ Grooming</div>
+                        <div class="service-chip" data-service="homeVisit" onclick="this.classList.toggle('on')">🏠 Home Visit</div>
+                        <div class="service-chip" data-service="emergency" onclick="this.classList.toggle('on')">🚨 Emergency</div>
+                    </div>
+                </div>
+
+            </div><!-- /.page-body -->
+        </main>
+
+    </div><!-- /.wa-shell -->
+
+    <script src="~/js/AdminClinicDoctor.js"></script>
+    <script src="~/js/clinic-setting.js"></script>
+    <script>
+        function getSelectedServices() {
+            return Array.from(document.querySelectorAll("#servicesGrid .service-chip.on"))
+                .map(chip => chip.dataset.service);
+        }
+
+        function saveServices(btn) {
+            saveWithFeedback(btn, "Services updated.");
+        }
+    </script>
+</body>
+</html>

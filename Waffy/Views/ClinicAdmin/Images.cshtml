@@ -1,0 +1,333 @@
+﻿@{
+    ViewData["Title"] = "Waffy — Clinic Images";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+    <link rel="stylesheet" href="~/css/clinic-setting.css">
+    <style>
+        .img-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+        }
+
+        .img-thumb {
+            height: 80px;
+            background: linear-gradient(135deg, var(--gp), var(--gu));
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 1px solid var(--b2);
+            position: relative;
+            overflow: hidden;
+        }
+
+            .img-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 8px;
+            }
+
+            .img-thumb .img-remove {
+                position: absolute;
+                top: 4px;
+                right: 4px;
+                width: 20px;
+                height: 20px;
+                border-radius: 50%;
+                background: rgba(200,106,92,0.88);
+                color: #fff;
+                font-size: .7rem;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
+                opacity: 0;
+                transition: opacity .2s;
+                border: none;
+            }
+
+            .img-thumb:hover .img-remove {
+                opacity: 1;
+            }
+
+        .img-add-box {
+            height: 80px;
+            border: 2px dashed var(--b2);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            gap: 2px;
+            background: var(--gu);
+            transition: .2s ease;
+        }
+
+            .img-add-box:hover {
+                border-color: var(--gm);
+                background: var(--gp);
+            }
+
+        .img-add-label {
+            font-size: .7rem;
+            font-weight: 800;
+            color: var(--muted);
+        }
+
+        .img-add-icon {
+            font-size: 1.2rem;
+            color: var(--muted);
+        }
+
+        @@media (max-width: 768px) {
+            .img-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @@media (max-width: 420px) {
+            .img-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body class="admin-shell">
+
+    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <div class="wa-shell" id="waShell">
+
+        <!-- ── Sidebar ──────────────────────────────────────── -->
+        <aside class="wa-sb" id="sidebar">
+            <div class="sb-logo">
+                <div class="sb-mark">
+                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img">
+                </div>
+                <div class="sb-wordmark">
+                    <div class="sb-wm-name">Waffy</div>
+                    <div class="sb-wm-tag">Clinic Admin</div>
+                </div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" href="@Url.Action("Dashboard", "ClinicAdmin")" data-tip="Dashboard"><span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Daily Management</div>
+                    <a class="sb-row" href="@Url.Action("Appointments", "ClinicAdmin")" data-tip="Appointments"><span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span><span class="sb-bdg bd-g">5</span></a>
+                    <a class="sb-row" href="@Url.Action("Patients", "ClinicAdmin")" data-tip="Patients"><span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span></a>
+                    <a class="sb-row" href="@Url.Action("Medical_Records", "ClinicAdmin")" data-tip="Medical Records"><span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group" id="managerSection">
+                    <div class="sb-grp-hd">Clinic Management</div>
+                    <a class="sb-row" href="@Url.Action("Doctors", "ClinicAdmin")" data-tip="Doctors"><span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span></a>
+                    <a class="sb-row active" href="@Url.Action("Basic_Information", "ClinicAdmin")" data-tip="Clinic Settings"><span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span></a>
+                    <a class="sb-row" href="@Url.Action("Revenue", "ClinicAdmin")" data-tip="Revenue &amp; Payments"><span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" href="@Url.Action("Adoption", "ClinicAdmin")" data-tip="Adoption"><span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Analytics</div>
+                    <a class="sb-row" href="@Url.Action("Reviews", "ClinicAdmin")" data-tip="Reviews"><span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span><span class="sb-bdg bd-g">2</span></a>
+                    <a class="sb-row" href="@Url.Action("Reports", "ClinicAdmin")" data-tip="Reports"><span class="sb-icon">📈</span><span class="sb-lbl">Reports</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row " asp-controller="ClinicAdmin" asp-action="Personal_nformation" data-tip="My Settings">
+                        <span class="sb-icon">⚙️</span>
+                        <span class="sb-lbl">My Settings</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row" onclick="openSidebarProfile()">
+                    <div class="sb-av">DC</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">Daniel Carter</div>
+                        <div class="sb-user-role">Clinic Manager 👑</div>
+                    </div>
+                </div>
+                <button class="sb-logout" onclick="doLogout()" type="button">
+                    <span class="sb-icon">↩</span><span class="sb-logout-lbl">Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- ── Topnav ───────────────────────────────────────── -->
+        <header class="wa-tn">
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
+            <div class="tn-bread"><span>Clinic Management</span><span>/</span><b>Clinic Settings</b></div>
+            <div class="tn-center">
+                <div class="tn-center-main">Clinic Settings</div>
+                <div class="tn-center-sub">Waffy Clinic Dashboard</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-identity">🏥 Al Amanah Veterinary Clinic</div>
+                <button class="tn-btn notif-btn" type="button" aria-label="Notifications">🔔<span class="tn-count">3</span></button>
+                <div class="tn-sep"></div>
+                <div class="tn-profile user-btn">
+                    <div class="tn-av">M</div>
+                    <div>
+                        <div class="tn-pname">Clinic Manager</div>
+                        <div class="tn-prole">Clinic Manager 👑</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ── Main ─────────────────────────────────────────── -->
+        <main class="wa-main">
+            <section class="page-hero">
+                <div>
+                    <h1>Clinic Settings</h1>
+                    <p>Update clinic profile, working hours, location, and operational preferences.</p>
+                </div>
+            </section>
+
+            <div class="page-body">
+
+                <!-- Tab navigation -->
+                <nav class="tabs cs-tab-nav">
+                    <a class="tab" href="@Url.Action("Basic_Information", "ClinicAdmin")">📋 Basic Information</a>
+                    <a class="tab" href="@Url.Action("Working_Hours", "ClinicAdmin")">⏰ Working Hours</a>
+                    <a class="tab" href="@Url.Action("Services", "ClinicAdmin")">🩺 Services</a>
+                    <a class="tab" href="@Url.Action("Documents_C", "ClinicAdmin")">📄 Documents</a>
+                    <a class="tab active" href="@Url.Action("Images", "ClinicAdmin")">🖼 Images</a>
+                </nav>
+
+                <!-- ── Logo Upload ────────────────────────────────── -->
+                <div class="chart-card mb">
+                    <div class="sec-label">Clinic Logo</div>
+                    <div class="upload-box" onclick="byId('logoInput').click()">
+                        <div class="upload-icon">🎨</div>
+                        <div class="upload-txt">Upload / Change Logo</div>
+                        <div class="upload-sub">Transparent PNG preferred — max 2 MB</div>
+                    </div>
+                    <input type="file" id="logoInput" name="logo" accept="image/*" style="display:none;" onchange="handleLogoUpload(this)">
+                    <div id="logoPreviewWrap" style="display:none;margin-top:10px;">
+                        <img id="logoPreviewImg" class="preview-img" style="width:82px;height:82px;object-fit:contain;border-radius:16px;border:1px solid rgba(151,173,77,.28);" alt="Logo preview">
+                    </div>
+                </div>
+
+                <!-- ── Gallery Images ─────────────────────────────── -->
+                <div class="chart-card">
+                    <div class="sec-label">Clinic images <span style="font-size:.75rem;color:var(--muted);font-family:'Nunito',sans-serif;font-weight:700;">(up to 8 images)</span></div>
+
+                    <div class="img-grid" id="imgGrid">
+                        <div class="img-thumb" data-img-id="1">
+                            🏥
+                            <button class="img-remove" onclick="removeImage(this,'1')" title="Remove">✕</button>
+                        </div>
+                        <div class="img-thumb" data-img-id="2">
+                            🩺
+                            <button class="img-remove" onclick="removeImage(this,'2')" title="Remove">✕</button>
+                        </div>
+                        <div class="img-thumb" data-img-id="3">
+                            💊
+                            <button class="img-remove" onclick="removeImage(this,'3')" title="Remove">✕</button>
+                        </div>
+                        <div class="img-add-box" id="imgAddSlot" onclick="byId('imgInput').click()">
+                            <span class="img-add-icon">+</span>
+                            <span class="img-add-label">Add</span>
+                        </div>
+                    </div>
+
+                    <input type="file" id="imgInput" name="image" accept="image/*" style="display:none;" onchange="handleImageUpload(this)">
+                    <div class="f-hint" style="margin-top:8px;">JPG, PNG — max 2 MB each · Hover an image to remove it</div>
+                </div>
+
+            </div><!-- /.page-body -->
+        </main>
+
+    </div><!-- /.wa-shell -->
+
+    <script src="~/js/AdminClinicDoctor.js"></script>
+    <script src="~/js/clinic-setting.js"></script>
+    <script>
+        const MAX_GALLERY_IMAGES = 8;
+
+        function handleLogoUpload(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) {
+                toast("Logo is too large. Max 2MB.", "error");
+                input.value = ""; return;
+            }
+            const reader = new FileReader();
+            reader.onload = e => {
+                byId("logoPreviewImg").src = e.target.result;
+                byId("logoPreviewWrap").style.display = "block";
+                toast("Logo uploaded.");
+            };
+            reader.readAsDataURL(file);
+            input.value = "";
+        }
+
+        function handleImageUpload(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            const grid = byId("imgGrid");
+            const existingThumbs = grid.querySelectorAll(".img-thumb").length;
+            if (existingThumbs >= MAX_GALLERY_IMAGES) {
+                toast("Maximum 8 images allowed.", "warning");
+                input.value = ""; return;
+            }
+            if (file.size > 2 * 1024 * 1024) {
+                toast("Image is too large. Max 2MB.", "error");
+                input.value = ""; return;
+            }
+            const reader = new FileReader();
+            reader.onload = e => {
+                const newId = "new_" + Date.now();
+                const thumb = document.createElement("div");
+                thumb.className = "img-thumb";
+                thumb.dataset.imgId = newId;
+                thumb.innerHTML = `
+                    <img src="${e.target.result}" alt="Clinic image">
+                    <button class="img-remove" onclick="removeImage(this,'${newId}')" title="Remove">✕</button>
+                `;
+                const addSlot = byId("imgAddSlot");
+                grid.insertBefore(thumb, addSlot);
+                if (grid.querySelectorAll(".img-thumb").length >= MAX_GALLERY_IMAGES) {
+                    addSlot.style.display = "none";
+                }
+                toast("Image added.");
+            };
+            reader.readAsDataURL(file);
+            input.value = "";
+        }
+
+        function removeImage(btn, imgId) {
+            const thumb = btn.closest(".img-thumb");
+            if (!thumb) return;
+            thumb.remove();
+            const grid = byId("imgGrid");
+            if (grid.querySelectorAll(".img-thumb").length < MAX_GALLERY_IMAGES) {
+                byId("imgAddSlot").style.display = "";
+            }
+            toast("Image removed.");
+        }
+    </script>
+</body>
+</html>

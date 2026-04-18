@@ -1,0 +1,218 @@
+﻿@{
+    ViewData["Title"] = "Waffy — Professional Information";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/doctor-settings.shared.css">
+</head>
+<body class="admin-shell">
+
+    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <div class="wa-shell" id="waShell">
+
+        <!-- ═══════ SIDEBAR ═══════ -->
+        <aside class="wa-sb" id="sidebar">
+            <div class="sb-logo">
+                <div class="sb-mark">
+                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img">
+                </div>
+                <div class="sb-wordmark">
+                    <div class="sb-wm-name">Waffy</div>
+                    <div class="sb-wm-tag">Doctor Panel</div>
+                </div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Dashboard" data-tip="Dashboard"><span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Daily Management</div>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Appointments" data-tip="Appointments"><span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span><span class="sb-bdg bd-g">5</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Patients" data-tip="Patients"><span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Medical_Records" data-tip="Medical Records"><span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group" id="managerSection">
+                    <div class="sb-grp-hd">Clinic Management</div>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Doctors" data-tip="Doctors"><span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Basic_Information" data-tip="Clinic Settings"><span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Revenue" data-tip="Revenue &amp; Payments"><span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Adoption" data-tip="Adoption"><span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Analytics</div>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reviews" data-tip="Reviews"><span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span><span class="sb-bdg bd-g">2</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reports" data-tip="Reports"><span class="sb-icon">📈</span><span class="sb-lbl">Reports</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row active" asp-controller="ClinicAdmin" asp-action="Personal_nformation" data-tip="My Settings"><span class="sb-icon">⚙️</span><span class="sb-lbl">My Settings</span></a>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row" onclick="openSidebarProfile()">
+                    <div class="sb-av">DC</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">Dr. Ahmad Al-Zoubi</div>
+                        <div class="sb-user-role">Dr. Ahmad Al-Zoubi 👨‍⚕️</div>
+                    </div>
+                </div>
+                <button class="sb-logout" onclick="doLogout()">
+                    <span class="sb-icon">↩</span><span class="sb-logout-lbl">Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- ═══════ TOPNAV ═══════ -->
+        <header class="wa-tn">
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
+            <div class="tn-bread"><span>My Account</span><span>/</span><b>Professional Information</b></div>
+            <div class="tn-center">
+                <div class="tn-center-main">My Settings</div>
+                <div class="tn-center-sub">Waffy Clinic Dashboard</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-identity">🏥 Al Amanah Veterinary Clinic</div>
+                <button class="tn-btn notif-btn" type="button" aria-label="Notifications">🔔<span class="tn-count">3</span></button>
+                <div class="tn-sep"></div>
+                <div class="tn-profile user-btn">
+                    <div class="tn-av" id="userAvaTop">A</div>
+                    <div>
+                        <div class="tn-pname" id="userNameTop">Dr. Ahmad Al-Zoubi</div>
+                        <div class="tn-prole" id="roleTagTop">Dr. Ahmad Al-Zoubi 👨‍⚕️</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ═══════ MAIN ═══════ -->
+        <main class="wa-main">
+            <section class="page-hero">
+                <div>
+                    <h1>My Settings</h1>
+                    <p>Update doctor profile, preferences, notifications, and account details.</p>
+                </div>
+                <div class="page-hero-actions">
+                    <button class="btn btn-primary" onclick="saveSection(this,'Professional Information')">💾 Save Changes</button>
+                </div>
+            </section>
+
+            <div class="page-body">
+
+                <!-- Doctor Profile Summary -->
+                <div class="chart-card mb doctor-profile-summary">
+                    <div style="position:relative">
+                        <div style="width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,var(--gp),var(--gu));display:flex;align-items:center;justify-content:center;font-size:2rem;border:2px solid var(--b2)">👨‍⚕️</div>
+                        <div style="position:absolute;bottom:-6px;right:-6px;width:24px;height:24px;border-radius:50%;background:var(--gd);display:flex;align-items:center;justify-content:center;font-size:.7rem;cursor:pointer;border:2px solid white">✏️</div>
+                    </div>
+                    <div style="flex:1">
+                        <div style="font-size:1.1rem;font-weight:700">Dr. Ahmad Al-Zoubi</div>
+                        <div style="font-size:.82rem;color:var(--muted);margin-top:3px">Veterinary Surgery • Al Amanah Veterinary Clinic</div>
+                        <div style="display:flex;gap:8px;margin-top:8px">
+                            <span class="status s-confirmed">✅ Verified</span>
+                            <span class="status s-new">⭐ 4.9 rating</span>
+                            <span class="status s-done">142 appointments this month</span>
+                        </div>
+                    </div>
+                    <div class="doctor-profile-rating">
+                        <div style="font-size:1.6rem;font-weight:800;color:var(--gd)">4.9</div>
+                        <div style="font-size:.72rem;color:var(--muted)">Your overall rating</div>
+                        <div style="color:#f59f00;font-size:.85rem;margin-top:2px">★★★★★</div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab Navigation -->
+                <nav class="settings-tab-nav" aria-label="Settings sections">
+                    <a asp-controller="ClinicAdmin" asp-action="Personal_nformation">👤 Personal Information</a>
+                    <a asp-controller="ClinicAdmin" asp-action="Professional_nformation" class="active">🎓 Professional Information</a>
+                    <a asp-controller="ClinicAdmin" asp-action="Work_chedule">🗓 Work Schedule</a>
+                    <a asp-controller="ClinicAdmin" asp-action="Documents_D">📄 Documents</a>
+                    <a asp-controller="ClinicAdmin" asp-action="Password">🔒 Password</a>
+                    <a asp-controller="ClinicAdmin" asp-action="Notifications">🔔 Notifications</a>
+                </nav>
+
+                <!--
+                  BACKEND INTEGRATION NOTE (ASP.NET MVC):
+                  Action: POST /ClinicAdmin/SaveProfessionalInfo
+                  Model:  DoctorProfessionalInfoViewModel
+                  Fields: PrimarySpecialty, YearsOfExperience, AcademicQualification, Certifications, PetTypesJson (CSV of selected types)
+                -->
+                <div class="chart-card">
+                    <div class="sec-label">🎓 Specialty &amp; Experience</div>
+                    <form id="form-professional-info" method="post"
+                          asp-controller="ClinicAdmin" asp-action="Professional_nformation">
+                        @Html.AntiForgeryToken()
+                        <div class="f-grid">
+
+                            <div class="f-group">
+                                <label class="f-label" for="primarySpecialty"><span class="req">*</span>Primary Specialty</label>
+                                <select id="primarySpecialty" name="PrimarySpecialty" class="f-inp">
+                                    <option selected>Veterinary Surgery</option>
+                                    <option>General Veterinary Medicine</option>
+                                    <option>Dermatology</option>
+                                    <option>Veterinary Dentistry</option>
+                                    <option>Bird &amp; Reptile Medicine</option>
+                                </select>
+                            </div>
+
+                            <div class="f-group">
+                                <label class="f-label" for="yearsOfExperience"><span class="req">*</span>Years of experience</label>
+                                <select id="yearsOfExperience" name="YearsOfExperience" class="f-inp">
+                                    <option>Less than 1 year</option>
+                                    <option>1–3 years</option>
+                                    <option>3–5 years</option>
+                                    <option selected>5–10 years</option>
+                                    <option>More than 10 years</option>
+                                </select>
+                            </div>
+
+                            <div class="f-group f-full">
+                                <label class="f-label" for="academicQualification">Academic Qualification</label>
+                                <input id="academicQualification" name="AcademicQualification" class="f-inp" value="Bachelor of Veterinary Medicine — University of Jordan, 2014">
+                            </div>
+
+                            <div class="f-group f-full">
+                                <label class="f-label" for="certifications">Certifications &amp; Training Courses</label>
+                                <textarea id="certifications" name="Certifications" class="f-inp">• Advanced Surgery Certificate — Jordan, 2017
+• Bird &amp; Reptile Medicine Course — Dubai, 2019</textarea>
+                            </div>
+
+                        </div>
+
+                        <hr class="sec-div">
+                        <div class="sec-label">🐾 Pet Types Treated</div>
+                        <!--
+                          Hidden input collects selected pet types as a JSON array or CSV.
+                          Each chip toggles its own hidden checkbox for easy server-side reading.
+                        -->
+                        <div style="display:flex;gap:8px;flex-wrap:wrap">
+                            <label><input type="checkbox" name="PetTypes" value="Dogs" checked style="display:none"><div class="day-chip on" onclick="this.closest('label').querySelector('input').checked=!this.closest('label').querySelector('input').checked;this.classList.toggle('on')">🐕 Dogs</div></label>
+                            <label><input type="checkbox" name="PetTypes" value="Cats" checked style="display:none"><div class="day-chip on" onclick="this.closest('label').querySelector('input').checked=!this.closest('label').querySelector('input').checked;this.classList.toggle('on')">🐈 Cats</div></label>
+                            <label><input type="checkbox" name="PetTypes" value="Birds" style="display:none"><div class="day-chip" onclick="this.closest('label').querySelector('input').checked=!this.closest('label').querySelector('input').checked;this.classList.toggle('on')">🐦 Birds</div></label>
+                            <label><input type="checkbox" name="PetTypes" value="Rabbits" style="display:none"><div class="day-chip" onclick="this.closest('label').querySelector('input').checked=!this.closest('label').querySelector('input').checked;this.classList.toggle('on')">🐇 Rabbits</div></label>
+                            <label><input type="checkbox" name="PetTypes" value="Reptiles" style="display:none"><div class="day-chip" onclick="this.closest('label').querySelector('input').checked=!this.closest('label').querySelector('input').checked;this.classList.toggle('on')">🦎 Reptiles</div></label>
+                        </div>
+                    </form>
+                </div>
+
+            </div><!-- /.page-body -->
+        </main>
+    </div><!-- /.wa-shell -->
+
+    <script src="~/js/doctor-settings.shared.js"></script>
+</body>
+</html>

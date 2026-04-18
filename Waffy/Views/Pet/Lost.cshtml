@@ -1,4 +1,5 @@
-﻿@*
+﻿@model Waffy.Models.ViewModels.LostPageViewModel
+@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @{
@@ -193,83 +194,88 @@
             </div>
         </section>
 
-        <section class="pets-grid fade-up" id="petsGrid">
-            <article class="pet-card" data-pet-id="1">
-                <div class="pet-top">
-                    <img src="../Images/lost/Beagle.png" alt="Bella">
-                    <div class="pet-info">
-                        <div class="pet-head">
-                            <h3>Bella</h3>
-                            <button class="status-btn" data-open-flow="1">I found it</button>
-                        </div>
-                        <p><strong>Beagle, Female</strong></p>
-                        <p>Mixed color</p>
-                        <p>2 years old</p>
-                        <p>Wearing a green collar</p>
-                    </div>
-                </div>
-                <div class="pet-location">📍 Al-Rawdah neighborhood, Amman</div>
-                <div class="pet-phone">📞 0791234567</div>
-            </article>
 
-            <article class="pet-card" data-pet-id="2">
-                <div class="pet-top">
-                    <img src="../Images/lost/Orange.png" alt="Simba">
-                    <div class="pet-info">
-                        <div class="pet-head">
-                            <h3>Simba</h3>
-                            <button class="status-btn" data-open-flow="2">I found it</button>
-                        </div>
-                        <p><strong>Orange Tabby, Male</strong></p>
-                        <p>Orange striped</p>
-                        <p>Blue id tag</p>
-                        <p>Uses a pink collar</p>
-                    </div>
-                </div>
-                <div class="pet-location">📍 Al-Shmeisani neighborhood, Amman</div>
-                <div class="pet-phone">📞 0799876543</div>
-            </article>
 
-            <article class="pet-card" data-pet-id="3">
-                <div class="pet-top">
-                    <img src="../Images/lost/Siamese.png" alt="Luna">
-                    <div class="pet-info">
-                        <div class="pet-head">
-                            <h3>Luna</h3>
-                            <button class="status-btn" data-open-flow="3">I found it</button>
-                        </div>
-                        <p><strong>Siamese, Female</strong></p>
-                        <p>White and brown</p>
-                        <p>Approx. 3 years old</p>
-                        <p>Wearing a pink collar</p>
-                    </div>
-                </div>
-                <div class="pet-location">📍 Al-Gardens neighborhood, Amman</div>
-                <div class="pet-phone">📞 0798765432</div>
-            </article>
 
-            <article class="pet-card" data-pet-id="4">
-                <div class="pet-top">
-                    <img src="../Images/lost/Parrot.png" alt="Coco">
-                    <div class="pet-info">
-                        <div class="pet-head">
-                            <h3>Coco</h3>
-                            <button class="status-btn" data-open-flow="4">I found it</button>
-                        </div>
-                        <p><strong>Parrot, Green</strong></p>
-                        <p>Green with a red spot</p>
-                        <p>Beak mark</p>
-                        <p>Very social bird</p>
-                    </div>
-                </div>
-                <div class="pet-location">📍 Tlaa Al-Ali neighborhood, Amman</div>
-                <div class="pet-phone">📞 0795554443</div>
-            </article>
-        </section>
 
-        <div class="more-wrap fade-up">
-            <button id="viewMoreBtn" class="more-btn" type="button">Watch more</button>
+
+<section class="pets-grid fade-up" id="petsGrid">
+
+    @if (!Model.Reports.Any())
+    {
+        <div style="grid-column:1/-1;text-align:center;padding:3rem;color:#6b7c5a">
+            <p>No lost pets reported currently.</p>
         </div>
+    }
+
+    @foreach (var r in Model.Reports)
+    {
+        <article class="pet-card" data-pet-id="@r.Id">
+            <div class="pet-top">
+                <img src="@(string.IsNullOrEmpty(r.Image)
+                            ? "/Images/lost/Beagle.png"
+                            : r.Image)"
+                     alt="@r.Name">
+                <div class="pet-info">
+                    <div class="pet-head">
+                        <h3>@r.Name</h3>
+                        <button class="status-btn"
+                                data-open-flow="@r.Id">
+                            I found it
+                        </button>
+                    </div>
+                    @if (!string.IsNullOrEmpty(r.Breed))   { <p>@r.Breed</p> }
+                    @if (!string.IsNullOrEmpty(r.Color))   { <p>@r.Color</p> }
+                    @if (!string.IsNullOrEmpty(r.DateLost)){ <p>Lost: @r.DateLost</p> }
+                    @if (r.Reward > 0) { <p>🎁 Reward: @r.Reward JOD</p> }
+                </div>
+            </div>
+            <div class="pet-location">
+                📍 @r.Area@(!string.IsNullOrEmpty(r.Area) && !string.IsNullOrEmpty(r.City) ? ", " : "")@r.City
+            </div>
+            <div class="pet-phone">Code: @r.ReportCode</div>
+        </article>
+    }
+
+</section>
+
+@* Pagination *@
+<div class="more-wrap fade-up">
+    @if (Model.HasPreviousPage)
+    {
+        <a asp-controller="Pet"
+           asp-action="Lost"
+           asp-route-page="@(Model.CurrentPage - 1)"
+           class="more-btn">← Previous</a>
+    }
+
+    <span style="font-weight:700;color:#5a8f38">
+        Page @Model.CurrentPage of @Model.TotalPages
+    </span>
+
+    @if (Model.HasNextPage)
+    {
+        <a asp-controller="Pet"
+           asp-action="Lost"
+           asp-route-page="@(Model.CurrentPage + 1)"
+           class="more-btn">Next →</a>
+    }
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     </main>
 
     <footer class="footer">
@@ -572,7 +578,7 @@
     </div>
 
     <div id="toast" class="toast"></div>
-
+    
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="~/js/lost.js"></script>
 </body>

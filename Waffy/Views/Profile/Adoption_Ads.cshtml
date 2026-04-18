@@ -1,4 +1,5 @@
-﻿@{
+﻿@model Waffy.Models.ViewModels.AdoptionAdsViewModel
+@{
     ViewData["Title"] = "Adoption Ads";
     Layout = null;
 }
@@ -105,8 +106,9 @@
                         <input type="file" id="avatarFile" accept="image/*" hidden onchange="changeAvatar(this)">
                     </div>
                     <div class="sb-profile-text">
-                        <div class="sb-name" id="sidebarName">Batool Jaber</div>
-                        <div class="sb-email" id="sidebarEmail">Batool@@email.com</div>
+
+                        <div class="sb-name" id="sidebarName">@Model.User.FullName</div>
+                        <div class="sb-email" id="sidebarEmail">@Model.User.Email</div>
                         <div class="sb-wallet-mini">
                             <span>&#128155; Wallet</span>
                             <strong id="sidebarBalance">100.50 JOD</strong>
@@ -138,63 +140,166 @@
 
         <main class="main-content">
             <div class="page-header">
-                <div><h2>Adoption Ads &#128062;</h2><p>Pets you've posted for adoption</p></div>
-                <button class="btn btn-primary" onclick="openAdoptionModal()"><i class="fa-solid fa-pen-to-square"></i> Edit Listing</button>
-            </div>
-
-            <div class="s-card">
-                <div class="s-card-head"><span class="s-card-title">My Adoption Listings</span><span class="badge badge-green">1 Active</span></div>
-                <div class="s-card-body">
-                    <div class="report-row">
-                        <div class="report-icon adopt">&#128062;</div>
-                        <div class="report-info">
-                            <h4 id="adoptionPetName">Luna &mdash; Tabby Cat &middot; 2 Years</h4>
-                            <p id="adoptionPetInfo">Posted Mar 5 &middot; Amman &middot; 7 interested</p>
-                            <div class="adoption-meta">
-                                <span class="meta-chip" id="chipGender">Female</span>
-                                <span class="meta-chip" id="chipVacc">Vaccinated</span>
-                                <span class="meta-chip" id="chipNeuter">Not Neutered</span>
-                                <span class="meta-chip" id="chipStatus">Available</span>
-                            </div>
-                        </div>
-                        <div style="text-align:right;display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-                            <span class="badge badge-green">Available</span>
-                            <div class="adoption-actions">
-                                <button class="btn btn-secondary btn-sm" onclick="openAdoptionModal()"><i class="fa-solid fa-pen"></i> Edit</button>
-                                <button class="btn btn-danger btn-sm" onclick="showToast('Ad closed')"><i class="fa-solid fa-xmark"></i> Close Ad</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="adoption-stats">
-                        <div class="adoption-stat"><strong>7</strong><span>Interested Users</span></div>
-                        <div class="adoption-stat"><strong>39</strong><span>Total Views</span></div>
-                        <div class="adoption-stat"><strong>26</strong><span>Days Online</span></div>
-                    </div>
+                <div>
+                    <h2>Adoption Ads 🐾</h2>
+                    <p>Pets you've posted for adoption</p>
                 </div>
             </div>
 
-            <div class="modal-overlay" id="adoptionModal">
-                <div class="modal-box" style="width:min(760px,100%)">
-                    <button class="modal-close" onclick="closeAdoptionModal()">&#215;</button>
-                    <h3>Edit Adoption Listing</h3>
-                    <div class="adoption-edit-grid">
-                        <div class="field"><label>Pet Name</label><input id="editName" value="Luna"></div>
-                        <div class="field"><label>Pet Type</label><select id="editType"><option>Cat</option><option>Dog</option><option>Bird</option><option>Other</option></select></div>
-                        <div class="field"><label>Breed</label><input id="editBreed" value="Tabby"></div>
-                        <div class="field"><label>Age</label><input id="editAge" value="2 Years"></div>
-                        <div class="field"><label>Gender</label><select id="editGender"><option>Female</option><option>Male</option></select></div>
-                        <div class="field"><label>City</label><select id="editCity"><option>Amman</option><option>Zarqa</option><option>Irbid</option><option>Aqaba</option></select></div>
-                        <div class="field"><label>Vaccination</label><select id="editVacc"><option>Vaccinated</option><option>Not Vaccinated</option><option>Partially Vaccinated</option></select></div>
-                        <div class="field"><label>Neutered / Spayed</label><select id="editNeuter"><option>Not Neutered</option><option>Neutered</option></select></div>
-                        <div class="field full"><label>Medical Notes</label><textarea id="editMedical">Healthy, active, and friendly with children.</textarea></div>
-                        <div class="field full"><label>Behavior / Personality</label><textarea id="editBehavior">Calm, playful, litter trained.</textarea></div>
-                        <div class="field full"><label>Reason for Adoption</label><textarea id="editReason">Owner is moving and wants a safe permanent home for Luna.</textarea></div>
-                        <div class="field full"><label>Ad Status</label><select id="editStatus"><option>Available</option><option>Pending Review</option><option>Adopted</option><option>Closed</option></select></div>
-                    </div>
-                    <div style="display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px">
-                        <button class="btn btn-secondary" onclick="closeAdoptionModal()">Cancel</button>
-                        <button class="btn btn-primary" onclick="saveAdoption()"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
-                    </div>
+            @* رسائل النجاح *@
+            @if (TempData["AdoptionSuccess"] != null)
+            {
+                <div style="background:#f0fff0;border:1px solid #b2dfb2;color:#2d7a2d;
+                    padding:.8rem 1rem;border-radius:10px;margin-bottom:1rem;font-weight:700">
+                    ✅ @TempData["AdoptionSuccess"]
+                </div>
+            }
+
+            <div class="s-card">
+                <div class="s-card-head">
+                    <span class="s-card-title">My Adoption Listings</span>
+                    <span class="badge badge-green">@Model.Posts.Count Active</span>
+                </div>
+                <div class="s-card-body">
+
+                    @if (!Model.Posts.Any())
+                    {
+                        <p style="color:#6b7c5a;text-align:center;padding:2rem">
+                            No adoption ads yet.
+                            <a asp-controller="Account" asp-action="Profile">Go add a pet first</a>
+                        </p>
+                    }
+
+                    @foreach (var post in Model.Posts)
+                    {
+                        <div class="report-row" style="flex-wrap:wrap;gap:1rem">
+
+                            <div class="report-icon adopt">🐾</div>
+
+                            <div class="report-info" style="flex:1;min-width:200px">
+                                <h4>@post.PetName — @post.AnimalType · @post.City</h4>
+                                <p>
+                                    Posted @post.CreatedAt.ToString("MMM dd, yyyy") ·
+                                    Status: <strong>@post.AdoptionStatus</strong>
+                                </p>
+                                <div class="adoption-meta">
+                                    <span class="meta-chip">@post.Gender</span>
+                                    <span class="meta-chip">@(post.IsVaccinated ? "Vaccinated" : "Not Vaccinated")</span>
+                                    <span class="meta-chip">@(post.IsNeutered ? "Neutered" : "Not Neutered")</span>
+                                    <span class="meta-chip">@post.AdoptionStatus</span>
+                                </div>
+                            </div>
+
+                            <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+                                <span class="badge @(post.AdoptionStatus == "Available" ? "badge-green" : "badge-orange")">
+                                    @post.AdoptionStatus
+                                </span>
+
+                                <div class="adoption-actions" style="display:flex;gap:.5rem">
+
+                                    @* ── Edit Button — يفتح Form ── *@
+                                    <a href="#editForm_@post.IdPost"
+                                       class="btn btn-secondary btn-sm">
+                                        ✏ Edit
+                                    </a>
+
+                                    @* ── Close Ad Form ── *@
+                                    @if (post.AdoptionStatus != "Closed")
+                                    {
+                                        <form method="post"
+                                              asp-controller="Profile"
+                                              asp-action="CloseAdoptionPost"
+                                              onsubmit="return confirm('Close this ad?')">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="postId" value="@post.IdPost" />
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                ✕ Close Ad
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        @* ── Edit Form — يظهر عند الضغط على Edit ── *@
+                        <div id="editForm_@post.IdPost"
+                             style="background:#f8fdf2;border:1px solid #d4e8bc;
+                            border-radius:12px;padding:1.2rem;
+                            margin:0.5rem 0 1.5rem;
+                            display:none"
+                             class="edit-form-section">
+
+                            <form method="post"
+                                  asp-controller="Profile"
+                                  asp-action="EditAdoptionPost">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="postId" value="@post.IdPost" />
+
+                                <div class="adoption-edit-grid"
+                                     style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+
+                                    <div class="field">
+                                        <label>City</label>
+                                        <select name="city">
+                                            @foreach (var city in new[] { "Amman", "Zarqa", "Irbid", "Aqaba", "Madaba", "Karak" })
+                                            {
+                                                <option value="@city"
+                                                        selected="@(post.City == city)">
+                                                    @city
+                                                </option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="field">
+                                        <label>Area</label>
+                                        <input type="text" name="area" value="@post.Area" />
+                                    </div>
+
+                                    <div class="field">
+                                        <label>Contact Phone</label>
+                                        <input type="tel" name="contactPhone" value="@post.ContactPhone" />
+                                    </div>
+
+                                    <div class="field">
+                                        <label>Ad Status</label>
+                                        <select name="adoptionStatus">
+                                            @foreach (var s in new[] { "Available", "Reserved", "Adopted", "Closed" })
+                                            {
+                                                <option value="@s"
+                                                        selected="@(post.AdoptionStatus == s)">
+                                                    @s
+                                                </option>
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="field" style="grid-column:1/-1">
+                                        <label>Description</label>
+                                        <textarea name="description" rows="3">@post.Description</textarea>
+                                    </div>
+
+                                    <div class="field" style="grid-column:1/-1">
+                                        <label>Reason for Adoption</label>
+                                        <textarea name="reasonForAdoption" rows="2">@post.ReasonForAdoption</textarea>
+                                    </div>
+                                </div>
+
+                                <div style="display:flex;gap:.5rem;margin-top:1rem;justify-content:flex-end">
+                                    <a href="#"
+                                       onclick="document.getElementById('editForm_@post.IdPost').style.display='none';return false;"
+                                       class="btn btn-secondary btn-sm">
+                                        Cancel
+                                    </a>
+                                    <button type="submit" class="btn btn-primary btn-sm">
+                                        💾 Save Changes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        <hr style="border:none;border-top:1px solid #e8f0d8;margin:0.5rem 0">
+                    }
+
                 </div>
             </div>
         </main>
@@ -242,39 +347,14 @@
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-          const moreBtn = document.getElementById('mbMoreBtn'); const moreDrawer = document.getElementById('mbMoreDrawer'); const moreOverlay = document.getElementById('mbMoreOverlay'); const moreClose = document.getElementById('mbMoreClose');
-          if (!moreBtn || !moreDrawer || !moreOverlay) return;
-          function openMoreDrawer() { moreDrawer.classList.add('open'); moreOverlay.classList.add('open'); moreBtn.setAttribute('aria-expanded','true'); moreDrawer.setAttribute('aria-hidden','false'); document.body.classList.add('mb-menu-open'); }
-          function closeMoreDrawer() { moreDrawer.classList.remove('open'); moreOverlay.classList.remove('open'); moreBtn.setAttribute('aria-expanded','false'); moreDrawer.setAttribute('aria-hidden','true'); document.body.classList.remove('mb-menu-open'); }
-          function toggleMoreDrawer() { moreDrawer.classList.contains('open') ? closeMoreDrawer() : openMoreDrawer(); }
-          moreBtn.addEventListener('click', toggleMoreDrawer);
-          if (moreClose) moreClose.addEventListener('click', closeMoreDrawer);
-          moreOverlay.addEventListener('click', closeMoreDrawer);
-          document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMoreDrawer(); });
-          window.addEventListener('resize', () => { if (window.innerWidth >= 768) closeMoreDrawer(); });
+        document.querySelectorAll('a[href^="#editForm_"]').forEach(btn => {
+            btn.addEventListener('click', e => {
+                e.preventDefault();
+                const id  = btn.getAttribute('href').substring(1);
+                const frm = document.getElementById(id);
+                if (frm) frm.style.display = frm.style.display === 'none' ? 'block' : 'none';
+            });
         });
-        function showToast(msg, duration = 3000) { const t = document.getElementById("toast"); if (!t) return; t.textContent = msg; t.classList.add("show"); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove("show"), duration); }
-        document.addEventListener("DOMContentLoaded", () => {
-          const menuBtn = document.getElementById("menuBtn"); const navLinks = document.getElementById("navLinks");
-          if (menuBtn && navLinks) { menuBtn.addEventListener("click", e => { e.stopPropagation(); navLinks.classList.toggle("open"); }); document.addEventListener("click", e => { if (!navLinks.contains(e.target) && e.target !== menuBtn) navLinks.classList.remove("open"); }); }
-          const sd = document.getElementById("servicesDropdown"); const st = document.getElementById("servicesToggle");
-          if (sd && st) { st.addEventListener("click", e => { e.stopPropagation(); sd.classList.toggle("open"); }); document.addEventListener("click", () => sd.classList.remove("open")); }
-          const mt = document.getElementById("mobileServicesToggle"); const mb = document.getElementById("mobileServicesBlock");
-          if (mt && mb) mt.addEventListener("click", () => mb.classList.toggle("open"));
-        });
-        function changeAvatar(input) { if (input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { const sb = document.getElementById("sidebarAvatar"); if (sb) sb.innerHTML = `<img src="${e.target.result}" alt="Profile">`; const big = document.getElementById("bigAvatar"); if (big) big.innerHTML = `<img src="${e.target.result}" alt="Profile">`; }; r.readAsDataURL(input.files[0]); } }
-        function openAdoptionModal() { document.getElementById("adoptionModal").classList.add("show"); document.body.style.overflow = "hidden"; }
-        function closeAdoptionModal() { document.getElementById("adoptionModal").classList.remove("show"); document.body.style.overflow = ""; }
-        function saveAdoption() {
-          document.getElementById("adoptionPetName").textContent = document.getElementById("editName").value + " — " + document.getElementById("editBreed").value + " · " + document.getElementById("editAge").value;
-          document.getElementById("chipGender").textContent = document.getElementById("editGender").value;
-          document.getElementById("chipVacc").textContent = document.getElementById("editVacc").value;
-          document.getElementById("chipNeuter").textContent = document.getElementById("editNeuter").value;
-          document.getElementById("chipStatus").textContent = document.getElementById("editStatus").value;
-          closeAdoptionModal(); showToast("✓ Adoption listing updated!");
-        }
-        document.getElementById("adoptionModal").addEventListener("click", function (e) { if (e.target === this) closeAdoptionModal(); });
     </script>
 </body>
 </html>

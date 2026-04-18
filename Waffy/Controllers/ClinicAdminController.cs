@@ -32,10 +32,27 @@ namespace Waffy.Controllers
         {
             return View();
         }
-        public IActionResult Clinic_Settings()
+        public IActionResult Basic_Information()
         {
             return View();
         }
+        public IActionResult Working_Hours()
+        {
+            return View();
+        }
+        public IActionResult Services()
+        {
+            return View();
+        }
+        public IActionResult Documents_C()
+        {
+            return View();
+        }
+        public IActionResult Images()
+        {
+            return View();
+        }
+
         public IActionResult Revenue()
         {
             return View();
@@ -53,11 +70,31 @@ namespace Waffy.Controllers
         {
             return View();
         }
-        public IActionResult My_Settings()
+        public IActionResult Personal_nformation()
         {
             return View();
         }
-       
-        
+        public IActionResult Professional_nformation()
+        {
+            return View();
+        }
+        public IActionResult Work_chedule()
+        {
+            return View();
+        }
+        public IActionResult Documents_D()
+        {
+            return View();
+        }
+        public IActionResult Password()
+        {
+            return View();
+        }
+        public IActionResult Notifications()
+        {
+            return View();
+        }
+
+
     }
 }
