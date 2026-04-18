@@ -1,0 +1,308 @@
+﻿@{
+    ViewData["Title"] = "Waffy — Clinic & Doctor Adoption";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+</head>
+<body class="admin-shell">
+    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="wa-shell" id="waShell">
+
+        <aside class="wa-sb" id="sidebar">
+            <div class="sb-logo">
+                <div class="sb-mark">
+                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"
+                         onerror="this.remove();this.parentElement.innerHTML='🐾';this.parentElement.style.fontSize='2rem';">
+                </div>
+                <div class="sb-wordmark">
+                    <div class="sb-wm-name">Waffy</div>
+                    <div class="sb-wm-tag">Clinic Admin</div>
+                </div>
+            </div>
+
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" href="@Url.Action("Dashboard", "ClinicAdmin")" data-tip="Dashboard">
+                        <span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Daily Management</div>
+                    <a class="sb-row" href="@Url.Action("Appointments", "ClinicAdmin")" data-tip="Appointments">
+                        <span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span><span class="sb-bdg bd-g">5</span>
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Patients", "ClinicAdmin")" data-tip="Patients">
+                        <span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span>
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Medical_Records", "ClinicAdmin")" data-tip="Medical Records">
+                        <span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group" id="managerSection">
+                    <div class="sb-grp-hd">Clinic Management</div>
+                    <a class="sb-row" href="@Url.Action("Doctors", "ClinicAdmin")" data-tip="Doctors">
+                        <span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span>
+                    </a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Basic_Information" data-tip="Clinic Settings">
+                        <span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span>
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Revenue", "ClinicAdmin")" data-tip="Revenue &amp; Payments">
+                        <span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row active" href="@Url.Action("Adoption", "ClinicAdmin")" data-tip="Adoption">
+                        <span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Analytics</div>
+                    <a class="sb-row" href="@Url.Action("Reviews", "ClinicAdmin")" data-tip="Reviews">
+                        <span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span><span class="sb-bdg bd-g">2</span>
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Reports", "ClinicAdmin")" data-tip="Reports">
+                        <span class="sb-icon">📈</span><span class="sb-lbl">Reports</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+
+                    <a class="sb-row " asp-controller="ClinicAdmin" asp-action="Personal_nformation" data-tip="My Settings">
+                        <span class="sb-icon">⚙️</span>
+                        <span class="sb-lbl">My Settings</span>
+                    </a>
+                </div>
+            </nav>
+
+            <div class="sb-foot">
+                <div class="sb-user-row" onclick="openSidebarProfile()">
+                    <div class="sb-av">DC</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">Daniel Carter</div>
+                        <div class="sb-user-role">Clinic Manager 👑</div>
+                    </div>
+                </div>
+                <button class="sb-logout" onclick="doLogout()" type="button">
+                    <span class="sb-icon">↩</span>
+                    <span class="sb-logout-lbl">Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <header class="wa-tn">
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
+            <div class="tn-bread" id="tnBread"><span>Adoption</span><span>/</span><b id="tnCur">Adoption</b></div>
+            <div class="tn-center">
+                <div class="tn-center-main" id="tnTitle">Adoption</div>
+                <div class="tn-center-sub" id="tnSub">Waffy Clinic Dashboard</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-identity" id="tnIdentityPill">🏥 Al Amanah Veterinary Clinic</div>
+                <button class="tn-btn notif-btn" type="button" aria-label="Notifications">🔔<span class="tn-count">3</span></button>
+                <div class="tn-sep"></div>
+                <div class="tn-profile user-btn">
+                    <div class="tn-av" id="userAvaTop">M</div>
+                    <div>
+                        <div class="tn-pname" id="userNameTop">Clinic Manager</div>
+                        <div class="tn-prole" id="roleTagTop">Clinic Manager 👑</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="wa-main">
+            <section class="page-hero page-hero-split">
+                <div>
+                    <h1 id="pageHeroTitle">Adoption</h1>
+                    <p>Manage adoption listings, approvals, and animal availability with the clinic theme.</p>
+                </div>
+                <div class="page-hero-actions" id="adoptionHeroActions">
+                    <button class="btn btn-outline" id="adoptionToggleBtn" onclick="toggleAdoptionView()">⊞ Cards / Table</button>
+                    <button class="btn btn-primary" id="adoptionAddBtn" onclick="openAdoptionAddPage()">+ Add Animal</button>
+                    <button class="btn btn-outline" id="adoptionBackBtn" onclick="openAdoptionManagePage()" style="display:none;">Back to listings</button>
+                </div>
+            </section>
+
+            <div class="page-body">
+                <div id="page-adoption" class="page-content">
+
+                    <div id="adoptionManagePage">
+                        <div class="kpi-grid kpi-4">
+                            <div class="kpi-card green"><div class="kpi-top"><div class="kpi-icon green">🐾</div></div><div class="kpi-val" id="adoptTotal">0</div><div class="kpi-label">Total listings</div></div>
+                            <div class="kpi-card blue"><div class="kpi-top"><div class="kpi-icon blue">✅</div></div><div class="kpi-val" id="adoptAvailable">0</div><div class="kpi-label">Available</div></div>
+                            <div class="kpi-card orange"><div class="kpi-top"><div class="kpi-icon orange">⏳</div></div><div class="kpi-val" id="adoptPending">0</div><div class="kpi-label">Pending approval</div></div>
+                            <div class="kpi-card red"><div class="kpi-top"><div class="kpi-icon red">🎉</div></div><div class="kpi-val" id="adoptAdopted">0</div><div class="kpi-label">Adopted</div></div>
+                        </div>
+
+                        <div class="table-card adoption-wrap">
+                            <div class="filter-bar">
+                                <div class="search-input"><span>🔍</span><input id="adoptionSearch" type="text" placeholder="Search by pet name, type, breed..."></div>
+                                <select id="adoptionStatusFilter" class="filter-select">
+                                    <option value="all">All adoption statuses</option>
+                                    <option value="available">Available</option>
+                                    <option value="reserved">Reserved</option>
+                                    <option value="adopted">Adopted</option>
+                                </select>
+                                <select id="adoptionApprovalFilter" class="filter-select">
+                                    <option value="all">All listing states</option>
+                                    <option value="approved">Published</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                                <div class="chip-row">
+                                    <button class="chip active" id="adoptionModeClinicBtn" onclick="setAdoptionMode('clinic')">🏥 Clinic</button>
+                                </div>
+                            </div>
+                            <div id="adoptionCardView"><div class="adoption-grid" id="adoptionCardsGrid"></div></div>
+                            <div id="adoptionTableView" style="display:none;">
+                                <div class="t-wrap">
+                                    <table>
+                                        <thead>
+                                            <tr><th>Pet</th><th>Type</th><th>Age</th><th>Gender</th><th>Health</th><th>Adoption</th><th>Listing</th><th>Actions</th></tr>
+                                        </thead>
+                                        <tbody id="adoptionTableBody"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="adoptionAddPage" style="display:none">
+                        <div class="page-header">
+                            <div>
+                                <div class="page-title">➕ Add Animal for Adoption</div>
+                                <div class="page-sub" id="adoptionAddSub">Add a pet from the clinic for adoption</div>
+                            </div>
+                            <div class="header-actions">
+                                <button class="btn btn-outline" onclick="openAdoptionManagePage()">Back to listings</button>
+                            </div>
+                        </div>
+
+                        <div class="info-note adoption-note" style="background:var(--orap);border:1px solid rgba(191,122,35,.2);color:var(--ora);border-radius:10px;padding:.7rem 1rem;font-size:.84rem;font-weight:800;margin-bottom:1rem">
+                            ⏳ Every listing goes through Super Admin review before being published.
+                        </div>
+
+                        <div class="chart-card adoption-form-card">
+                            <div class="sec-label">🐾 Pet Information</div>
+                            <div class="f-grid">
+                                <div class="f-group"><label class="f-label">Pet Name *</label><input id="petName" class="f-inp" placeholder="Pet name"></div>
+                                <div class="f-group">
+                                    <label class="f-label">Animal Type *</label>
+                                    <select id="petType" class="f-inp">
+                                        <option value="">Select type</option>
+                                        <option value="dog">Dog</option>
+                                        <option value="cat">Cat</option>
+                                        <option value="bird">Bird</option>
+                                        <option value="other">Other</option>
+                                    </select>
+                                </div>
+                                <div class="f-group"><label class="f-label">Breed *</label><input id="petBreed" class="f-inp" placeholder="Persian, Husky..."></div>
+                                <div class="f-group"><label class="f-label">Age *</label><input id="petAge" class="f-inp" placeholder="2 years"></div>
+                                <div class="f-group">
+                                    <label class="f-label">Gender *</label>
+                                    <select id="petGender" class="f-inp">
+                                        <option value="">Select gender</option>
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                    </select>
+                                </div>
+                                <div class="f-group"><label class="f-label">Color</label><input id="petColor" class="f-inp" placeholder="White, beige..."></div>
+                            </div>
+                        </div>
+
+                        <div class="chart-card adoption-form-card">
+                            <div class="sec-label">❤️ Health &amp; Vaccination</div>
+                            <div class="f-grid">
+                                <div class="f-group">
+                                    <label class="f-label">Health Status *</label>
+                                    <select id="petHealth" class="f-inp"><option value="">Select</option><option>Healthy</option><option>Has health issues</option></select>
+                                </div>
+                                <div class="f-group">
+                                    <label class="f-label">Neutered / Spayed *</label>
+                                    <select id="petNeuter" class="f-inp"><option value="">Select</option><option>Yes</option><option>No</option></select>
+                                </div>
+                                <div class="f-group">
+                                    <label class="f-label">Vaccinated *</label>
+                                    <select id="petVaccinated" class="f-inp"><option value="">Select</option><option>Yes</option><option>No</option></select>
+                                </div>
+                                <div class="f-group"><label class="f-label">Last Vaccination Date</label><input id="petVaccDate" class="f-inp" type="date"></div>
+                                <div class="f-group f-full"><label class="f-label">Health Problems</label><input id="petProblems" class="f-inp" placeholder="Allergy, injury..."></div>
+                            </div>
+                        </div>
+
+                        <div class="chart-card adoption-form-card">
+                            <div class="sec-label">🧠 Behaviour &amp; Personality</div>
+                            <div class="f-grid">
+                                <div class="f-group"><label class="f-label">Personality Traits</label><input id="petTraits" class="f-inp" placeholder="Friendly, calm, playful..."></div>
+                                <div class="f-group">
+                                    <label class="f-label">Energy Level</label>
+                                    <select id="petEnergy" class="f-inp"><option>Low</option><option selected>Medium</option><option>High</option></select>
+                                </div>
+                                <div class="f-group">
+                                    <label class="f-label">Good with Children?</label>
+                                    <select id="petChildren" class="f-inp"><option>Yes</option><option>No</option></select>
+                                </div>
+                                <div class="f-group">
+                                    <label class="f-label">Good with Other Pets?</label>
+                                    <select id="petOtherPets" class="f-inp"><option>Yes</option><option>No</option></select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chart-card adoption-form-card">
+                            <div class="sec-label">🖼 Description &amp; Status</div>
+                            <div class="f-grid">
+                                <div class="f-group f-full"><label class="f-label">Description</label><textarea id="petDesc" class="f-inp" rows="5" placeholder="Describe the pet, story, personality..."></textarea></div>
+                                <div class="f-group">
+                                    <label class="f-label">Adoption Status</label>
+                                    <select id="petAdoptionStatus" class="f-inp"><option value="available">Available</option><option value="reserved">Reserved</option><option value="adopted">Adopted</option></select>
+                                </div>
+                                <div class="f-group">
+                                    <label class="f-label">Listing State</label>
+                                    <select id="petApprovalStatus" class="f-inp"><option value="pending">Pending</option><option value="approved">Published</option><option value="rejected">Rejected</option></select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="header-actions">
+                            <button class="btn btn-primary" onclick="submitAdoptionPet()">🐾 Submit for Review</button>
+                            <button class="btn btn-outline" onclick="openAdoptionManagePage()">Cancel</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    {{SHARED_MODALS}}
+
+    <div class="modal-overlay" id="adoptionPetModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="adoptionPetModalTitle">🐾 Pet Details</div>
+                <button class="modal-close" onclick="closeModal('adoptionPetModal')">✕</button>
+            </div>
+            <div class="modal-body" id="adoptionPetModalBody"></div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('adoptionPetModal')">Close</button></div>
+        </div>
+    </div>
+
+    <script src="~/js/AdminClinicDoctor.js"></script>
+</body>
+</html>

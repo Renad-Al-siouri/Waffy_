@@ -17,6 +17,9 @@ builder.Services.AddScoped<IClinicDocumentRepository, ClinicDocumentRepository>(
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+builder.Services.AddScoped<IPetRepository, PetRepository>();
+builder.Services.AddScoped<IAdoptionRepository, AdoptionRepository>();
+builder.Services.AddScoped<ILostPetRepository, LostPetRepository>();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -24,6 +27,16 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
+});
+
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 10 * 1024 * 1024; // 10MB
+});
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 10 * 1024 * 1024; // 10MB
 });
 var app = builder.Build();
 
@@ -41,8 +54,12 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Home_Before}/{id?}");
 
 app.Run();
+
+

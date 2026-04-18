@@ -1,0 +1,564 @@
+﻿@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Waffy — Clinic &amp; Doctor Settings</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css" />
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css" />
+</head>
+<body class="admin-shell">
+    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="wa-shell" id="waShell">
+        <aside class="wa-sb" id="sidebar">
+            <div class="sb-logo">
+                <div class="sb-mark">
+                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img" onerror="this.remove();this.parentElement.innerHTML='🐾';this.parentElement.style.fontSize='2rem';">
+                </div>
+                <div class="sb-wordmark">
+                    <div class="sb-wm-name">Waffy</div>
+                    <div class="sb-wm-tag">Doctor Panel</div>
+                </div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Dashboard" data-tip="Dashboard"><span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span></a>
+                </div>
+
+                <div class="sb-hr"></div>
+
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Daily Management</div>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Appointments" data-tip="Appointments"><span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span><span class="sb-bdg bd-g">5</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Patients" data-tip="Patients"><span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Medical_Records" data-tip="Medical Records"><span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group" id="managerSection">
+                    <div class="sb-grp-hd">Clinic Management</div>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Doctors" data-tip="Doctors"><span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Basic_Information" data-tip="Clinic Settings">
+                        <span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span>
+                    </a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Revenue" data-tip="Revenue &amp; Payments"><span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span></a>
+                </div>
+
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Adoption" data-tip="Adoption"><span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Analytics</div>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reviews" data-tip="Reviews"><span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span><span class="sb-bdg bd-g">2</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reports" data-tip="Reports"><span class="sb-icon">📈</span><span class="sb-lbl">Reports</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row " asp-controller="ClinicAdmin" asp-action="Personal_nformation" data-tip="My Settings">
+                        <span class="sb-icon">⚙️</span>
+                        <span class="sb-lbl">My Settings</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row" onclick="openSidebarProfile()">
+                    <div class="sb-av">DC</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">Dr. Ahmad Al-Zoubi</div>
+                        <div class="sb-user-role">Dr. Ahmad Al-Zoubi 👨‍⚕️</div>
+                    </div>
+                </div>
+                <button class="sb-logout" onclick="doLogout()">
+                    <span class="sb-icon">↩</span><span class="sb-logout-lbl">Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <header class="wa-tn">
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
+            <div class="tn-bread" id="tnBread"><span>My Account</span><span>/</span><b id="tnCur">My Settings</b></div>
+            <div class="tn-center">
+                <div class="tn-center-main" id="tnTitle">My Settings</div>
+                <div class="tn-center-sub" id="tnSub">Waffy Clinic Dashboard</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-identity" id="tnIdentityPill">🏥 Al Amanah Veterinary Clinic</div>
+                <button class="tn-btn notif-btn" type="button" aria-label="Notifications">🔔<span class="tn-count">3</span></button>
+                <div class="tn-sep"></div>
+                <div class="tn-profile user-btn">
+                    <div class="tn-av" id="userAvaTop">A</div>
+                    <div>
+                        <div class="tn-pname" id="userNameTop">Dr. Ahmad Al-Zoubi</div>
+                        <div class="tn-prole" id="roleTagTop">Dr. Ahmad Al-Zoubi 👨‍⚕️</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="wa-main">
+            <section class="page-hero">
+                <div>
+                    <h1 id="pageHeroTitle">My Settings</h1>
+                    <p>Update doctor profile, preferences, notifications, and account details.</p>
+                </div>
+            </section>
+            <div class="page-body">
+                <div id="page-doctor-settings" class="page-content">
+                    <div class="page-header">
+                        <div>
+                            <div class="page-title">⚙️ My Settings</div>
+                            <div class="page-sub">Edit your personal and professional information</div>
+                        </div>
+                        <button class="btn btn-primary" onclick="saveDoctor(this)">💾 Save Changes</button>
+                    </div>
+
+                    <div class="chart-card mb doctor-profile-summary" style="display:flex;align-items:center;gap:1.4rem;padding:1.4rem">
+                        <div style="position:relative">
+                            <div style="width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,var(--gp),var(--gu));display:flex;align-items:center;justify-content:center;font-size:2rem;border:2px solid var(--b2)">👨‍⚕️</div>
+                            <div style="position:absolute;bottom:-6px;right:-6px;width:24px;height:24px;border-radius:50%;background:var(--gd);display:flex;align-items:center;justify-content:center;font-size:.7rem;cursor:pointer;border:2px solid white">✏️</div>
+                        </div>
+                        <div style="flex:1">
+                            <div style="font-size:1.1rem;font-weight:700">Dr. Ahmad Al-Zoubi</div>
+                            <div style="font-size:.82rem;color:var(--muted);margin-top:3px">Veterinary Surgery • Al Amanah Veterinary Clinic</div>
+                            <div style="display:flex;gap:8px;margin-top:8px">
+                                <span class="status s-confirmed">✅ Verified</span>
+                                <span class="status s-new">⭐ 4.9 rating</span>
+                                <span class="status s-done">142 appointments this month</span>
+                            </div>
+                        </div>
+                        <div class="doctor-profile-rating" style="text-align:center;padding:12px 20px;background:var(--gp);border-radius:12px;border:1px solid var(--b2)">
+                            <div style="font-size:1.6rem;font-weight:800;color:var(--gd)">4.9</div>
+                            <div style="font-size:.72rem;color:var(--muted)">Your overall rating</div>
+                            <div style="color:#f59f00;font-size:.85rem;margin-top:2px">★★★★★</div>
+                        </div>
+                    </div>
+
+                    <div class="tabs">
+                        <button class="tab active" onclick="switchTab(this,'ds-personal')">👤 Personal Information</button>
+                        <button class="tab" onclick="switchTab(this,'ds-professional')">🎓 Professional Information</button>
+                        <button class="tab" onclick="switchTab(this,'ds-schedule')">🗓 Work Schedule</button>
+                        <button class="tab" onclick="switchTab(this,'ds-docs')">📄 Documents</button>
+                        <button class="tab" onclick="switchTab(this,'ds-password')">🔒 Password</button>
+                        <button class="tab" onclick="switchTab(this,'ds-notifications')">🔔 Notifications</button>
+                    </div>
+
+                    {{-- Tab: Personal Information --}}
+                    <div id="tab-ds-personal">
+                        <div class="chart-card">
+                            <div class="sec-label">👤 Personal Information</div>
+                            <div class="f-grid">
+                                <div class="f-group"><label class="f-label"><span class="req">*</span>Full name</label><input class="f-inp" value="Dr. Ahmad Al-Zoubi"></div>
+                                <div class="f-group"><label class="f-label"><span class="req">*</span>Phone Number</label><input class="f-inp" type="tel" value="0791234567"></div>
+                                <div class="f-group f-full">
+                                    <label class="f-label"><span class="req">*</span>Email Address</label>
+                                    <input class="f-inp" type="email" value="ahmed@@clinic.jo">
+                                    <div class="f-hint">📧 Used for sign-in — changing it requires confirmation</div>
+                                </div>
+                                <div class="f-group f-full">
+                                    <label class="f-label">Profile Image</label>
+                                    <div style="display:flex;align-items:center;gap:14px">
+                                        <div style="width:64px;height:64px;border-radius:14px;background:linear-gradient(135deg,var(--gp),var(--gu));display:flex;align-items:center;justify-content:center;font-size:1.8rem;border:1.5px solid var(--b2);flex-shrink:0">👨‍⚕️</div>
+                                        <div class="upload-box" style="flex:1">
+                                            <div class="upload-icon">📸</div>
+                                            <div class="upload-txt">Change profile image</div>
+                                            <div class="upload-sub">JPG, PNG — max 3MB</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="f-group f-full">
+                                    <label class="f-label">Bio (visible to pet owners)</label>
+                                    <textarea class="f-inp" style="min-height:90px">Veterinarian specialized in general and orthopedic surgery. More than 8 years of experience treating dogs and cats.</textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Tab: Professional Information --}}
+                    <div id="tab-ds-professional" style="display:none">
+                        <div class="chart-card">
+                            <div class="sec-label">🎓 Specialty &amp; Experience</div>
+                            <div class="f-grid">
+                                <div class="f-group">
+                                    <label class="f-label"><span class="req">*</span>Primary Specialty</label>
+                                    <select class="f-inp">
+                                        <option selected>Veterinary Surgery</option>
+                                        <option>General Veterinary Medicine</option>
+                                        <option>Dermatology</option>
+                                        <option>Veterinary Dentistry</option>
+                                        <option>Bird &amp; Reptile Medicine</option>
+                                    </select>
+                                </div>
+                                <div class="f-group">
+                                    <label class="f-label"><span class="req">*</span>Years of experience</label>
+                                    <select class="f-inp">
+                                        <option>Less than 1 year</option>
+                                        <option>1–3 years</option>
+                                        <option>3–5 years</option>
+                                        <option selected>5–10 years</option>
+                                        <option>More than 10 years</option>
+                                    </select>
+                                </div>
+                                <div class="f-group f-full"><label class="f-label">Academic Qualification</label><input class="f-inp" value="Bachelor of Veterinary Medicine — University of Jordan, 2014"></div>
+                                <div class="f-group f-full">
+                                    <label class="f-label">Certifications &amp; Training Courses</label>
+                                    <textarea class="f-inp">• Advanced Surgery Certificate — Jordan, 2017
+• Bird &amp; Reptile Medicine Course — Dubai, 2019</textarea>
+                                </div>
+                            </div>
+                            <hr class="sec-div">
+                            <div class="sec-label">🐾 Pet Types Treated</div>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                                <div class="day-chip on" onclick="this.classList.toggle('on')">🐕 Dogs</div>
+                                <div class="day-chip on" onclick="this.classList.toggle('on')">🐈 Cats</div>
+                                <div class="day-chip" onclick="this.classList.toggle('on')">🐦 Birds</div>
+                                <div class="day-chip" onclick="this.classList.toggle('on')">🐇 Rabbits</div>
+                                <div class="day-chip" onclick="this.classList.toggle('on')">🦎 Reptiles</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Tab: Work Schedule --}}
+                    <div id="tab-ds-schedule" style="display:none">
+                        <div class="chart-card">
+                            <div class="sec-label">📅 Working Days &amp; Hours</div>
+                            <div class="f-group">
+                                <label class="f-label">Working days in the clinic</label>
+                                <div class="days-row" style="margin-top:6px">
+                                    <div class="day-chip on" onclick="this.classList.toggle('on')">Sunday</div>
+                                    <div class="day-chip on" onclick="this.classList.toggle('on')">Monday</div>
+                                    <div class="day-chip on" onclick="this.classList.toggle('on')">Tuesday</div>
+                                    <div class="day-chip on" onclick="this.classList.toggle('on')">Wednesday</div>
+                                    <div class="day-chip on" onclick="this.classList.toggle('on')">Thursday</div>
+                                    <div class="day-chip" onclick="this.classList.toggle('on')">Friday</div>
+                                    <div class="day-chip" onclick="this.classList.toggle('on')">Saturday</div>
+                                </div>
+                            </div>
+                            <div class="f-grid">
+                                <div class="f-group"><label class="f-label">Start of working hours</label><input class="f-inp" type="time" value="09:00"></div>
+                                <div class="f-group"><label class="f-label">End of working hours</label><input class="f-inp" type="time" value="17:00"></div>
+                            </div>
+                            <hr class="sec-div">
+                            <div class="sec-label">⏱ Appointment Duration</div>
+                            <div class="f-grid">
+                                <div class="f-group">
+                                    <label class="f-label">Standard checkup duration</label>
+                                    <select class="f-inp">
+                                        <option>15 minutes</option>
+                                        <option selected>30 minutes</option>
+                                        <option>45 minutes</option>
+                                        <option>1 hour</option>
+                                    </select>
+                                </div>
+                                <div class="f-group">
+                                    <label class="f-label">Break time between appointments</label>
+                                    <select class="f-inp">
+                                        <option>No break</option>
+                                        <option selected>5 minutes</option>
+                                        <option>10 minutes</option>
+                                        <option>15 minutes</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <hr class="sec-div">
+                            <div class="sec-label">🔔 Maximum Appointments</div>
+                            <div class="f-grid">
+                                <div class="f-group">
+                                    <label class="f-label">Maximum appointments per day</label>
+                                    <input class="f-inp" type="number" value="12" min="1" max="50">
+                                    <div class="f-hint">⚠️ No extra bookings accepted after this limit</div>
+                                </div>
+                                <div class="f-group">
+                                    <label class="f-label">Booking availability right now</label>
+                                    <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+                                        <button id="availToggle" class="btn btn-primary btn-sm" onclick="toggleAvail(this)">🟢 Available for booking</button>
+                                        <span style="font-size:.78rem;color:var(--muted)">You can temporarily disable bookings</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Tab: Documents --}}
+                    <div id="tab-ds-docs" style="display:none">
+                        <div class="chart-card">
+                            <div class="sec-label">📄 Uploaded Official Documents</div>
+                            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1rem">
+                                <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--gp);border-radius:10px;border:1px solid var(--b2)">
+                                    <span style="font-size:1.5rem">⚕️</span>
+                                    <div style="flex:1">
+                                        <div style="font-weight:700;font-size:.88rem">Veterinary Practice License</div>
+                                        <div style="font-size:.75rem;color:var(--muted)">Uploaded — Expires: June 2027</div>
+                                    </div>
+                                    <span class="status s-confirmed">Verified ✓</span>
+                                    <button class="btn btn-outline btn-sm">Update</button>
+                                </div>
+                                <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--orap);border-radius:10px;border:1px solid rgba(217,119,6,.2)">
+                                    <span style="font-size:1.5rem">🎓</span>
+                                    <div style="flex:1">
+                                        <div style="font-weight:700;font-size:.88rem">University Degree</div>
+                                        <div style="font-size:.75rem;color:var(--muted)">Not uploaded — optional, but increases trust</div>
+                                    </div>
+                                    <span class="status s-pending">Not uploaded</span>
+                                    <button class="btn btn-primary btn-sm">Upload</button>
+                                </div>
+                            </div>
+                            <div class="upload-box">
+                                <div class="upload-icon">📎</div>
+                                <div class="upload-txt">Upload an additional document</div>
+                                <div class="upload-sub">PDF, JPG, PNG — max 10MB</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Tab: Password --}}
+                    <div id="tab-ds-password" style="display:none">
+                        <div class="chart-card">
+                            <div class="sec-label">🔒 Change Password</div>
+                            <div class="f-group"><label class="f-label"><span class="req">*</span>Current Password</label><input class="f-inp" type="password" placeholder="Enter current password"></div>
+                            <div class="f-group"><label class="f-label"><span class="req">*</span>New Password</label><input class="f-inp" type="password" placeholder="8 characters at minimum"></div>
+                            <div class="f-group"><label class="f-label"><span class="req">*</span>Confirm new password</label><input class="f-inp" type="password" placeholder="Re-enter the new password"></div>
+                            <button class="btn btn-primary" style="margin-top:.5rem">🔒 Update Password</button>
+                            <hr class="sec-div">
+                            <div class="sec-label">📱 Two-Factor Authentication (2FA)</div>
+                            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--gu);border-radius:10px;border:1.5px solid var(--b2)">
+                                <div>
+                                    <div style="font-weight:700;font-size:.88rem">Phone verification</div>
+                                    <div style="font-size:.75rem;color:var(--muted);margin-top:2px">SMS on every sign-in</div>
+                                </div>
+                                <button class="btn btn-outline btn-sm" onclick="this.textContent=this.textContent==='Enable'?'Disable':'Enable';this.classList.toggle('btn-primary');this.classList.toggle('btn-outline')">Enable</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Tab: Notifications --}}
+                    <div id="tab-ds-notifications" style="display:none">
+                        <div class="chart-card">
+                            <div class="sec-label">🔔 Appointment Notifications</div>
+                            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1rem">
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--gu);border-radius:10px;border:1.5px solid var(--b2)">
+                                    <div><div style="font-weight:700;font-size:.88rem">A new appointment is booked</div><div style="font-size:.75rem;color:var(--muted)">Instant notification when a new appointment is booked</div></div>
+                                    <button class="btn btn-primary btn-sm toggle-notif" onclick="toggleNotif(this)">Enabled</button>
+                                </div>
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--gu);border-radius:10px;border:1.5px solid var(--b2)">
+                                    <div><div style="font-weight:700;font-size:.88rem">Appointment cancellation</div><div style="font-size:.75rem;color:var(--muted)">Notification when a patient cancels</div></div>
+                                    <button class="btn btn-primary btn-sm toggle-notif" onclick="toggleNotif(this)">Enabled</button>
+                                </div>
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--gu);border-radius:10px;border:1.5px solid var(--b2)">
+                                    <div><div style="font-weight:700;font-size:.88rem">1-hour reminder before appointment</div><div style="font-size:.75rem;color:var(--muted)">Automatic reminder before every appointment</div></div>
+                                    <button class="btn btn-primary btn-sm toggle-notif" onclick="toggleNotif(this)">Enabled</button>
+                                </div>
+                            </div>
+                            <hr class="sec-div">
+                            <div class="sec-label">💬 Notification Channels</div>
+                            <div style="display:flex;flex-direction:column;gap:8px">
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--gu);border-radius:10px;border:1.5px solid var(--b2)">
+                                    <div><div style="font-weight:700;font-size:.88rem">📧 Email Address</div><div style="font-size:.75rem;color:var(--muted)">ahmed@@clinic.jo</div></div>
+                                    <button class="btn btn-primary btn-sm toggle-notif" onclick="toggleNotif(this)">Enabled</button>
+                                </div>
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--gu);border-radius:10px;border:1.5px solid var(--b2)">
+                                    <div><div style="font-weight:700;font-size:.88rem">📱 SMS message</div><div style="font-size:.75rem;color:var(--muted)">0791234567</div></div>
+                                    <button class="btn btn-outline btn-sm toggle-notif" onclick="toggleNotif(this)">Off</button>
+                                </div>
+                                <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--gu);border-radius:10px;border:1.5px solid var(--b2)">
+                                    <div><div style="font-weight:700;font-size:.88rem">🔔 In-app notification</div><div style="font-size:.75rem;color:var(--muted)">Appears in the bell at the top of the dashboard</div></div>
+                                    <button class="btn btn-primary btn-sm toggle-notif" onclick="toggleNotif(this)">Enabled</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    {{-- Modals --}}
+    <div class="modal-overlay" id="modalAppt" onclick="closeOnBg(event,'modalAppt')">
+        <div class="modal">
+            <div class="modal-header"><div class="modal-title">📅 New Appointment</div><button class="modal-close" onclick="closeModal('modalAppt')">✕</button></div>
+            <div class="modal-body">
+                <div class="f-grid">
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Pet (Patient)</label><select class="f-inp"><option>Choose a pet...</option><option>🐕 Max — Sarah Al-Khatib</option><option>🐈 Luna — Ahmad Mansour</option></select></div>
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Owner</label><input class="f-inp" placeholder="Owner name or phone number..."></div>
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Doctor</label><select class="f-inp"><option>Choose a doctor...</option><option>Dr. Ahmad Al-Zoubi</option><option>Dr. Sarah Al-Hussein</option></select></div>
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Service</label><select class="f-inp"><option>Choose a service...</option><option>General checkup</option><option>Vaccination</option><option>Surgery</option></select></div>
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Appointment date</label><input class="f-inp" type="date"></div>
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Appointment time</label><input class="f-inp" type="time" value="09:00"></div>
+                    <div class="f-group"><label class="f-label">Status</label><select class="f-inp"><option>Scheduled</option><option>Completed</option><option>Cancelled</option></select></div>
+                    <div class="f-group f-full"><label class="f-label">Notes</label><textarea class="f-inp" placeholder="Any notes about the appointment..."></textarea></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalAppt')">Cancel</button><button class="btn btn-primary">💾 Save Appointment</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalPet" onclick="closeOnBg(event,'modalPet')">
+        <div class="modal modal-wide">
+            <div class="modal-header"><div class="modal-title">🐾 Add / Edit Patient</div><button class="modal-close" onclick="closeModal('modalPet')">✕</button></div>
+            <div class="modal-body">
+                <div class="sec-label">🐾 Pet Information</div>
+                <div class="f-grid">
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Pet Name</label><input class="f-inp" placeholder="Example: Max"></div>
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Type</label><select class="f-inp"><option>Choose a type...</option><option>🐕 Dog</option><option>🐈 Cat</option><option>🐦 Bird</option><option>🐇 Rabbit</option><option>🐠 Fish</option><option>🦎 Reptile</option><option>Other</option></select></div>
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Breed</label><input class="f-inp" placeholder="Example: Labrador"></div>
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Gender</label><select class="f-inp"><option>Male</option><option>Female</option></select></div>
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Age</label><input class="f-inp" placeholder="Example: 3 years / 6 months"></div>
+                    <div class="f-group"><label class="f-label">Microchip ID</label><input class="f-inp" placeholder="Microchip number if available"></div>
+                </div>
+                <hr class="sec-div">
+                <div class="sec-label">👤 Owner Information</div>
+                <div class="f-grid">
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Owner Name</label><input class="f-inp" placeholder="Full name"></div>
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Phone Number</label><input class="f-inp" type="tel" placeholder="07XXXXXXXX"></div>
+                    <div class="f-group f-full"><label class="f-label">Email Address</label><input class="f-inp" type="email" placeholder="owner@@email.com"></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalPet')">Cancel</button><button class="btn btn-primary">💾 Save Patient</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalRecord" onclick="closeOnBg(event,'modalRecord')">
+        <div class="modal modal-wide">
+            <div class="modal-header"><div class="modal-title">📄 Add / Edit Medical Record</div><button class="modal-close" onclick="closeModal('modalRecord')">✕</button></div>
+            <div class="modal-body">
+                <div class="sec-label">🐾 Visit Information</div>
+                <div class="f-grid">
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Pet</label><select class="f-inp"><option>Choose a pet...</option><option>🐕 Max</option><option>🐈 Luna</option></select></div>
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Doctor</label><select class="f-inp"><option>Dr. Ahmad Al-Zoubi</option><option>Dr. Sarah Al-Hussein</option></select></div>
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Visit date</label><input class="f-inp" type="date"></div>
+                    <div class="f-group"><label class="f-label">Follow-up date</label><input class="f-inp" type="date"></div>
+                </div>
+                <hr class="sec-div">
+                <div class="sec-label">🩺 Diagnosis</div>
+                <div class="f-grid">
+                    <div class="f-group f-full"><label class="f-label"><span class="req">*</span>Diagnosis</label><textarea class="f-inp" placeholder="Diagnostic findings..."></textarea></div>
+                    <div class="f-group f-full"><label class="f-label">Symptoms</label><textarea class="f-inp" placeholder="Symptoms noticed..."></textarea></div>
+                </div>
+                <hr class="sec-div">
+                <div class="sec-label">💊 Treatment</div>
+                <div class="f-grid">
+                    <div class="f-group f-full"><label class="f-label">Treatment provided</label><textarea class="f-inp" placeholder="Completed treatment procedures..."></textarea></div>
+                    <div class="f-group f-full"><label class="f-label">Prescription</label><textarea class="f-inp" placeholder="Medication: name, dose, duration..."></textarea></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalRecord')">Cancel</button><button class="btn btn-primary">💾 Save Record</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalDoctor" onclick="closeOnBg(event,'modalDoctor')">
+        <div class="modal modal-wide">
+            <div class="modal-header"><div class="modal-title">👨‍⚕️ Add Doctor (Manually)</div><button class="modal-close" onclick="closeModal('modalDoctor')">✕</button></div>
+            <div class="modal-body">
+                <div class="sec-label">👤 Personal Information</div>
+                <div class="f-grid">
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Doctor Name</label><input class="f-inp" placeholder="Dr. Full Name"></div>
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Phone Number</label><input class="f-inp" type="tel" placeholder="07XXXXXXXX"></div>
+                    <div class="f-group f-full"><label class="f-label"><span class="req">*</span>Email Address</label><input class="f-inp" type="email" placeholder="doctor@@waffy.jo"></div>
+                </div>
+                <hr class="sec-div">
+                <div class="sec-label">🎓 Professional Information</div>
+                <div class="f-grid">
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Specialty</label><select class="f-inp"><option>Choose a specialty...</option><option>General Veterinary Medicine</option><option>Veterinary Surgery</option><option>Dermatology</option></select></div>
+                    <div class="f-group"><label class="f-label"><span class="req">*</span>Years of experience</label><select class="f-inp"><option>Less than 1 year</option><option>1–3 years</option><option>3–5 years</option><option>5–10 years</option><option>More than 10 years</option></select></div>
+                </div>
+                <hr class="sec-div">
+                <div class="sec-label">🗓 Work Schedule</div>
+                <div class="f-group">
+                    <label class="f-label">Working Days</label>
+                    <div class="days-row">
+                        <div class="day-chip on" onclick="this.classList.toggle('on')">Sunday</div>
+                        <div class="day-chip on" onclick="this.classList.toggle('on')">Monday</div>
+                        <div class="day-chip on" onclick="this.classList.toggle('on')">Tuesday</div>
+                        <div class="day-chip on" onclick="this.classList.toggle('on')">Wednesday</div>
+                        <div class="day-chip on" onclick="this.classList.toggle('on')">Thursday</div>
+                        <div class="day-chip" onclick="this.classList.toggle('on')">Friday</div>
+                        <div class="day-chip" onclick="this.classList.toggle('on')">Saturday</div>
+                    </div>
+                </div>
+                <div class="f-grid">
+                    <div class="f-group"><label class="f-label">Start time</label><input class="f-inp" type="time" value="09:00"></div>
+                    <div class="f-group"><label class="f-label">End time</label><input class="f-inp" type="time" value="17:00"></div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalDoctor')">Cancel</button><button class="btn btn-primary">💾 Add Doctor</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalDoctorEdit" onclick="closeOnBg(event,'modalDoctorEdit')">
+        <div class="modal modal-wide">
+            <div class="modal-header"><div class="modal-title">✏️ Edit Doctor Information</div><button class="modal-close" onclick="closeModal('modalDoctorEdit')">✕</button></div>
+            <div class="modal-body">
+                <div class="sec-label">👤 Personal Information</div>
+                <div class="f-grid">
+                    <div class="f-group"><label class="f-label">Doctor Name</label><input class="f-inp" value="Dr. Ahmad Al-Zoubi"></div>
+                    <div class="f-group"><label class="f-label">Phone Number</label><input class="f-inp" value="0791234567"></div>
+                    <div class="f-group f-full"><label class="f-label">Email Address</label><input class="f-inp" value="ahmed@@clinic.jo"></div>
+                </div>
+                <hr class="sec-div">
+                <div class="sec-label">🗓 Work Schedule</div>
+                <div class="f-group">
+                    <label class="f-label">Working Days</label>
+                    <div class="days-row">
+                        <div class="day-chip on" onclick="this.classList.toggle('on')">Sunday</div>
+                        <div class="day-chip on" onclick="this.classList.toggle('on')">Monday</div>
+                        <div class="day-chip on" onclick="this.classList.toggle('on')">Tuesday</div>
+                        <div class="day-chip on" onclick="this.classList.toggle('on')">Wednesday</div>
+                        <div class="day-chip on" onclick="this.classList.toggle('on')">Thursday</div>
+                        <div class="day-chip" onclick="this.classList.toggle('on')">Friday</div>
+                        <div class="day-chip" onclick="this.classList.toggle('on')">Saturday</div>
+                    </div>
+                </div>
+                <hr class="sec-div">
+                <div class="sec-label" style="color:var(--red)">⚠️ Actions</div>
+                <div style="display:flex;gap:8px">
+                    <button class="btn btn-outline btn-sm" style="color:var(--ora);border-color:var(--ora)">🔒 Temporarily suspend</button>
+                    <button class="btn btn-red btn-sm">🗑 Remove from Clinic</button>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalDoctorEdit')">Cancel</button><button class="btn btn-primary">💾 Save Changes</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="adoptionPetModal">
+        <div class="modal">
+            <div class="modal-header"><div class="modal-title" id="adoptionPetModalTitle">🐾 Pet Details</div><button class="modal-close" onclick="closeModal('adoptionPetModal')">✕</button></div>
+            <div class="modal-body" id="adoptionPetModalBody"></div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('adoptionPetModal')">Close</button></div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalInvite" onclick="closeOnBg(event,'modalInvite')">
+        <div class="modal">
+            <div class="modal-header"><div class="modal-title">📨 Send Invite Code</div><button class="modal-close" onclick="closeModal('modalInvite')">✕</button></div>
+            <div class="modal-body">
+                <div style="background:linear-gradient(135deg,var(--gp),var(--gu));border-radius:12px;padding:1.2rem;text-align:center;margin-bottom:1.2rem">
+                    <div style="font-size:2rem;margin-bottom:8px">🔑</div>
+                    <div style="font-size:1.8rem;font-weight:800;color:var(--gd);letter-spacing:3px">WAFFY-DR-4X9K</div>
+                    <div style="font-size:.78rem;color:var(--muted);margin-top:6px">Invite code — valid for 7 days</div>
+                </div>
+                <div class="f-group"><label class="f-label">Invited Doctor Name</label><input class="f-inp" placeholder="Dr. Full Name"></div>
+                <div class="f-group"><label class="f-label">Send to</label><input class="f-inp" type="email" placeholder="doctor@@email.com"></div>
+                <div class="f-group">
+                    <label class="f-label">Delivery method</label>
+                    <div style="display:flex;gap:8px;margin-top:6px">
+                        <button class="btn btn-outline btn-sm">📧 Email</button>
+                        <button class="btn btn-outline btn-sm">📱 WhatsApp</button>
+                        <button class="btn btn-outline btn-sm">📋 Copy code</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalInvite')">Close</button><button class="btn btn-primary">📨 Send Invite</button></div>
+        </div>
+    </div>
+
+    <script src="~/js/AdminClinicDoctor.js"></script>
+</body>
+</html>

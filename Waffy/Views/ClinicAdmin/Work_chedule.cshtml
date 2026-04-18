@@ -1,0 +1,258 @@
+﻿@{
+    ViewData["Title"] = "Waffy — Work Schedule";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/doctor-settings.shared.css">
+</head>
+<body class="admin-shell">
+
+    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <div class="wa-shell" id="waShell">
+
+        <!-- ═══════ SIDEBAR ═══════ -->
+        <aside class="wa-sb" id="sidebar">
+            <div class="sb-logo">
+                <div class="sb-mark">
+                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img">
+                </div>
+                <div class="sb-wordmark">
+                    <div class="sb-wm-name">Waffy</div>
+                    <div class="sb-wm-tag">Doctor Panel</div>
+                </div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Dashboard" data-tip="Dashboard"><span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Daily Management</div>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Appointments" data-tip="Appointments"><span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span><span class="sb-bdg bd-g">5</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Patients" data-tip="Patients"><span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Medical_Records" data-tip="Medical Records"><span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group" id="managerSection">
+                    <div class="sb-grp-hd">Clinic Management</div>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Doctors" data-tip="Doctors"><span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Basic_Information" data-tip="Clinic Settings"><span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Revenue" data-tip="Revenue &amp; Payments"><span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Adoption" data-tip="Adoption"><span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Analytics</div>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reviews" data-tip="Reviews"><span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span><span class="sb-bdg bd-g">2</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reports" data-tip="Reports"><span class="sb-icon">📈</span><span class="sb-lbl">Reports</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row active" asp-controller="ClinicAdmin" asp-action="Personal_nformation" data-tip="My Settings"><span class="sb-icon">⚙️</span><span class="sb-lbl">My Settings</span></a>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row" onclick="openSidebarProfile()">
+                    <div class="sb-av">DC</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">Dr. Ahmad Al-Zoubi</div>
+                        <div class="sb-user-role">Dr. Ahmad Al-Zoubi 👨‍⚕️</div>
+                    </div>
+                </div>
+                <button class="sb-logout" onclick="doLogout()">
+                    <span class="sb-icon">↩</span><span class="sb-logout-lbl">Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- ═══════ TOPNAV ═══════ -->
+        <header class="wa-tn">
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
+            <div class="tn-bread"><span>My Account</span><span>/</span><b>Work Schedule</b></div>
+            <div class="tn-center">
+                <div class="tn-center-main">My Settings</div>
+                <div class="tn-center-sub">Waffy Clinic Dashboard</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-identity">🏥 Al Amanah Veterinary Clinic</div>
+                <button class="tn-btn notif-btn" type="button" aria-label="Notifications">🔔<span class="tn-count">3</span></button>
+                <div class="tn-sep"></div>
+                <div class="tn-profile user-btn">
+                    <div class="tn-av" id="userAvaTop">A</div>
+                    <div>
+                        <div class="tn-pname" id="userNameTop">Dr. Ahmad Al-Zoubi</div>
+                        <div class="tn-prole" id="roleTagTop">Dr. Ahmad Al-Zoubi 👨‍⚕️</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ═══════ MAIN ═══════ -->
+        <main class="wa-main">
+            <section class="page-hero">
+                <div>
+                    <h1>My Settings</h1>
+                    <p>Update doctor profile, preferences, notifications, and account details.</p>
+                </div>
+                <div class="page-hero-actions">
+                    <button class="btn btn-primary" onclick="saveSection(this,'Work Schedule')">💾 Save Changes</button>
+                </div>
+            </section>
+
+            <div class="page-body">
+
+                <!-- Doctor Profile Summary -->
+                <div class="chart-card mb doctor-profile-summary">
+                    <div style="position:relative">
+                        <div style="width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,var(--gp),var(--gu));display:flex;align-items:center;justify-content:center;font-size:2rem;border:2px solid var(--b2)">👨‍⚕️</div>
+                        <div style="position:absolute;bottom:-6px;right:-6px;width:24px;height:24px;border-radius:50%;background:var(--gd);display:flex;align-items:center;justify-content:center;font-size:.7rem;cursor:pointer;border:2px solid white">✏️</div>
+                    </div>
+                    <div style="flex:1">
+                        <div style="font-size:1.1rem;font-weight:700">Dr. Ahmad Al-Zoubi</div>
+                        <div style="font-size:.82rem;color:var(--muted);margin-top:3px">Veterinary Surgery • Al Amanah Veterinary Clinic</div>
+                        <div style="display:flex;gap:8px;margin-top:8px">
+                            <span class="status s-confirmed">✅ Verified</span>
+                            <span class="status s-new">⭐ 4.9 rating</span>
+                            <span class="status s-done">142 appointments this month</span>
+                        </div>
+                    </div>
+                    <div class="doctor-profile-rating">
+                        <div style="font-size:1.6rem;font-weight:800;color:var(--gd)">4.9</div>
+                        <div style="font-size:.72rem;color:var(--muted)">Your overall rating</div>
+                        <div style="color:#f59f00;font-size:.85rem;margin-top:2px">★★★★★</div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab Navigation -->
+                <nav class="settings-tab-nav" aria-label="Settings sections">
+                    <a asp-controller="ClinicAdmin" asp-action="Personal_nformation">👤 Personal Information</a>
+                    <a asp-controller="ClinicAdmin" asp-action="Professional_nformation">🎓 Professional Information</a>
+                    <a asp-controller="ClinicAdmin" asp-action="Work_chedule" class="active">🗓 Work Schedule</a>
+                    <a asp-controller="ClinicAdmin" asp-action="Documents_D">📄 Documents</a>
+                    <a asp-controller="ClinicAdmin" asp-action="Password">🔒 Password</a>
+                    <a asp-controller="ClinicAdmin" asp-action="Notifications">🔔 Notifications</a>
+                </nav>
+
+                <!--
+                  BACKEND INTEGRATION NOTE (ASP.NET MVC):
+                  Action: POST /ClinicAdmin/SaveWorkSchedule
+                  Model:  DoctorWorkScheduleViewModel
+                  Fields: WorkingDays[] (array of day names), WorkStartTime, WorkEndTime,
+                          AppointmentDuration (minutes), BreakBetweenAppointments (minutes),
+                          MaxAppointmentsPerDay, IsAvailableForBooking (bool)
+                -->
+                <div class="chart-card">
+                    <form id="form-work-schedule" method="post"
+                          asp-controller="ClinicAdmin" asp-action="Work_chedule">
+                        @Html.AntiForgeryToken()
+
+                        <div class="sec-label">📅 Working Days &amp; Hours</div>
+
+                        <div class="f-group">
+                            <label class="f-label">Working days in the clinic</label>
+                            <div class="days-row" style="margin-top:6px">
+                                <label><input type="checkbox" name="WorkingDays" value="Sunday" checked style="display:none"><div class="day-chip on" onclick="this.closest('label').querySelector('input').checked=!this.closest('label').querySelector('input').checked;this.classList.toggle('on')">Sunday</div></label>
+                                <label><input type="checkbox" name="WorkingDays" value="Monday" checked style="display:none"><div class="day-chip on" onclick="this.closest('label').querySelector('input').checked=!this.closest('label').querySelector('input').checked;this.classList.toggle('on')">Monday</div></label>
+                                <label><input type="checkbox" name="WorkingDays" value="Tuesday" checked style="display:none"><div class="day-chip on" onclick="this.closest('label').querySelector('input').checked=!this.closest('label').querySelector('input').checked;this.classList.toggle('on')">Tuesday</div></label>
+                                <label><input type="checkbox" name="WorkingDays" value="Wednesday" checked style="display:none"><div class="day-chip on" onclick="this.closest('label').querySelector('input').checked=!this.closest('label').querySelector('input').checked;this.classList.toggle('on')">Wednesday</div></label>
+                                <label><input type="checkbox" name="WorkingDays" value="Thursday" checked style="display:none"><div class="day-chip on" onclick="this.closest('label').querySelector('input').checked=!this.closest('label').querySelector('input').checked;this.classList.toggle('on')">Thursday</div></label>
+                                <label><input type="checkbox" name="WorkingDays" value="Friday" style="display:none"><div class="day-chip" onclick="this.closest('label').querySelector('input').checked=!this.closest('label').querySelector('input').checked;this.classList.toggle('on')">Friday</div></label>
+                                <label><input type="checkbox" name="WorkingDays" value="Saturday" style="display:none"><div class="day-chip" onclick="this.closest('label').querySelector('input').checked=!this.closest('label').querySelector('input').checked;this.classList.toggle('on')">Saturday</div></label>
+                            </div>
+                        </div>
+
+                        <div class="f-grid" style="margin-top:1rem">
+                            <div class="f-group">
+                                <label class="f-label" for="workStartTime">Start of working hours</label>
+                                <input id="workStartTime" name="WorkStartTime" class="f-inp" type="time" value="09:00">
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label" for="workEndTime">End of working hours</label>
+                                <input id="workEndTime" name="WorkEndTime" class="f-inp" type="time" value="17:00">
+                            </div>
+                        </div>
+
+                        <hr class="sec-div">
+                        <div class="sec-label">⏱ Appointment Duration</div>
+
+                        <div class="f-grid">
+                            <div class="f-group">
+                                <label class="f-label" for="appointmentDuration">Standard checkup duration</label>
+                                <select id="appointmentDuration" name="AppointmentDuration" class="f-inp">
+                                    <option>15 minutes</option>
+                                    <option selected>30 minutes</option>
+                                    <option>45 minutes</option>
+                                    <option>1 hour</option>
+                                </select>
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label" for="breakBetween">Break time between appointments</label>
+                                <select id="breakBetween" name="BreakBetweenAppointments" class="f-inp">
+                                    <option>No break</option>
+                                    <option selected>5 minutes</option>
+                                    <option>10 minutes</option>
+                                    <option>15 minutes</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="sec-div">
+                        <div class="sec-label">🔔 Maximum Appointments</div>
+
+                        <div class="f-grid">
+                            <div class="f-group">
+                                <label class="f-label" for="maxAppointments">Maximum appointments per day</label>
+                                <input id="maxAppointments" name="MaxAppointmentsPerDay" class="f-inp" type="number" value="12" min="1" max="50">
+                                <div class="f-hint">⚠️ No extra bookings accepted after this limit</div>
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label">Booking availability right now</label>
+                                <div style="display:flex;align-items:center;gap:10px;margin-top:8px">
+                                    <!--
+                                      IsAvailableForBooking hidden input keeps the real boolean value for the server.
+                                      The visible button just toggles UI + updates the hidden input.
+                                    -->
+                                    <input type="hidden" id="isAvailableHidden" name="IsAvailableForBooking" value="true">
+                                    <button id="availToggle" type="button" class="btn btn-primary btn-sm"
+                                            onclick="toggleAvailSchedule(this)">
+                                        🟢 Available for booking
+                                    </button>
+                                    <span style="font-size:.78rem;color:var(--muted)">You can temporarily disable bookings</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+
+            </div><!-- /.page-body -->
+        </main>
+    </div><!-- /.wa-shell -->
+
+    <script src="~/js/doctor-settings.shared.js"></script>
+    <script>
+        /* Page-specific: availability toggle also updates hidden input */
+        function toggleAvailSchedule(btn) {
+          const hidden = document.getElementById('isAvailableHidden');
+          const isAvail = btn.textContent.includes('Available');
+          btn.textContent  = isAvail ? '🔴 Unavailable' : '🟢 Available for booking';
+          btn.classList.toggle('btn-primary', !isAvail);
+          btn.classList.toggle('btn-outline',  isAvail);
+          hidden.value = isAvail ? 'false' : 'true';
+          toast(isAvail ? 'Booking disabled.' : 'Booking enabled.');
+        }
+    </script>
+</body>
+</html>

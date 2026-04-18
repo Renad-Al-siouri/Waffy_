@@ -1,0 +1,31 @@
+﻿using Waffy.Models;
+
+namespace Waffy.Interfaces
+{
+    public interface IAdoptionRepository
+    {
+        // Public listings (Approved + Available)
+        Task<IEnumerable<AdoptionPost>> GetApprovedAsync();
+
+        // User's own posts
+        Task<IEnumerable<AdoptionPost>> GetByUserIdAsync(int userId);
+
+        // Single post
+        Task<AdoptionPost?> GetByIdAsync(int idPost);
+
+        // CRUD
+        Task<int> AddAsync(AdoptionPost post);
+        Task UpdateAsync(AdoptionPost post);
+        Task UpdateStatusAsync(int idPost, string adoptionStatus);
+        Task DeleteAsync(int idPost);
+
+        // Images
+        Task AddImageAsync(int idPost, string imageUrl);
+        Task<IEnumerable<AdoptionImage>> GetImagesByPostIdAsync(int idPost);
+        Task<string?> GetFirstImageAsync(int idPost);
+
+        Task UpdatePostAsync(AdoptionPost post);
+        Task ClosePostAsync(int postId);
+
+    }
+}

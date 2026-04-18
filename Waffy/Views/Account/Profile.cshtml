@@ -1,4 +1,4 @@
-﻿@model Waffy.Models.User
+﻿@model Waffy.Models.ViewModels.PetProfileViewModel
 @{
     Layout = null;
 }
@@ -74,7 +74,7 @@
                                     <i class="fa-solid fa-bell"></i>
                                 </a>
 
-                                <a asp-controller="Account" asp-action="Profile" asp-route-id="@Model.UserId" class="profile-btn" aria-label="Profile">
+                                <a asp-controller="Account" asp-action="Profile" asp-route-id="@Model.User.UserId" class="profile-btn" aria-label="Profile">
                                     <img src="../Images/user.jpg" alt="Profile">
                                 </a>
 
@@ -132,9 +132,9 @@
                 <div class="profile-top">
                     <div class="avatar-wrap">
                         <div class="avatar">
-                            @if (Model != null && !string.IsNullOrEmpty(Model.ProfileImage))
+                            @if (Model != null && !string.IsNullOrEmpty(Model.User.ProfileImage))
                             {
-                                <img src="@Model.ProfileImage" alt="Profile Image" />
+                                <img src="@Model.User.ProfileImage" alt="Profile Image" />
                             }
                             else
                             {
@@ -146,14 +146,14 @@
                     </div>
 
                     <div class="profile-info">
-                        <h1>@Model.FullName</h1>
+                        <h1>@Model.User.FullName</h1>
 
                         <div class="meta-line">
-                            <span>♀ @Model.Gender</span>
+                            <span>♀ @Model.User.Gender</span>
                         </div>
 
                         <div class="meta-line">
-                            <span>📍 @Model.City</span>
+                            <span>📍 @Model.User.City</span>
                         </div>
 
                         <a asp-controller="Profile" asp-action="Edit_Profile"  class="edit-profile-btn">✏ Edit Profile</a>
@@ -163,17 +163,17 @@
                 <div class="contact-box">
                     <div class="contact-row">
                         <span class="contact-label">✉ Email</span>
-                        <span class="contact-value" id="userEmail">@Model.Email</span>
+                        <span class="contact-value" id="userEmail">@Model.User.Email</span>
                     </div>
 
                     <div class="contact-row">
                         <span class="contact-label">📞 Phone</span>
-                        <span class="contact-value" id="userPhone">@Model.Phone</span>
+                        <span class="contact-value" id="userPhone">@Model.User.Phone</span>
                     </div>
 
                     <div class="contact-row">
                         <span class="contact-label">🏠 Address</span>
-                        <span class="contact-value" id="userAddress">@Model.AddressDetail</span>
+                        <span class="contact-value" id="userAddress">@Model.User.AddressDetail</span>
                     </div>
                 </div>
             </section>
@@ -184,91 +184,125 @@
                     <span>🐾 My Pets</span>
                 </div>
 
+                @if (TempData["PetSuccess"] != null)
+                {
+                    <div style="background:#f0fff0;border:1px solid #b2dfb2;color:#2d7a2d;
+                        padding:0.7rem 1rem;border-radius:10px;margin-bottom:1rem;font-weight:700">
+                        ✅ @TempData["PetSuccess"]
+                    </div>
+                }
+                @if (TempData["PetError"] != null)
+                {
+                    <div style="background:#fff0f0;border:1px solid #ffcccc;color:#c0392b;
+                        padding:0.7rem 1rem;border-radius:10px;margin-bottom:1rem;font-weight:700">
+                        ⚠️ @TempData["PetError"]
+                    </div>
+                }
+
                 <div class="pets-grid" id="petsGrid">
-                    <!-- PET 1 -->
-                    <article class="pet-card">
-                        <div class="pet-image-box">
-                            <div class="pet-avatar-wrap">
-                                <div class="pet-avatar">
-                                    <img src="" alt="Buddy" class="pet-image" style="display: none;" />
-                                    <span class="pet-default-icon">🐾</span>
-                                </div>
+                    @foreach (var pet in Model.Pets)
+                    {
+                        <article class="pet-card" data-pet-id="@pet.IdPet">
+                            <div class="pet-image-box">
+                                <div class="pet-avatar-wrap">
+                                    <div class="pet-avatar">
+                                        @if (!string.IsNullOrEmpty(pet.ImageUrl))
+                                        {
+                                            <img src="@pet.ImageUrl" alt="@pet.Name" class="pet-image" />
+                                            <span class="pet-default-icon" style="display:none">🐾</span>
+                                        }
+                                        else
+                                        {
+                                            <img class="pet-image" style="display:none" />
+                                            <span class="pet-default-icon">🐾</span>
+                                        }
+                                </div>  @* ← إغلاق pet-avatar *@
 
-                                <button class="pet-camera-btn" type="button">📷</button>
-                                <input type="file" class="pet-photo-input" accept="image/*" hidden />
-                            </div>
-                        </div>
+                                @* ── Upload Photo Form ── *@
+                                <form method="post"
+                                      asp-controller="Pet"
+                                      asp-action="UploadPetPhoto"
+                                      enctype="multipart/form-data"
+                                      id="photoForm_@pet.IdPet">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="petId" value="@pet.IdPet" />
+                                    <input type="file"
+                                           name="photo"
+                                           accept="image/*"
+                                           class="pet-photo-input"
+                                           hidden
+                                           onchange="this.form.submit()" />
+                                </form>
 
-                        <div class="pet-content">
-                            <div class="pet-head">
-                                <div>
-                                    <h3>Buddy</h3>
-                                    <p class="pet-type">Dog</p>
-                                </div>
-                                <span class="pet-dot"></span>
-                            </div>
+                                <button class="pet-camera-btn" type="button"
+                                        onclick="document.querySelector('#photoForm_@pet.IdPet input[type=file]').click()">
+                                    📷
+                                </button>
 
-                            <p class="pet-age">Age: 3 Years</p>
-
-                            <ul class="pet-notes">
-                                <li class="good">Up-to-date on vaccines</li>
-                                <li class="alert">Medication needed</li>
-                            </ul>
-
-                            <div class="pet-actions">
-                                <a asp-controller="Pet" asp-action="Petrecord" class="pet-btn primary details-btn" data-pet="buddy" type="button">View Details</a>
-                                <button class="pet-btn secondary edit-pet-btn" type="button">Edit</button>
-                                <button class="pet-btn danger delete-pet-btn" type="button">Delete</button>
-                            </div>
-                        </div>
-                    </article>
-
-                    <!-- PET 2 -->
-                    <article class="pet-card">
-                        <div class="pet-image-box">
-                            <div class="pet-avatar-wrap">
-                                <div class="pet-avatar">
-                                    <img src="" alt="Buddy" class="pet-image" style="display: none;" />
-                                    <span class="pet-default-icon">🐾</span>
-                                </div>
-
-                                <button class="pet-camera-btn" type="button">📷</button>
-                                <input type="file" class="pet-photo-input" accept="image/*" hidden />
-                            </div>
-                        </div>
+                            </div>  @* ← إغلاق pet-avatar-wrap *@
+                        </div>  @* ← إغلاق pet-image-box *@
 
                         <div class="pet-content">
                             <div class="pet-head">
                                 <div>
-                                    <h3>Milo</h3>
-                                    <p class="pet-type">Cat</p>
+                                    <h3>@pet.Name</h3>
+                                    <p class="pet-type">@pet.Species</p>
                                 </div>
                                 <span class="pet-dot"></span>
                             </div>
 
-                            <p class="pet-age">Age: 1 Year</p>
+                            <p class="pet-age">Age: @pet.AgeDisplay</p>
 
                             <ul class="pet-notes">
-                                <li class="good">Up-to-date on vaccines</li>
-                                <li class="alert">Allergy to chicken</li>
-                            </ul>
+                                <li class="@(pet.VaccinationStatus == "UpToDate" ? "good" : "alert")">
+                                    @(pet.VaccinationStatus == "UpToDate"
+                                                                        ? "Up-to-date on vaccines"
+                                                                        : "Vaccines needed")
+                                </li>
+                                @if (!string.IsNullOrEmpty(pet.MedicalNotes))
+                                    {
+                                        <li class="alert">@pet.MedicalNotes</li>
+                                    }
+                                </ul>
 
-                            <div class="pet-actions">
-                                <a asp-controller="Pet" asp-action="Petrecord" class="pet-btn primary details-btn" data-pet="milo" type="button">View Details</a>
-                                <button class="pet-btn secondary edit-pet-btn" type="button">Edit</button>
-                                <button class="pet-btn danger delete-pet-btn" type="button">Delete</button>
-                            </div>
-                        </div>
-                    </article>
+                                <div class="pet-actions">
+                                    <a asp-controller="Pet"
+                                       asp-action="Petrecord"
+                                       asp-route-petId="@pet.IdPet"
+                                       class="pet-btn primary">View Details</a>
+
+                                    <a asp-controller="Pet"
+                                       asp-action="EditPetPage"
+                                       asp-route-petId="@pet.IdPet"
+                                       class="pet-btn secondary">Edit</a>
+
+                                    <form method="post"
+                                          asp-controller="Pet"
+                                          asp-action="DeletePet"
+                                          style="display:inline"
+                                          onsubmit="return confirm('Delete @pet.Name?')">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="petId" value="@pet.IdPet" />
+                                        <button type="submit" class="pet-btn danger">Delete</button>
+                                    </form>
+                                </div>
+
+                            </div>  @* ← إغلاق pet-content *@
+                        </article>
+                    }
                 </div>
 
                 <!-- ADD PET -->
                 <div class="add-pet-box" id="addPetBox">
-                    <button class="add-pet-circle" type="button">＋</button>
+                    <a asp-controller="Pet"
+                       asp-action="AddPetPage"
+                       class="add-pet-circle">＋</a>
                     <p>Click to add a new pet</p>
                 </div>
-            </section>
-        </div>
+
+            </section>  @* ← pets-section *@
+
+        </div>  @* ← إغلاق container *@
     </main>
 
     <!-- FOOTER -->
@@ -286,169 +320,6 @@
             <p>© 2026 Waffy. All rights reserved.</p>
         </div>
     </footer>
-
-    <!-- PET DETAILS MODAL -->
-    <div class="modal-overlay" id="petModal">
-        <div class="modal small-modal">
-            <button class="close-modal" id="closePetModal" type="button">×</button>
-            <h2 id="petModalTitle">Pet Details</h2>
-            <div id="petModalBody">
-                <p><strong>Name:</strong> Buddy</p>
-                <p><strong>Type:</strong> Dog</p>
-                <p><strong>Age:</strong> 3 Years</p>
-                <p><strong>Status:</strong> Up-to-date on vaccines</p>
-                <p><strong>Notes:</strong> Medication needed</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- ADD PET MODAL -->
-    <div class="modal-overlay" id="addPetModal">
-        <div class="modal">
-            <button class="close-modal" id="closeAddPetModal" type="button">×</button>
-            <h2>Add New Pet</h2>
-
-            <div class="form-group full">
-                <div id="petImagePreview" class="pet-upload-preview">No image selected</div>
-            </div>
-
-            <form id="addPetForm">
-                <!-- BASIC -->
-                <div class="pet-form-section">
-                    <div class="pet-form-title">🐾 Pet Information</div>
-
-                    <div class="form-group full">
-                        <label for="petImageInput">Pet Photo</label>
-                        <input type="file" id="petImageInput" accept="image/*" />
-                    </div>
-
-                    <div class="pet-grid-2">
-                        <div class="form-group">
-                            <label>Pet Name</label>
-                            <input type="text" id="petNameInput" required />
-                        </div>
-
-                        <div class="form-group">
-                            <label>Pet Type</label>
-                            <select id="petTypeInput" required>
-                                <option value="">Select</option>
-                                <option>🐕 Dog</option>
-                                <option>🐈 Cat</option>
-                                <option>🐦 Bird</option>
-                                <option>🐰 Rabbit</option>
-                                <option>🦜 Other</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Breed</label>
-                            <input type="text" id="petBreedInput" />
-                        </div>
-
-                        <div class="form-group">
-                            <label>Age</label>
-                            <input type="number" id="petAgeInput" required />
-                        </div>
-
-                        <div class="form-group">
-                            <label>Gender</label>
-                            <select id="petGenderInput">
-                                <option>Male</option>
-                                <option>Female</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Color</label>
-                            <input type="text" id="petColorInput" />
-                        </div>
-                    </div>
-                </div>
-
-                <!-- HEALTH -->
-                <div class="pet-form-section">
-                    <div class="pet-form-title">❤️ Health</div>
-
-                    <div class="pet-grid-2">
-                        <div class="form-group">
-                            <label>Health Status</label>
-                            <select id="petHealthInput">
-                                <option>Healthy</option>
-                                <option>Has issues</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Vaccinated</label>
-                            <select id="petVaccinatedInput">
-                                <option>Yes</option>
-                                <option>No</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Vaccination Date</label>
-                            <input type="date" id="petVaccDateInput" />
-                        </div>
-
-                        <div class="form-group">
-                            <label>Neutered</label>
-                            <select id="petNeuterInput">
-                                <option>Yes</option>
-                                <option>No</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group full">
-                            <label>Health Notes</label>
-                            <textarea id="petNotesInput"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- BEHAVIOR -->
-                <div class="pet-form-section">
-                    <div class="pet-form-title">🧠 Behaviour</div>
-
-                    <div class="pet-grid-2">
-                        <div class="form-group">
-                            <label>Energy Level</label>
-                            <select id="petEnergyInput">
-                                <option>Low</option>
-                                <option selected>Medium</option>
-                                <option>High</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Good with Children</label>
-                            <select id="petChildren
-Input">
-                                <option>Yes</option>
-                                <option>No</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Good with Pets</label>
-                            <select id="petOtherPetsInput">
-                                <option>Yes</option>
-                                <option>No</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group full">
-                            <label>Description</label>
-                            <textarea id="petDescInput"></textarea>
-                        </div>
-                    </div>
-                </div>
-
-                <button type="submit" class="save-btn">Add Pet</button>
-            </form>
-        </div>
-    </div>
-
     <script src="~/js/profile.js"></script>
 </body>
 </html>

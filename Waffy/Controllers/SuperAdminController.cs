@@ -198,11 +198,8 @@ namespace Waffy.Controllers
             var ordersJs = orders.Select(o => new
             {
                 id = o.IdOrder.ToString(),
-                orderCode = o.OrderCode ?? "",
-                cust = o.RecipientName ?? "—",
-                phone = o.RecipientPhone ?? "",
-                address = o.DeliveryAddress ?? "",
-                deliveryFee = o.DeliveryFee,
+                cust = o.CustomerName ?? "—",
+                total = o.TotalAmount,
                 date = o.CreatedAt.ToString("dd MMM yyyy"),
                 status = (o.Status ?? "pending").ToLower(),
                 items = Array.Empty<string>()

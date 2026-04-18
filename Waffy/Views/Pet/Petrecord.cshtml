@@ -1,4 +1,5 @@
-﻿@*
+﻿@model Waffy.Models.Pet
+@*
     For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 *@
 @{
@@ -165,7 +166,7 @@
                             <div class="pet-photo">
                                 <div class="pet-avatar-wrap">
                                     <div class="pet-avatar">
-                                        <img id="petImage" src="../Images/Animals/dod1.jpg" alt="pet" />
+                                        <img id="petImage" src="@(Model.ImageUrl ?? "/Images/Animals/dod1.jpg")" alt="pet" />
                                         <span class="pet-default-icon">🐾</span>
                                     </div>
 
@@ -177,7 +178,7 @@
                             <div class="pet-main-info">
                                 <div class="pet-main-top">
                                     <div class="pet-name-block">
-                                        <h2 id="petName">Lexi</h2>
+                                        <h2 id="petName">@Model.Name</h2>
                                         <span class="pet-type-pill" id="petType">Dog - Beagle</span>
                                     </div>
 
@@ -187,12 +188,12 @@
                                 <div class="pet-main-grid">
                                     <div class="info-item">
                                         <span>Age</span>
-                                        <strong id="petAge">3 Years</strong>
+                                        <strong id="petAge">@Model.AgeDisplay</strong>
                                     </div>
 
                                     <div class="info-item">
                                         <span>Gender</span>
-                                        <strong id="petGender">Female</strong>
+                                        <strong id="petGender">@Model.Gender</strong>
                                     </div>
 
                                     <div class="info-item">
@@ -277,763 +278,585 @@
                         <button class="action-btn lost-btn" id="openLostFlowBtn">Pet is Missing 📣</button>
                     </div>
 
-                    <button class="back-btn" onclick="window.location.href='profile.html'">Back</button>
-
+                    <a asp-controller="Account" asp-action="Profile" class="back-btn">Back</a>
                 </section>
             </section>
         </div>
     </main>
-    <!-- ADOPTION CONFIRM MODAL -->
-    <div class="modal-overlay" id="adoptionConfirmModal">
-        <div class="modal confirm-adoption-modal">
-            <button class="close-modal" id="closeAdoptionConfirmModal">×</button>
-
-            <div class="confirm-logo">
-                <img src="../Images/logo.png" alt="Waffy Logo">
-            </div>
-
-            <h2>Confirm Adoption Listing</h2>
-
-            <div class="confirm-image-wrap">
-                <img src="../Images/logo.png" alt="Confirm Adoption">
-            </div>
-
-            <p class="confirm-text">
-                Are you sure you want to list your pet for adoption?
-            </p>
-
-            <div class="confirm-actions">
-                <button type="button" class="confirm-cancel-btn" id="cancelAdoptionConfirmBtn">Cancel</button>
-                <button type="button" class="confirm-ok-btn" id="confirmAdoptionFinalBtn">Yes, Confirm</button>
-            </div>
-        </div>
-    </div>
-
     <!-- LOST PET FLOW MODAL -->
     <div class="modal-overlay" id="lostFlowModal">
         <div class="modal adoption-modal lost-modal">
             <button class="close-modal" id="closeLostFlowModal">×</button>
 
-            <!-- STEP 1 -->
-            <div class="lost-step active" id="lostStep1">
-                <div class="box adoption-step-box">
+            @if (TempData["LostSuccess"] != null)
+            {
+                <div class="alert-success">✅ @TempData["LostSuccess"]</div>
+            }
+            @if (TempData["LostError"] != null)
+            {
+                <div class="alert-error">⚠️ @TempData["LostError"]</div>
+            }
 
-                    <div class="fee-summary-banner">
-                        <div class="fee-left">
-                            <strong>2.00 JOD</strong>
-                            <span>Publishing Fee</span>
-                        </div>
-                        <div class="fee-right">
-                            <h4>Ad Publishing Fee</h4>
-                            <p>Non-refundable fee to improve ad quality and reduce fake reports.</p>
-                        </div>
-                    </div>
+            @* ✅ form واحد يحتوي كل الـ steps *@
+            <form method="post"
+                  asp-controller="Pet"
+                  asp-action="SubmitLostReport"
+                  enctype="multipart/form-data"
+                  id="lostForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="petId" value="@Model.IdPet" />
 
-                    <div class="step-header">
-                        <div>
-                            <h3>Select Your Lost Pet</h3>
-                            <span>Step 1</span>
-                        </div>
-                        <div class="step-icon">🐾</div>
-                    </div>
-
-                    <div class="selected-pet-card">
-                        <div class="selected-pet-image">
-                            <img id="lostSelectedPetImage" src="../Images/Animals/dog1.png" alt="Selected pet">
-                        </div>
-                        <div class="selected-pet-text">
-                            <h4 id="lostSelectedPetName">Lexi</h4>
-                            <p id="lostSelectedPetType">Dog - Beagle</p>
-                            <small>Using the pet from this medical record</small>
-                        </div>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="lostMicrochip">Microchip ID (Optional)</label>
-                        <input type="text" id="lostMicrochip" placeholder="Example: 985141000012345">
-                    </div>
-
-                    <div class="adoption-grid">
-                        <div class="form-group">
-                            <label for="lostDate">Date Lost</label>
-                            <input type="date" id="lostDate">
+                @* ══ STEP 1: Pet Info & Location ══ *@
+                <div class="lost-step active" id="lostStep1">
+                    <div class="box adoption-step-box">
+                        <div class="step-header">
+                            <div>
+                                <h3>Select Your Lost Pet</h3>
+                                <span>Step 1 of 6</span>
+                            </div>
+                            <div class="step-icon">🐾</div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="lostTime">Time Lost (Optional)</label>
-                            <input type="time" id="lostTime">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="lostCity">City</label>
-                            <select id="lostCity">
-                                <option value="">Select city</option>
-                                <option>Amman</option>
-                                <option>Zarqa</option>
-                                <option>Irbid</option>
-                                <option>Aqaba</option>
-                                <option>Madaba</option>
-                            </select>
-                        </div>
-
-                        <div class="form-group">
-                            <label for="lostArea">Area / Neighborhood</label>
-                            <input type="text" id="lostArea" placeholder="Example: Al Rabieh">
-                        </div>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label>Last Seen Location</label>
-                        <button type="button" class="map-picker-box" id="fakeMapPickerBtn">
-                            <div class="map-icon">🗺️</div>
-                            <strong>Tap to set the location on the map</strong>
-                            <span>Google Maps Integration</span>
-                        </button>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="lastSeenLocation">Or Enter Address Manually</label>
-                        <textarea id="lastSeenLocation" placeholder="Enter the location manually..."></textarea>
-                    </div>
-
-                    <div class="step-actions">
-                        <button type="button" class="action-btn adopted-btn lost-next-btn" data-next="2">Next</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- STEP 2 -->
-            <div class="lost-step" id="lostStep2">
-                <div class="box adoption-step-box">
-                    <div class="step-header">
-                        <div>
-                            <h3>Description & Special Marks</h3>
-                            <span>Step 2</span>
-                        </div>
-                        <div class="step-icon">📝</div>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="lostDescription">Description</label>
-                        <textarea id="lostDescription" placeholder="Describe how the pet was lost..."></textarea>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="specialMarks">Special Marks / Features</label>
-                        <textarea id="specialMarks" placeholder="Example: blue collar, white spot on chest..."></textarea>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="lostPhotos">Upload Additional Photos</label>
-
-                        <label for="lostPhotos" class="main-upload-area lost-upload-area">
-                            <div class="upload-icon">📷</div>
-                            <strong>Upload lost pet photos</strong>
-                            <p>Up to 5 images — JPG, PNG</p>
-                        </label>
-
-                        <input type="file" id="lostPhotos" multiple accept="image/*" hidden>
-
-                        <div class="photo-preview-grid" id="lostPhotoPreviewGrid">
-                            <div class="mini-upload">+</div>
-                            <div class="mini-upload">+</div>
-                            <div class="mini-upload">+</div>
-                            <div class="mini-upload">+</div>
-                            <div class="mini-upload">+</div>
-                        </div>
-                    </div>
-
-                    <div class="step-actions between-actions">
-                        <button type="button" class="action-btn cancel-adoption-btn lost-prev-btn" data-prev="1">Back</button>
-                        <button type="button" class="action-btn adopted-btn lost-next-btn" data-next="3">Next</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- STEP 3 -->
-            <div class="lost-step" id="lostStep3">
-                <div class="box adoption-step-box">
-                    <div class="step-header">
-                        <div>
-                            <h3>Visibility Radius & Ad Expiry</h3>
-                            <span>Step 3</span>
-                        </div>
-                        <div class="step-icon">📡</div>
-                    </div>
-
-                    <div class="empty-visual-space"></div>
-
-                    <div class="form-group full-width">
-                        <label>Ad Expiry</label>
-                        <div class="choice-grid three-cols">
-                            <label class="choice-card">
-                                <input type="radio" name="lostExpiry" value="7 Days">
-                                <span>7 Days</span>
-                            </label>
-                            <label class="choice-card selected-red">
-                                <input type="radio" name="lostExpiry" value="14 Days" checked>
-                                <span>14 Days</span>
-                            </label>
-                            <label class="choice-card">
-                                <input type="radio" name="lostExpiry" value="30 Days">
-                                <span>30 Days</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="step-actions between-actions">
-                        <button type="button" class="action-btn cancel-adoption-btn lost-prev-btn" data-prev="2">Back</button>
-                        <button type="button" class="action-btn adopted-btn lost-next-btn" data-next="4">Next</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- STEP 4 -->
-            <div class="lost-step" id="lostStep4">
-                <div class="box adoption-step-box reward-box">
-                    <div class="step-header">
-                        <div>
-                            <h3>Waffy Wallet - Reward System</h3>
-                            <span>Step 4</span>
-                        </div>
-                        <div class="step-icon">👛</div>
-                    </div>
-
-                    <div class="warning-inline">
-                        Reward amount will stay reserved in your wallet until the finder is verified.
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label>Reward Amount</label>
-                        <div class="choice-grid four-cols">
-                            <label class="choice-card">
-                                <input type="radio" name="rewardAmount" value="50">
-                                <span>50 JOD</span>
-                            </label>
-                            <label class="choice-card">
-                                <input type="radio" name="rewardAmount" value="25">
-                                <span>25 JOD</span>
-                            </label>
-                            <label class="choice-card selected-red">
-                                <input type="radio" name="rewardAmount" value="10" checked>
-                                <span>10 JOD</span>
-                            </label>
-                            <label class="choice-card">
-                                <input type="radio" name="rewardAmount" value="0">
-                                <span>No Reward</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="step-actions between-actions">
-                        <button type="button" class="action-btn cancel-adoption-btn lost-prev-btn" data-prev="3">Back</button>
-                        <button type="button" class="action-btn adopted-btn lost-next-btn" data-next="5">Next</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- STEP 5 -->
-            <div class="lost-step" id="lostStep5">
-                <div class="box adoption-step-box secret-box">
-                    <div class="step-header">
-                        <div>
-                            <h3>Secret Question</h3>
-                            <span>Step 5</span>
-                        </div>
-                        <div class="step-icon">🔐</div>
-                    </div>
-
-                    <div class="info-note-box">
-                        The question and answer will never appear in the public ad.
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="secretQuestion">Secret Question</label>
-                        <input type="text" id="secretQuestion" placeholder="Example: Does the pet have a mark on one ear?">
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="secretAnswer">Correct Answer</label>
-                        <input type="text" id="secretAnswer" placeholder="Hidden answer">
-                    </div>
-
-                    <div class="step-actions between-actions">
-                        <button type="button" class="action-btn cancel-adoption-btn lost-prev-btn" data-prev="4">Back</button>
-                        <button type="button" class="action-btn adopted-btn lost-next-btn" data-next="6">Next</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- STEP 6 -->
-            <div class="lost-step" id="lostStep6">
-                <div class="box adoption-step-box">
-                    <div class="step-header">
-                        <div>
-                            <h3>Contact Information</h3>
-                            <span>Step 6</span>
-                        </div>
-                        <div class="step-icon">📞</div>
-                    </div>
-
-                    <div class="form-group full-width">
-                        <label for="lostContactPhone">Contact Phone</label>
-                        <div class="phone-wrap">
-                            <span class="phone-code">+962</span>
-                            <input type="text" id="lostContactPhone" placeholder="7X XXX XXXX">
-                        </div>
-                    </div>
-
-                    <div class="adoption-grid">
-                        <div class="form-group">
-                            <label for="lostWhatsapp">WhatsApp Number</label>
-                            <div class="phone-wrap">
-                                <span class="phone-code">+962</span>
-                                <input type="text" id="lostWhatsapp" placeholder="7X XXX XXXX">
+                        @* Pet Info — Read Only *@
+                        <div class="selected-pet-card">
+                            <div class="selected-pet-image">
+                                <img src="@(Model.ImageUrl ?? "/Images/Animals/dog1.jpg")"
+                                     alt="@Model.Name">
+                            </div>
+                            <div class="selected-pet-text">
+                                <h4>@Model.Name</h4>
+                                <p>@Model.Species @Model.Breed</p>
+                                <small>Using the pet from this medical record</small>
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label>Preferred Contact</label>
-                            <div class="choice-grid two-cols">
+                        <div class="adoption-grid" style="margin-top:1rem">
+                            <div class="form-group">
+                                <label>Date Lost</label>
+                                <input type="date" name="dateLost" />
+                            </div>
+
+                            <div class="form-group">
+                                <label>City <span style="color:red">*</span></label>
+                                <select name="city" required>
+                                    <option value="">Select city</option>
+                                    <option>Amman</option>
+                                    <option>Zarqa</option>
+                                    <option>Irbid</option>
+                                    <option>Aqaba</option>
+                                    <option>Madaba</option>
+                                    <option>Karak</option>
+                                    <option>Jerash</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Area / Neighborhood</label>
+                                <input type="text" name="area"
+                                       placeholder="Example: Al Rabieh" />
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label>Last Seen Location (Address)</label>
+                                <textarea name="lastSeenLocation"
+                                          placeholder="Street, landmark..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="step-actions">
+                            <button type="button" class="action-btn adopted-btn lost-next-btn"
+                                    onclick="goLostStep(2)">
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                @* ══ STEP 2: Description & Photos ══ *@
+                <div class="lost-step" id="lostStep2">
+                    <div class="box adoption-step-box">
+                        <div class="step-header">
+                            <div>
+                                <h3>Description & Special Marks</h3>
+                                <span>Step 2 of 6</span>
+                            </div>
+                            <div class="step-icon">📝</div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Description <span style="color:red">*</span></label>
+                            <textarea name="description" rows="3"
+                                      placeholder="Describe how the pet was lost..."
+                                      required></textarea>
+                        </div>
+
+                        <div class="form-group full-width" style="margin-top:.8rem">
+                            <label>Special Marks / Features</label>
+                            <textarea name="specialMarks" rows="2"
+                                      placeholder="Blue collar, white spot on chest..."></textarea>
+                        </div>
+
+                        <div class="form-group full-width" style="margin-top:.8rem">
+                            <label>Upload Photos (up to 5)</label>
+                            <label for="lostPhotos" class="main-upload-area lost-upload-area">
+                                <div class="upload-icon">📷</div>
+                                <strong>Upload lost pet photos</strong>
+                                <p>Up to 5 images — JPG, PNG</p>
+                            </label>
+                            <input type="file" id="lostPhotos" name="photos"
+                                   multiple accept="image/*" hidden />
+                            <div class="photo-preview-grid" id="lostPhotoPreview">
+                                <div class="mini-upload">+</div>
+                                <div class="mini-upload">+</div>
+                                <div class="mini-upload">+</div>
+                                <div class="mini-upload">+</div>
+                                <div class="mini-upload">+</div>
+                            </div>
+                        </div>
+
+                        <div class="step-actions between-actions">
+                            <button type="button" class="action-btn cancel-adoption-btn"
+                                    onclick="goLostStep(1)">
+                                ← Back
+                            </button>
+                            <button type="button" class="action-btn adopted-btn"
+                                    onclick="goLostStep(3)">
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                @* ══ STEP 3: Expiry ══ *@
+                <div class="lost-step" id="lostStep3">
+                    <div class="box adoption-step-box">
+                        <div class="step-header">
+                            <div>
+                                <h3>Ad Duration</h3>
+                                <span>Step 3 of 6</span>
+                            </div>
+                            <div class="step-icon">📡</div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Ad Expiry</label>
+                            <div class="choice-grid three-cols">
                                 <label class="choice-card">
-                                    <input type="radio" name="lostContactMethod" value="Phone" checked>
-                                    <span>Phone</span>
+                                    <input type="radio" name="expiryDays" value="7 Days" />
+                                    <span>7 Days</span>
                                 </label>
                                 <label class="choice-card selected-red">
-                                    <input type="radio" name="lostContactMethod" value="WhatsApp">
-                                    <span>WhatsApp</span>
+                                    <input type="radio" name="expiryDays"
+                                           value="14 Days" checked />
+                                    <span>14 Days</span>
+                                </label>
+                                <label class="choice-card">
+                                    <input type="radio" name="expiryDays" value="30 Days" />
+                                    <span>30 Days</span>
                                 </label>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="step-actions between-actions">
-                        <button type="button" class="action-btn cancel-adoption-btn lost-prev-btn" data-prev="5">Back</button>
-                        <button type="button" class="action-btn adopted-btn lost-next-btn" data-next="7">Next</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- STEP 7 -->
-            <div class="lost-step" id="lostStep7">
-                <div class="box adoption-step-box payment-summary-box">
-                    <div class="step-header">
-                        <div>
-                            <h3>Payment Summary</h3>
-                            <span>Step 7</span>
-                        </div>
-                        <div class="step-icon">💳</div>
-                    </div>
-
-                    <div class="review-list">
-                        <div><span>Ad Publishing Fee</span><strong>2.00 JOD</strong></div>
-                        <div><span>Reward (Reserved in Wallet)</span><strong id="reviewReward">10.00 JOD</strong></div>
-                        <div><span>Total Now</span><strong class="total-red" id="reviewTotal">12.00 JOD</strong></div>
-                    </div>
-
-                    <label class="agree-check review-agree">
-                        <input type="checkbox" id="agreeLostTerms">
-                        <span>I agree to publish this lost pet ad and confirm the information is correct.</span>
-                    </label>
-
-                    <div class="step-actions between-actions">
-                        <button type="button" class="action-btn cancel-adoption-btn lost-prev-btn" data-prev="6">Back</button>
-                        <button type="button" class="action-btn lost-submit-btn" id="openLostPaymentBtn">Pay & Publish Ad</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- STEP 8 -->
-            <div class="lost-step" id="lostStep8">
-                <div class="box adoption-success-box lost-success-box">
-                    <div class="success-icon">🔎</div>
-                    <h2>Ad Published Successfully!</h2>
-                    <p>Your lost pet ad is now live. You will be notified immediately when someone finds your pet.</p>
-
-                    <div class="success-badge code-badge">
-                        Finder Code: <strong id="finderCodeText">WAFFY-F-1D9362</strong>
-                    </div>
-
-                    <button type="button" class="copy-code-btn" id="copyFinderCodeBtn">Copy Code</button>
-
-                    <div class="success-steps">
-                        <div><span>1</span> Ad is now visible to nearby users</div>
-                        <div><span>2</span> Finder will answer the secret question</div>
-                        <div><span>3</span> Reward is reserved safely in your wallet</div>
-                        <div><span>4</span> Ad expires automatically after selected duration</div>
-                    </div>
-
-                    <div class="success-buttons">
-                        <button type="button" class="action-btn lost-btn" id="submitAnotherLostBtn">Post Another Ad</button>
-                        <button type="button" class="action-btn cancel-adoption-btn" id="viewLostAdBtn">View My Ad</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- PAYMENT MODAL -->
-    <div class="modal-overlay" id="lostPaymentModal">
-        <div class="modal adoption-modal payment-modal">
-            <button class="close-modal" id="closeLostPaymentModal">×</button>
-
-            <div class="box adoption-step-box">
-                <div class="step-header">
-                    <div>
-                        <h3>Payment Method</h3>
-                        <span>Lost Pet Ad Payment</span>
-                    </div>
-                    <div class="step-icon">💳</div>
-                </div>
-
-                <div class="choice-grid three-cols payment-method-grid">
-                    <label class="choice-card payment-method-card" data-method="CliQ">
-                        <input type="radio" name="paymentMethod" value="CliQ">
-                        <span>CliQ</span>
-                    </label>
-
-                    <label class="choice-card payment-method-card selected-red" data-method="Card">
-                        <input type="radio" name="paymentMethod" value="Card" checked>
-                        <span>Visa / Mastercard</span>
-                    </label>
-
-                    <label class="choice-card payment-method-card" data-method="Wallet">
-                        <input type="radio" name="paymentMethod" value="Wallet">
-                        <span>Waffy Wallet</span>
-                    </label>
-                </div>
-
-                <div class="payment-panel" id="walletPanel" hidden>
-                    <div class="wallet-balance-card">
-                        <div class="wallet-balance-top">
-                            <strong id="walletBalanceDisplay">25.00 JOD</strong>
-                            <span>Available Balance</span>
-                        </div>
-
-                        <div class="review-list compact-review">
-                            <div><span>Publishing Fee</span><strong>2.00 JOD</strong></div>
-                            <div><span>Reserved Reward</span><strong id="walletRewardAmount">10.00 JOD</strong></div>
-                            <div><span>Deducted from Wallet</span><strong id="walletTotalAmount">12.00 JOD</strong></div>
-                        </div>
-
-                        <div class="wallet-warning" id="walletShortText">Remaining balance after payment: 13.00 JOD</div>
-                    </div>
-                </div>
-
-                <div class="payment-panel active" id="cardPanel">
-                    <div class="adoption-grid payment-grid">
-                        <div class="form-group full-width">
-                            <label for="cardNumber">Card Number</label>
-                            <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="expiryDate">Expiry Date</label>
-                            <input type="text" id="expiryDate" placeholder="MM / YY">
-                        </div>
-
-                        <div class="form-group">
-                            <label for="cvv">CVV</label>
-                            <input type="text" id="cvv" placeholder="***">
-                        </div>
-
-                        <div class="form-group full-width">
-                            <label for="cardholderName">Cardholder Name</label>
-                            <input type="text" id="cardholderName" placeholder="Name as shown on card">
+                        <div class="step-actions between-actions">
+                            <button type="button" class="action-btn cancel-adoption-btn"
+                                    onclick="goLostStep(2)">
+                                ← Back
+                            </button>
+                            <button type="button" class="action-btn adopted-btn"
+                                    onclick="goLostStep(4)">
+                                Next →
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                <div class="payment-panel" id="cliqPanel" hidden>
-                    <div class="cliq-box">
-                        <div class="cliq-icon">📱</div>
-                        <h4>Pay via CliQ</h4>
-                        <p>Enter your phone number or CliQ alias below.</p>
+                @* ══ STEP 4: Reward ══ *@
+                <div class="lost-step" id="lostStep4">
+                    <div class="box adoption-step-box reward-box">
+                        <div class="step-header">
+                            <div>
+                                <h3>Reward Amount</h3>
+                                <span>Step 4 of 6</span>
+                            </div>
+                            <div class="step-icon">👛</div>
+                        </div>
 
-                        <div class="form-group full-width">
-                            <label for="cliqAlias">CliQ Alias / Phone</label>
-                            <div class="phone-wrap">
-                                <span class="phone-code">+962</span>
-                                <input type="text" id="cliqAlias" placeholder="7X XXX XXXX">
+                        <div class="warning-inline">
+                            Reward amount will stay reserved in your wallet until the finder is verified.
+                        </div>
+
+                        <div class="form-group full-width" style="margin-top:1rem">
+                            <div class="choice-grid four-cols">
+                                <label class="choice-card">
+                                    <input type="radio" name="rewardAmount" value="50" />
+                                    <span>50 JOD</span>
+                                </label>
+                                <label class="choice-card">
+                                    <input type="radio" name="rewardAmount" value="25" />
+                                    <span>25 JOD</span>
+                                </label>
+                                <label class="choice-card selected-red">
+                                    <input type="radio" name="rewardAmount"
+                                           value="10" checked />
+                                    <span>10 JOD</span>
+                                </label>
+                                <label class="choice-card">
+                                    <input type="radio" name="rewardAmount" value="0" />
+                                    <span>No Reward</span>
+                                </label>
                             </div>
                         </div>
+
+                        <div class="step-actions between-actions">
+                            <button type="button" class="action-btn cancel-adoption-btn"
+                                    onclick="goLostStep(3)">
+                                ← Back
+                            </button>
+                            <button type="button" class="action-btn adopted-btn"
+                                    onclick="goLostStep(5)">
+                                Next →
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                <div class="step-actions between-actions">
-                    <button type="button" class="action-btn cancel-adoption-btn" id="cancelLostPaymentBtn">Cancel</button>
-                    <button type="button" class="action-btn lost-submit-btn" id="confirmLostPaymentBtn">Confirm Payment</button>
+                @* ══ STEP 5: Secret Question ══ *@
+                <div class="lost-step" id="lostStep5">
+                    <div class="box adoption-step-box secret-box">
+                        <div class="step-header">
+                            <div>
+                                <h3>Secret Question</h3>
+                                <span>Step 5 of 6</span>
+                            </div>
+                            <div class="step-icon">🔐</div>
+                        </div>
+
+                        <div class="info-note-box">
+                            The question and answer will never appear in the public ad.
+                        </div>
+
+                        <div class="form-group full-width" style="margin-top:1rem">
+                            <label>Secret Question <span style="color:red">*</span></label>
+                            <input type="text" name="secretQuestion"
+                                   placeholder="Example: Does the pet have a mark on one ear?"
+                                   required />
+                        </div>
+
+                        <div class="form-group full-width" style="margin-top:.8rem">
+                            <label>Correct Answer <span style="color:red">*</span></label>
+                            <input type="text" name="secretAnswer"
+                                   placeholder="Hidden answer" required />
+                        </div>
+
+                        <div class="step-actions between-actions">
+                            <button type="button" class="action-btn cancel-adoption-btn"
+                                    onclick="goLostStep(4)">
+                                ← Back
+                            </button>
+                            <button type="button" class="action-btn adopted-btn"
+                                    onclick="goLostStep(6)">
+                                Next →
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
+
+                @* ══ STEP 6: Contact & Submit ══ *@
+                <div class="lost-step" id="lostStep6">
+                    <div class="box adoption-step-box">
+                        <div class="step-header">
+                            <div>
+                                <h3>Contact Information</h3>
+                                <span>Step 6 of 6</span>
+                            </div>
+                            <div class="step-icon">📞</div>
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label>Contact Phone <span style="color:red">*</span></label>
+                            <div class="phone-wrap">
+                                <span class="phone-code">+962</span>
+                                <input type="tel" name="contactPhone"
+                                       placeholder="7X XXX XXXX" required />
+                            </div>
+                        </div>
+
+                        <label class="agree-check review-agree"
+                               style="margin-top:1.2rem;display:flex;gap:.5rem;align-items:center">
+                            <input type="checkbox" id="agreeLostTerms" />
+                            <span>I confirm all information is correct and agree to publish this ad.</span>
+                        </label>
+
+                        <div class="step-actions between-actions">
+                            <button type="button" class="action-btn cancel-adoption-btn"
+                                    onclick="goLostStep(5)">
+                                ← Back
+                            </button>
+                            <button type="submit" class="action-btn lost-btn"
+                                    onclick="return checkLostAgree()">
+                                Publish Lost Ad 📣
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+            </form>
         </div>
     </div>
-
-    <!-- FINAL PUBLISH CONFIRM MODAL -->
-    <div class="modal-overlay" id="lostFinalPublishConfirmModal">
-        <div class="modal confirm-adoption-modal lost-confirm-special">
-            <button class="close-modal" id="closeLostFinalPublishConfirmModal">×</button>
-
-            <div class="confirm-logo">
-                <img src="images/logo.png" alt="Waffy Logo">
-            </div>
-
-            <h2>Confirm Lost Pet Listing</h2>
-
-            <div class="confirm-image-wrap">
-                <img src="images/lost-confirm.png" alt="Final Lost Confirmation">
-            </div>
-
-            <p class="confirm-text">
-                Are you sure you want to publish your pet in the lost pets section?
-            </p>
-
-            <div class="confirm-actions">
-                <button type="button" class="confirm-cancel-btn" id="cancelLostFinalPublishConfirmBtn">Cancel</button>
-                <button type="button" class="confirm-ok-btn" id="confirmLostFinalPublishBtn">Yes, Confirm</button>
-            </div>
-        </div>
-    </div>
-
     <!-- ADOPTION FLOW -->
     <div class="modal-overlay" id="adoptionFlow">
         <div class="modal adoption-modal">
             <button class="close-modal" id="closeAdoptionFlowBtn">×</button>
 
-            <!-- STEP 1: LOCATION & CONTACT -->
-            <div class="adoption-step" id="adoptionStep1">
-                <div class="box adoption-step-box">
-                    <div class="step-header">
-                        <div>
-                            <h3>Location & Contact</h3>
-                            <span>Step 1</span>
-                        </div>
-                        <div class="step-icon">📍</div>
-                    </div>
+            @if (TempData["AdoptSuccess"] != null)
+            {
+                <div class="alert-success">✅ @TempData["AdoptSuccess"]</div>
+            }
+            @if (TempData["AdoptError"] != null)
+            {
+                <div class="alert-error">⚠️ @TempData["AdoptError"]</div>
+            }
 
-                    <div class="adoption-grid">
-                        <div class="form-group">
-                            <label for="adCity">City</label>
-                            <select id="adCity" required>
-                                <option value="">Select city</option>
-                                <option>Amman</option>
-                                <option>Zarqa</option>
-                                <option>Irbid</option>
-                                <option>Aqaba</option>
-                                <option>Madaba</option>
-                            </select>
+            @* ✅ form واحد يحتوي كل الـ steps *@
+            <form method="post"
+                  asp-controller="Pet"
+                  asp-action="SubmitAdoption"
+                  enctype="multipart/form-data"
+                  id="adoptionForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="petId" value="@Model.IdPet" />
+
+                @* ══ STEP 1: Location & Contact ══ *@
+                <div class="adoption-step active" id="adoptStep1">
+                    <div class="box adoption-step-box">
+                        <div class="step-header">
+                            <div>
+                                <h3>Location & Contact</h3>
+                                <span>Step 1 of 4</span>
+                            </div>
+                            <div class="step-icon">📍</div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="adArea">Area</label>
-                            <input type="text" id="adArea" placeholder="Example: Al Rabieh" required />
-                        </div>
+                        <div class="adoption-grid">
+                            <div class="form-group">
+                                <label>City <span style="color:red">*</span></label>
+                                <select name="city" id="adCity" required>
+                                    <option value="">Select city</option>
+                                    <option>Amman</option>
+                                    <option>Zarqa</option>
+                                    <option>Irbid</option>
+                                    <option>Aqaba</option>
+                                    <option>Madaba</option>
+                                    <option>Karak</option>
+                                    <option>Jerash</option>
+                                </select>
+                            </div>
 
-                        <div class="form-group full-width">
-                            <label for="adPhone">Contact Phone</label>
-                            <div class="phone-wrap">
-                                <span class="phone-code">+962</span>
-                                <input type="text" id="adPhone" placeholder="7X XXX XXXX" required />
+                            <div class="form-group">
+                                <label>Area</label>
+                                <input type="text" name="area" id="adArea"
+                                       placeholder="Example: Al Rabieh" />
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label>Contact Phone <span style="color:red">*</span></label>
+                                <div class="phone-wrap">
+                                    <span class="phone-code">+962</span>
+                                    <input type="tel" name="contactPhone" id="adPhone"
+                                           placeholder="7X XXX XXXX" required />
+                                </div>
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label>Preferred Contact Method</label>
+                                <div class="choice-grid two-cols">
+                                    <label class="choice-card selected-card">
+                                        <input type="radio" name="contactMethod"
+                                               value="Phone" checked />
+                                        <span>Phone</span>
+                                    </label>
+                                    <label class="choice-card">
+                                        <input type="radio" name="contactMethod"
+                                               value="WhatsApp" />
+                                        <span>WhatsApp</span>
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="form-group full-width">
-                            <label>Preferred Contact Method</label>
-                            <div class="choice-grid two-cols">
-                                <label class="choice-card selected-card">
-                                    <input type="radio" name="contactMethod" value="Phone" checked />
-                                    <span>Phone</span>
-                                </label>
+                        <div class="step-actions">
+                            <button type="button" class="action-btn adopted-btn"
+                                    onclick="goAdoptStep(2)">
+                                Next →
+                            </button>
+                        </div>
+                    </div>
+                </div>
 
-                                <label class="choice-card">
-                                    <input type="radio" name="contactMethod" value="WhatsApp" />
-                                    <span>WhatsApp</span>
-                                </label>
+                @* ══ STEP 2: Pet Photos ══ *@
+                <div class="adoption-step" id="adoptStep2">
+                    <div class="box adoption-step-box">
+                        <div class="step-header">
+                            <div>
+                                <h3>Pet Photos</h3>
+                                <span>Step 2 of 4</span>
                             </div>
+                            <div class="step-icon">🖼️</div>
                         </div>
-                    </div>
 
-                    <div class="step-actions">
-                        <button type="button" class="action-btn adopted-btn next-step-btn" data-next="2">Next</button>
+                        <div class="photo-upload-box">
+                            <label for="adPhotos" class="main-upload-area">
+                                <div class="upload-icon">📷</div>
+                                <strong>Click to upload pet photos</strong>
+                                <p>Up to 5 images — JPG, PNG</p>
+                            </label>
+                            <input type="file" id="adPhotos" name="photos"
+                                   accept="image/*" multiple hidden />
+                        </div>
+
+                        <div class="photo-preview-grid" id="adoptPhotoPreview">
+                            <div class="mini-upload">+</div>
+                            <div class="mini-upload">+</div>
+                            <div class="mini-upload">+</div>
+                            <div class="mini-upload">+</div>
+                            <div class="mini-upload">+</div>
+                        </div>
+
+                        <div class="step-actions between-actions">
+                            <button type="button" class="action-btn cancel-adoption-btn"
+                                    onclick="goAdoptStep(1)">
+                                ← Back
+                            </button>
+                            <button type="button" class="action-btn adopted-btn"
+                                    onclick="goAdoptStep(3)">
+                                Next →
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- STEP 2: PET PHOTOS -->
-            <div class="adoption-step" id="adoptionStep2">
-                <div class="box adoption-step-box">
-                    <div class="step-header">
-                        <div>
-                            <h3>Pet Photos</h3>
-                            <span>Step 2</span>
-                        </div>
-                        <div class="step-icon">🖼️</div>
-                    </div>
-
-                    <div class="photo-upload-box">
-                        <label for="adPhotos" class="main-upload-area">
-                            <div class="upload-icon">📷</div>
-                            <strong>Click to upload pet photos</strong>
-                            <p>Up to 5 images — JPG, PNG</p>
-                        </label>
-                        <input type="file" id="adPhotos" accept="image/*" multiple hidden />
-                    </div>
-
-                    <div class="photo-preview-grid" id="photoPreviewGrid">
-                        <div class="mini-upload">+</div>
-                        <div class="mini-upload">+</div>
-                        <div class="mini-upload">+</div>
-                        <div class="mini-upload">+</div>
-                        <div class="mini-upload">+</div>
-                    </div>
-
-                    <div class="step-actions between-actions">
-                        <button type="button" class="action-btn cancel-adoption-btn prev-step-btn" data-prev="1">Back</button>
-                        <button type="button" class="action-btn adopted-btn next-step-btn" data-next="3">Next</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- STEP 3: DESCRIPTION & REASON -->
-            <div class="adoption-step" id="adoptionStep3">
-                <div class="box adoption-step-box">
-                    <div class="step-header">
-                        <div>
-                            <h3>Description & Reason</h3>
-                            <span>Step 3</span>
-                        </div>
-                        <div class="step-icon">📝</div>
-                    </div>
-
-                    <div class="adoption-grid">
-                        <div class="form-group full-width">
-                            <label for="adDescription">Pet Description</label>
-                            <textarea id="adDescription" placeholder="Describe the pet's personality, habits, behavior, and what makes it special..." required></textarea>
+                @* ══ STEP 3: Description & Reason ══ *@
+                <div class="adoption-step" id="adoptStep3">
+                    <div class="box adoption-step-box">
+                        <div class="step-header">
+                            <div>
+                                <h3>Description & Reason</h3>
+                                <span>Step 3 of 4</span>
+                            </div>
+                            <div class="step-icon">📝</div>
                         </div>
 
                         <div class="form-group full-width">
-                            <label>Reason for Adoption</label>
-                            <div class="reason-note">This information helps us understand the case, and will not be shown publicly.</div>
+                            <label>Pet Description <span style="color:red">*</span></label>
+                            <textarea name="description" id="adDescription" rows="4"
+                                      placeholder="Describe the pet's personality, habits..."
+                                      required></textarea>
+                        </div>
 
+                        <div class="form-group full-width" style="margin-top:1rem">
+                            <label>Reason for Adoption <span style="color:red">*</span></label>
+                            <div class="reason-note">
+                                This information helps us understand the case, and will not be shown publicly.
+                            </div>
                             <div class="choice-grid two-cols">
                                 <label class="choice-card">
-                                    <input type="radio" name="adoptionReason" value="Cannot care for pet anymore" required />
+                                    <input type="radio" name="reason"
+                                           value="Cannot care for pet anymore" required />
                                     <span>Cannot care for pet anymore</span>
                                 </label>
-
                                 <label class="choice-card">
-                                    <input type="radio" name="adoptionReason" value="Found as stray" />
+                                    <input type="radio" name="reason"
+                                           value="Found as stray" />
                                     <span>Found as stray</span>
                                 </label>
-
                                 <label class="choice-card">
-                                    <input type="radio" name="adoptionReason" value="Moving home" />
+                                    <input type="radio" name="reason"
+                                           value="Moving home" />
                                     <span>Moving home</span>
                                 </label>
-
                                 <label class="choice-card">
-                                    <input type="radio" name="adoptionReason" value="Other" />
+                                    <input type="radio" name="reason"
+                                           value="Other" />
                                     <span>Other</span>
                                 </label>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="step-actions between-actions">
-                        <button type="button" class="action-btn cancel-adoption-btn prev-step-btn" data-prev="2">Back</button>
-                        <button type="button" class="action-btn adopted-btn next-step-btn" data-next="4">Next</button>
+                        <div class="step-actions between-actions">
+                            <button type="button" class="action-btn cancel-adoption-btn"
+                                    onclick="goAdoptStep(2)">
+                                ← Back
+                            </button>
+                            <button type="button" class="action-btn adopted-btn"
+                                    onclick="goAdoptStep(4)">
+                                Next →
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- STEP 4: REVIEW -->
-            <div class="adoption-step" id="adoptionStep4">
-                <div class="box adoption-step-box">
-                    <div class="step-header">
-                        <div>
-                            <h3>Review Before Submitting</h3>
-                            <span>Step 4</span>
+                @* ══ STEP 4: Review & Submit ══ *@
+                <div class="adoption-step" id="adoptStep4">
+                    <div class="box adoption-step-box">
+                        <div class="step-header">
+                            <div>
+                                <h3>Review Before Submitting</h3>
+                                <span>Step 4 of 4</span>
+                            </div>
+                            <div class="step-icon">✅</div>
                         </div>
-                        <div class="step-icon">✅</div>
-                    </div>
 
-                    <div class="review-card">
-                        <div class="review-section">
-                            <h4>Basic Pet Information</h4>
-                            <div class="review-list">
-                                <div><span>Name</span><strong id="reviewPetName">-</strong></div>
-                                <div><span>Type</span><strong id="reviewPetType">-</strong></div>
-                                <div><span>Age</span><strong id="reviewPetAge">-</strong></div>
-                                <div><span>Gender</span><strong id="reviewPetGender">-</strong></div>
+                        @* Pet Info *@
+                        <div class="review-card">
+                            <div class="review-section">
+                                <h4>Pet</h4>
+                                <div class="review-list">
+                                    <div><span>Name</span><strong>@Model.Name</strong></div>
+                                    <div><span>Type</span><strong>@Model.Species @Model.Breed</strong></div>
+                                    <div><span>Gender</span><strong>@Model.Gender</strong></div>
+                                    <div><span>Age</span><strong>@Model.AgeDisplay</strong></div>
+                                </div>
+                            </div>
+
+                            <div class="review-section">
+                                <h4>Contact & Location</h4>
+                                <div class="review-list">
+                                    <div><span>City</span><strong id="reviewCity">—</strong></div>
+                                    <div><span>Area</span><strong id="reviewArea">—</strong></div>
+                                    <div><span>Phone</span><strong id="reviewPhone">—</strong></div>
+                                    <div><span>Method</span><strong id="reviewMethod">—</strong></div>
+                                </div>
+                            </div>
+
+                            <div class="review-section">
+                                <h4>Description</h4>
+                                <p id="reviewDesc" style="color:#555;font-size:.9rem">—</p>
+                                <div style="margin-top:.5rem">
+                                    <span style="font-weight:700">Reason: </span>
+                                    <span id="reviewReason">—</span>
+                                </div>
                             </div>
                         </div>
 
-                        <div class="review-section">
-                            <h4>Health</h4>
-                            <div class="review-list">
-                                <div><span>Health Status</span><strong id="reviewHealthStatus">Healthy</strong></div>
-                                <div><span>Neutered / Spayed</span><strong id="reviewNeutered">Yes</strong></div>
-                            </div>
+                        <label class="agree-check review-agree" style="margin-top:1rem;display:flex;gap:.5rem;align-items:center">
+                            <input type="checkbox" id="agreeAdTerms" />
+                            <span>I confirm all information is correct and agree to publish this ad.</span>
+                        </label>
+
+                        <div class="step-actions between-actions">
+                            <button type="button" class="action-btn cancel-adoption-btn"
+                                    onclick="goAdoptStep(3)">
+                                ← Back
+                            </button>
+                            <button type="submit" class="action-btn adopted-btn"
+                                    onclick="return checkAdoptAgree()">
+                                Submit Ad 🐾
+                            </button>
                         </div>
-
-                        <div class="review-section">
-                            <h4>Contact & Location</h4>
-                            <div class="review-list">
-                                <div><span>City</span><strong id="reviewCity">-</strong></div>
-                                <div><span>Area</span><strong id="reviewArea">-</strong></div>
-                                <div><span>Phone</span><strong id="reviewPhone">-</strong></div>
-                                <div><span>Contact Method</span><strong id="reviewMethod">-</strong></div>
-                            </div>
-                        </div>
-
-                        <div class="review-section">
-                            <h4>Adoption Description</h4>
-                            <p id="reviewDescription">-</p>
-                            <div class="review-reason">
-                                <span>Reason:</span>
-                                <strong id="reviewReason">-</strong>
-                            </div>
-                        </div>
-                    </div>
-
-                    <label class="agree-check review-agree">
-                        <input type="checkbox" id="agreeAdTerms" />
-                        <span>I agree to publish this adoption ad and confirm that all provided information is correct.</span>
-                    </label>
-
-                    <div class="step-actions between-actions">
-                        <button type="button" class="action-btn cancel-adoption-btn prev-step-btn" data-prev="3">Back</button>
-                        <button type="button" class="action-btn adopted-btn" id="submitAdoptionBtn">Submit Ad</button>
                     </div>
                 </div>
-            </div>
 
-            <!-- STEP 5: SUCCESS -->
-            <div class="adoption-step" id="adoptionStep5">
-                <div class="box adoption-success-box">
-                    <div class="success-icon">🐾</div>
-                    <h2>Ad Submitted Successfully!</h2>
-                    <p>
-                        Thank you for helping this pet find a loving new home.
-                        Your ad will be reviewed by the Waffy team before it is published.
-                    </p>
-
-                    <div class="success-badges">
-                        <div class="success-badge">Ad ID: <strong>WAFFY-ADT-GZYG</strong></div>
-                        <div class="success-badge pending-badge">Pending Approval</div>
-                    </div>
-
-                    <div class="success-steps">
-                        <div><span>1</span> Ad received successfully ✅</div>
-                        <div><span>2</span> Content review within 24–48 hours</div>
-                        <div><span>3</span> You will receive an email notification 🎉</div>
-                    </div>
-
-                    <div class="success-buttons">
-                        <button type="button" class="action-btn adopted-btn" id="submitAnotherAdBtn">Submit Another Ad</button>
-                        <button type="button" class="action-btn cancel-adoption-btn" id="backToRecordBtn">View Medical Record</button>
-                    </div>
-                </div>
-            </div>
+            </form>
         </div>
     </div>
 
@@ -1054,824 +877,224 @@
         <div>© 2026 Waffy, all rights reserved.</div>
     </footer>
 
-
     <script>
-            const mobileToggle = document.getElementById("mobileToggle");
-            const navMenu = document.getElementById("navMenu");
 
-            /* =========================
-               PET DATA
-            ========================= */
-
-          const servicesDropdown = document.getElementById("servicesDropdown");
-          const servicesToggle = document.getElementById("servicesToggle");
-          const menuBtn = document.getElementById("menuBtn");
-          const navLinks = document.getElementById("navLinks");
-          const mobileServicesBlock = document.getElementById("mobileServicesBlock");
-          const mobileServicesToggle = document.getElementById("mobileServicesToggle");
-
-          if (servicesToggle && servicesDropdown) {
-            servicesToggle.addEventListener("click", (e) => {
-              e.stopPropagation();
-              servicesDropdown.classList.toggle("open");
-            });
-
-            document.addEventListener("click", (e) => {
-              if (!servicesDropdown.contains(e.target)) {
-                servicesDropdown.classList.remove("open");
-              }
-            });
-          }
-
-          if (menuBtn && navLinks) {
-            menuBtn.addEventListener("click", (e) => {
-              e.stopPropagation();
-              navLinks.classList.toggle("open");
-            });
-
-            document.addEventListener("click", (e) => {
-              if (!navLinks.contains(e.target) && !menuBtn.contains(e.target)) {
-                navLinks.classList.remove("open");
-              }
-            });
-          }
-
-          if (mobileServicesBlock && mobileServicesToggle) {
-            mobileServicesToggle.addEventListener("click", () => {
-              mobileServicesBlock.classList.toggle("open");
-            });
-          }
-
-            const petsData = {
-              buddy: {
-                name: "Lexi",
-                age: "3 Years",
-                type: "Dog - Beagle",
-                gender: "Female",
-                image: "images/dog.png",
-                healthProblems: ["Mild skin allergy", "Previous digestive issue"],
-                behavior: "Friendly, active, responsive",
-                training: "Trained on basic commands",
-                healthStatus: "Healthy",
-                neutered: "Yes",
-                vaccines: [
-                  { name: "Rabies", taken: "15/05/2025", expiry: "15/05/2026" },
-                  { name: "DHPP", taken: "10/06/2025", expiry: "10/06/2026" },
-                  { name: "Kennel Cough", taken: "10/06/2025", expiry: "10/06/2026" }
-                ]
-              },
-              milo: {
-                name: "Milo",
-                age: "1 Year",
-                type: "Cat - Persian",
-                gender: "Male",
-                image: "images/cat.png",
-                healthProblems: ["Allergy to chicken"],
-                behavior: "Calm, friendly, playful",
-                training: "Litter trained",
-                healthStatus: "Healthy",
-                neutered: "Yes",
-                vaccines: [
-                  { name: "Rabies", taken: "20/04/2025", expiry: "20/04/2026" },
-                  { name: "FVRCP", taken: "22/04/2025", expiry: "22/04/2026" }
-                ]
-              }
-            };
-
-            /* =========================
-               BASIC PAGE SETUP
-            ========================= */
-            if (mobileToggle && navMenu) {
-              mobileToggle.addEventListener("click", () => {
-                navMenu.classList.toggle("show");
-              });
-            }
-
-            const params = new URLSearchParams(window.location.search);
-            const petKey = params.get("pet") || "buddy";
-            const pet = petsData[petKey] || petsData.buddy;
-
-            const petNameEl = document.getElementById("petName");
-            const petAgeEl = document.getElementById("petAge");
-            const petTypeEl = document.getElementById("petType");
-            const petGenderEl = document.getElementById("petGender");
-            const petImageEl = document.getElementById("petImage");
-            const petBehaviorEl = document.getElementById("petBehavior");
-            const petTrainingEl = document.getElementById("petTraining");
-            const healthProblemsEl = document.getElementById("healthProblems");
-            const vaccineTableEl = document.getElementById("vaccineTable");
-
-            const lostSelectedPetImage = document.getElementById("lostSelectedPetImage");
-            const lostSelectedPetName = document.getElementById("lostSelectedPetName");
-            const lostSelectedPetType = document.getElementById("lostSelectedPetType");
-
-            if (petNameEl) petNameEl.textContent = pet.name;
-            if (petAgeEl) petAgeEl.textContent = pet.age;
-            if (petTypeEl) petTypeEl.textContent = pet.type;
-            if (petGenderEl) petGenderEl.textContent = pet.gender;
-            if (petImageEl) petImageEl.src = pet.image;
-            if (petBehaviorEl) petBehaviorEl.textContent = pet.behavior;
-            if (petTrainingEl) petTrainingEl.textContent = pet.training;
-
-            if (lostSelectedPetImage) lostSelectedPetImage.src = pet.image;
-            if (lostSelectedPetName) lostSelectedPetName.textContent = pet.name;
-            if (lostSelectedPetType) lostSelectedPetType.textContent = pet.type;
-
-            if (healthProblemsEl) {
-              healthProblemsEl.innerHTML = pet.healthProblems
-                .map(problem => `<p>${problem}</p>`)
-                .join("");
-            }
-
-            if (vaccineTableEl) {
-              vaccineTableEl.innerHTML = pet.vaccines
-                .map(vaccine => `
-                  <tr>
-                    <td>${vaccine.name}</td>
-                    <td>${vaccine.taken}</td>
-                    <td>${vaccine.expiry}</td>
-                  </tr>
-                `)
-                .join("");
-            }
-
-            /* =========================
-               ADOPTION FLOW
-            ========================= */
-            const openAdoptionFormBtn = document.getElementById("openAdoptionFormBtn");
-            const adoptionFlow = document.getElementById("adoptionFlow");
-            const closeAdoptionFlowBtn = document.getElementById("closeAdoptionFlowBtn");
-
-            const adoptionSteps = document.querySelectorAll(".adoption-step");
-            const nextBtns = document.querySelectorAll(".next-step-btn");
-            const prevBtns = document.querySelectorAll(".prev-step-btn");
-
-            const submitAdoptionBtn = document.getElementById("submitAdoptionBtn");
-            const submitAnotherAdBtn = document.getElementById("submitAnotherAdBtn");
-            const backToRecordBtn = document.getElementById("backToRecordBtn");
-
-            const adPhotos = document.getElementById("adPhotos");
-            const photoPreviewGrid = document.getElementById("photoPreviewGrid");
-
-            const adoptionConfirmModal = document.getElementById("adoptionConfirmModal");
-            const closeAdoptionConfirmModal = document.getElementById("closeAdoptionConfirmModal");
-            const cancelAdoptionConfirmBtn = document.getElementById("cancelAdoptionConfirmBtn");
-            const confirmAdoptionFinalBtn = document.getElementById("confirmAdoptionFinalBtn");
-
-            function showAdoptionStep(stepNumber) {
-              adoptionSteps.forEach(step => step.classList.remove("active"));
-              const target = document.getElementById(`adoptionStep${stepNumber}`);
-              if (target) {
-                target.classList.add("active");
-                const modalBody = adoptionFlow?.querySelector(".adoption-modal");
-                if (modalBody) modalBody.scrollTop = 0;
-              }
-            }
-
-            function resetAdoptionPhotos() {
-              if (!photoPreviewGrid) return;
-              photoPreviewGrid.innerHTML = `
-                <div class="mini-upload">+</div>
-                <div class="mini-upload">+</div>
-                <div class="mini-upload">+</div>
-                <div class="mini-upload">+</div>
-                <div class="mini-upload">+</div>
-              `;
-            }
-
-            function resetAdoptionFlow() {
-              const adCity = document.getElementById("adCity");
-              const adArea = document.getElementById("adArea");
-              const adPhone = document.getElementById("adPhone");
-              const adDescription = document.getElementById("adDescription");
-              const agreeAdTerms = document.getElementById("agreeAdTerms");
-
-              if (adCity) adCity.value = "";
-              if (adArea) adArea.value = "";
-              if (adPhone) adPhone.value = "";
-              if (adDescription) adDescription.value = "";
-              if (agreeAdTerms) agreeAdTerms.checked = false;
-
-              document.querySelectorAll('input[name="adoptionReason"]').forEach(input => {
-                input.checked = false;
-              });
-
-              const contactMethods = document.querySelectorAll('input[name="contactMethod"]');
-              contactMethods.forEach(input => {
-                input.checked = false;
-              });
-
-              if (contactMethods.length) {
-                contactMethods[0].checked = true;
-              }
-
-              if (adPhotos) adPhotos.value = "";
-              resetAdoptionPhotos();
-              showAdoptionStep(1);
-            }
-
-            function fillAdoptionReviewData() {
-              const reviewPetName = document.getElementById("reviewPetName");
-              const reviewPetType = document.getElementById("reviewPetType");
-              const reviewPetAge = document.getElementById("reviewPetAge");
-              const reviewPetGender = document.getElementById("reviewPetGender");
-              const reviewHealthStatus = document.getElementById("reviewHealthStatus");
-              const reviewNeutered = document.getElementById("reviewNeutered");
-              const reviewCity = document.getElementById("reviewCity");
-              const reviewArea = document.getElementById("reviewArea");
-              const reviewPhone = document.getElementById("reviewPhone");
-              const reviewMethod = document.getElementById("reviewMethod");
-              const reviewDescription = document.getElementById("reviewDescription");
-              const reviewReason = document.getElementById("reviewReason");
-
-              if (reviewPetName) reviewPetName.textContent = pet.name;
-              if (reviewPetType) reviewPetType.textContent = pet.type;
-              if (reviewPetAge) reviewPetAge.textContent = pet.age;
-              if (reviewPetGender) reviewPetGender.textContent = pet.gender;
-              if (reviewHealthStatus) reviewHealthStatus.textContent = pet.healthStatus || "Healthy";
-              if (reviewNeutered) reviewNeutered.textContent = pet.neutered || "Yes";
-
-              if (reviewCity) reviewCity.textContent = document.getElementById("adCity")?.value || "-";
-              if (reviewArea) reviewArea.textContent = document.getElementById("adArea")?.value || "-";
-              if (reviewPhone) reviewPhone.textContent = "+962 " + (document.getElementById("adPhone")?.value || "-");
-
-              const method = document.querySelector('input[name="contactMethod"]:checked');
-              if (reviewMethod) reviewMethod.textContent = method ? method.value : "-";
-
-              if (reviewDescription) {
-                reviewDescription.textContent = document.getElementById("adDescription")?.value || "-";
-              }
-
-              const reason = document.querySelector('input[name="adoptionReason"]:checked');
-              if (reviewReason) reviewReason.textContent = reason ? reason.value : "-";
-            }
-
-            if (openAdoptionFormBtn && adoptionFlow) {
-              openAdoptionFormBtn.addEventListener("click", () => {
-                adoptionFlow.classList.add("show");
-                showAdoptionStep(1);
-              });
-            }
-
-            if (closeAdoptionFlowBtn && adoptionFlow) {
-              closeAdoptionFlowBtn.addEventListener("click", () => {
-                adoptionFlow.classList.remove("show");
-              });
-            }
-
-            nextBtns.forEach(btn => {
-              btn.addEventListener("click", () => {
-                const nextStep = btn.dataset.next;
-
-                if (nextStep === "2") {
-                  const city = document.getElementById("adCity")?.value.trim();
-                  const area = document.getElementById("adArea")?.value.trim();
-                  const phone = document.getElementById("adPhone")?.value.trim();
-
-                  if (!city || !area || !phone) {
-                    alert("Please fill in location and contact information first.");
+                // ══════════════════════════════════════
+        // ADOPTION STEPS
+        // ══════════════════════════════════════
+        function goAdoptStep(n) {
+            // Validation قبل الانتقال
+            if (n === 2) {
+                const city  = document.getElementById("adCity")?.value;
+                const phone = document.getElementById("adPhone")?.value.trim();
+                if (!city || !phone) {
+                    alert("Please fill in City and Phone first.");
                     return;
-                  }
                 }
-
-                if (nextStep === "4") {
-                  const description = document.getElementById("adDescription")?.value.trim();
-                  const reason = document.querySelector('input[name="adoptionReason"]:checked');
-
-                  if (!description || !reason) {
-                    alert("Please complete description and reason before continuing.");
+            }
+            if (n === 4) {
+                const desc   = document.getElementById("adDescription")?.value.trim();
+                const reason = document.querySelector('input[name="reason"]:checked');
+                if (!desc || !reason) {
+                    alert("Please complete Description and Reason.");
                     return;
-                  }
-
-                  fillAdoptionReviewData();
                 }
-
-                showAdoptionStep(nextStep);
-              });
-            });
-
-            prevBtns.forEach(btn => {
-              btn.addEventListener("click", () => {
-                showAdoptionStep(btn.dataset.prev);
-              });
-            });
-
-            if (submitAdoptionBtn) {
-              submitAdoptionBtn.addEventListener("click", () => {
-                const agree = document.getElementById("agreeAdTerms");
-
-                if (!agree || !agree.checked) {
-                  alert("Please agree to the terms before submitting.");
-                  return;
-                }
-
-                if (adoptionConfirmModal) {
-                  adoptionConfirmModal.classList.add("show");
-                }
-              });
+                // ✅ ملء الـ Review
+                document.getElementById("reviewCity").textContent =
+                    document.getElementById("adCity")?.value || "—";
+                document.getElementById("reviewArea").textContent =
+                    document.getElementById("adArea")?.value || "—";
+                document.getElementById("reviewPhone").textContent =
+                    "+962 " + (document.getElementById("adPhone")?.value || "—");
+                document.getElementById("reviewMethod").textContent =
+                    document.querySelector('input[name="contactMethod"]:checked')?.value || "—";
+                document.getElementById("reviewDesc").textContent = desc;
+                document.getElementById("reviewReason").textContent = reason.value;
             }
 
-            if (closeAdoptionConfirmModal) {
-              closeAdoptionConfirmModal.addEventListener("click", () => {
-                adoptionConfirmModal?.classList.remove("show");
-              });
-            }
-
-            if (cancelAdoptionConfirmBtn) {
-              cancelAdoptionConfirmBtn.addEventListener("click", () => {
-                adoptionConfirmModal?.classList.remove("show");
-              });
-            }
-
-            if (confirmAdoptionFinalBtn) {
-              confirmAdoptionFinalBtn.addEventListener("click", () => {
-                adoptionConfirmModal?.classList.remove("show");
-                showAdoptionStep(5);
-              });
-            }
-
-            if (submitAnotherAdBtn) {
-              submitAnotherAdBtn.addEventListener("click", () => {
-                resetAdoptionFlow();
-              });
-            }
-
-            if (backToRecordBtn) {
-              backToRecordBtn.addEventListener("click", () => {
-                adoptionFlow?.classList.remove("show");
-                resetAdoptionFlow();
-              });
-            }
-
-            if (adPhotos) {
-              adPhotos.addEventListener("change", function () {
-                const files = Array.from(this.files).slice(0, 5);
-                if (!photoPreviewGrid) return;
-
-                photoPreviewGrid.innerHTML = "";
-
-                files.forEach(file => {
-                  const reader = new FileReader();
-                  reader.onload = function (e) {
-                    const div = document.createElement("div");
-                    div.className = "preview-thumb";
-                    div.innerHTML = `<img src="${e.target.result}" alt="Pet Photo">`;
-                    photoPreviewGrid.appendChild(div);
-                  };
-                  reader.readAsDataURL(file);
-                });
-
-                const remaining = 5 - files.length;
-                for (let i = 0; i < remaining; i++) {
-                  const empty = document.createElement("div");
-                  empty.className = "mini-upload";
-                  empty.textContent = "+";
-                  photoPreviewGrid.appendChild(empty);
-                }
-              });
-            }
-
-            /* =========================
-               LOST PET FLOW
-            ========================= */
-            const openLostFlowBtn = document.getElementById("openLostFlowBtn");
-            const lostFlowModal = document.getElementById("lostFlowModal");
-            const closeLostFlowModal = document.getElementById("closeLostFlowModal");
-            const lostSteps = document.querySelectorAll(".lost-step");
-            const lostNextBtns = document.querySelectorAll(".lost-next-btn");
-            const lostPrevBtns = document.querySelectorAll(".lost-prev-btn");
-
-            const fakeMapPickerBtn = document.getElementById("fakeMapPickerBtn");
-
-            const lostPhotos = document.getElementById("lostPhotos");
-            const lostPhotoPreviewGrid = document.getElementById("lostPhotoPreviewGrid");
-
-            const lostPaymentModal = document.getElementById("lostPaymentModal");
-            const openLostPaymentBtn = document.getElementById("openLostPaymentBtn");
-            const closeLostPaymentModal = document.getElementById("closeLostPaymentModal");
-            const cancelLostPaymentBtn = document.getElementById("cancelLostPaymentBtn");
-            const confirmLostPaymentBtn = document.getElementById("confirmLostPaymentBtn");
-
-            const lostFinalPublishConfirmModal = document.getElementById("lostFinalPublishConfirmModal");
-            const closeLostFinalPublishConfirmModal = document.getElementById("closeLostFinalPublishConfirmModal");
-            const cancelLostFinalPublishConfirmBtn = document.getElementById("cancelLostFinalPublishConfirmBtn");
-            const confirmLostFinalPublishBtn = document.getElementById("confirmLostFinalPublishBtn");
-
-            const submitAnotherLostBtn = document.getElementById("submitAnotherLostBtn");
-            const viewLostAdBtn = document.getElementById("viewLostAdBtn");
-            const copyFinderCodeBtn = document.getElementById("copyFinderCodeBtn");
-            const finderCodeText = document.getElementById("finderCodeText");
-
-            const walletBalance = 25;
-
-            function showLostStep(stepNumber) {
-              lostSteps.forEach(step => step.classList.remove("active"));
-              const target = document.getElementById(`lostStep${stepNumber}`);
-              if (target) {
-                target.classList.add("active");
-                const modalBody = lostFlowModal?.querySelector(".lost-modal");
-                if (modalBody) modalBody.scrollTop = 0;
-              }
-            }
-
-            function resetLostPhotoGrid() {
-              if (!lostPhotoPreviewGrid) return;
-              lostPhotoPreviewGrid.innerHTML = `
-                <div class="mini-upload">+</div>
-                <div class="mini-upload">+</div>
-                <div class="mini-upload">+</div>
-                <div class="mini-upload">+</div>
-                <div class="mini-upload">+</div>
-              `;
-            }
-
-            function resetLostFlow() {
-              [
-                "lostMicrochip",
-                "lostDate",
-                "lostTime",
-                "lostCity",
-                "lostArea",
-                "lastSeenLocation",
-                "lostDescription",
-                "specialMarks",
-                "secretQuestion",
-                "secretAnswer",
-                "lostContactPhone",
-                "lostWhatsapp",
-                "cardNumber",
-                "expiryDate",
-                "cvv",
-                "cardholderName",
-                "cliqAlias"
-              ].forEach(id => {
-                const field = document.getElementById(id);
-                if (field) field.value = "";
-              });
-
-              const agreeLostTerms = document.getElementById("agreeLostTerms");
-              if (agreeLostTerms) agreeLostTerms.checked = false;
-
-              document.querySelectorAll('input[name="lostExpiry"]').forEach(input => {
-                input.checked = input.value === "14 Days";
-              });
-
-              document.querySelectorAll('input[name="rewardAmount"]').forEach(input => {
-                input.checked = input.value === "10";
-              });
-
-              document.querySelectorAll('input[name="lostContactMethod"]').forEach(input => {
-                input.checked = input.value === "Phone";
-              });
-
-              document.querySelectorAll('input[name="paymentMethod"]').forEach(input => {
-                input.checked = input.value === "Card";
-              });
-
-              activatePaymentMethod("Card");
-
-              if (lostPhotos) lostPhotos.value = "";
-              resetLostPhotoGrid();
-
-              updateLostPaymentSummary();
-              showLostStep(1);
-            }
-
-            function updateLostPaymentSummary() {
-              const selectedReward = document.querySelector('input[name="rewardAmount"]:checked');
-              const rewardValue = selectedReward ? Number(selectedReward.value) : 0;
-              const fee = 2;
-              const total = fee + rewardValue;
-              const remaining = walletBalance - total;
-
-              const reviewReward = document.getElementById("reviewReward");
-              const reviewTotal = document.getElementById("reviewTotal");
-
-              const walletBalanceDisplay = document.getElementById("walletBalanceDisplay");
-              const walletRewardAmount = document.getElementById("walletRewardAmount");
-              const walletTotalAmount = document.getElementById("walletTotalAmount");
-              const walletShortText = document.getElementById("walletShortText");
-
-              if (reviewReward) reviewReward.textContent = `${rewardValue.toFixed(2)} JOD`;
-              if (reviewTotal) reviewTotal.textContent = `${total.toFixed(2)} JOD`;
-
-              if (walletBalanceDisplay) walletBalanceDisplay.textContent = `${walletBalance.toFixed(2)} JOD`;
-              if (walletRewardAmount) walletRewardAmount.textContent = `${rewardValue.toFixed(2)} JOD`;
-              if (walletTotalAmount) walletTotalAmount.textContent = `${total.toFixed(2)} JOD`;
-
-              if (walletShortText) {
-                if (remaining >= 0) {
-                  walletShortText.textContent = `Remaining balance after payment: ${remaining.toFixed(2)} JOD`;
-                } else {
-                  walletShortText.textContent = `Insufficient wallet balance. You need ${Math.abs(remaining).toFixed(2)} JOD more.`;
-                }
-              }
-            }
-
-            function validateLostStep(stepNumber) {
-              if (stepNumber === "2") {
-                const lostDate = document.getElementById("lostDate")?.value.trim();
-                const lostCity = document.getElementById("lostCity")?.value.trim();
-                const lostArea = document.getElementById("lostArea")?.value.trim();
-
-                if (!lostDate || !lostCity || !lostArea) {
-                  alert("Please complete date, city, and area first.");
-                  return false;
-                }
-              }
-
-              if (stepNumber === "3") {
-                const lostDescription = document.getElementById("lostDescription")?.value.trim();
-                if (!lostDescription) {
-                  alert("Please add a description before continuing.");
-                  return false;
-                }
-              }
-
-              if (stepNumber === "6") {
-                const secretQuestion = document.getElementById("secretQuestion")?.value.trim();
-                const secretAnswer = document.getElementById("secretAnswer")?.value.trim();
-
-                if (!secretQuestion || !secretAnswer) {
-                  alert("Please enter the secret question and correct answer.");
-                  return false;
-                }
-              }
-
-              if (stepNumber === "7") {
-                const lostContactPhone = document.getElementById("lostContactPhone")?.value.trim();
-                if (!lostContactPhone) {
-                  alert("Please enter a contact phone number.");
-                  return false;
-                }
-              }
-
-              return true;
-            }
-
-            function activatePaymentMethod(method) {
-              const panels = {
-                Wallet: document.getElementById("walletPanel"),
-                Card: document.getElementById("cardPanel"),
-                CliQ: document.getElementById("cliqPanel")
-              };
-
-              Object.entries(panels).forEach(([key, panel]) => {
-                if (!panel) return;
-
-                if (key === method) {
-                  panel.classList.add("active");
-                  panel.hidden = false;
-                } else {
-                  panel.classList.remove("active");
-                  panel.hidden = true;
-                }
-              });
-
-              document.querySelectorAll(".payment-method-card").forEach(card => {
-                card.classList.remove("selected-red");
-                const input = card.querySelector('input[type="radio"]');
-                if (input && input.value === method) {
-                  card.classList.add("selected-red");
-                  input.checked = true;
-                }
-              });
-            }
-
-            function validatePaymentMethod() {
-              const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value;
-
-              if (selectedMethod === "Card") {
-                const cardNumber = document.getElementById("cardNumber")?.value.trim();
-                const expiryDate = document.getElementById("expiryDate")?.value.trim();
-                const cvv = document.getElementById("cvv")?.value.trim();
-                const cardholderName = document.getElementById("cardholderName")?.value.trim();
-
-                if (!cardNumber || !expiryDate || !cvv || !cardholderName) {
-                  alert("Please complete all card details.");
-                  return false;
-                }
-              }
-
-              if (selectedMethod === "CliQ") {
-                const cliqAlias = document.getElementById("cliqAlias")?.value.trim();
-                if (!cliqAlias) {
-                  alert("Please enter your CliQ alias or phone number.");
-                  return false;
-                }
-              }
-
-              if (selectedMethod === "Wallet") {
-                const selectedReward = document.querySelector('input[name="rewardAmount"]:checked');
-                const rewardValue = selectedReward ? Number(selectedReward.value) : 0;
-                const total = 2 + rewardValue;
-
-                if (walletBalance < total) {
-                  alert("Wallet balance is not enough for this payment.");
-                  return false;
-                }
-              }
-
-              return true;
-            }
-
-            if (openLostFlowBtn) {
-              openLostFlowBtn.addEventListener("click", () => {
-                lostFlowModal?.classList.add("show");
-                showLostStep(1);
-              });
-            }
-
-            if (closeLostFlowModal) {
-              closeLostFlowModal.addEventListener("click", () => {
-                lostFlowModal?.classList.remove("show");
-              });
-            }
-
-            if (fakeMapPickerBtn) {
-              fakeMapPickerBtn.addEventListener("click", () => {
-                const manualField = document.getElementById("lastSeenLocation");
-                if (manualField && !manualField.value.trim()) {
-                  manualField.value = "Pinned location near last seen area.";
-                }
-              });
-            }
-
-            lostNextBtns.forEach(btn => {
-              btn.addEventListener("click", () => {
-                const nextStep = btn.dataset.next;
-                if (!validateLostStep(nextStep)) return;
-                showLostStep(nextStep);
-              });
-            });
-
-            lostPrevBtns.forEach(btn => {
-              btn.addEventListener("click", () => {
-                showLostStep(btn.dataset.prev);
-              });
-            });
-
-            document.querySelectorAll('input[name="rewardAmount"]').forEach(input => {
-              input.addEventListener("change", updateLostPaymentSummary);
-            });
-
-            document.querySelectorAll('input[name="paymentMethod"]').forEach(input => {
-              input.addEventListener("change", () => {
-                activatePaymentMethod(input.value);
-              });
-            });
-
-            if (lostPhotos) {
-              lostPhotos.addEventListener("change", function () {
-                const files = Array.from(this.files).slice(0, 5);
-                if (!lostPhotoPreviewGrid) return;
-
-                lostPhotoPreviewGrid.innerHTML = "";
-
-                files.forEach(file => {
-                  const reader = new FileReader();
-                  reader.onload = function (e) {
-                    const div = document.createElement("div");
-                    div.className = "preview-thumb";
-                    div.innerHTML = `<img src="${e.target.result}" alt="Lost Pet Photo">`;
-                    lostPhotoPreviewGrid.appendChild(div);
-                  };
-                  reader.readAsDataURL(file);
-                });
-
-                const remaining = 5 - files.length;
-                for (let i = 0; i < remaining; i++) {
-                  const empty = document.createElement("div");
-                  empty.className = "mini-upload";
-                  empty.textContent = "+";
-                  lostPhotoPreviewGrid.appendChild(empty);
-                }
-              });
-            }
-
-            if (openLostPaymentBtn) {
-              openLostPaymentBtn.addEventListener("click", () => {
-                const agreeLostTerms = document.getElementById("agreeLostTerms");
-
-                if (!agreeLostTerms || !agreeLostTerms.checked) {
-                  alert("Please agree to the terms first.");
-                  return;
-                }
-
-                lostPaymentModal?.classList.add("show");
-                activatePaymentMethod(document.querySelector('input[name="paymentMethod"]:checked')?.value || "Card");
-              });
-            }
-
-            if (closeLostPaymentModal) {
-              closeLostPaymentModal.addEventListener("click", () => {
-                lostPaymentModal?.classList.remove("show");
-              });
-            }
-
-            if (cancelLostPaymentBtn) {
-              cancelLostPaymentBtn.addEventListener("click", () => {
-                lostPaymentModal?.classList.remove("show");
-              });
-            }
-
-            if (confirmLostPaymentBtn) {
-              confirmLostPaymentBtn.addEventListener("click", () => {
-                if (!validatePaymentMethod()) return;
-
-                lostPaymentModal?.classList.remove("show");
-                lostFinalPublishConfirmModal?.classList.add("show");
-              });
-            }
-
-            if (closeLostFinalPublishConfirmModal) {
-              closeLostFinalPublishConfirmModal.addEventListener("click", () => {
-                lostFinalPublishConfirmModal?.classList.remove("show");
-              });
-            }
-
-            if (cancelLostFinalPublishConfirmBtn) {
-              cancelLostFinalPublishConfirmBtn.addEventListener("click", () => {
-                lostFinalPublishConfirmModal?.classList.remove("show");
-              });
-            }
-
-            if (confirmLostFinalPublishBtn) {
-              confirmLostFinalPublishBtn.addEventListener("click", () => {
-                lostFinalPublishConfirmModal?.classList.remove("show");
-                showLostStep(8);
-              });
-            }
-
-            if (submitAnotherLostBtn) {
-              submitAnotherLostBtn.addEventListener("click", () => {
-                resetLostFlow();
-              });
-            }
-
-            if (viewLostAdBtn) {
-              viewLostAdBtn.addEventListener("click", () => {
-                lostFlowModal?.classList.remove("show");
-                resetLostFlow();
-              });
-            }
-
-            if (copyFinderCodeBtn && finderCodeText) {
-              copyFinderCodeBtn.addEventListener("click", async () => {
-                try {
-                  await navigator.clipboard.writeText(finderCodeText.textContent.trim());
-                  copyFinderCodeBtn.textContent = "Copied!";
-                  setTimeout(() => {
-                    copyFinderCodeBtn.textContent = "Copy Code";
-                  }, 1500);
-                } catch (error) {
-                  alert("Could not copy the code.");
-                }
-              });
-            }
-            const petCameraBtn = document.querySelector(".pet-camera-btn");
-        const petPhotoInput = document.getElementById("petPhotoInput");
-        const petImage = document.getElementById("petImage");
-
-        if (petCameraBtn && petPhotoInput) {
-          petCameraBtn.addEventListener("click", () => {
-            petPhotoInput.click();
-          });
+            document.querySelectorAll(".adoption-step").forEach(s =>
+                s.classList.remove("active"));
+            document.getElementById(`adoptStep${n}`)?.classList.add("active");
+
+            // Scroll لأعلى الـ modal
+            document.querySelector("#adoptionFlow .adoption-modal")?.scrollTo(0, 0);
         }
 
-        if (petPhotoInput) {
-          petPhotoInput.addEventListener("change", function () {
-            const file = this.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function (e) {
-              petImage.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-          });
+        function checkAdoptAgree() {
+            if (!document.getElementById("agreeAdTerms")?.checked) {
+                alert("Please agree to the terms before submitting.");
+                return false;
+            }
+            return true;
         }
 
-            /* =========================
-               GLOBAL OUTSIDE CLICKS
-            ========================= */
-            window.addEventListener("click", (e) => {
-              if (e.target === adoptionFlow) adoptionFlow.classList.remove("show");
-              if (e.target === adoptionConfirmModal) adoptionConfirmModal.classList.remove("show");
+        // ══════════════════════════════════════
+        // LOST STEPS
+        // ══════════════════════════════════════
+        function goLostStep(n) {
+            if (n === 3) {
+                const desc = document.querySelector('#lostForm textarea[name="description"]')?.value.trim();
+                if (!desc) {
+                    alert("Please add a description.");
+                    return;
+                }
+            }
+            if (n === 6) {
+                const q = document.querySelector('#lostForm input[name="secretQuestion"]')?.value.trim();
+                const a = document.querySelector('#lostForm input[name="secretAnswer"]')?.value.trim();
+                if (!q || !a) {
+                    alert("Please enter the secret question and answer.");
+                    return;
+                }
+            }
 
-              if (e.target === lostPaymentModal) lostPaymentModal.classList.remove("show");
-              if (e.target === lostFinalPublishConfirmModal) lostFinalPublishConfirmModal.classList.remove("show");
-              if (e.target === lostFlowModal) lostFlowModal.classList.remove("show");
+            document.querySelectorAll(".lost-step").forEach(s =>
+                s.classList.remove("active"));
+            document.getElementById(`lostStep${n}`)?.classList.add("active");
+
+            document.querySelector("#lostFlowModal .lost-modal")?.scrollTo(0, 0);
+        }
+
+        function checkLostAgree() {
+            if (!document.getElementById("agreeLostTerms")?.checked) {
+                alert("Please agree to the terms before submitting.");
+                return false;
+            }
+            return true;
+        }
+
+        // ══════════════════════════════════════
+        // PHOTO PREVIEWS
+        // ══════════════════════════════════════
+        document.getElementById("adPhotos")?.addEventListener("change", function () {
+            updatePreview(this.files, "adoptPhotoPreview");
+        });
+
+        document.getElementById("lostPhotos")?.addEventListener("change", function () {
+            updatePreview(this.files, "lostPhotoPreview");
+        });
+
+        function updatePreview(files, gridId) {
+            const grid = document.getElementById(gridId);
+            if (!grid) return;
+            grid.innerHTML = "";
+            const max = 5;
+            const arr = Array.from(files).slice(0, max);
+            arr.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const div = document.createElement("div");
+                    div.className = "preview-thumb";
+                    div.innerHTML = `<img src="${e.target.result}" alt="photo">`;
+                    grid.appendChild(div);
+                };
+                reader.readAsDataURL(file);
             });
+            for (let i = arr.length; i < max; i++) {
+                const div = document.createElement("div");
+                div.className = "mini-upload";
+                div.textContent = "+";
+                grid.appendChild(div);
+            }
+        }
 
-            /* =========================
-               INITIALIZE
-            ========================= */
-            updateLostPaymentSummary();
-            activatePaymentMethod("Card");
-            showAdoptionStep(1);
-            showLostStep(1);
-            resetLostPhotoGrid();
+        // ══════════════════════════════════════
+        // OPEN / CLOSE MODALS
+        // ══════════════════════════════════════
+        document.getElementById("openAdoptionFormBtn")?.addEventListener("click", () => {
+            document.getElementById("adoptionFlow")?.classList.add("show");
+            goAdoptStep(1);
+        });
+        document.getElementById("closeAdoptionFlowBtn")?.addEventListener("click", () =>
+            document.getElementById("adoptionFlow")?.classList.remove("show"));
+        document.getElementById("closeAdoptionFlowBtn2")?.addEventListener("click", () =>
+            document.getElementById("adoptionFlow")?.classList.remove("show"));
+
+        document.getElementById("openLostFlowBtn")?.addEventListener("click", () => {
+            document.getElementById("lostFlowModal")?.classList.add("show");
+            goLostStep(1);
+        });
+        document.getElementById("closeLostFlowModal")?.addEventListener("click", () =>
+            document.getElementById("lostFlowModal")?.classList.remove("show"));
+
+        window.addEventListener("click", e => {
+            const aFlow = document.getElementById("adoptionFlow");
+            const lFlow = document.getElementById("lostFlowModal");
+            if (e.target === aFlow) aFlow.classList.remove("show");
+            if (e.target === lFlow) lFlow.classList.remove("show");
+        });
+                   // ✅ أبقِ فقط: فتح وإغلاق الـ modal
+
+        // Adoption
+        const openAdoptionFormBtn = document.getElementById("openAdoptionFormBtn");
+        const adoptionFlow        = document.getElementById("adoptionFlow");
+        const closeAdoptionFlowBtn = document.getElementById("closeAdoptionFlowBtn");
+        const closeAdoptionFlowBtn2 = document.getElementById("closeAdoptionFlowBtn2");
+
+        if (openAdoptionFormBtn)
+            openAdoptionFormBtn.addEventListener("click", () =>
+                adoptionFlow?.classList.add("show"));
+
+        if (closeAdoptionFlowBtn)
+            closeAdoptionFlowBtn.addEventListener("click", () =>
+                adoptionFlow?.classList.remove("show"));
+
+        if (closeAdoptionFlowBtn2)
+            closeAdoptionFlowBtn2.addEventListener("click", () =>
+                adoptionFlow?.classList.remove("show"));
+
+        // Lost
+        const openLostFlowBtn  = document.getElementById("openLostFlowBtn");
+        const lostFlowModal    = document.getElementById("lostFlowModal");
+        const closeLostFlowModal = document.getElementById("closeLostFlowModal");
+
+        if (openLostFlowBtn)
+            openLostFlowBtn.addEventListener("click", () =>
+                lostFlowModal?.classList.add("show"));
+
+        if (closeLostFlowModal)
+            closeLostFlowModal.addEventListener("click", () =>
+                lostFlowModal?.classList.remove("show"));
+
+        // Navbar
+        const servicesDropdown   = document.getElementById("servicesDropdown");
+        const servicesToggle     = document.getElementById("servicesToggle");
+        const menuBtn            = document.getElementById("menuBtn");
+        const navLinks           = document.getElementById("navLinks");
+        const mobileServicesBlock  = document.getElementById("mobileServicesBlock");
+        const mobileServicesToggle = document.getElementById("mobileServicesToggle");
+
+        if (servicesToggle && servicesDropdown) {
+            servicesToggle.addEventListener("click", e => {
+                e.stopPropagation();
+                servicesDropdown.classList.toggle("open");
+            });
+            document.addEventListener("click", e => {
+                if (!servicesDropdown.contains(e.target))
+                    servicesDropdown.classList.remove("open");
+            });
+        }
+
+        if (menuBtn && navLinks) {
+            menuBtn.addEventListener("click", e => {
+                e.stopPropagation();
+                navLinks.classList.toggle("open");
+            });
+            document.addEventListener("click", e => {
+                if (!navLinks.contains(e.target) && e.target !== menuBtn)
+                    navLinks.classList.remove("open");
+            });
+        }
+
+        if (mobileServicesBlock && mobileServicesToggle)
+            mobileServicesToggle.addEventListener("click", () =>
+                mobileServicesBlock.classList.toggle("open"));
+
+        // Close on outside click
+        window.addEventListener("click", e => {
+            if (e.target === adoptionFlow) adoptionFlow?.classList.remove("show");
+            if (e.target === lostFlowModal) lostFlowModal?.classList.remove("show");
+        });
     </script>
 </body>
 </html>

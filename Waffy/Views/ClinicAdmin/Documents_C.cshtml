@@ -1,0 +1,254 @@
+﻿@{
+    ViewData["Title"] = "Waffy — Clinic Documents";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+    <link rel="stylesheet" href="~/css/clinic-setting.css">
+    <style>
+        .doc-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--gp);
+            border-radius: 10px;
+            border: 1px solid var(--b2);
+        }
+
+        .doc-icon {
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .doc-info {
+            flex: 1;
+        }
+
+        .doc-name {
+            font-weight: 700;
+            font-size: .88rem;
+            color: var(--text);
+        }
+
+        .doc-meta {
+            font-size: .75rem;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body class="admin-shell">
+
+    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+    <div class="wa-shell" id="waShell">
+
+        <!-- ── Sidebar ──────────────────────────────────────── -->
+        <aside class="wa-sb" id="sidebar">
+            <div class="sb-logo">
+                <div class="sb-mark">
+                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img">
+                </div>
+                <div class="sb-wordmark">
+                    <div class="sb-wm-name">Waffy</div>
+                    <div class="sb-wm-tag">Clinic Admin</div>
+                </div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" href="@Url.Action("Dashboard", "ClinicAdmin")" data-tip="Dashboard"><span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Daily Management</div>
+                    <a class="sb-row" href="@Url.Action("Appointments", "ClinicAdmin")" data-tip="Appointments"><span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span><span class="sb-bdg bd-g">5</span></a>
+                    <a class="sb-row" href="@Url.Action("Patients", "ClinicAdmin")" data-tip="Patients"><span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span></a>
+                    <a class="sb-row" href="@Url.Action("Medical_Records", "ClinicAdmin")" data-tip="Medical Records"><span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group" id="managerSection">
+                    <div class="sb-grp-hd">Clinic Management</div>
+                    <a class="sb-row" href="@Url.Action("Doctors", "ClinicAdmin")" data-tip="Doctors"><span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span></a>
+                    <a class="sb-row active" href="@Url.Action("Basic_Information", "ClinicAdmin")" data-tip="Clinic Settings"><span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span></a>
+                    <a class="sb-row" href="@Url.Action("Revenue", "ClinicAdmin")" data-tip="Revenue &amp; Payments"><span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" href="@Url.Action("Adoption", "ClinicAdmin")" data-tip="Adoption"><span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Analytics</div>
+                    <a class="sb-row" href="@Url.Action("Reviews", "ClinicAdmin")" data-tip="Reviews"><span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span><span class="sb-bdg bd-g">2</span></a>
+                    <a class="sb-row" href="@Url.Action("Reports", "ClinicAdmin")" data-tip="Reports"><span class="sb-icon">📈</span><span class="sb-lbl">Reports</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row " asp-controller="ClinicAdmin" asp-action="Personal_nformation" data-tip="My Settings">
+                        <span class="sb-icon">⚙️</span>
+                        <span class="sb-lbl">My Settings</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row" onclick="openSidebarProfile()">
+                    <div class="sb-av">DC</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">Daniel Carter</div>
+                        <div class="sb-user-role">Clinic Manager 👑</div>
+                    </div>
+                </div>
+                <button class="sb-logout" onclick="doLogout()" type="button">
+                    <span class="sb-icon">↩</span><span class="sb-logout-lbl">Sign Out</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- ── Topnav ───────────────────────────────────────── -->
+        <header class="wa-tn">
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
+            <div class="tn-bread"><span>Clinic Management</span><span>/</span><b>Clinic Settings</b></div>
+            <div class="tn-center">
+                <div class="tn-center-main">Clinic Settings</div>
+                <div class="tn-center-sub">Waffy Clinic Dashboard</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-identity">🏥 Al Amanah Veterinary Clinic</div>
+                <button class="tn-btn notif-btn" type="button" aria-label="Notifications">🔔<span class="tn-count">3</span></button>
+                <div class="tn-sep"></div>
+                <div class="tn-profile user-btn">
+                    <div class="tn-av">M</div>
+                    <div>
+                        <div class="tn-pname">Clinic Manager</div>
+                        <div class="tn-prole">Clinic Manager 👑</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ── Main ─────────────────────────────────────────── -->
+        <main class="wa-main">
+            <section class="page-hero">
+                <div>
+                    <h1>Clinic Settings</h1>
+                    <p>Update clinic profile, working hours, location, and operational preferences.</p>
+                </div>
+            </section>
+
+            <div class="page-body">
+
+                <!-- Tab navigation -->
+                <nav class="tabs cs-tab-nav">
+                    <a class="tab" href="@Url.Action("Basic_Information", "ClinicAdmin")">📋 Basic Information</a>
+                    <a class="tab" href="@Url.Action("Working_Hours", "ClinicAdmin")">⏰ Working Hours</a>
+                    <a class="tab" href="@Url.Action("Services", "ClinicAdmin")">🩺 Services</a>
+                    <a class="tab active" href="@Url.Action("Documents_C", "ClinicAdmin")">📄 Documents</a>
+                    <a class="tab" href="@Url.Action("Images", "ClinicAdmin")">🖼 Images</a>
+                </nav>
+
+                <!-- ── Documents Section ─────────────────────────── -->
+                <div class="chart-card">
+                    <div class="sec-label">Uploaded official documents</div>
+                    <div style="display:flex;flex-direction:column;gap:10px;" id="docsList">
+
+                        <!-- Document row — Municipality License -->
+                        <div class="doc-row" data-doc-id="1" data-doc-type="municipalityLicense">
+                            <span class="doc-icon">🏛</span>
+                            <div class="doc-info">
+                                <div class="doc-name">Municipality License</div>
+                                <div class="doc-meta">Uploaded — Expires: December 2026</div>
+                            </div>
+                            <span class="status s-confirmed">Verified ✓</span>
+                            <button class="btn btn-outline btn-sm" onclick="updateDocument(this, '1', 'municipalityLicense')">Update</button>
+                            <input type="file" id="docInput_1" name="document" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" data-doc-id="1" data-doc-type="municipalityLicense">
+                        </div>
+
+                        <!-- Document row — Practice License -->
+                        <div class="doc-row" data-doc-id="2" data-doc-type="practiceLicense">
+                            <span class="doc-icon">⚕️</span>
+                            <div class="doc-info">
+                                <div class="doc-name">Practice License</div>
+                                <div class="doc-meta">Uploaded — Expires: March 2027</div>
+                            </div>
+                            <span class="status s-confirmed">Verified ✓</span>
+                            <button class="btn btn-outline btn-sm" onclick="updateDocument(this, '2', 'practiceLicense')">Update</button>
+                            <input type="file" id="docInput_2" name="document" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" data-doc-id="2" data-doc-type="practiceLicense">
+                        </div>
+
+                    </div><!-- /#docsList -->
+                    <!-- Upload new document -->
+                    <div class="upload-box" style="margin-top:14px;" onclick="triggerNewDocUpload()">
+                        <div class="upload-icon">📎</div>
+                        <div class="upload-txt">Upload a new document</div>
+                        <div class="upload-sub">PDF, JPG, PNG — max 10MB</div>
+                    </div>
+                    <input type="file" id="newDocInput" name="document" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" onchange="handleNewDoc(this)">
+
+                </div><!-- /.chart-card -->
+
+            </div><!-- /.page-body -->
+        </main>
+
+    </div><!-- /.wa-shell -->
+
+    <script src="~/js/AdminClinicDoctor.js"></script>
+    <script src="~/js/clinic-setting.js"></script>
+    <script>
+        function updateDocument(btn, docId, docType) {
+            const input = byId("docInput_" + docId);
+            if (!input) return;
+            input.click();
+            input.onchange = () => {
+                const file = input.files && input.files[0];
+                if (!file) return;
+                toast("Document updated: " + file.name);
+                const meta = btn.closest(".doc-row")?.querySelector(".doc-meta");
+                if (meta) meta.textContent = "Uploaded — " + new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+                input.value = "";
+            };
+        }
+
+        function triggerNewDocUpload() {
+            byId("newDocInput")?.click();
+        }
+
+        function handleNewDoc(input) {
+            const file = input.files && input.files[0];
+            if (!file) return;
+            if (file.size > 10 * 1024 * 1024) {
+                toast("File is too large. Max 10MB.", "error");
+                input.value = ""; return;
+            }
+            const list = byId("docsList");
+            const row = document.createElement("div");
+            row.className = "doc-row";
+            const newId = "new_" + Date.now();
+            row.dataset.docId = newId;
+            row.dataset.docType = "other";
+            row.innerHTML = `
+                <span class="doc-icon">📄</span>
+                <div class="doc-info">
+                    <div class="doc-name">${file.name}</div>
+                    <div class="doc-meta">Uploaded — Pending review</div>
+                </div>
+                <span class="status s-pending">Pending ⏳</span>
+                <button class="btn btn-outline btn-sm" onclick="updateDocument(this,'${newId}','other')">Update</button>
+                <input type="file" id="docInput_${newId}" name="document" accept=".pdf,.jpg,.jpeg,.png" style="display:none;" data-doc-id="${newId}" data-doc-type="other">
+            `;
+            list.appendChild(row);
+            toast("Document uploaded: " + file.name);
+            input.value = "";
+        }
+    </script>
+</body>
+</html>

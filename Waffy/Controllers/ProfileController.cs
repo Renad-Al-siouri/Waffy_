@@ -1,16 +1,28 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 using Waffy.Interfaces;
 using Waffy.Models;
+using Waffy.Models.ViewModels;
 
 namespace Waffy.Controllers
 {
     public class ProfileController : Controller
     {
         private readonly IUserRepository _userRepository;
+        private readonly IPetRepository _petRepo;
+        private readonly IAdoptionRepository _adoptionRepo;   
+        private readonly ILostPetRepository _lostPetRepo;   
 
-        public ProfileController(IUserRepository userRepository)
+        public ProfileController(
+            IUserRepository userRepository,
+            IPetRepository petRepo,
+            IAdoptionRepository adoptionRepo,  
+            ILostPetRepository lostPetRepo)    
         {
             _userRepository = userRepository;
+            _petRepo = petRepo;
+            _adoptionRepo = adoptionRepo;   
+            _lostPetRepo = lostPetRepo;    
         }
 
         // ── helper: تجلب المستخدم من Session أو ترجع null ──
@@ -127,19 +139,128 @@ namespace Waffy.Controllers
         // =========================
         // باقي الصفحات — GET فقط
         // =========================
+       
+      
         public async Task<IActionResult> Index()
         {
             var user = await GetCurrentUserAsync();
             if (user == null) return RedirectToAction("Login", "Account");
-            return View(user);
+
+            var pets = await _petRepo.GetByUserIdAsync(user.UserId);
+
+            var vm = new PetProfileViewModel
+            {
+                User = user,
+                Pets = pets.ToList()
+            };
+
+            return View(vm);
         }
 
         public IActionResult My_Wallet() => View();
         public IActionResult Rewards() => View();
         public IActionResult Appointments() => View();
         public IActionResult Orders() => View();
-        public IActionResult Lost_Reports() => View();
-        public IActionResult Adoption_Ads() => View();
+        // ════════════════════════════════════════════════════
+        // ADOPTION ADS — GET
+        // ════════════════════════════════════════════════════
+        public async Task<IActionResult> Adoption_Ads()
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var posts = (await _adoptionRepo.GetByUserIdAsync(user.UserId)).ToList();
+
+            return View(new AdoptionAdsViewModel
+            {
+                User = user,
+                Posts = posts
+            });
+        }
+
+        // ════════════════════════════════════════════════════
+        // EDIT ADOPTION POST — POST
+        // ════════════════════════════════════════════════════
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditAdoptionPost(
+            int postId,
+            string? city,
+            string? area,
+            string? contactPhone,
+            string? description,
+            string? reasonForAdoption,
+            string? adoptionStatus)
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var post = new AdoptionPost
+            {
+                IdPost = postId,
+                PostedById = user.UserId,
+                City = city,
+                Area = area,
+                ContactPhone = contactPhone,
+                Description = description,
+                ReasonForAdoption = reasonForAdoption,
+                AdoptionStatus = adoptionStatus ?? "Available"
+            };
+
+            await _adoptionRepo.UpdatePostAsync(post);
+
+            TempData["AdoptionSuccess"] = "Ad updated successfully!";
+            return RedirectToAction("Adoption_Ads");
+        }
+
+        // ════════════════════════════════════════════════════
+        // CLOSE ADOPTION POST — POST
+        // ════════════════════════════════════════════════════
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CloseAdoptionPost(int postId)
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            await _adoptionRepo.ClosePostAsync(postId);
+
+            TempData["AdoptionSuccess"] = "Ad closed successfully.";
+            return RedirectToAction("Adoption_Ads");
+        }
+
+        // ════════════════════════════════════════════════════
+        // LOST REPORTS — GET
+        // ════════════════════════════════════════════════════
+        public async Task<IActionResult> Lost_Reports()
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var reports = (await _lostPetRepo.GetByUserIdAsync(user.UserId)).ToList();
+
+            return View(new LostReportsViewModel
+            {
+                User = user,
+                Reports = reports
+            });
+        }
+
+        // ════════════════════════════════════════════════════
+        // CLOSE LOST REPORT — POST
+        // ════════════════════════════════════════════════════
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CloseLostReport(int reportId)
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            await _lostPetRepo.CloseReportAsync(reportId);
+
+            TempData["LostSuccess"] = "Report marked as found.";
+            return RedirectToAction("Lost_Reports");
+        }
         public IActionResult Timeline() => View();
         public IActionResult Complaints() => View();
         // =========================

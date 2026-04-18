@@ -1,5 +1,7 @@
+function safeStr(val) {
+    return (val ?? "").toString();
+}
 const cartCount = document.getElementById("cartCount");
-const viewMoreBtn = document.getElementById("viewMoreBtn");
 const petsGrid = document.getElementById("petsGrid");
 
 const flowModal = document.getElementById("flowModal");
@@ -24,26 +26,9 @@ let selectedLatLng = null;
 let currentPetId = null;
 let countdownInterval = null;
 
-const extraPets = [
-    {
-        name: "Milo",
-        status: "Done",
-        details: ["Golden Mix, Male", "Friendly and active", "1.5 years old", "Blue collar"],
-        location: "📍 Dabouq, Amman",
-        phone: "📞 0791112233",
-        image: "../Images/lost/Golden.png"
-    },
-    {
-        name: "Nina",
-        status: "Done",
-        details: ["Small Cat, Female", "White and gray", "2 years old", "Very calm"],
-        location: "📍 Abdoun, Amman",
-        phone: "📞 0793332211",
-        image: "../Images/lost/Small.png"
-    }
-];
 
-let shownExtra = false;
+
+
 
 function getCart() {
     return JSON.parse(localStorage.getItem("waffyCart") || "[]");
@@ -70,24 +55,7 @@ function showToast(message) {
     }, 3000);
 }
 
-function createPetCard(pet, id = "") {
-    return `
-    <article class="pet-card" ${id ? `data-pet-id="${id}"` : ""}>
-      <div class="pet-top">
-        <img src="${pet.image}" alt="${pet.name}">
-        <div class="pet-info">
-          <div class="pet-head">
-            <h3>${pet.name}</h3>
-            <button class="status-btn" data-open-flow="${id || 999}">${pet.status}</button>
-          </div>
-          ${pet.details.map(item => `<p>${item}</p>`).join("")}
-        </div>
-      </div>
-      <div class="pet-location">${pet.location}</div>
-      <div class="pet-phone">${pet.phone}</div>
-    </article>
-  `;
-}
+
 
 function showStep(stepNumber) {
     flowSteps.forEach((step) => {
@@ -317,32 +285,7 @@ function initMobileMenu() {
     }
 }
 
-function injectProfileLostPet() {
-    const savedPet = localStorage.getItem("waffyLostPetFromProfile");
-    if (!savedPet || !petsGrid) return;
 
-    try {
-        const pet = JSON.parse(savedPet);
-
-        const profilePet = {
-            name: pet.name || "My Lost Pet",
-            status: "Done",
-            details: [
-                pet.breed || "Unknown breed",
-                pet.color || "Unknown color",
-                pet.age || "Unknown age",
-                pet.note || "Missing pet"
-            ],
-            location: `📍 ${pet.location || "Unknown location"}`,
-            phone: `📞 ${pet.phone || "No phone"}`,
-            image: pet.image || "../Images/lost/Beagle.png"
-        };
-
-        petsGrid.insertAdjacentHTML("afterbegin", createPetCard(profilePet, "profile-lost"));
-    } catch (error) {
-        console.error("Invalid lost pet profile data", error);
-    }
-}
 
 document.addEventListener("click", (e) => {
     const openFlowBtn = e.target.closest("[data-open-flow]");
@@ -401,25 +344,10 @@ if (submitAbuseBtn) {
     });
 }
 
-if (viewMoreBtn && petsGrid) {
-    viewMoreBtn.addEventListener("click", () => {
-        if (shownExtra) return;
 
-        petsGrid.insertAdjacentHTML(
-            "beforeend",
-            extraPets.map((pet, index) => createPetCard(pet, `extra-${index + 1}`)).join("")
-        );
-
-        shownExtra = true;
-        viewMoreBtn.textContent = "Done!!";
-        viewMoreBtn.disabled = true;
-        viewMoreBtn.style.opacity = "0.7";
-    });
-}
 
 document.addEventListener("DOMContentLoaded", () => {
     updateCartBadge();
-    injectProfileLostPet();
     initFadeUpAnimation();
     initServicesDropdown();
     initMobileMenu();

@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --bg: #f8efea;
     --section: #fbf6f1;
     --white: #ffffff;
@@ -721,8 +721,8 @@ a {
     }
 
 .add-pet-circle {
-    width: 54px;
-    height: 54px;
+    width: 39px;
+    height: 39px;
     border-radius: 50%;
     border: none;
     background: linear-gradient(180deg, #c8d68e 0%, #9eaf63 100%);
@@ -1364,5 +1364,204 @@ a {
     .pet-btn {
         min-height: 26px;
         font-size: 0.52rem;
+    }
+}
+
+
+
+
+
+/* ══════════════════════════════════════════════════
+   ADD PET PAGE / EDIT PET PAGE
+══════════════════════════════════════════════════ */
+
+.pet-form-page {
+    max-width: 680px;
+    margin: 2rem auto;
+    padding: 0 1rem 3rem;
+    font-family: 'Nunito', sans-serif;
+}
+
+    .pet-form-page h2 {
+        font-family: 'Fredoka', sans-serif;
+        color: #5a8f38;
+        font-size: 1.8rem;
+        margin-bottom: 1.5rem;
+    }
+
+/* ── Card Section ── */
+.s-card {
+    background: #fff;
+    border: 1px solid #e4eed8;
+    border-radius: 16px;
+    margin-bottom: 1.2rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(90,143,56,0.06);
+}
+
+.s-card-head {
+    background: #f4f9ee;
+    padding: 0.75rem 1.2rem;
+    border-bottom: 1px solid #e4eed8;
+}
+
+.s-card-title {
+    font-family: 'Fredoka', sans-serif;
+    font-size: 1.05rem;
+    color: #5a8f38;
+    font-weight: 600;
+}
+
+.s-card-body {
+    padding: 1.2rem;
+}
+
+/* ── Form Grid ── */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+    .field.full {
+        grid-column: 1 / -1;
+    }
+
+    .field label {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #4a6e2a;
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+        padding: 0.55rem 0.85rem;
+        border: 1.5px solid #d4e8bc;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-family: 'Nunito', sans-serif;
+        background: #fafff5;
+        color: #333;
+        transition: border-color 0.2s;
+        outline: none;
+    }
+
+        .field input:focus,
+        .field select:focus,
+        .field textarea:focus {
+            border-color: #5a8f38;
+            background: #fff;
+        }
+
+    .field textarea {
+        resize: vertical;
+        min-height: 80px;
+    }
+
+    .field input[type="file"] {
+        padding: 0.4rem;
+        background: #f4f9ee;
+        cursor: pointer;
+    }
+
+/* ── Current Image Preview (Edit Page) ── */
+.current-img-preview {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #d4e8bc;
+    margin-top: 6px;
+}
+
+/* ── Buttons ── */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.4rem;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 0.65rem 1.5rem;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    font-family: 'Nunito', sans-serif;
+    cursor: pointer;
+    border: none;
+    transition: background 0.2s, transform 0.1s;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+}
+
+    .btn:active {
+        transform: scale(0.97);
+    }
+
+.btn-primary {
+    background: #5a8f38;
+    color: #fff;
+}
+
+    .btn-primary:hover {
+        background: #4a7a2c;
+    }
+
+.btn-secondary {
+    background: #f0f5e8;
+    color: #5a8f38;
+    border: 1.5px solid #c8dfa8;
+}
+
+    .btn-secondary:hover {
+        background: #e4eed8;
+    }
+
+/* ── Success / Error messages ── */
+.alert-success {
+    background: #f0fff0;
+    border: 1px solid #b2dfb2;
+    color: #2d7a2d;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+.alert-error {
+    background: #fff0f0;
+    border: 1px solid #ffcccc;
+    color: #c0392b;
+    padding: 0.7rem 1rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    font-weight: 700;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .field.full {
+        grid-column: 1;
+    }
+
+    .form-actions {
+        flex-direction: column;
+    }
+
+    .btn {
+        width: 100%;
     }
 }

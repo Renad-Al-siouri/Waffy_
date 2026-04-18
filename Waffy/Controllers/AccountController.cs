@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Waffy.Interfaces;
 using Waffy.Models;
+using Waffy.Models.ViewModels;
+using Waffy.Repository; 
 
 namespace Waffy.Controllers
 {
@@ -11,19 +13,21 @@ namespace Waffy.Controllers
         private readonly IStoreDocumentRepository _documentRepository;
         private readonly IClinicRepository _clinicRepository;
         private readonly IClinicDocumentRepository _clinicDocumentRepository;
-
+        private readonly IPetRepository _petRepository;
         public AccountController(
             IUserRepository userRepository,
             IStoreRepository storeRepository,
             IStoreDocumentRepository documentRepository,
             IClinicRepository clinicRepository,
-            IClinicDocumentRepository clinicDocumentRepository)
+            IClinicDocumentRepository clinicDocumentRepository,
+            IPetRepository petRepository)    
         {
             _userRepository = userRepository;
             _storeRepository = storeRepository;
             _documentRepository = documentRepository;
             _clinicRepository = clinicRepository;
             _clinicDocumentRepository = clinicDocumentRepository;
+            _petRepository = petRepository;
         }
 
         // ══════════════════════════════════════════════════════════
@@ -211,6 +215,32 @@ namespace Waffy.Controllers
         // STORE SIGNUP — Step 1 (بيانات المالك)
         // ══════════════════════════════════════════════════════════
 
+        [HttpGet]
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login");
+        }
+
+        // =========================
+        // Profile
+        // =========================
+        public async Task<IActionResult> Profile()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login");
+
+            var user = await _userRepository.GetByIdAsync(userId.Value);
+            if (user == null) return NotFound();
+
+            return View(user);
+        }
+
+       
+
+        // =========================
+        // Store Signup — Step 1
+        // =========================
         [HttpGet]
         public IActionResult Stor_step1() => View();
 
