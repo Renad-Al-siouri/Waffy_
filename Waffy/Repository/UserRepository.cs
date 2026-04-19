@@ -292,5 +292,12 @@ namespace Waffy.Repositories
                 new { Status = newStatus, UserId = userId });
         }
 
-    } // ← إغلاق واحد فقط للكلاس ✅
+        public async Task<string> GetRoleNameByIdAsync(int roleId)
+        {
+            var sql = "SELECT RoleName FROM Roles WHERE RoleId = @RoleId";
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryFirstOrDefaultAsync<string>(sql, new { RoleId = roleId }) ?? "User";
+        }
+
+    } 
 }

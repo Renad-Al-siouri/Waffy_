@@ -34,5 +34,7 @@ namespace Waffy.Interfaces
         Task DeleteAsync(int userId);
 
         Task<LoginUserResult?> LoginAsync(string email, string passwordHash);
+
+        Task<string> GetRoleNameByIdAsync(int roleId);
     }
 }
