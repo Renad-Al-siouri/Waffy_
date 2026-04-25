@@ -1,4 +1,5 @@
-﻿@{
+﻿@model Waffy.Models.ViewModels.WalletViewModel
+@{
     ViewData["Title"] = "Rewards";
     Layout = null;
 }
@@ -105,11 +106,11 @@
                         <input type="file" id="avatarFile" accept="image/*" hidden onchange="changeAvatar(this)">
                     </div>
                     <div class="sb-profile-text">
-                        <div class="sb-name" id="sidebarName">Batool Jaber</div>
-                        <div class="sb-email" id="sidebarEmail">Batool@@email.com</div>
+                        <div class="sb-name">@Model.User.FullName</div>
+                        <div class="sb-email">@Model.User.Email</div>
                         <div class="sb-wallet-mini">
                             <span>&#128155; Wallet</span>
-                            <strong id="sidebarBalance">100.50 JOD</strong>
+                            <strong id="sidebarBalance">@Model.Balance.ToString("F2") JOD</strong>
                         </div>
                     </div>
                 </div>
@@ -137,35 +138,81 @@
         </aside>
 
         <main class="main-content">
-            <div class="page-header"><div><h2>Rewards &#127873;</h2><p>Your earned points and coupons</p></div></div>
+            <div class="page-header">
+                <div><h2>Rewards 🎁</h2><p>Your earned rewards and finder bonuses</p></div>
+            </div>
 
+            @* ✅ Finder Rewards من DB *@
             <div class="s-card">
-                <div class="s-card-head"><span class="s-card-title">&#11088; Points Balance</span></div>
+                <div class="s-card-head">
+                    <span class="s-card-title">🏆 Finder Rewards</span>
+                    <span class="badge badge-green">
+                        @Model.FinderRewards.Count Reward@(Model.FinderRewards.Count != 1 ? "s" : "")
+                    </span>
+                </div>
                 <div class="s-card-body">
-                    <div style="display:flex;align-items:center;gap:16px;padding-bottom:16px;border-bottom:1px solid var(--line);margin-bottom:16px">
-                        <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,#fef9c3,#fde68a);display:flex;align-items:center;justify-content:center;font-size:1.5rem">&#11088;</div>
-                        <div>
-                            <div style="font-family:Fredoka,sans-serif;font-size:1.8rem;color:#92400e;font-weight:600">240 pts</div>
-                            <p style="font-size:.8rem;color:var(--muted);font-weight:700">Redeem at 500 points for 5 JOD credit</p>
-                            <div class="progress-wrap" style="width:200px;margin-top:6px"><div class="progress-fill" style="width:48%"></div></div>
+                    @if (!Model.FinderRewards.Any())
+                    {
+                        <p style="text-align:center;color:var(--muted);padding:2rem">
+                            No rewards yet. Help return a lost pet to earn rewards! 🐾
+                        </p>
+                    }
+                    @foreach (var r in Model.FinderRewards)
+                    {
+                        <div class="reward-card">
+                            <div class="reward-ico">🏅</div>
+                            <div class="reward-info">
+                                <h4>Found Pet Reward — @(r.PetName ?? "Pet")</h4>
+                                <p>Confirmed · @r.CreatedAt?.ToString("MMM dd, yyyy")</p>
+                            </div>
+                            <div class="reward-val" style="color:#2d7a2d;font-weight:800">
+                                +@((r.RewardAmount ?? 0).ToString("F2")) JOD
+                            </div>
                         </div>
-                    </div>
-                    <div class="reward-card"><div class="reward-ico">&#127942;</div><div class="reward-info"><h4>Found Lost Pet Reward</h4><p>Finder reward credited &mdash; Feb 28</p></div><div class="reward-val">+10.00 JOD</div></div>
-                    <div class="reward-card"><div class="reward-ico">&#127873;</div><div class="reward-info"><h4>Welcome Bonus</h4><p>Registration reward &mdash; Mar 1</p></div><div class="reward-val">+5.00 JOD</div></div>
-                    <div class="reward-card"><div class="reward-ico">&#128176;</div><div class="reward-info"><h4>Cashback 2%</h4><p>On your last order &mdash; Mar 8</p></div><div class="reward-val">+0.37 JOD</div></div>
+                    }
+
+                    @* ✅ إجمالي *@
+                    @if (Model.FinderRewards.Any())
+                    {
+                        var total = Model.FinderRewards.Sum(r => r.RewardAmount ?? 0);
+                        <div style="border-top:2px solid #d4e8bc;margin-top:1rem;
+                                 padding-top:1rem;display:flex;
+                                 justify-content:space-between;align-items:center">
+                            <strong style="font-family:'Fredoka',sans-serif;
+                                       color:#59652a;font-size:1rem">
+                                Total Earned
+                            </strong>
+                            <strong style="font-family:'Fredoka',sans-serif;
+                                       color:#2d7a2d;font-size:1.2rem">
+                                @total.ToString("F2") JOD
+                            </strong>
+                        </div>
+                    }
                 </div>
             </div>
 
-            <div class="s-card">
-                <div class="s-card-head"><span class="s-card-title">&#127903;&#65039; My Coupons</span></div>
+            @* ✅ Wallet Summary *@
+            <div class="s-card" style="margin-top:1rem">
+                <div class="s-card-head">
+                    <span class="s-card-title">💳 Wallet Balance</span>
+                </div>
                 <div class="s-card-body">
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;border:2px dashed #d4e2b0;border-radius:16px;background:#f5faea;margin-bottom:10px">
-                        <div><h4 style="font-weight:800;font-size:.9rem;color:var(--olive-dark)">WAFFY-10OFF</h4><p style="font-size:.78rem;color:var(--muted);font-weight:700">10% off next clinic visit &middot; Expires Apr 30</p></div>
-                        <button class="btn btn-ghost btn-sm" onclick="navigator.clipboard.writeText('WAFFY-10OFF').then(()=>showToast('&#128203; Coupon copied!'))">Copy</button>
-                    </div>
-                    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;border:1px solid var(--line);border-radius:16px;background:#fafaf6;opacity:.55">
-                        <div><h4 style="font-weight:800;font-size:.9rem;color:var(--muted)">WAFFY-5JOD</h4><p style="font-size:.78rem;color:var(--muted);font-weight:700">5 JOD store credit &middot; Expired</p></div>
-                        <span class="badge badge-grey">Expired</span>
+                    <div style="display:flex;align-items:center;gap:1rem">
+                        <div style="width:60px;height:60px;border-radius:50%;
+                             background:linear-gradient(135deg,#eef5df,#d4e8bc);
+                             display:flex;align-items:center;
+                             justify-content:center;font-size:1.5rem">
+                            💰
+                        </div>
+                        <div>
+                            <div style="font-family:Fredoka,sans-serif;font-size:1.8rem;
+                                 color:#59652a;font-weight:600">
+                                @Model.Balance.ToString("F2") JOD
+                            </div>
+                            <p style="font-size:.8rem;color:var(--muted);font-weight:700">
+                                Current wallet balance
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

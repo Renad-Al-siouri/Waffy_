@@ -1,4 +1,5 @@
-﻿@{
+﻿@model Waffy.Models.ViewModels.WalletViewModel
+@{
     ViewData["Title"] = "My Wallet";
     Layout = null;
 }
@@ -105,11 +106,11 @@
                         <input type="file" id="avatarFile" accept="image/*" hidden onchange="changeAvatar(this)">
                     </div>
                     <div class="sb-profile-text">
-                        <div class="sb-name" id="sidebarName">Batool Jaber</div>
-                        <div class="sb-email" id="sidebarEmail">Batool@@email.com</div>
+                        <div class="sb-name">@Model.User.FullName</div>
+                        <div class="sb-email">@Model.User.Email</div>
                         <div class="sb-wallet-mini">
-                            <span>&#128155; Wallet</span>
-                            <strong id="sidebarBalance">100.50 JOD</strong>
+                            <span>&#128155; Wallet   </span>
+                            <strong id="sidebarBalance">@Model.Balance.ToString("F2") JOD</strong>
                         </div>
                     </div>
                 </div>
@@ -137,89 +138,198 @@
         </aside>
 
         <main class="main-content">
-            <div class="page-header"><div><h2>My Wallet</h2><p>Balance, top-up and transaction history</p></div></div>
+            <div class="page-header">
+                <div><h2>My Wallet 💳</h2><p>Balance, top-up and transaction history</p></div>
+            </div>
 
+            @* ✅ Balance Card *@
             <div class="wallet-hero">
                 <div class="wallet-bal-label">Current Balance</div>
-                <div class="wallet-bal">32.50 <span style="font-size:1rem;opacity:.7">JOD</span></div>
-                <div class="cashback-chip">&#127873; 2% Cashback on every order</div>
+                <div class="wallet-bal">
+                    @Model.Balance.ToString("F2")
+                    <span style="font-size:1rem;opacity:.7">JOD</span>
+                </div>
+                <div class="cashback-chip">🎁 2% Cashback on every order</div>
                 <div class="wallet-meta">
-                    <div class="wallet-meta-item"><span>Total Topped Up</span><strong>85.00 JOD</strong></div>
-                    <div class="wallet-meta-item"><span>Total Spent</span><strong>57.50 JOD</strong></div>
-                    <div class="wallet-meta-item"><span>Rewards Earned</span><strong>+5.00 JOD</strong></div>
+                    <div class="wallet-meta-item">
+                        <span>Total Received</span>
+                        <strong>@Model.TotalIn.ToString("F2") JOD</strong>
+                    </div>
+                    <div class="wallet-meta-item">
+                        <span>Total Spent</span>
+                        <strong>@Model.TotalOut.ToString("F2") JOD</strong>
+                    </div>
+                    <div class="wallet-meta-item">
+                        <span>Finder Rewards</span>
+                        <strong>
+                            @Model.FinderRewards.Sum(r => r.RewardAmount ?? 0).ToString("F2") JOD
+                        </strong>
+                    </div>
                 </div>
             </div>
 
-            <div class="s-card">
-                <div class="s-card-head"><span class="s-card-title">&#128179; Top Up Wallet</span></div>
-                <div class="s-card-body">
-                    <p style="font-size:.82rem;color:var(--muted);font-weight:700;margin-bottom:12px">Select amount</p>
-                    <div class="amt-grid">
-                        <div class="amt-btn" onclick="selAmt(this,'5')">5 JOD</div>
-                        <div class="amt-btn active" onclick="selAmt(this,'10')">10 JOD</div>
-                        <div class="amt-btn" onclick="selAmt(this,'20')">20 JOD</div>
-                        <div class="amt-btn" onclick="selAmt(this,'custom')">Custom</div>
-                    </div>
-                    <div id="customAmtWrap" style="display:none;margin-bottom:14px">
-                        <div class="field"><input type="number" id="customAmt" placeholder="Enter amount in JOD"></div>
-                    </div>
-                    <p style="font-size:.82rem;color:var(--muted);font-weight:700;margin-bottom:10px">Payment method</p>
-                    <div class="topup-grid">
-                        <div class="topup-btn active" onclick="selTopup(this,'card')"><span>&#128179;</span><p>Card</p></div>
-                        <div class="topup-btn" onclick="selTopup(this,'cliq')"><span>&#128241;</span><p>CliQ</p></div>
-                        <div class="topup-btn" onclick="selTopup(this,'cash')"><span>&#128181;</span><p>Cash Point</p></div>
-                    </div>
-                    <div id="topup-card">
-                        <div class="form-grid">
-                            <div class="field full"><label>Card Number</label><input placeholder="1234 5678 9012 3456" dir="ltr"></div>
-                            <div class="field"><label>Expiry</label><input placeholder="MM / YY" dir="ltr"></div>
-                            <div class="field"><label>CVV</label><input placeholder="&bull;&bull;&bull;" type="password" dir="ltr"></div>
-                            <div class="field full"><label>Cardholder Name</label><input placeholder="Name on card" dir="ltr"></div>
-                        </div>
-                    </div>
-                    <div id="topup-cliq" style="display:none">
-                        <div class="field"><label>CliQ Alias or Phone</label><div class="phone-row"><span class="phone-code">+962</span><input placeholder="7X XXX XXXX"></div></div>
-                    </div>
-                    <div id="topup-cash" style="display:none">
-                        <div style="background:#fff8e6;border:1px solid #fde68a;border-radius:14px;padding:14px;font-size:.85rem;font-weight:700;color:#92400e">
-                            &#128205; Top up at any authorized Waffy cash point. A top-up code will be sent to your phone via SMS.
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:14px" onclick="showToast('&#128179; Wallet topped up successfully!')">
-                        <i class="fa-solid fa-bolt"></i> Top Up Now
-                    </button>
-                    <p style="text-align:center;font-size:.75rem;color:var(--muted);font-weight:700;margin-top:8px">&#128274; Your payment data is protected with SSL encryption</p>
-                </div>
-            </div>
+        
 
+            @* ✅ Top Up Card *@
             <div class="s-card">
                 <div class="s-card-head">
-                    <span class="s-card-title">&#128203; Transaction History</span>
-                    <select style="padding:6px 12px;border:1px solid var(--line);border-radius:var(--pill);font-size:.78rem;font-weight:700;background:#fff;outline:none;cursor:pointer">
-                        <option>All</option>
-                        <option>Top Up</option>
-                        <option>Payment</option>
-                        <option>Reward</option>
-                    </select>
+                    <span class="s-card-title">💳 Top Up Wallet</span>
                 </div>
-                <div class="s-card-body">
-                    <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)">
-                        <div style="width:42px;height:42px;border-radius:12px;background:#eef5df;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">&#11014;&#65039;</div>
-                        <div style="flex:1"><div style="font-weight:800;font-size:.88rem">Wallet Top-up via Card</div><div style="font-size:.76rem;color:var(--muted);font-weight:700">Mar 10, 2:30 PM</div></div>
-                        <div style="font-family:Fredoka,sans-serif;font-size:1rem;color:var(--olive-dark);font-weight:600">+20.00 JOD</div>
+
+                @if (TempData["WalletSuccess"] != null)
+                {
+                    <div style="background:#f0fff0;border:1px solid #b2dfb2;color:#2d7a2d;
+                        padding:.8rem 1rem;margin:.5rem 1rem;border-radius:10px;font-weight:700">
+                        @TempData["WalletSuccess"]
                     </div>
-                    <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)">
-                        <div style="width:42px;height:42px;border-radius:12px;background:#fef2f2;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">&#11015;&#65039;</div>
-                        <div style="flex:1"><div style="font-weight:800;font-size:.88rem">Order Payment &mdash; Royal Canin</div><div style="font-size:.76rem;color:var(--muted);font-weight:700">Mar 8, 4:00 PM</div></div>
-                        <div style="font-family:Fredoka,sans-serif;font-size:1rem;color:#b91c1c;font-weight:600">-18.50 JOD</div>
+                }
+                @if (TempData["WalletError"] != null)
+                {
+                    <div style="background:#fff0f0;border:1px solid #ffb2b2;color:#c0392b;
+                        padding:.8rem 1rem;margin:.5rem 1rem;border-radius:10px;font-weight:700">
+                        @TempData["WalletError"]
                     </div>
-                    <div style="display:flex;align-items:center;gap:14px;padding:12px 0">
-                        <div style="width:42px;height:42px;border-radius:12px;background:#eef5df;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">&#127873;</div>
-                        <div style="flex:1"><div style="font-weight:800;font-size:.88rem">Finder Reward</div><div style="font-size:.76rem;color:var(--muted);font-weight:700">Feb 28, 6:45 PM</div></div>
-                        <div style="font-family:Fredoka,sans-serif;font-size:1rem;color:var(--olive-dark);font-weight:600">+10.00 JOD</div>
+                }
+
+                <form method="post"
+                      asp-controller="Profile"
+                      asp-action="TopUpWallet"
+                      id="topupForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="amount" id="hiddenAmount" value="10" />
+                    <input type="hidden" name="paymentMethod" id="hiddenMethod" value="Card" />
+
+                    <div class="s-card-body">
+                        <p style="font-size:.82rem;color:var(--muted);font-weight:700;margin-bottom:12px">
+                            Select amount
+                        </p>
+                        <div class="amt-grid">
+                            <div class="amt-btn" onclick="selAmt(this,'5')">5 JOD</div>
+                            <div class="amt-btn active" onclick="selAmt(this,'10')">10 JOD</div>
+                            <div class="amt-btn" onclick="selAmt(this,'20')">20 JOD</div>
+                            <div class="amt-btn" onclick="selAmt(this,'custom')">Custom</div>
+                        </div>
+                        <div id="customAmtWrap" style="display:none;margin-bottom:14px">
+                            <div class="field">
+                                <input type="number" id="customAmt" placeholder="Enter amount in JOD">
+                            </div>
+                        </div>
+                        <p style="font-size:.82rem;color:var(--muted);font-weight:700;margin-bottom:10px">
+                            Payment method
+                        </p>
+                        <div class="topup-grid">
+                            <div class="topup-btn active" onclick="selTopup(this,'card')">
+                                <span>💳</span><p>Card</p>
+                            </div>
+                            <div class="topup-btn" onclick="selTopup(this,'cliq')">
+                                <span>📱</span><p>CliQ</p>
+                            </div>
+                            <div class="topup-btn" onclick="selTopup(this,'cash')">
+                                <span>💵</span><p>Cash Point</p>
+                            </div>
+                        </div>
+                        <div id="topup-card">
+                            <div class="form-grid">
+                                <div class="field full">
+                                    <label>Card Number</label>
+                                    <input placeholder="1234 5678 9012 3456" dir="ltr">
+                                </div>
+                                <div class="field">
+                                    <label>Expiry</label>
+                                    <input placeholder="MM / YY" dir="ltr">
+                                </div>
+                                <div class="field">
+                                    <label>CVV</label>
+                                    <input placeholder="•••" type="password" dir="ltr">
+                                </div>
+                                <div class="field full">
+                                    <label>Cardholder Name</label>
+                                    <input placeholder="Name on card" dir="ltr">
+                                </div>
+                            </div>
+                        </div>
+                        <div id="topup-cliq" style="display:none">
+                            <div class="field">
+                                <label>CliQ Alias or Phone</label>
+                                <div class="phone-row">
+                                    <span class="phone-code">+962</span>
+                                    <input placeholder="7X XXX XXXX">
+                                </div>
+                            </div>
+                        </div>
+                        <div id="topup-cash" style="display:none">
+                            <div style="background:#fff8e6;border:1px solid #fde68a;border-radius:14px;
+                             padding:14px;font-size:.85rem;font-weight:700;color:#92400e">
+                                📍 Top up at any authorized Waffy cash point.
+                            </div>
+                        </div>
+
+                        <button type="submit"
+                                class="btn btn-primary"
+                                style="width:100%;justify-content:center;margin-top:14px"
+                                onclick="return prepareSubmit()">
+                            <i class="fa-solid fa-bolt"></i> Top Up Now
+                        </button>
+
+                        <p style="text-align:center;font-size:.75rem;color:var(--muted);
+                       font-weight:700;margin-top:8px">
+                            🔒 Your payment data is protected with SSL encryption
+                        </p>
                     </div>
-                </div>
+                </form>
             </div>
+
+    @* ✅ Transaction History *@
+    <div class="s-card">
+        <div class="s-card-head">
+            <span class="s-card-title">📋 Transaction History</span>
+            <span class="badge badge-blue">@Model.Transactions.Count</span>
+        </div>
+        <div class="s-card-body">
+            @if (!Model.Transactions.Any())
+            {
+                <p style="text-align:center;color:var(--muted);padding:2rem">
+                    No transactions yet.
+                </p>
+            }
+            @foreach (var t in Model.Transactions)
+            {
+                var isIn = t.Amount > 0;
+                var emoji = isIn ? "⬆️" : "⬇️";
+                var bg = isIn ? "#eef5df" : "#fef2f2";
+                var color = isIn ? "var(--olive-dark)" : "#b91c1c";
+                var sign = isIn ? "+" : "-";
+
+                <div style="display:flex;align-items:center;gap:14px;
+                                         padding:12px 0;border-bottom:1px solid var(--line)">
+                    <div style="width:42px;height:42px;border-radius:12px;
+                                             background:@bg;display:flex;align-items:center;
+                                             justify-content:center;font-size:1.1rem;flex-shrink:0">
+                        @emoji
+                    </div>
+                    <div style="flex:1">
+                        <div style="font-weight:800;font-size:.88rem">
+                            @(t.Type ?? "Transaction")
+                            @if (!string.IsNullOrEmpty(t.PaymentMethod))
+                            {
+                                <span style="color:var(--muted);font-weight:600;font-size:.78rem">
+                                    · @t.PaymentMethod
+                                </span>
+                            }
+                        </div>
+                        <div style="font-size:.76rem;color:var(--muted);font-weight:700">
+                            @t.CreatedAt?.ToString("MMM dd, yyyy · hh:mm tt")
+                        </div>
+                    </div>
+                    <div style="font-family:Fredoka,sans-serif;font-size:1rem;
+                                             color:@color;font-weight:600">
+                        @sign@Math.Abs(t.Amount).ToString("F2") JOD
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
         </main>
     </div>
 
@@ -301,9 +411,76 @@
           if (mt && mb) mt.addEventListener("click", () => mb.classList.toggle("open"));
         });
         function changeAvatar(input) { if (input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { const sb = document.getElementById("sidebarAvatar"); if (sb) sb.innerHTML = `<img src="${e.target.result}" alt="Profile">`; const big = document.getElementById("bigAvatar"); if (big) big.innerHTML = `<img src="${e.target.result}" alt="Profile">`; }; r.readAsDataURL(input.files[0]); } }
+
         var selAmt_val = "10";
-        function selAmt(el, v) { document.querySelectorAll(".amt-btn").forEach(b => b.classList.remove("active")); el.classList.add("active"); selAmt_val = v; document.getElementById("customAmtWrap").style.display = v === "custom" ? "block" : "none"; }
-        function selTopup(el, m) { document.querySelectorAll(".topup-btn").forEach(b => b.classList.remove("active")); el.classList.add("active"); ["card","cliq","cash"].forEach(x => document.getElementById("topup-" + x).style.display = x === m ? "block" : "none"); }
-    </script>
+        var selMethod  = "Card";
+
+        function selAmt(el, v) {
+            document.querySelectorAll(".amt-btn").forEach(b => b.classList.remove("active"));
+            el.classList.add("active");
+            selAmt_val = v;
+            document.getElementById("customAmtWrap").style.display =
+                v === "custom" ? "block" : "none";
+        }
+
+        function selTopup(el, m) {
+            document.querySelectorAll(".topup-btn").forEach(b => b.classList.remove("active"));
+            el.classList.add("active");
+            selMethod = m;
+            ["card","cliq","cash"].forEach(x => {
+                document.getElementById("topup-" + x).style.display =
+                    x === m ? "block" : "none";
+            });
+        }
+
+        function prepareSubmit() {
+            // ✅ تحديد المبلغ
+            var amount = selAmt_val === "custom"
+                ? document.getElementById("customAmt").value
+                : selAmt_val;
+
+            if (!amount || parseFloat(amount) <= 0) {
+                showToast("⚠️ Please enter a valid amount.");
+                return false;
+            }
+
+            // ✅ تحقق من Card fields لو method = card
+            if (selMethod === "card") {
+                var cardNum = document.querySelector('#topup-card input[placeholder="1234 5678 9012 3456"]');
+                var expiry  = document.querySelector('#topup-card input[placeholder="MM / YY"]');
+                var cvv     = document.querySelector('#topup-card input[placeholder="•••"]');
+                var name    = document.querySelector('#topup-card input[placeholder="Name on card"]');
+
+                if (!cardNum?.value || !expiry?.value || !cvv?.value || !name?.value) {
+                    showToast("⚠️ Please fill in all card details.");
+                    return false;
+                }
+
+                // ✅ تحقق بسيط من رقم البطاقة
+                if (cardNum.value.replace(/\s/g,'').length < 16) {
+                    showToast("⚠️ Invalid card number.");
+                    return false;
+                }
+            }
+
+            if (selMethod === "cliq") {
+                var cliqPhone = document.querySelector('#topup-cliq input');
+                if (!cliqPhone?.value) {
+                    showToast("⚠️ Please enter your CliQ phone number.");
+                    return false;
+                }
+            }
+
+            // ✅ أرسل للـ form
+            document.getElementById("hiddenAmount").value = amount;
+            document.getElementById("hiddenMethod").value =
+                selMethod === "card"  ? "Credit Card" :
+                selMethod === "cliq"  ? "CliQ"        : "Cash Point";
+
+            return true;
+        }
+    
+        
+        </script>
 </body>
 </html>

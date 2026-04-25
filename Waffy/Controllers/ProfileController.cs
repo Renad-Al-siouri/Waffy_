@@ -14,13 +14,15 @@ namespace Waffy.Controllers
         private readonly ILostPetRepository _lostPetRepo;
         private readonly IReservationRepository _reservationRepo;
         private readonly IFoundPetClaimRepository _claimRepo;
+        private readonly IWalletRepository _walletRepo;
         public ProfileController(
             IUserRepository userRepository,
             IPetRepository petRepo,
             IAdoptionRepository adoptionRepo,  
             ILostPetRepository lostPetRepo,
             IReservationRepository reservationRepo,
-            IFoundPetClaimRepository claimRepo)
+            IFoundPetClaimRepository claimRepo,
+            IWalletRepository walletRepo)
         {
             _userRepository = userRepository;
             _petRepo = petRepo;
@@ -28,6 +30,7 @@ namespace Waffy.Controllers
             _lostPetRepo = lostPetRepo;
             _reservationRepo = reservationRepo;
             _claimRepo = claimRepo;
+            _walletRepo = walletRepo;
         }
 
         // ── helper: تجلب المستخدم من Session أو ترجع null ──
@@ -162,8 +165,92 @@ namespace Waffy.Controllers
             return View(vm);
         }
 
-        public IActionResult My_Wallet() => View();
-        public IActionResult Rewards() => View();
+        // ════════════════════════════════════════════════════
+        // MY WALLET — GET
+        // ════════════════════════════════════════════════════
+
+        public async Task<IActionResult> My_Wallet()
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
+            var transactions = (await _walletRepo.GetTransactionsByUserIdAsync(user.UserId)).ToList();
+
+            return View(new WalletViewModel
+            {
+                User = user,
+                Wallet = wallet,
+                Transactions = transactions
+            });
+        }
+
+        // ════════════════════════════════════════════════════
+        // TOP UP WALLET — POST (Simulated)
+        // ════════════════════════════════════════════════════
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TopUpWallet(decimal amount, string paymentMethod)
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            if (amount <= 0 || amount > 1000)
+            {
+                TempData["WalletError"] = "Invalid amount. Please enter between 1 and 1000 JOD.";
+                return RedirectToAction("My_Wallet");
+            }
+
+            // ✅ جلب أو إنشاء الـ Wallet
+            var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
+            if (wallet == null)
+                await _walletRepo.CreateWalletAsync(user.UserId);
+
+            wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
+
+            // ✅ أضف المبلغ للـ Wallet
+            await _walletRepo.AddBalanceAsync(wallet!.IdWallet, amount);
+
+            // ✅ سجّل الـ Transaction
+            await _walletRepo.AddTransactionAsync(new WalletTransaction
+            {
+                IdWallet = wallet.IdWallet,
+                TransactionCode = $"WAF-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                Type = "TopUp",
+                Amount = amount,
+                PaymentMethod = paymentMethod,
+                Status = "Completed",
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["WalletSuccess"] = $"✅ {amount:F2} JOD added to your wallet successfully!";
+            return RedirectToAction("My_Wallet");
+        }
+
+        // ════════════════════════════════════════════════════
+        // REWARDS — GET
+        // ════════════════════════════════════════════════════
+        public async Task<IActionResult> Rewards()
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            // ✅ مكافآت الـ finder من FoundPetClaim
+            var finderRewards = (await _claimRepo.GetByUserIdAsync(user.UserId))
+                .Where(c => c.Status == "Confirmed" && c.RewardAmount > 0)
+                .ToList();
+
+            var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
+            var transactions = (await _walletRepo.GetTransactionsByUserIdAsync(user.UserId)).ToList();
+
+            return View(new WalletViewModel
+            {
+                User = user,
+                Wallet = wallet,
+                Transactions = transactions,
+                FinderRewards = finderRewards
+            });
+        }
         public IActionResult Appointments() => View();
         public IActionResult Orders() => View();
         // ════════════════════════════════════════════════════
@@ -291,7 +378,99 @@ namespace Waffy.Controllers
             TempData["LostSuccess"] = "Report marked as found.";
             return RedirectToAction("Lost_Reports");
         }
-        public IActionResult Timeline() => View();
+
+        // ════════════════════════════════════════════════════
+        // TIMELINE — GET
+        // ════════════════════════════════════════════════════
+        public async Task<IActionResult> Timeline()
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var events = new List<TimelineEvent>();
+
+            // ✅ 1 — تسجيل الحساب
+            events.Add(new TimelineEvent
+            {
+                Icon = "🎉",
+                Title = "Account Created",
+                Description = "Welcome to Waffy!",
+                Date = user.CreatedAt,
+                Color = "#7bb33a"
+            });
+
+            // ✅ 2 — Lost Reports
+            var reports = await _lostPetRepo.GetByUserIdAsync(user.UserId);
+            foreach (var r in reports)
+            {
+                events.Add(new TimelineEvent
+                {
+                    Icon = "🔍",
+                    Title = $"Lost Pet Report — {r.PetName}",
+                    Description = $"{r.City} · {(r.RewardAmount > 0 ? $"Reward: {r.RewardAmount} JOD" : "No reward")}",
+                    Date = r.CreatedAt,
+                    Color = "#e65100"
+                });
+            }
+
+            // ✅ 3 — Adoption Posts
+            var posts = await _adoptionRepo.GetByUserIdAsync(user.UserId);
+            foreach (var p in posts)
+            {
+                events.Add(new TimelineEvent
+                {
+                    Icon = "🐾",
+                    Title = $"Adoption Ad — {p.PetName}",
+                    Description = $"{p.AnimalType} · {p.City} · {p.AdoptionStatus}",
+                    Date = p.CreatedAt,
+                    Color = "#7bb33a"
+                });
+            }
+
+            // ✅ 4 — Finder Claims (كـ finder)
+            var myClaims = await _claimRepo.GetByUserIdAsync(user.UserId);
+            foreach (var c in myClaims)
+            {
+                events.Add(new TimelineEvent
+                {
+                    Icon = c.Status == "Confirmed" ? "🎁" : "🔎",
+                    Title = c.Status == "Confirmed"
+                                    ? $"Found Pet Reward — {c.PetName}"
+                                    : $"Found Pet Claim — {c.PetName}",
+                    Description = c.Status == "Confirmed" && c.RewardAmount > 0
+                                    ? $"+{c.RewardAmount} JOD added to wallet"
+                                    : $"Status: {c.Status}",
+                    Date = c.CreatedAt ?? DateTime.UtcNow,
+                    Color = c.Status == "Confirmed" ? "#2d7a2d" : "#7bb33a"
+                });
+            }
+
+            // ✅ 5 — Wallet Transactions
+            var transactions = await _walletRepo.GetTransactionsByUserIdAsync(user.UserId);
+            foreach (var t in transactions)
+            {
+                events.Add(new TimelineEvent
+                {
+                    Icon = t.Amount > 0 ? "💰" : "💸",
+                    Title = t.Amount > 0
+                                    ? $"Wallet Top-up — +{t.Amount} JOD"
+                                    : $"Payment — {Math.Abs(t.Amount)} JOD",
+                    Description = t.PaymentMethod ?? t.Type ?? "",
+                    Date = t.CreatedAt ?? DateTime.UtcNow,
+                    Color = t.Amount > 0 ? "#2d7a2d" : "#b91c1c"
+                });
+            }
+
+            // ✅ رتّب حسب التاريخ — الأحدث أولاً
+            events = events.OrderByDescending(e => e.Date).ToList();
+
+            return View(new WalletViewModel
+            {
+                User = user,
+                Wallet = await _walletRepo.GetByUserIdAsync(user.UserId),
+                TimelineEvents = events
+            });
+        }
         public IActionResult Complaints() => View();
         // =========================
         // Security — GET

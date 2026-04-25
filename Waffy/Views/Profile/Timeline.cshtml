@@ -1,4 +1,5 @@
-﻿@{
+﻿@model Waffy.Models.ViewModels.WalletViewModel
+@{
     ViewData["Title"] = "Activity Timeline";
     Layout = null;
 }
@@ -94,11 +95,11 @@
                         <input type="file" id="avatarFile" accept="image/*" hidden onchange="changeAvatar(this)">
                     </div>
                     <div class="sb-profile-text">
-                        <div class="sb-name" id="sidebarName">Batool Jaber</div>
-                        <div class="sb-email" id="sidebarEmail">Batool@@email.com</div>
+                        <div class="sb-name">@Model.User.FullName</div>
+                        <div class="sb-email">@Model.User.Email</div>
                         <div class="sb-wallet-mini">
                             <span>&#128155; Wallet</span>
-                            <strong id="sidebarBalance">100.50 JOD</strong>
+                            <strong id="sidebarBalance">@Model.Balance.ToString("F2") JOD</strong>
                         </div>
                     </div>
                 </div>
@@ -126,18 +127,41 @@
         </aside>
 
         <main class="main-content">
-            <div class="page-header"><div><h2>Activity Timeline &#9200;&#65039;</h2><p>Everything that happened on your account</p></div></div>
+            <div class="page-header">
+                <div>
+                    <h2>Activity Timeline ⏰</h2>
+                    <p>Everything that happened on your account</p>
+                </div>
+            </div>
 
             <div class="s-card">
-                <div class="s-card-head"><span class="s-card-title">Recent Activity</span></div>
+                <div class="s-card-head">
+                    <span class="s-card-title">Recent Activity</span>
+                    <span class="badge badge-blue">@Model.TimelineEvents.Count Events</span>
+                </div>
                 <div class="s-card-body">
+                    @if (!Model.TimelineEvents.Any())
+                    {
+                        <p style="text-align:center;color:var(--muted);padding:2rem">
+                            No activity yet. Start using Waffy! 🐾
+                        </p>
+                    }
+
                     <div class="timeline">
-                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><h4>Appointment booked &mdash; Buddy &middot; Checkup</h4><p>Al Amanah Clinic &middot; Dr. Rania Hassan</p><small>Today, 9:14 AM</small></div></div>
-                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><h4>Wallet topped up &mdash; +20 JOD via Card</h4><p>Visa ending in 4242</p><small>Mar 10, 2:30 PM</small></div></div>
-                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><h4>Lost pet ad published &mdash; Buddy</h4><p>Reward: 25 JOD &middot; 14-day duration</p><small>Mar 10, 11:00 AM</small></div></div>
-                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><h4>Order delivered &mdash; Royal Canin 2kg</h4><p>Pet Friends Store</p><small>Mar 8, 4:00 PM</small></div></div>
-                        <div class="tl-item"><div class="tl-dot"></div><div class="tl-content"><h4>Finder reward received &mdash; +10 JOD</h4><p>Returned lost pet to owner</p><small>Feb 28, 6:45 PM</small></div></div>
-                        <div class="tl-item"><div class="tl-dot grey"></div><div class="tl-content"><h4>Account created &#127881;</h4><p>Welcome to Waffy! +5 JOD welcome bonus</p><small>Mar 1, 2026</small></div></div>
+                        @foreach (var ev in Model.TimelineEvents)
+                        {
+                            <div class="tl-item">
+                                <div class="tl-dot" style="background:@ev.Color"></div>
+                                <div class="tl-content">
+                                    <h4>@ev.Icon @ev.Title</h4>
+                                    @if (!string.IsNullOrEmpty(ev.Description))
+                                    {
+                                        <p>@ev.Description</p>
+                                    }
+                                    <small>@ev.Date.ToString("MMM dd, yyyy · hh:mm tt")</small>
+                                </div>
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
