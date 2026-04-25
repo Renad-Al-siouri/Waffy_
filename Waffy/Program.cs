@@ -23,6 +23,8 @@ builder.Services.AddScoped<ILostPetRepository, LostPetRepository>();
 builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<IFoundPetClaimRepository, FoundPetClaimRepository>();
 builder.Services.AddScoped<IWalletRepository, WalletRepository>();
+builder.Services.AddScoped<IDonationRepository, DonationRepository>();
+builder.Services.AddScoped<IDangerousAnimalReportRepository, DangerousAnimalReportRepository>();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>

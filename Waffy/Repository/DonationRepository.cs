@@ -1,0 +1,59 @@
+﻿using Dapper;
+using Microsoft.Data.SqlClient;
+using Waffy.Interfaces;
+using Waffy.Models;
+
+namespace Waffy.Repository
+{
+    public class DonationRepository : IDonationRepository
+    {
+        private readonly string _connectionString;
+
+        public DonationRepository(IConfiguration configuration)
+        {
+            _connectionString = configuration.GetConnectionString("WaffyConnection")
+                ?? throw new Exception("WaffyConnection not found");
+        }
+
+        // ✅ INSERT بنمط MAX(Id)+1 — جدول Donation بدون IDENTITY
+        public async Task<int> CreateAsync(Donation donation)
+        {
+            const string sql = @"
+                DECLARE @NewId INT = (SELECT ISNULL(MAX(Id), 0) + 1 FROM Donation);
+                INSERT INTO Donation 
+                    (Id, IdUser, DonationType, Amount, Quantity, Unit,
+                     Description, TargetType, TargetId, ReferenceCode, Status, CreatedAt)
+                VALUES 
+                    (@NewId, @IdUser, @DonationType, @Amount, @Quantity, @Unit,
+                     @Description, @TargetType, @TargetId, @ReferenceCode, @Status, @CreatedAt);
+                SELECT @NewId;";
+
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.ExecuteScalarAsync<int>(sql, new
+            {
+                donation.IdUser,
+                donation.DonationType,
+                donation.Amount,
+                donation.Quantity,
+                donation.Unit,
+                donation.Description,
+                donation.TargetType,
+                donation.TargetId,
+                donation.ReferenceCode,
+                donation.Status,
+                donation.CreatedAt
+            });
+        }
+
+        public async Task<IEnumerable<Donation>> GetByUserIdAsync(int userId)
+        {
+            const string sql = @"
+                SELECT * FROM Donation
+                WHERE IdUser = @UserId
+                ORDER BY CreatedAt DESC";
+
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<Donation>(sql, new { UserId = userId });
+        }
+    }
+}

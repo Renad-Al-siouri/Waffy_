@@ -1,3 +1,8 @@
+﻿
+// في أعلى الملف — بعد const toast = ...
+// Guard: هذه العناصر محذوفة من الـ View الجديد
+const donorName = document.getElementById("donorName");
+const donorPhone = document.getElementById("donorPhone");
 const cartCount = document.getElementById("cartCount");
 const typeCards = document.querySelectorAll(".type-card");
 const amountButtons = document.querySelectorAll(".amount-btn");
@@ -19,8 +24,6 @@ const cliqBox = document.getElementById("cliqBox");
 const walletSelectedAmount = document.getElementById("walletSelectedAmount");
 const walletRemainingAmount = document.getElementById("walletRemainingAmount");
 
-const donorName = document.getElementById("donorName");
-const donorPhone = document.getElementById("donorPhone");
 const submitDonationBtn = document.getElementById("submitDonationBtn");
 const cancelBtn = document.getElementById("cancelBtn");
 const toast = document.getElementById("toast");

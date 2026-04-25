@@ -77,5 +77,18 @@ namespace Waffy.Repository
             using var conn = new SqlConnection(_connectionString);
             await conn.ExecuteAsync(sql, transaction);
         }
+
+        public async Task DeductBalanceAsync(int walletId, decimal amount)
+        {
+            const string sql = @"
+        UPDATE Wallet
+        SET Balance   = Balance - @Amount,
+            UpdatedAt = GETUTCDATE()
+        WHERE IdWallet = @WalletId
+          AND Balance  >= @Amount";
+
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(sql, new { Amount = amount, WalletId = walletId });
+        }
     }
 }
