@@ -136,153 +136,260 @@
                             <div class="record-logo">
                                 <img src="../Images/logo.png" alt="logo" />
                             </div>
-
                             <div class="record-hero-copy">
                                 <span class="page-chip">Waffy Pet Profile</span>
                                 <h1 class="record-title">Complete Pet Medical Record</h1>
                                 <p class="record-subtitle">
-                                    A clean and organized space for your pet’s information, health history, vaccinations,
-                                    behavior, and quick actions like adoption or lost-pet reporting.
+                                    A clean and organized space for your pet's information,
+                                    health history, vaccinations, behavior, and quick actions.
                                 </p>
                             </div>
                         </div>
-
                         <div class="record-hero-right">
                             <div class="hero-side-card">
-                                <div class="hero-side-badge">Healthy Profile</div>
-                                <h3>Everything in one elegant card</h3>
-                                <p>
-                                    Keep your pet details ready, clear, and easy to access whenever you need them.
-                                </p>
+                                <div class="hero-side-badge">
+                                    @(Model.VaccinationStatus == "UpToDate" ? "✅ Vaccinated" : "⚠️ Check Vaccines")
+                                </div>
+                                <h3>@Model.Name's Profile</h3>
+                                <p>Added @Model.CreatedAt.ToString("MMMM dd, yyyy")</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Pet Information -->
+                    @* ── Pet Information ── *@
                     <div class="box pet-main-box">
-                        <div class="box-title">Pet Information</div>
-
+                        <div class="box-title">🐾 Pet Information</div>
                         <div class="pet-info-grid">
+
                             <div class="pet-photo">
                                 <div class="pet-avatar-wrap">
                                     <div class="pet-avatar">
-                                        <img id="petImage" src="@(Model.ImageUrl ?? "/Images/Animals/dod1.jpg")" alt="pet" />
-                                        <span class="pet-default-icon">🐾</span>
+                                        <img id="petImage"
+                                             src="@(string.IsNullOrEmpty(Model.ImageUrl)
+                                                                                             ? "/Images/Animals/dog1.jpg"
+                                                                                             : Model.ImageUrl)"
+                                             alt="@Model.Name" />
                                     </div>
-
-                                    <button class="pet-camera-btn" type="button">📷</button>
-                                    <input type="file" id="petPhotoInput" accept="image/*" hidden />
                                 </div>
                             </div>
 
                             <div class="pet-main-info">
-                                <div class="pet-main-top">
-                                    <div class="pet-name-block">
-                                        <h2 id="petName">@Model.Name</h2>
-                                        <span class="pet-type-pill" id="petType">Dog - Beagle</span>
-                                    </div>
-
-
+                                <div class="pet-name-block">
+                                    <h2>@Model.Name</h2>
+                                    <span class="pet-type-pill">
+                                        @Model.Species
+                                        @if (!string.IsNullOrEmpty(Model.Breed))
+                                        {
+                                            <text> — @Model.Breed</text>
+                                        }
+                                    </span>
                                 </div>
 
                                 <div class="pet-main-grid">
                                     <div class="info-item">
                                         <span>Age</span>
-                                        <strong id="petAge">@Model.AgeDisplay</strong>
+                                        <strong>@Model.AgeDisplay</strong>
                                     </div>
-
                                     <div class="info-item">
                                         <span>Gender</span>
-                                        <strong id="petGender">@Model.Gender</strong>
+                                        <strong>@(Model.Gender ?? "—")</strong>
                                     </div>
-
                                     <div class="info-item">
-                                        <span>Type</span>
-                                        <strong>Dog - Beagle</strong>
+                                        <span>Color</span>
+                                        <strong>@(Model.Color ?? "—")</strong>
                                     </div>
-
                                     <div class="info-item">
-                                        <span>Record</span>
-                                        <strong>Complete</strong>
+                                        <span>Weight</span>
+                                        <strong>
+                                            @(Model.Weight.HasValue
+                                                                                        ? $"{Model.Weight} kg"
+                                                                                        : "—")
+                                        </strong>
+                                    </div>
+                                    <div class="info-item">
+                                        <span>Microchip ID</span>
+                                        <strong>@(Model.MicrochipId ?? "Not registered")</strong>
+                                    </div>
+                                    <div class="info-item">
+                                        <span>Birth Date</span>
+                                        <strong>
+                                            @(Model.BirthDate.HasValue
+                                                                                        ? Model.BirthDate.Value.ToString("dd MMM yyyy")
+                                                                                        : "—")
+                                        </strong>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Health Status -->
+                    @* ── Health Status ── *@
                     <div class="double-grid">
                         <div class="box">
-                            <div class="box-title">Health Issues</div>
-                            <div class="mini-content" id="healthProblems">
-                                <p>Mild skin allergy</p>
-                                <p>Previous digestive issue</p>
+                            <div class="box-title">❤️ Health Status</div>
+                            <div class="mini-content">
+                                <p>
+                                    <strong>Vaccination:</strong>
+                                    @* ❌ خطأ *@
+                                    @switch (Model.VaccinationStatus)
+                                    {
+                                        case "UpToDate":
+                                            <span style="color:#2d7a2d">✅ Up to date</span>
+                                            break;
+                                        case "Partial":
+                                            <span style="color:#e67e22">⚠️ Partial</span>
+                                            break;
+                                        default:
+                                            <span style="color:#e05252">❌ Not vaccinated</span>
+                                            break;
+                                    }
+                                </p>
+                                <p>
+                                    <strong>Neutered/Spayed:</strong>
+                                    @* ✅ صح *@
+                                    @if (Model.IsNeutered)
+                                    {
+                                        <span style="color:#2d7a2d">✅ Yes</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color:#888">❌ No</span>
+                                    }
+                                </p>
                             </div>
                         </div>
 
                         <div class="box">
-                            <div class="box-title">Health Status</div>
+                            <div class="box-title">🏥 Medical Notes</div>
                             <div class="mini-content">
-                                <p><strong>Health Issues:</strong> Yes ✅</p>
-                                <p><strong>Neutered/Spayed:</strong> Yes ✅</p>
+                                @if (!string.IsNullOrWhiteSpace(Model.MedicalNotes))
+                                {
+                                    <p>@Model.MedicalNotes</p>
+                                }
+                                else
+                                {
+                                    <p style="color:#aaa; font-style:italic" >
+                                        No medical notes recorded.
+                                    </p>
+                                }
                             </div>
                         </div>
                     </div>
+                    <div class="double-grid">
 
-                    <!-- Vaccination Record -->
+                        @* ── Behavior & Habits ── *@
+                        <div class="box">
+                            <div class="box-title">🧠 Behavior & Habits</div>
+                            <div class="pet-main-grid" style="margin-top:.8rem">
+
+                                <div class="info-item">
+                                    <span>Energy Level</span>
+                                    <strong>
+                                        @switch (Model.EnergyLevel)
+                                        {
+                                            case "High":
+                                                <text>🔥 High</text>
+                                                break;
+                                            case "Medium":
+                                                <text>⚡ Medium</text>
+                                                break;
+                                            default:
+                                                <text>😴 Low</text>
+                                                break;
+                                        }
+                                    </strong>
+                                </div>
+
+                                <div class="info-item">
+                                    <span>Trained</span>
+                                    <strong>@(Model.IsTrained ? "✅ Yes" : "❌ No")</strong>
+                                </div>
+
+                                <div class="info-item">
+                                    <span>Good with Children</span>
+                                    <strong>@(Model.GoodWithChildren ? "✅ Yes" : "❌ No")</strong>
+                                </div>
+
+                                <div class="info-item">
+                                    <span>Good with Pets</span>
+                                    <strong>@(Model.GoodWithPets ? "✅ Yes" : "❌ No")</strong>
+                                </div>
+
+                            </div>
+
+                            @if (!string.IsNullOrWhiteSpace(Model.Traits))
+                            {
+                                <div style="margin:1rem;padding:.8rem;
+                                            background:#f8fdf2;border-radius:8px;
+                                            border:1px solid #d4e8bc">
+                                    <strong>Traits & Personality:</strong>
+                                    <p style="margin:.3rem;color:#444">@Model.Traits</p>
+                                </div>
+                            }
+                        </div>
+                   
+
+                    @* ── Vaccination Status Box ── *@
                     <div class="box">
-                        <div class="box-title">Vaccination Record</div>
-
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Vaccine</th>
-                                        <th>Date Taken</th>
-                                        <th>Expiry</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="vaccineTable">
-                                    <tr>
-                                        <td>Rabies</td>
-                                        <td>15/05/2025</td>
-                                        <td>15/05/2026</td>
-                                    </tr>
-                                    <tr>
-                                        <td>DHPP</td>
-                                        <td>10/06/2025</td>
-                                        <td>10/06/2026</td>
-                                    </tr>
-                                    <tr>
-                                        <td>Kennel Cough</td>
-                                        <td>10/06/2025</td>
-                                        <td>10/06/2026</td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="box-title">💉 Vaccination Status</div>
+                        <div class="mini-content">
+                            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+                                <div style="background:@(Model.VaccinationStatus == "UpToDate" ? "#f0fff0" : "#fff8e1");
+                                        border:1px solid @(Model.VaccinationStatus == "UpToDate" ? "#b2dfb2" : "#ffe082");
+                                        border-radius:10px;padding:1rem 1.5rem;flex:1;min-width:200px">
+                                    <div style="font-size:1.5rem;margin-bottom:.4rem">
+                                        @(Model.VaccinationStatus == "UpToDate" ? "✅" : "⚠️")
+                                    </div>
+                                    <strong>
+                                        @switch (Model.VaccinationStatus)
+                                        {
+                                            case "UpToDate":
+                                                <text>Fully Vaccinated</text>
+                                                break;
+                                            case "Partial":
+                                                <text>Partially Vaccinated</text>
+                                                break;
+                                            default:
+                                                <text>Not Vaccinated</text>
+                                                break;
+                                        }
+                                    </strong>
+                                    <p style="font-size:.8rem;color:#666;margin-top:.3rem">
+                                        Status recorded on @Model.CreatedAt.ToString("MMM yyyy")
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
-                    <!-- Behavior -->
-                    <div class="box">
-                        <div class="box-title">Behavior & Habits</div>
-                        <div class="behavior-content">
-                            <p><strong>Behavior:</strong> <span id="petBehavior">Friendly, active, responsive</span></p>
-                            <p><strong>Training:</strong> <span id="petTraining">Trained on basic commands</span></p>
-                        </div>
                     </div>
 
-                    <!-- buttons -->
+                    @* ── Actions ── *@
                     <div class="bottom-actions">
-                        <button class="action-btn adopted-btn" id="openAdoptionFormBtn">Put Pet Up for Adoption 🐾</button>
-                        <button class="action-btn lost-btn" id="openLostFlowBtn">Pet is Missing 📣</button>
+                        <a asp-controller="Pet"
+                           asp-action="EditPetPage"
+                           asp-route-petId="@Model.IdPet"
+                           class="action-btn adopted-btn" >
+                            ✏️ Edit Pet Info
+                        </a> 
+                        <button class="action-btn lost-btn" id="openLostFlowBtn">
+                            Pet is Missing 📣
+                        </button>
+                        <button class="action-btn adopted-btn" id="openAdoptionFormBtn">
+                            Put Pet Up for Adoption 🐾
+                        </button>
+                       
                     </div>
 
-                    <a asp-controller="Account" asp-action="Profile" class="back-btn">Back</a>
+                    <a asp-controller="Account" asp-action="Profile" class="back-btn">
+                        ← Back to Profile
+                    </a>
+
                 </section>
             </section>
         </div>
     </main>
+
+
     <!-- LOST PET FLOW MODAL -->
     <div class="modal-overlay" id="lostFlowModal">
         <div class="modal adoption-modal lost-modal">
@@ -879,11 +986,10 @@
 
     <script>
 
-                // ══════════════════════════════════════
+        // ══════════════════════════════════════
         // ADOPTION STEPS
         // ══════════════════════════════════════
         function goAdoptStep(n) {
-            // Validation قبل الانتقال
             if (n === 2) {
                 const city  = document.getElementById("adCity")?.value;
                 const phone = document.getElementById("adPhone")?.value.trim();
@@ -899,7 +1005,6 @@
                     alert("Please complete Description and Reason.");
                     return;
                 }
-                // ✅ ملء الـ Review
                 document.getElementById("reviewCity").textContent =
                     document.getElementById("adCity")?.value || "—";
                 document.getElementById("reviewArea").textContent =
@@ -915,8 +1020,6 @@
             document.querySelectorAll(".adoption-step").forEach(s =>
                 s.classList.remove("active"));
             document.getElementById(`adoptStep${n}`)?.classList.add("active");
-
-            // Scroll لأعلى الـ modal
             document.querySelector("#adoptionFlow .adoption-modal")?.scrollTo(0, 0);
         }
 
@@ -951,7 +1054,6 @@
             document.querySelectorAll(".lost-step").forEach(s =>
                 s.classList.remove("active"));
             document.getElementById(`lostStep${n}`)?.classList.add("active");
-
             document.querySelector("#lostFlowModal .lost-modal")?.scrollTo(0, 0);
         }
 
@@ -999,68 +1101,12 @@
         }
 
         // ══════════════════════════════════════
-        // OPEN / CLOSE MODALS
+        // NAVBAR
         // ══════════════════════════════════════
-        document.getElementById("openAdoptionFormBtn")?.addEventListener("click", () => {
-            document.getElementById("adoptionFlow")?.classList.add("show");
-            goAdoptStep(1);
-        });
-        document.getElementById("closeAdoptionFlowBtn")?.addEventListener("click", () =>
-            document.getElementById("adoptionFlow")?.classList.remove("show"));
-        document.getElementById("closeAdoptionFlowBtn2")?.addEventListener("click", () =>
-            document.getElementById("adoptionFlow")?.classList.remove("show"));
-
-        document.getElementById("openLostFlowBtn")?.addEventListener("click", () => {
-            document.getElementById("lostFlowModal")?.classList.add("show");
-            goLostStep(1);
-        });
-        document.getElementById("closeLostFlowModal")?.addEventListener("click", () =>
-            document.getElementById("lostFlowModal")?.classList.remove("show"));
-
-        window.addEventListener("click", e => {
-            const aFlow = document.getElementById("adoptionFlow");
-            const lFlow = document.getElementById("lostFlowModal");
-            if (e.target === aFlow) aFlow.classList.remove("show");
-            if (e.target === lFlow) lFlow.classList.remove("show");
-        });
-                   // ✅ أبقِ فقط: فتح وإغلاق الـ modal
-
-        // Adoption
-        const openAdoptionFormBtn = document.getElementById("openAdoptionFormBtn");
-        const adoptionFlow        = document.getElementById("adoptionFlow");
-        const closeAdoptionFlowBtn = document.getElementById("closeAdoptionFlowBtn");
-        const closeAdoptionFlowBtn2 = document.getElementById("closeAdoptionFlowBtn2");
-
-        if (openAdoptionFormBtn)
-            openAdoptionFormBtn.addEventListener("click", () =>
-                adoptionFlow?.classList.add("show"));
-
-        if (closeAdoptionFlowBtn)
-            closeAdoptionFlowBtn.addEventListener("click", () =>
-                adoptionFlow?.classList.remove("show"));
-
-        if (closeAdoptionFlowBtn2)
-            closeAdoptionFlowBtn2.addEventListener("click", () =>
-                adoptionFlow?.classList.remove("show"));
-
-        // Lost
-        const openLostFlowBtn  = document.getElementById("openLostFlowBtn");
-        const lostFlowModal    = document.getElementById("lostFlowModal");
-        const closeLostFlowModal = document.getElementById("closeLostFlowModal");
-
-        if (openLostFlowBtn)
-            openLostFlowBtn.addEventListener("click", () =>
-                lostFlowModal?.classList.add("show"));
-
-        if (closeLostFlowModal)
-            closeLostFlowModal.addEventListener("click", () =>
-                lostFlowModal?.classList.remove("show"));
-
-        // Navbar
-        const servicesDropdown   = document.getElementById("servicesDropdown");
-        const servicesToggle     = document.getElementById("servicesToggle");
-        const menuBtn            = document.getElementById("menuBtn");
-        const navLinks           = document.getElementById("navLinks");
+        const servicesDropdown    = document.getElementById("servicesDropdown");
+        const servicesToggle      = document.getElementById("servicesToggle");
+        const menuBtn             = document.getElementById("menuBtn");
+        const navLinks            = document.getElementById("navLinks");
         const mobileServicesBlock  = document.getElementById("mobileServicesBlock");
         const mobileServicesToggle = document.getElementById("mobileServicesToggle");
 
@@ -1090,11 +1136,53 @@
             mobileServicesToggle.addEventListener("click", () =>
                 mobileServicesBlock.classList.toggle("open"));
 
-        // Close on outside click
+        // ══════════════════════════════════════
+        // OPEN / CLOSE MODALS
+        // ══════════════════════════════════════
+        const adoptionFlow    = document.getElementById("adoptionFlow");
+        const lostFlowModal   = document.getElementById("lostFlowModal");
+
+        document.getElementById("openAdoptionFormBtn")?.addEventListener("click", () => {
+            adoptionFlow?.classList.add("show");
+            goAdoptStep(1);
+        });
+
+        document.getElementById("closeAdoptionFlowBtn")?.addEventListener("click", () =>
+            adoptionFlow?.classList.remove("show"));
+
+        document.getElementById("closeAdoptionFlowBtn2")?.addEventListener("click", () =>
+            adoptionFlow?.classList.remove("show"));
+
+        document.getElementById("openLostFlowBtn")?.addEventListener("click", () => {
+            lostFlowModal?.classList.add("show");
+            goLostStep(1);
+        });
+
+        document.getElementById("closeLostFlowModal")?.addEventListener("click", () =>
+            lostFlowModal?.classList.remove("show"));
+
+        // ✅ إغلاق عند الضغط خارج الـ modal
         window.addEventListener("click", e => {
             if (e.target === adoptionFlow) adoptionFlow?.classList.remove("show");
             if (e.target === lostFlowModal) lostFlowModal?.classList.remove("show");
         });
+
+        // ══════════════════════════════════════════════════════
+        // ✅ افتح الـ Modal تلقائياً لو في رسالة نجاح أو خطأ
+        // ══════════════════════════════════════════════════════
+        document.addEventListener("DOMContentLoaded", () => {
+
+            const hasAdoptMsg = @((TempData.Peek("AdoptSuccess") != null || TempData.Peek("AdoptError") != null) ? "true" : "false");
+            if (hasAdoptMsg) {
+                adoptionFlow?.classList.add("show");
+            }
+
+            const hasLostMsg = @((TempData.Peek("LostSuccess") != null || TempData.Peek("LostError") != null) ? "true" : "false");
+            if (hasLostMsg) {
+                lostFlowModal?.classList.add("show");
+            }
+        });
+
     </script>
 </body>
 </html>

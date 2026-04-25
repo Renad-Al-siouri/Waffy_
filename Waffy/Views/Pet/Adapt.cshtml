@@ -13,8 +13,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
-<body>
-
+<body data-logged-in="@(Context.Session.GetInt32("UserId").HasValue ? "true" : "false")">
+    @Html.AntiForgeryToken()
     <div class="top-hero-area">
         <div class="top-hero-shell">
             <header class="topbar">
@@ -194,6 +194,7 @@
                 </div>
 
                 <div id="petsGrid" class="pet-list">
+
                     @if (!Model.Posts.Any())
                     {
                         <div class="empty-state">
@@ -201,38 +202,102 @@
                             <p>Check back soon for new listings.</p>
                         </div>
                     }
-                    else
+
+                    @foreach (var pet in Model.Posts)
                     {
-                        @foreach (var pet in Model.Posts)
-                        {
-                            <article class="pet-item" data-type="@pet.Type">
-                                <div class="pet-thumb">
-                                    <img src="@(string.IsNullOrEmpty(pet.Image) ? "../Images/adapt/golden.png" : pet.Image)"
-                                         alt="@pet.Name">
-                                </div>
-                                <div class="pet-info">
-                                    <h3>@pet.Name</h3>
+                        <article class="pet-item" data-type="@pet.Type">
+
+                            <div class="pet-thumb">
+                                <img src="@(string.IsNullOrEmpty(pet.Image)
+                                                                 ? "../Images/adapt/golden.png"
+                                                                 : pet.Image)"
+                                 alt="@pet.Name">
+                        </div>
+
+                            <div class="pet-info">
+                                <h3>@pet.Name</h3>
+
+                            @if (!string.IsNullOrEmpty(pet.Breed))
+                                {
                                     <p><strong>Breed:</strong> @pet.Breed</p>
-                                    <p><strong>Age:</strong> @pet.Age</p>
-                                    <p><strong>Size:</strong> @pet.Size</p>
-                                    <p><strong>Temperament:</strong> @pet.Temperament</p>
-                                </div>
-                                <div class="pet-actions">
-                                    <div class="like-wrap">
-                                        <button class="like-btn" data-like="@pet.Id">❤</button>
-                                        <span class="likes-count">
-                                            <span id="likes-@pet.Id">@pet.Likes</span> likes
+                                }
+
+                                <p><strong>Age:</strong> @pet.Age</p>
+                                <p><strong>Gender:</strong> @pet.Gender</p>
+                                <p><strong>City:</strong> 📍 @pet.City @(!string.IsNullOrEmpty(pet.Area) ? $"- {pet.Area}" : "")</p>
+                                <p><strong>Temperament:</strong> @pet.Temperament</p>
+
+                                <div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem">
+                                    <span style="background:#e8f5e9;color:#2e7d32;
+                                     padding:.2rem .6rem;border-radius:20px;
+                                     font-size:.75rem;font-weight:700">
+                                        @pet.Vaccinations[0]
+                                    </span>
+                                    @if (pet.IsNeutered)
+                                    {
+                                        <span style="background:#e3f2fd;color:#1565c0;
+                                             padding:.2rem .6rem;border-radius:20px;
+                                             font-size:.75rem;font-weight:700">
+                                            ✂️ Neutered
                                         </span>
-                                    </div>
-                                    <button class="olive-btn" data-reserve="@pet.Id">Reserve</button>
-                                    <button class="olive-btn secondary-btn"
-                                            data-details="@pet.Id">
-                                        View Details
-                                    </button>
+                                    }
+                                    @if (pet.GoodWithChildren)
+                                    {
+                                        <span style="background:#fff3e0;color:#e65100;
+                                             padding:.2rem .6rem;border-radius:20px;
+                                             font-size:.75rem;font-weight:700">
+                                            👶 Kid-friendly
+                                        </span>
+                                    }
+                                    @if (pet.GoodWithPets)
+                                    {
+                                        <span style="background:#f3e5f5;color:#6a1b9a;
+                                             padding:.2rem .6rem;border-radius:20px;
+                                             font-size:.75rem;font-weight:700">
+                                            🐾 Pet-friendly
+                                        </span>
+                                    }
                                 </div>
-                            </article>
-                        }
+                            </div>
+
+                            <div class="pet-actions">
+                                <div class="like-wrap">
+                                    <button class="like-btn @(pet.IsLikedByCurrentUser ? "active" : "")"
+                                            data-like="@pet.Id">
+                                        ❤
+                                    </button>
+                                    <span class="likes-count">
+                                        <span id="likes-@pet.Id">@pet.Likes</span> likes
+                                    </span>
+                                </div>
+                                <button class="olive-btn"
+                                        onclick="openReserveModal(@pet.Id, '@pet.Name')">
+                                    Reserve
+                                </button>
+                                <button class="olive-btn secondary-btn"
+                                        data-details="@pet.Id"
+                                        data-name="@pet.Name"
+                                        data-breed="@pet.Breed"
+                                        data-age="@pet.Age"
+                                        data-gender="@pet.Gender"
+                                        data-city="@pet.City"
+                                        data-area="@pet.Area"
+                                        data-color="@pet.Color"
+                                        data-temperament="@pet.Temperament"
+                                        data-health="@pet.Health"
+                                        data-description="@pet.Description"
+                                        data-phone="@pet.ContactPhone"
+                                        data-contact="@pet.ContactName"
+                                        data-vacc="@pet.Vaccinations[0]"
+                                        data-image="@pet.Image"
+                                        data-code="@pet.PostCode">
+                                    View Details
+                                </button>
+                            </div>
+
+                        </article>
                     }
+
                 </div>
             </section>
         </section>
@@ -265,7 +330,33 @@
     </div>
 
     <div id="toast" class="toast"></div>
-    
+   
+    <div id="reserveModal" class="modal hidden">
+        <div class="modal-overlay" onclick="closeReserveModal()"></div>
+        <div class="modal-card" style="max-width:460px">
+            <button class="modal-close" onclick="closeReserveModal()">&times;</button>
+            <h3 style="font-family:'Fredoka',sans-serif;color:#59652a;margin-bottom:1rem">
+                🐾 Reserve <span id="reservePetName"></span>
+            </h3>
+            <form method="post" asp-controller="Reservation" asp-action="Reserve">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="postId" id="reservePostId" />
+                <div class="field" style="margin-bottom:1rem">
+                    <label>Message to owner (optional)</label>
+                    <textarea name="message" rows="3"
+                              placeholder="Tell the owner about yourself..."></textarea>
+                </div>
+                <div style="display:flex;gap:.5rem;justify-content:flex-end">
+                    <button type="button" onclick="closeReserveModal()"
+                            class="olive-btn secondary-btn">
+                        Cancel
+                    </button>
+                    <button type="submit" class="olive-btn">Send Request 🐾</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <script src="~/js/adaptjs.js"></script>
 </body>

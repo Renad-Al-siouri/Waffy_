@@ -101,5 +101,12 @@ namespace Waffy.Repository
             await conn.ExecuteAsync(sql, new { IdPet = petId, ImageUrl = imageUrl });
         }
 
+        public async Task TransferOwnershipAsync(int petId, int newOwnerId)
+        {
+            const string sql = "UPDATE Pet SET IdUsers = @NewOwnerId WHERE IdPet = @IdPet";
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(sql, new { IdPet = petId, NewOwnerId = newOwnerId });
+        }
+
     }
 }

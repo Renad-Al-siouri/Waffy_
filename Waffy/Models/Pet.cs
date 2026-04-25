@@ -29,9 +29,37 @@
             get
             {
                 if (!BirthDate.HasValue) return "Unknown";
-                int years = DateTime.Today.Year - BirthDate.Value.Year;
-                if (BirthDate.Value.DayOfYear > DateTime.Today.DayOfYear) years--;
-                return years <= 0 ? "< 1 Year" : $"{years} Year{(years > 1 ? "s" : "")}";
+
+                var today = DateTime.Today;
+                var birth = BirthDate.Value;
+
+                int years = today.Year - birth.Year;
+                int months = today.Month - birth.Month;
+
+                // ✅ تعديل لو الشهر لم يكتمل بعد
+                if (today.Day < birth.Day)
+                    months--;
+
+                if (months < 0)
+                {
+                    years--;
+                    months += 12;
+                }
+
+                // ✅ أكبر من سنة
+                if (years > 0 && months > 0)
+                    return $"{years} Year{(years > 1 ? "s" : "")} & {months} Month{(months > 1 ? "s" : "")}";
+
+                if (years > 0)
+                    return $"{years} Year{(years > 1 ? "s" : "")}";
+
+                // ✅ أقل من سنة — يعرض الشهور
+                if (months > 0)
+                    return $"{months} Month{(months > 1 ? "s" : "")}";
+
+                // ✅ أقل من شهر — يعرض الأيام
+                int days = (today - birth).Days;
+                return days <= 0 ? "Newborn" : $"{days} Day{(days > 1 ? "s" : "")}";
             }
         }
     }

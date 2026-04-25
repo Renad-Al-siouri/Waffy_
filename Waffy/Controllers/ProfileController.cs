@@ -11,18 +11,23 @@ namespace Waffy.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IPetRepository _petRepo;
         private readonly IAdoptionRepository _adoptionRepo;   
-        private readonly ILostPetRepository _lostPetRepo;   
-
+        private readonly ILostPetRepository _lostPetRepo;
+        private readonly IReservationRepository _reservationRepo;
+        private readonly IFoundPetClaimRepository _claimRepo;
         public ProfileController(
             IUserRepository userRepository,
             IPetRepository petRepo,
             IAdoptionRepository adoptionRepo,  
-            ILostPetRepository lostPetRepo)    
+            ILostPetRepository lostPetRepo,
+            IReservationRepository reservationRepo,
+            IFoundPetClaimRepository claimRepo)
         {
             _userRepository = userRepository;
             _petRepo = petRepo;
             _adoptionRepo = adoptionRepo;   
-            _lostPetRepo = lostPetRepo;    
+            _lostPetRepo = lostPetRepo;
+            _reservationRepo = reservationRepo;
+            _claimRepo = claimRepo;
         }
 
         // ── helper: تجلب المستخدم من Session أو ترجع null ──
@@ -170,13 +175,25 @@ namespace Waffy.Controllers
             if (user == null) return RedirectToAction("Login", "Account");
 
             var posts = (await _adoptionRepo.GetByUserIdAsync(user.UserId)).ToList();
+            var reservations = new Dictionary<int, List<AdoptionReservation>>();
+            foreach (var post in posts)
+            {
+                var reqs = (await _reservationRepo.GetByPostIdAsync(post.IdPost)).ToList();
+                reservations[post.IdPost] = reqs;
+            }
+
+            var myRequests = (await _reservationRepo.GetByRequesterIdAsync(user.UserId)).ToList();
 
             return View(new AdoptionAdsViewModel
             {
                 User = user,
-                Posts = posts
+                Posts = posts,
+                Reservations = reservations,
+                MyRequests = myRequests
             });
         }
+
+            
 
         // ════════════════════════════════════════════════════
         // EDIT ADOPTION POST — POST
@@ -239,10 +256,23 @@ namespace Waffy.Controllers
 
             var reports = (await _lostPetRepo.GetByUserIdAsync(user.UserId)).ToList();
 
+            // ✅ Finders لكل تقرير (لصاحب الحيوان)
+            var finders = new Dictionary<int, List<FoundPetClaim>>();
+            foreach (var r in reports)
+            {
+                var claims = (await _claimRepo.GetByReportIdAsync(r.IdLostReport)).ToList();
+                finders[r.IdLostReport] = claims;
+            }
+
+            // ✅ Claims قدّمها المستخدم نفسه (لتتبع العملية)
+            var myClaims = (await _claimRepo.GetByUserIdAsync(user.UserId)).ToList();
+
             return View(new LostReportsViewModel
             {
                 User = user,
-                Reports = reports
+                Reports = reports,
+                Finders = finders,
+                MyClaims = myClaims
             });
         }
 

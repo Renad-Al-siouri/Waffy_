@@ -171,137 +171,262 @@
                     }
 
                     @foreach (var post in Model.Posts)
-                    {
-                        <div class="report-row" style="flex-wrap:wrap;gap:1rem">
+{
+    var reqs = Model.Reservations.ContainsKey(post.IdPost)
+               ? Model.Reservations[post.IdPost]
+               : new List<Waffy.Models.AdoptionReservation>();
+    var pending = reqs.Where(r => r.Status == "Pending").ToList();
 
-                            <div class="report-icon adopt">🐾</div>
+    <div class="report-row" style="flex-wrap:wrap;gap:1rem">
+        <div class="report-icon adopt">🐾</div>
+        <div class="report-info" style="flex:1;min-width:200px">
+            <h4>@post.PetName — @post.AnimalType · @post.City</h4>
+            <p>
+                Posted @post.CreatedAt.ToString("MMM dd, yyyy") ·
+                Status: <strong>@post.AdoptionStatus</strong>
+            </p>
+            <div class="adoption-meta">
+                <span class="meta-chip">@post.Gender</span>
+                <span class="meta-chip">@(post.IsVaccinated ? "Vaccinated" : "Not Vaccinated")</span>
+                <span class="meta-chip">@post.AdoptionStatus</span>
+            </div>
+        </div>
 
-                            <div class="report-info" style="flex:1;min-width:200px">
-                                <h4>@post.PetName — @post.AnimalType · @post.City</h4>
-                                <p>
-                                    Posted @post.CreatedAt.ToString("MMM dd, yyyy") ·
-                                    Status: <strong>@post.AdoptionStatus</strong>
-                                </p>
-                                <div class="adoption-meta">
-                                    <span class="meta-chip">@post.Gender</span>
-                                    <span class="meta-chip">@(post.IsVaccinated ? "Vaccinated" : "Not Vaccinated")</span>
-                                    <span class="meta-chip">@(post.IsNeutered ? "Neutered" : "Not Neutered")</span>
-                                    <span class="meta-chip">@post.AdoptionStatus</span>
-                                </div>
-                            </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+            <span class="badge @(post.AdoptionStatus == "Available" ? "badge-green" : "badge-orange")">
+                @post.AdoptionStatus
+            </span>
 
-                            <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-                                <span class="badge @(post.AdoptionStatus == "Available" ? "badge-green" : "badge-orange")">
-                                    @post.AdoptionStatus
+            @* ✅ كبسة Requests *@
+            @if (pending.Any())
+            {
+                <button class="btn btn-primary btn-sm"
+                        onclick="toggleRequests('req_@post.IdPost')">
+                    📋 @pending.Count Request@(pending.Count > 1 ? "s" : "")
+                </button>
+            }
+
+            <div class="adoption-actions" style="display:flex;gap:.5rem">
+                <a href="#editForm_@post.IdPost" class="btn btn-secondary btn-sm">✏ Edit</a>
+
+                @if (post.AdoptionStatus != "Closed")
+                {
+                    <form method="post" asp-controller="Profile" asp-action="CloseAdoptionPost"
+                          onsubmit="return confirm('Close this ad?')">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="postId" value="@post.IdPost" />
+                        <button type="submit" class="btn btn-danger btn-sm">✕ Close</button>
+                    </form>
+                }
+            </div>
+        </div>
+    </div>
+
+    @* ✅ قسم الطلبات — يظهر/يختفي *@
+    @if (pending.Any())
+    {
+        <div id="req_@post.IdPost"
+             style="display:none;background:#f8fdf2;border:1px solid #d4e8bc;
+                    border-radius:14px;padding:1rem;margin:.5rem 0 1rem">
+            <h4 style="font-family:'Fredoka',sans-serif;color:#59652a;margin-bottom:.8rem">
+                📋 Reservation Requests
+            </h4>
+
+            @foreach (var req in pending)
+            {
+                <div style="background:#fff;border:1px solid #e0ebb4;border-radius:10px;
+                             padding:.8rem 1rem;margin-bottom:.6rem">
+                    <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:.5rem">
+                        <div>
+                            <strong>@req.RequesterName</strong>
+                            <span style="color:#7b6c58;font-size:.82rem;margin-left:.5rem">
+                                📞 @req.RequesterPhone
+                            </span>
+                            <br />
+                            @if (!string.IsNullOrEmpty(req.Message))
+                            {
+                                <span style="color:#564632;font-size:.85rem;font-weight:700">
+                                    💬 @req.Message
                                 </span>
-
-                                <div class="adoption-actions" style="display:flex;gap:.5rem">
-
-                                    @* ── Edit Button — يفتح Form ── *@
-                                    <a href="#editForm_@post.IdPost"
-                                       class="btn btn-secondary btn-sm">
-                                        ✏ Edit
-                                    </a>
-
-                                    @* ── Close Ad Form ── *@
-                                    @if (post.AdoptionStatus != "Closed")
-                                    {
-                                        <form method="post"
-                                              asp-controller="Profile"
-                                              asp-action="CloseAdoptionPost"
-                                              onsubmit="return confirm('Close this ad?')">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="postId" value="@post.IdPost" />
-                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                ✕ Close Ad
-                                            </button>
-                                        </form>
-                                    }
-                                </div>
-                            </div>
+                            }
+                            <br />
+                            <small style="color:#9e8e77">
+                                @req.CreatedAt.ToString("MMM dd, yyyy · hh:mm tt")
+                            </small>
                         </div>
 
-                        @* ── Edit Form — يظهر عند الضغط على Edit ── *@
-                        <div id="editForm_@post.IdPost"
-                             style="background:#f8fdf2;border:1px solid #d4e8bc;
-                            border-radius:12px;padding:1.2rem;
-                            margin:0.5rem 0 1.5rem;
-                            display:none"
-                             class="edit-form-section">
-
-                            <form method="post"
-                                  asp-controller="Profile"
-                                  asp-action="EditAdoptionPost">
+                        <div style="display:flex;gap:.5rem">
+                            @* ✅ Approve *@
+                            <form method="post" asp-controller="Reservation" asp-action="Approve"
+                                  onsubmit="return confirm('Approve and transfer pet ownership?')">
                                 @Html.AntiForgeryToken()
-                                <input type="hidden" name="postId" value="@post.IdPost" />
+                                <input type="hidden" name="reservationId" value="@req.IdReservation" />
+                                <button type="submit" class="btn btn-primary btn-sm">✅ Approve</button>
+                            </form>
 
-                                <div class="adoption-edit-grid"
-                                     style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
-
-                                    <div class="field">
-                                        <label>City</label>
-                                        <select name="city">
-                                            @foreach (var city in new[] { "Amman", "Zarqa", "Irbid", "Aqaba", "Madaba", "Karak" })
-                                            {
-                                                <option value="@city"
-                                                        selected="@(post.City == city)">
-                                                    @city
-                                                </option>
-                                            }
-                                        </select>
-                                    </div>
-
-                                    <div class="field">
-                                        <label>Area</label>
-                                        <input type="text" name="area" value="@post.Area" />
-                                    </div>
-
-                                    <div class="field">
-                                        <label>Contact Phone</label>
-                                        <input type="tel" name="contactPhone" value="@post.ContactPhone" />
-                                    </div>
-
-                                    <div class="field">
-                                        <label>Ad Status</label>
-                                        <select name="adoptionStatus">
-                                            @foreach (var s in new[] { "Available", "Reserved", "Adopted", "Closed" })
-                                            {
-                                                <option value="@s"
-                                                        selected="@(post.AdoptionStatus == s)">
-                                                    @s
-                                                </option>
-                                            }
-                                        </select>
-                                    </div>
-
-                                    <div class="field" style="grid-column:1/-1">
-                                        <label>Description</label>
-                                        <textarea name="description" rows="3">@post.Description</textarea>
-                                    </div>
-
-                                    <div class="field" style="grid-column:1/-1">
-                                        <label>Reason for Adoption</label>
-                                        <textarea name="reasonForAdoption" rows="2">@post.ReasonForAdoption</textarea>
-                                    </div>
-                                </div>
-
-                                <div style="display:flex;gap:.5rem;margin-top:1rem;justify-content:flex-end">
-                                    <a href="#"
-                                       onclick="document.getElementById('editForm_@post.IdPost').style.display='none';return false;"
-                                       class="btn btn-secondary btn-sm">
-                                        Cancel
-                                    </a>
-                                    <button type="submit" class="btn btn-primary btn-sm">
-                                        💾 Save Changes
-                                    </button>
-                                </div>
+                            @* ✅ Reject *@
+                            <form method="post" asp-controller="Reservation" asp-action="Reject"
+                                  onsubmit="return confirm('Reject this request?')">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="reservationId" value="@req.IdReservation" />
+                                <button type="submit" class="btn btn-danger btn-sm">❌ Reject</button>
                             </form>
                         </div>
-                        <hr style="border:none;border-top:1px solid #e8f0d8;margin:0.5rem 0">
-                    }
+                    </div>
+                </div>
+            }
+        </div>
+    }
 
+    @* Edit Form *@
+   <div id="editForm_@post.IdPost"
+     style="background:#f8fdf2;border:1px solid #d4e8bc;
+            border-radius:12px;padding:1.2rem;
+            margin:0.5rem 0 1.5rem;
+            display:none"
+     class="edit-form-section">
+
+    <form method="post"
+          asp-controller="Profile"
+          asp-action="EditAdoptionPost">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="postId" value="@post.IdPost" />
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+
+            <div class="field">
+                <label>City</label>
+                <select name="city">
+                    @foreach (var city in new[] { "Amman", "Zarqa", "Irbid", "Aqaba", "Madaba", "Karak" })
+                    {
+                        <option value="@city" selected="@(post.City == city)">@city</option>
+                    }
+                </select>
+            </div>
+
+            <div class="field">
+                <label>Area</label>
+                <input type="text" name="area" value="@post.Area" />
+            </div>
+
+            <div class="field">
+                <label>Contact Phone</label>
+                <input type="tel" name="contactPhone" value="@post.ContactPhone" />
+            </div>
+
+            <div class="field">
+                <label>Ad Status</label>
+                <select name="adoptionStatus">
+                    @foreach (var s in new[] { "Available", "Reserved", "Adopted", "Closed" })
+                    {
+                        <option value="@s" selected="@(post.AdoptionStatus == s)">@s</option>
+                    }
+                </select>
+            </div>
+
+            <div class="field" style="grid-column:1/-1">
+                <label>Description</label>
+                <textarea name="description" rows="3">@post.Description</textarea>
+            </div>
+
+            <div class="field" style="grid-column:1/-1">
+                <label>Reason for Adoption</label>
+                <textarea name="reasonForAdoption" rows="2">@post.ReasonForAdoption</textarea>
+            </div>
+
+        </div>
+
+        <div style="display:flex;gap:.5rem;margin-top:1rem;justify-content:flex-end">
+            <a href="#"
+               onclick="document.getElementById('editForm_@post.IdPost').style.display='none';return false;"
+               class="btn btn-secondary btn-sm">Cancel</a>
+            <button type="submit" class="btn btn-primary btn-sm">💾 Save Changes</button>
+        </div>
+    </form>
+</div>
+
+    <hr style="border:none;border-top:1px solid #e8f0d8;margin:.5rem 0">
+}
                 </div>
             </div>
+
+            @* ══════════════════════════════════════ *@
+@* قسم 2 — My Reservation Requests       *@
+@* ══════════════════════════════════════ *@
+<div class="s-card" style="margin-top:1.5rem">
+    <div class="s-card-head">
+        <span class="s-card-title">🐾 My Reservation Requests</span>
+        <span class="badge badge-blue">
+            @Model.MyRequests.Count(r => r.Status == "Pending") Pending
+        </span>
+    </div>
+    <div class="s-card-body">
+
+        @if (!Model.MyRequests.Any())
+        {
+            <p style="color:#6b7c5a;text-align:center;padding:2rem">
+                You haven't sent any reservation requests yet.
+                <a asp-controller="Pet" asp-action="Adapt">Browse pets</a>
+            </p>
+        }
+
+        @foreach (var req in Model.MyRequests.OrderByDescending(r => r.CreatedAt))
+        {
+            <div class="report-row" style="flex-wrap:wrap;gap:1rem">
+                <div class="report-icon adopt">🐾</div>
+
+                <div class="report-info" style="flex:1;min-width:200px">
+                    <h4>@req.PetName</h4>
+                    <p>
+                        Requested @req.CreatedAt.ToString("MMM dd, yyyy") ·
+                        Status: <strong>@req.Status</strong>
+                    </p>
+                    @if (!string.IsNullOrEmpty(req.Message))
+                    {
+                        <p style="color:#7b6c58;font-size:.85rem">
+                            💬 "@req.Message"
+                        </p>
+                    }
+                </div>
+
+                <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+
+                    @* Badge الحالة *@
+                    <span class="badge @(req.Status == "Pending" ? "badge-orange" :
+                                         req.Status == "Approved" ? "badge-green" :
+                                         "badge-grey")">
+                        @req.Status
+                    </span>
+
+                    @* زر Cancel — فقط لو Pending *@
+                    @if (req.Status == "Pending")
+                    {
+                        <form method="post"
+                              asp-controller="Reservation"
+                              asp-action="Cancel"
+                              onsubmit="return confirm('Cancel this reservation request?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="reservationId" value="@req.IdReservation" />
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                ✕ Cancel
+                            </button>
+                        </form>
+                    }
+
+                    @* لو Approved — رسالة تهنئة *@
+                    @if (req.Status == "Approved")
+                    {
+                        <span style="color:#2d7a2d;font-size:.8rem;font-weight:700">
+                            🎉 Approved!
+                        </span>
+                    }
+                </div>
+            </div>
+
+            <hr style="border:none;border-top:1px solid #e8f0d8;margin:.5rem 0">
+        }
+    </div>
+</div>
         </main>
     </div>
 
@@ -355,6 +480,13 @@
                 if (frm) frm.style.display = frm.style.display === 'none' ? 'block' : 'none';
             });
         });
+
+        
+        function toggleRequests(id) {
+            const el = document.getElementById(id);
+            if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        }
+
     </script>
 </body>
 </html>

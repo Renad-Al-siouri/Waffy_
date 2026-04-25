@@ -39,6 +39,8 @@ namespace Waffy.Controllers
             return await _userRepo.GetByIdAsync(userId.Value);
         }
 
+        private static string? Trunc(string? s, int max) =>
+            s == null ? null : s.Length <= max ? s : s[..max];
 
         // ════════════════════════════════════════════════════
         // ADOPTION PAGE — Adapt.cshtml
@@ -48,21 +50,21 @@ namespace Waffy.Controllers
         public async Task<IActionResult> Adapt()
         {
             var posts = (await _adoptionRepo.GetApprovedAsync()).ToList();
-
-            // ✅ مراقبة بسيطة
-            Console.WriteLine($"[Adapt] Posts found: {posts.Count}");
-            if (!posts.Any())
-                Console.WriteLine("[Adapt] WARNING: No approved adoption posts in DB");
+            var userId = GetCurrentUserId();
 
             var cards = new List<AdoptionCardDto>();
             foreach (var p in posts)
             {
-                // ✅ جلب الصورة الحقيقية من DB
                 var imageUrl = await _adoptionRepo.GetFirstImageAsync(p.IdPost);
-                cards.Add(AdoptionCardDto.FromPost(p, imageUrl ?? ""));
+                var card = AdoptionCardDto.FromPost(p, imageUrl ?? "");
+
+                // ✅ تحقق من DB مش Session
+                if (userId.HasValue)
+                    card.IsLikedByCurrentUser = await _adoptionRepo.HasLikedAsync(p.IdPost, userId.Value);
+
+                cards.Add(card);
             }
 
-            Console.WriteLine($"[Adapt] Cards built: {cards.Count}");
             return View(new AdoptionPageViewModel { Posts = cards });
         }
 
@@ -71,7 +73,7 @@ namespace Waffy.Controllers
         // LOST PETS PAGE — Lost.cshtml
         // ════════════════════════════════════════════════════
 
-  
+
 
         [HttpGet]
         public async Task<IActionResult> Lost(int page = 1)
@@ -153,61 +155,76 @@ namespace Waffy.Controllers
         // ════════════════════════════════════════════════════
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [RequestSizeLimit(10 * 1024 * 1024)]
+        [RequestSizeLimit(52428800)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 52428800)]
         public async Task<IActionResult> AddPet(
-            string name,
-            string species,
-            string? breed,
-            string? gender,
-            string? birthDate,
-            string? color,
-            string? energyLevel,
-            string? vaccinationStatus,
-            bool goodWithChildren,
-            bool goodWithPets,
-            bool isNeutered,
-            bool isTrained,
-            string? medicalNotes,
-            string? traits,
-            IFormFile? petImage)
+         string name,
+         string species,
+         string? breed,
+         string? gender,
+         string? birthDate,
+         string? color,
+         string? energyLevel,
+         string? vaccinationStatus,
+         bool goodWithChildren,
+         bool goodWithPets,
+         bool isNeutered,
+         bool isTrained,
+         string? medicalNotes,
+         string? traits,
+         string? microchipId,
+         decimal? weight,
+         IFormFile? petImage)
         {
             var userId = GetCurrentUserId();
             if (userId == null) return RedirectToAction("Login", "Account");
 
-            var errors = ValidatePetInput(name, species);
-            if (errors.Any())
+            try
             {
-                TempData["PetError"] = errors.First();
+                var errors = ValidatePetInput(name, species);
+                if (errors.Any())
+                {
+                    TempData["PetError"] = errors.First();
+                    return RedirectToAction("Profile", "Account");
+                }
+
+                string? imageUrl = await UploadSingleFileAsync(petImage, "pets");
+
+                var pet = new Pet
+                {
+                    IdUsers = userId.Value,
+                    Name = name,
+                    Species = species,
+                    Breed = breed,
+                    Gender = gender,
+                    BirthDate = DateTime.TryParse(birthDate, out var bd) ? bd : null,
+                    Color = color,
+                    EnergyLevel = energyLevel,
+                    VaccinationStatus = vaccinationStatus,
+                    GoodWithChildren = goodWithChildren,
+                    GoodWithPets = goodWithPets,
+                    IsNeutered = isNeutered,
+                    IsTrained = isTrained,
+                    MedicalNotes = medicalNotes,
+                    Traits = traits,
+                    MicrochipId = microchipId,
+                    Weight = weight,
+                    ImageUrl = imageUrl,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _petRepo.AddAsync(pet);
+
+                TempData["PetSuccess"] = $"{name} added successfully!";
                 return RedirectToAction("Profile", "Account");
             }
-
-            string? imageUrl = await UploadSingleFileAsync(petImage, "pets");
-
-            var pet = new Pet
+            catch (Exception ex)
             {
-                IdUsers = userId.Value,
-                Name = name,
-                Species = species,
-                Breed = breed,
-                Gender = gender,
-                BirthDate = DateTime.TryParse(birthDate, out var bd) ? bd : null,
-                Color = color,
-                EnergyLevel = energyLevel,
-                VaccinationStatus = vaccinationStatus,
-                GoodWithChildren = goodWithChildren,
-                GoodWithPets = goodWithPets,
-                IsNeutered = isNeutered,
-                IsTrained = isTrained,
-                MedicalNotes = medicalNotes,
-                Traits = traits,
-                ImageUrl = imageUrl,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await _petRepo.AddAsync(pet);
-
-            TempData["PetSuccess"] = $"{name} added successfully!";
-            return RedirectToAction("Profile", "Account");
+                Console.WriteLine($"[AddPet] ❌ CRASH: {ex.GetType().Name}: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                TempData["PetError"] = "Upload failed. Please try again.";
+                return RedirectToAction("Profile", "Account");
+            }
         }
 
         // ════════════════════════════════════════════════════
@@ -238,6 +255,8 @@ namespace Waffy.Controllers
            string? birthDate, string? color, string? energyLevel,
            string? vaccinationStatus, bool goodWithChildren, bool goodWithPets,
            bool isNeutered, bool isTrained, string? medicalNotes, string? traits,
+           string? microchipId,  
+           decimal? weight,
            IFormFile? petImage)
         {
             var userId = GetCurrentUserId();
@@ -276,6 +295,8 @@ namespace Waffy.Controllers
                 pet.IsTrained = isTrained;
                 pet.MedicalNotes = medicalNotes;
                 pet.Traits = traits;
+                pet.MicrochipId = microchipId;   
+                pet.Weight = weight;
 
                 await _petRepo.UpdateAsync(pet);
 
@@ -370,6 +391,18 @@ namespace Waffy.Controllers
                 return RedirectToAction("Petrecord", new { petId });
             }
 
+            // ✅ تحقق: هل يوجد بوست نشط لنفس الحيوان؟
+            var existingPosts = await _adoptionRepo.GetByUserIdAsync(userId.Value);
+            var hasActivePost = existingPosts.Any(p =>
+                p.IdPet == petId &&
+                p.AdoptionStatus != "Closed");
+
+            if (hasActivePost)
+            {
+                TempData["AdoptError"] = "You already have an active adoption post for this pet.";
+                return RedirectToAction("Petrecord", new { petId });
+            }
+
             var user = await _userRepo.GetByIdAsync(userId.Value);
 
             var post = new AdoptionPost
@@ -377,26 +410,31 @@ namespace Waffy.Controllers
                 PostedByType = "User",
                 PostedById = userId.Value,
                 IdPet = petId,
-                PetName = pet.Name,
-                AnimalType = pet.Species,
-                Breed = pet.Breed,
-                Color = pet.Color,
-                Gender = pet.Gender,
-                EnergyLevel = pet.EnergyLevel,
+                PetName = Trunc(pet.Name, 100),
+                AnimalType = Trunc(pet.Species, 50),
+                Breed = Trunc(pet.Breed, 100),
+                Color = Trunc(pet.Color, 100),
+                Gender = Trunc(pet.Gender, 10),
+                EnergyLevel = Trunc(pet.EnergyLevel, 20),
                 GoodWithChildren = pet.GoodWithChildren,
                 GoodWithPets = pet.GoodWithPets,
-                HealthStatus = pet.MedicalNotes,
+                HealthStatus = Trunc(pet.MedicalNotes, 200),
                 IsVaccinated = pet.VaccinationStatus == "UpToDate",
                 IsNeutered = pet.IsNeutered,
-                City = city,
-                Area = area,
-                ContactName = user?.FullName,
-                ContactPhone = contactPhone,
-                Description = description,
-                ReasonForAdoption = reason,
+                City = Trunc(city, 100),
+                Area = Trunc(area, 100),
+                ContactName = Trunc(user?.FullName, 100),
+                ContactPhone = Trunc(contactPhone, 20),
+                Description = Trunc(description, 1000),
+                ReasonForAdoption = Trunc(reason, 500),
                 Status = PostStatus.Approved.ToString(),
                 AdoptionStatus = AdoptionStatus.Available.ToString(),
                 PostCode = GenerateCode("ADT"),
+               
+                BirthDate = pet.BirthDate,   // ← أضف هذا
+                Age = pet.BirthDate.HasValue
+                ? (int)((DateTime.Today - pet.BirthDate.Value).TotalDays / 30.44)
+                : null,
                 CreatedAt = DateTime.UtcNow
             };
             // ════════════════════════════════════════════════════
@@ -519,7 +557,25 @@ namespace Waffy.Controllers
             return RedirectToAction("Petrecord", new { petId });
         }
 
-       
+        [HttpPost]
+        public async Task<IActionResult> ToggleLike(int postId)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null)
+                return Json(new { error = "not_logged_in" });
+
+            var hasLiked = await _adoptionRepo.HasLikedAsync(postId, userId.Value);
+
+            if (!hasLiked)
+                await _adoptionRepo.AddLikeAsync(postId, userId.Value);
+            else
+                await _adoptionRepo.RemoveLikeAsync(postId, userId.Value);
+
+            var count = await _adoptionRepo.GetLikesAsync(postId);
+            return Json(new { count, liked = !hasLiked });
+        }
+
+
         // ════════════════════════════════════════════════════
         // PRIVATE HELPERS
         // ════════════════════════════════════════════════════
@@ -568,27 +624,47 @@ namespace Waffy.Controllers
 
             try
             {
-                var ext = Path.GetExtension(file.FileName).ToLower();
-                if (!AllowedExtensions.Contains(ext)) return null;
-                if (file.Length > MaxFileSize) return null;
+                var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+                if (!AllowedExtensions.Contains(ext))
+                {
+                    Console.WriteLine($"[Upload] ❌ Extension not allowed: {ext}");
+                    return null;
+                }
 
-                var folder = Path.Combine(
-                    Directory.GetCurrentDirectory(), "wwwroot", "uploads", subfolder);
+                if (file.Length > MaxFileSize)
+                {
+                    Console.WriteLine($"[Upload] ❌ File too large: {file.Length} bytes");
+                    return null;
+                }
+
+                // ✅ تأكد من وجود الـ wwwroot
+                var wwwroot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                if (!Directory.Exists(wwwroot))
+                {
+                    Console.WriteLine($"[Upload] ❌ wwwroot not found: {wwwroot}");
+                    return null;
+                }
+
+                var folder = Path.Combine(wwwroot, "uploads", subfolder);
                 Directory.CreateDirectory(folder);
 
-                // ✅ Path.GetFileName يمنع مسارات خطيرة
-                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+                var safeFileName = Path.GetFileName(file.FileName);
+                var fileName = $"{Guid.NewGuid()}_{safeFileName}";
                 var filePath = Path.Combine(folder, fileName);
 
-                using var stream = new FileStream(filePath, FileMode.Create);
+                Console.WriteLine($"[Upload] Saving to: {filePath}");
+
+                await using var stream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
                 await file.CopyToAsync(stream);
 
-                Console.WriteLine($"[Upload] ✅ {subfolder}/{fileName}");
+                Console.WriteLine($"[Upload] ✅ Saved: /uploads/{subfolder}/{fileName}");
                 return $"/uploads/{subfolder}/{fileName}";
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"[Upload] ❌ Error: {ex.Message}");
+                Console.WriteLine($"[Upload] ❌ EXCEPTION: {ex.GetType().Name}");
+                Console.WriteLine($"[Upload] ❌ Message: {ex.Message}");
+                Console.WriteLine($"[Upload] ❌ Stack: {ex.StackTrace}");
                 return null;
             }
         }

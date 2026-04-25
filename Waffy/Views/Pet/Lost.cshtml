@@ -1,7 +1,4 @@
 ﻿@model Waffy.Models.ViewModels.LostPageViewModel
-@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
 @{
     Layout = null;
 }
@@ -11,17 +8,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Lost Pets - Waffy</title>
-
     <link rel="stylesheet" href="~/css/lost.css" />
+    <link rel="stylesheet" href="~/css/adaptstyle.css" />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
-<body>
-
+    <body data-logged-in="@(Context.Session.GetInt32("UserId").HasValue ? "true" : "false")">
     <div class="top-note">
         💚 Be the reason a family smiles again.
-        Return a lost pet to its owner and receive a special gift voucher as a thank you.
+        Return a lost pet and receive a special reward as a thank you.
     </div>
 
     <div class="top-hero-area">
@@ -29,31 +25,22 @@
             <header class="topbar">
                 <div class="header-shell">
                     <nav class="navbar">
-
                         <div class="left-nav desktop-nav desktop-links">
                             <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                             <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                             <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                             <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-
                         </div>
-
                         <div class="logo-center">
                             <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
                         </div>
-
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
-
-
-
                                 <div class="services-dropdown" id="servicesDropdown">
                                     <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services
-                                        <span class="dropdown-arrow">▼</span>
+                                        Services <span class="dropdown-arrow">▼</span>
                                     </button>
-
                                     <div class="dropdown-menu" id="servicesMenu">
                                         <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
                                         <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
@@ -67,49 +54,31 @@
                                         <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                     </div>
                                 </div>
-
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
-
                             </div>
-
                             <div class="nav-actions">
-                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
-                                    <i class="fa-solid fa-cart-shopping"></i>
-                                </a>
-
-                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon" aria-label="Notifications">
-                                    <i class="fa-solid fa-bell"></i>
-                                </a>
-
-                                <a asp-controller="Account" asp-action="Profile" class="profile-btn" aria-label="Profile">
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
+                                <a asp-controller="Account" asp-action="Profile" class="profile-btn">
                                     <img src="../Images/user.jpg" alt="Profile">
                                 </a>
                                 <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
-
                             <div class="mobile-nav-wrap">
-                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
+                                <button class="menu-btn" id="menuBtn" type="button">☰</button>
                                 <div class="nav-links" id="navLinks">
-                                    <div class="mobile-menu-logo">
-                                        <img src="../Images/logo.png" alt="Waffy Logo">
-                                    </div>
-
+                                    <div class="mobile-menu-logo"><img src="../Images/logo.png" alt="Waffy Logo"></div>
                                     <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                                     <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                                     <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                                     <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                                     <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
-
                                     <div class="mobile-services-block" id="mobileServicesBlock">
                                         <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
-                                            <span>Services</span>
-                                            <span class="dropdown-arrow">▼</span>
+                                            <span>Services</span><span class="dropdown-arrow">▼</span>
                                         </button>
-
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
-
                                             <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                             <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                             <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
@@ -117,13 +86,11 @@
                                             <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                                     <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
                             </div>
                         </div>
-
                     </nav>
                 </div>
             </header>
@@ -133,10 +100,10 @@
     <main class="container lost-page">
 
         <section class="hero-section fade-up">
-            <h1>Lost Pets</h1>
+            <h1>Lost Pets 🐾</h1>
             <p>
                 Be the reason a family smiles again.<br>
-                Return a lost pet to its owner and receive a special gift voucher as a thank you.
+                Return a lost pet to its owner and receive a reward as a thank you.
             </p>
         </section>
 
@@ -146,439 +113,262 @@
                 <h3>Report</h3>
                 <p>Share the lost pet details and location.</p>
             </article>
-
             <article class="step-card">
                 <img src="../Images/lost/ret.png" alt="Return">
                 <h3>Return Safely</h3>
                 <p>Help connect the pet with its owner.</p>
             </article>
-
             <article class="step-card">
                 <img src="../Images/lost/ver.png" alt="Verify">
                 <h3>Verify</h3>
-                <p>Owner confirms the pet is returned.</p>
+                <p>Answer the secret question to prove you found it.</p>
             </article>
-
             <article class="step-card">
                 <img src="../Images/lost/rew.png" alt="Reward">
                 <h3>Reward</h3>
-                <p>Receive a special thank-you voucher.</p>
+                <p>Receive cash reward or special voucher.</p>
             </article>
         </section>
 
-        <section class="community-section fade-up">
-            <div class="community-header">
-                <h2>🐾 Community Pet Heroes</h2>
-                <p>People who helped return lost pets to their families</p>
-                <span class="sub-ar">Thank you to all the people who contributed to bringing the pets back to their homes.</span>
-            </div>
-
-            <div class="heroes-row">
-                <article class="hero-mini">
-                    <img src="../Images/lost/omar.png" alt="Omar">
-                    <h4>Omar</h4>
-                    <span>3 Successes</span>
-                </article>
-
-                <article class="hero-mini">
-                    <img src="../Images/lost/ahmad.png" alt="Ahmad">
-                    <h4>Ahmad</h4>
-                    <span>7 Successes</span>
-                </article>
-
-                <article class="hero-mini">
-                    <img src="../Images/lost/yara.png" alt="Yara">
-                    <h4>Yara</h4>
-                    <span>1 Success</span>
-                </article>
-            </div>
-        </section>
-
-
-
-
-
-
-<section class="pets-grid fade-up" id="petsGrid">
-
-    @if (!Model.Reports.Any())
-    {
-        <div style="grid-column:1/-1;text-align:center;padding:3rem;color:#6b7c5a">
-            <p>No lost pets reported currently.</p>
-        </div>
-    }
-
-    @foreach (var r in Model.Reports)
-    {
-        <article class="pet-card" data-pet-id="@r.Id">
-            <div class="pet-top">
-                <img src="@(string.IsNullOrEmpty(r.Image)
-                            ? "/Images/lost/Beagle.png"
-                            : r.Image)"
-                     alt="@r.Name">
-                <div class="pet-info">
-                    <div class="pet-head">
-                        <h3>@r.Name</h3>
-                        <button class="status-btn"
-                                data-open-flow="@r.Id">
-                            I found it
-                        </button>
-                    </div>
-                    @if (!string.IsNullOrEmpty(r.Breed))   { <p>@r.Breed</p> }
-                    @if (!string.IsNullOrEmpty(r.Color))   { <p>@r.Color</p> }
-                    @if (!string.IsNullOrEmpty(r.DateLost)){ <p>Lost: @r.DateLost</p> }
-                    @if (r.Reward > 0) { <p>🎁 Reward: @r.Reward JOD</p> }
+        @* ══ FILTER + SEARCH ══ *@
+        <section class="adoption-layout fade-up" style="margin-top:2rem">
+            <aside class="sidebar-card">
+                <h3>Filter by Type</h3>
+                <div class="filter-list">
+                    <button class="filter-item active" data-filter="all">
+                        <span>🐾</span><span>All Animals</span>
+                    </button>
+                    <button class="filter-item" data-filter="dog">
+                        <img src="../Images/adapt/dog.png" alt="Dog"><span>Dogs</span>
+                    </button>
+                    <button class="filter-item" data-filter="cat">
+                        <img src="../Images/adapt/cat.png" alt="Cat"><span>Cats</span>
+                    </button>
+                    <button class="filter-item" data-filter="rabbit">
+                        <img src="../Images/adapt/rubit.png" alt="Rabbit"><span>Rabbits</span>
+                    </button>
+                    <button class="filter-item" data-filter="bird">
+                        <img src="../Images/adapt/bird.png" alt="Bird"><span>Birds</span>
+                    </button>
+                    <button class="filter-item" data-filter="hamster">
+                        <img src="../Images/adapt/hamester.png" alt="Hamster"><span>Hamsters</span>
+                    </button>
                 </div>
-            </div>
-            <div class="pet-location">
-                📍 @r.Area@(!string.IsNullOrEmpty(r.Area) && !string.IsNullOrEmpty(r.City) ? ", " : "")@r.City
-            </div>
-            <div class="pet-phone">Code: @r.ReportCode</div>
-        </article>
-    }
+            </aside>
 
-</section>
+            <section class="content-card">
+                <div class="search-row">
+                    <div class="search-box">
+                        <span>🔍</span>
+                        <input type="text" id="lostSearch"
+                               placeholder="Search by name, breed, color, city...">
+                    </div>
+                </div>
 
-@* Pagination *@
-<div class="more-wrap fade-up">
-    @if (Model.HasPreviousPage)
-    {
-        <a asp-controller="Pet"
-           asp-action="Lost"
-           asp-route-page="@(Model.CurrentPage - 1)"
-           class="more-btn">← Previous</a>
-    }
+                <div id="petsGrid" class="pet-list" style="margin-top:1rem">
 
-    <span style="font-weight:700;color:#5a8f38">
-        Page @Model.CurrentPage of @Model.TotalPages
-    </span>
+                    @if (!Model.Reports.Any())
+                    {
+                        <div class="empty-state">
+                            <h3>No lost pets reported currently.</h3>
+                            <p>Check back soon.</p>
+                        </div>
+                    }
 
-    @if (Model.HasNextPage)
-    {
-        <a asp-controller="Pet"
-           asp-action="Lost"
-           asp-route-page="@(Model.CurrentPage + 1)"
-           class="more-btn">Next →</a>
-    }
-</div>
+                    @foreach (var r in Model.Reports)
+                    {
+                        <article class="pet-item"
+                                 data-type="@r.AnimalType.ToLower()"
+                                 data-name="@r.Name"
+                                 data-type-display="@r.AnimalType"
+                                 data-breed="@r.Breed"
+                                 data-color="@r.Color"
+                                 data-city="@r.City"
+                                 data-area="@r.Area"
+                                 data-description="@r.Description"
+                                 data-marks="@r.SpecialMarks"
+                                 data-phone="@r.ContactPhone"
+                                 data-reward="@r.Reward"
+                                 data-has-reward="@(r.HasReward ? "true" : "false")"
+                                 data-date="@r.DateLost"
+                                 data-image="@r.Image"
+                                 data-secret-question="@r.SecretQuestion"
+                                 data-expiry="@r.ExpiryDate"
+                                 data-id="@r.Id">
 
+                            <div class="pet-thumb">
+                                <img src="@r.Image" alt="@r.Name">
+                                @if (r.HasReward)
+                                {
+                                    <div class="reward-badge">🎁 @r.Reward JOD</div>
+                                }
+                            </div>
 
+                            <div class="pet-info">
+                                <h3>@r.Name</h3>
+                                <p><strong>Type:</strong> @r.AnimalType</p>
+                                @if (!string.IsNullOrEmpty(r.Breed))
+                                {
+                                    <p><strong>Breed:</strong> @r.Breed</p>
+                                }
+                                <p><strong>Color:</strong> @r.Color</p>
+                                <p><strong>📍</strong> @r.City@(!string.IsNullOrEmpty(r.Area) ? $" — {r.Area}" : "")</p>
+                                @if (!string.IsNullOrEmpty(r.DateLost))
+                                {
+                                    <p><strong>Lost:</strong> @r.DateLost</p>
+                                }
+                            </div>
 
+                            <div class="pet-actions">
+                                <button class="olive-btn"
+                                        data-open-flow="@r.Id">
+                                    🔍 I Found It
+                                </button>
+                                <button class="olive-btn secondary-btn"
+                                        data-open-details="@r.Id">
+                                    View Details
+                                </button>
+                            </div>
 
+                        </article>
+                    }
 
+                    <div class="empty-state" id="dynamicEmpty" style="display:none">
+                        <h3>No pets found</h3>
+                        <p>Try another filter or search keyword.</p>
+                    </div>
 
+                </div>
 
+                @* Pagination *@
+                <div class="more-wrap" style="margin-top:1.5rem;display:flex;gap:1rem;justify-content:center;align-items:center">
+                    @if (Model.HasPreviousPage)
+                    {
+                        <a asp-controller="Pet" asp-action="Lost"
+                           asp-route-page="@(Model.CurrentPage - 1)"
+                           class="more-btn">← Previous</a>
+                    }
+                    <span style="font-weight:700;color:#5a8f38">
+                        Page @Model.CurrentPage of @Model.TotalPages
+                    </span>
+                    @if (Model.HasNextPage)
+                    {
+                        <a asp-controller="Pet" asp-action="Lost"
+                           asp-route-page="@(Model.CurrentPage + 1)"
+                           class="more-btn">Next →</a>
+                    }
+                </div>
+            </section>
 
-
-
-
-
-
-
+        </section>
 
     </main>
 
     <footer class="footer">
         <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <span>|</span>
-            <a href="about.html">Contact</a>
-            <span>|</span>
-            <a href="faq.html">FAQ</a>
-            <span>|</span>
-            <div class="social-inline">
-                <span>f</span>
-                <span>🐦</span>
-                <span>◎</span>
-            </div>
+            <a href="#">About Us</a><span>|</span>
+            <a href="#">Contact</a><span>|</span>
+            <a href="#">FAQ</a>
         </div>
         <div>© 2026 Waffy, all rights reserved.</div>
     </footer>
 
+    @* ══ DETAILS MODAL ══ *@
+    <div id="detailsModal" class="flow-modal hidden">
+        <div class="flow-overlay" id="detailsOverlay"></div>
+        <div class="flow-card" style="max-width:600px">
+            <button class="flow-close" id="closeDetailsBtn">&times;</button>
+            <div id="detailsContent"></div>
+        </div>
+    </div>
 
+    @* ══ I FOUND IT FLOW MODAL ══ *@
     <div id="flowModal" class="flow-modal hidden">
         <div class="flow-overlay" data-close-flow></div>
-
         <div class="flow-card">
             <button class="flow-close" data-close-flow>&times;</button>
 
+            @* Step 1 — Finder Info *@
             <section class="flow-step active" data-step="1">
                 <div class="modal-head">
-                    <h2>Finder Verification Form</h2>
-                    <p>Please enter your real information to continue.</p>
+                    <h2>🔍 Finder Verification</h2>
+                    <p>Enter your real information to claim the reward.</p>
                 </div>
 
                 <div class="secret-box">
-                    <div class="question-card" style="margin-bottom:18px;">
-                        ⚠️ Please fill in your real name and the same phone number you will use to contact the pet owner.
-                        <br><br>
-                        The reward or coupon will only be delivered if the phone number entered here matches the number used to contact the pet owner.
+                    <div class="question-card" style="margin-bottom:1rem">
+                        ⚠️ Please use the same phone number you'll use to contact the owner.
+                        The reward is only delivered after verification.
                     </div>
 
                     <div class="form-grid one">
                         <label>
-                            <span>Full Name</span>
-                            <input id="finderName" type="text" placeholder="Enter your full name" />
+                            <span>Full Name <span style="color:red">*</span></span>
+                            <input id="finderName" type="text" placeholder="Your full name" />
                         </label>
                     </div>
 
-                    <div class="form-grid phone-grid">
+                    <div class="form-grid one" style="margin-top:.8rem">
                         <label>
-                            <span>Country</span>
-                            <select id="countryCode">
-                                <option value="+962">Jordan (+962)</option>
-                                <option value="+966">Saudi Arabia (+966)</option>
-                                <option value="+971">UAE (+971)</option>
-                                <option value="+20">Egypt (+20)</option>
-                                <option value="+970">Palestine (+970)</option>
-                                <option value="+961">Lebanon (+961)</option>
-                            </select>
-                        </label>
-
-                        <label>
-                            <span>Phone Number</span>
-                            <input id="finderPhone" type="text" placeholder="7X XXX XXXX" />
+                            <span>Phone Number <span style="color:red">*</span></span>
+                            <input id="finderPhone" type="tel" placeholder="+962 7X XXX XXXX" />
                         </label>
                     </div>
 
-                    <div class="form-grid one">
-                        <label class="answer-label">
+                    <div class="form-grid one" style="margin-top:.8rem">
+                        <label>
                             <span>Secret Question</span>
-                            <div class="question-card">
-                                Is there any unique mark or special feature you can describe?
+                            <div class="question-card" id="secretQuestionDisplay" style="font-weight:700;color:#59652a">
+                                —
                             </div>
                         </label>
                     </div>
 
-                    <div class="form-grid one">
-                        <label class="answer-label">
-                            <span>Your Answer</span>
-                            <input id="secretAnswer" type="text" placeholder="Enter your answer here." />
+                    <div class="form-grid one" style="margin-top:.8rem">
+                        <label>
+                            <span>Your Answer <span style="color:red">*</span></span>
+                            <input id="secretAnswer" type="text" placeholder="Enter your answer" />
                         </label>
                     </div>
 
-                    <small>
-                        You must answer the secret question correctly so Waffy can verify that your information is valid before approving the reward.
+                    <small style="color:#888;margin-top:.5rem;display:block">
+                        Answer correctly to be verified as a genuine finder.
                     </small>
                 </div>
 
-                <div class="step-actions">
-                    <button class="step-btn" id="verifyFinderInfoBtn" type="button" onclick="goToVerificationStep()">Submit for Verification</button>
+                <div class="step-actions" style="margin-top:1rem">
+                    <button class="step-btn" type="button" onclick="goToVerificationStep()">
+                        Submit for Verification →
+                    </button>
                 </div>
             </section>
 
+            @* Step 2 — Submitted *@
             <section class="flow-step" data-step="2">
-                <div class="modal-head">
-                    <h2>Found Animal Information</h2>
-                    <p>Found Animal Information</p>
-                </div>
-
-                <div class="form-grid one">
-                    <label>
-                        <span>Animal Photo</span>
-                        <input id="animalPhoto" type="file" accept="image/png, image/jpeg, image/jpg" />
-                    </label>
-                </div>
-
-                <div class="form-grid two">
-                    <label>
-                        <span>Animal Type</span>
-                        <select id="animalType">
-                            <option value="">Select type</option>
-                            <option>Dog</option>
-                            <option>Cat</option>
-                            <option>Bird</option>
-                            <option>Rabbit</option>
-                            <option>Other</option>
-                        </select>
-                    </label>
-
-                    <label>
-                        <span>Color / Markings</span>
-                        <input id="animalColor" type="text" placeholder="Example: red fur with white spot..." />
-                    </label>
-                </div>
-
-                <div class="form-grid two">
-                    <label>
-                        <span>Date Found</span>
-                        <input id="dateFound" type="date" />
-                    </label>
-
-                    <label>
-                        <span>Time Found (Optional)</span>
-                        <input id="timeFound" type="time" />
-                    </label>
-                </div>
-
-                <div class="form-grid one">
-                    <label>
-                        <span>Location Found</span>
-                        <div id="map"></div>
-                        <small class="map-note">Click on the map to select the location.</small>
-                    </label>
-                </div>
-
-                <div class="form-grid one">
-                    <label>
-                        <span>Address</span>
-                        <input id="addressFound" type="text" placeholder="Enter the address, street, area, city..." />
-                    </label>
-                </div>
-
-                <div class="form-grid one">
-                    <label>
-                        <span>Description</span>
-                        <textarea id="animalDescription" placeholder="Example: Brown husky, calm, found near Al-Hussein park..."></textarea>
-                    </label>
-                </div>
-
-                <div class="step-actions two-btns">
-                    <button class="back-btn" data-prev-step="1">Back</button>
-                    <button class="step-btn" data-next-step="3">Submit</button>
-                </div>
-            </section>
-
-            <section class="flow-step" data-step="3">
                 <div class="result-box">
-                    <div class="result-icon">⏳</div>
-                    <h2>We Received Your Report!</h2>
-                    <p>
-                        Your report has been sent successfully.<br>
-                        We will review the photo and contact you soon.
-                    </p>
+                    <div class="result-icon">✅</div>
+                    <h2>Report Submitted!</h2>
+                    <p>Your information has been sent to the pet owner.</p>
 
-                    <div class="score-box">
-                        <div class="score-line">
-                            <span>Type</span>
-                            <div class="score-bar"><i style="width:100%"></i></div>
-                            <strong>100%</strong>
-                        </div>
-                        <div class="score-line">
-                            <span>Location</span>
-                            <div class="score-bar"><i style="width:78%"></i></div>
-                            <strong>78%</strong>
-                        </div>
-                        <div class="score-line">
-                            <span>Color</span>
-                            <div class="score-bar orange"><i style="width:65%"></i></div>
-                            <strong>65%</strong>
-                        </div>
-
-                        <div class="total-score">
-                            <div class="big-score">81%</div>
-                            <div>
-                                <strong>Overall Match Score</strong>
-                            </div>
-                        </div>
+                    <div id="verificationResult" style="margin-top:1rem;padding:.8rem;border-radius:10px">
+                        <!-- يُملأ من JS -->
                     </div>
 
-                    <div class="timer-box">
-                        <span>Auto-expires in</span>
-                        <strong id="countdownText">47:51:48</strong>
+                    <div class="note-box" style="margin-top:.8rem">
+                        📞 Owner will contact you on: <strong id="displayPhone"></strong><br>
+                        🎁 Reward will be added to your wallet after confirmation.
                     </div>
 
-                    <div class="note-box">
-                        SMS notice will be sent if the owner confirms the match.
-                    </div>
-
-                    <div class="verify-box">
-                        <p>✅ The pet owner has reviewed the report — the next step is to answer the secret question.</p>
-                        <button class="step-btn" data-next-step="4" type="button">Continue to Secret Verification</button>
+                    <div class="step-actions" style="margin-top:1.5rem">
+                        <button class="step-btn" data-close-flow type="button">Done ✅</button>
                     </div>
                 </div>
             </section>
-
-            <section class="flow-step" data-step="4">
-                <div class="result-box">
-                    <div class="result-icon">🔎</div>
-                    <h2>Waffy Team Verification</h2>
-                    <p>
-                        Your information has been submitted successfully.<br>
-                        The Waffy team will now verify the details you entered and review your secret answer.
-                    </p>
-
-                    <div class="note-box">
-                        Please make sure you contact the pet owner using the same phone number you entered in this form.
-                    </div>
-
-                    <div class="verify-box">
-                        <p>
-                            ✅ Once the information is confirmed and the phone number matches the one used to contact the pet owner,
-                            your reward or coupon will be sent to you.
-                        </p>
-                        <button class="step-btn" data-next-step="5" type="button">Continue</button>
-                    </div>
-                </div>
-            </section>
-
-            <section class="flow-step" data-step="5">
-                <div class="success-final">
-                    <div class="success-icon">🎁</div>
-                    <h2>Verification in Progress</h2>
-                    <p>
-                        Thank you for helping return the pet.<br>
-                        The Waffy team is now checking the information you submitted.
-                    </p>
-
-                    <div class="wallet-card">
-                        <div class="wallet-amount">Pending</div>
-                        <div class="wallet-status">
-                            <strong>Reward / Coupon Under Review</strong>
-                            <span>It will be sent after successful verification</span>
-                        </div>
-                    </div>
-
-                    <div class="transaction-card">
-                        <p><strong>Status:</strong> Waiting for Waffy team verification</p>
-                        <p><strong>Phone Match Required:</strong> Yes</p>
-                        <p><strong>Secret Answer Review:</strong> In progress</p>
-                        <p><strong>Reward Delivery:</strong> After confirmation only</p>
-                    </div>
-
-                    <div class="note-box">
-                        The reward or coupon will not be delivered unless the number entered in this form matches the number used to contact the pet owner.
-                    </div>
-
-                    <div class="step-actions">
-                        <button class="step-btn" id="reportAnotherAnimal" type="button">Done</button>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </div>
-    <div id="abuseModal" class="flow-modal hidden">
-        <div class="flow-overlay" data-close-abuse></div>
-        <div class="abuse-card">
-            <button class="flow-close" data-close-abuse>&times;</button>
-
-            <h3>Report Abuse</h3>
-            <p>If the owner did not return the pet or used the process incorrectly, you can report it here.</p>
-
-            <label>
-                <span>Fraud Type</span>
-                <select id="fraudType">
-                    <option>False report or mismatch</option>
-                    <option>Owner denied after return</option>
-                    <option>Wrong code / fake code</option>
-                    <option>Other</option>
-                </select>
-            </label>
-
-            <label>
-                <span>Details</span>
-                <textarea id="fraudDetails" placeholder="Explain what happened."></textarea>
-            </label>
-
-            <div class="step-actions two-btns">
-                <button class="back-btn" data-close-abuse>Cancel</button>
-                <button class="step-btn" id="submitAbuseBtn" type="button">Send Report</button>
-            </div>
         </div>
     </div>
 
     <div id="toast" class="toast"></div>
-    
+
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="~/js/lost.js"></script>
 </body>

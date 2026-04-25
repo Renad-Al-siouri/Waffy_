@@ -26,6 +26,10 @@ namespace Waffy.Interfaces
 
         Task UpdatePostAsync(AdoptionPost post);
         Task ClosePostAsync(int postId);
+        Task<bool> HasLikedAsync(int postId, int userId);
+        Task AddLikeAsync(int postId, int userId);
+        Task RemoveLikeAsync(int postId, int userId);
+        Task<int> GetLikesAsync(int postId);
 
     }
 }

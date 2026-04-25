@@ -40,5 +40,7 @@
         public string? ReportCode { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        public string? ContactPhone { get; set; }
+
     }
 }

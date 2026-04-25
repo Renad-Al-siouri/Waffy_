@@ -9,6 +9,8 @@ namespace Waffy.Interfaces
         Task UpdateAsync(Pet pet);
         Task DeleteAsync(int petId);
         Task UpdateImageAsync(int petId, string imageUrl);
+        Task TransferOwnershipAsync(int petId, int newOwnerId);
+
 
     }
 }

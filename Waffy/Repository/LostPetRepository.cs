@@ -148,9 +148,11 @@ namespace Waffy.Repository
         public async Task<IEnumerable<LostPetReport>> GetActivePagedAsync(int page, int pageSize)
         {
             const string sql = @"
-        SELECT * FROM LostPetReport
-        WHERE Status = 'Active'
-        ORDER BY CreatedAt DESC
+        SELECT lpr.*, u.Phone AS ContactPhone
+        FROM LostPetReport lpr
+        LEFT JOIN Users u ON lpr.IdUser = u.UserId
+        WHERE lpr.Status = 'Active'
+        ORDER BY lpr.CreatedAt DESC
         OFFSET @Offset ROWS
         FETCH NEXT @PageSize ROWS ONLY";
 

@@ -7,6 +7,7 @@
         public int PostedById { get; set; }
         public int IdPet { get; set; }              // ✅ int (NOT NULL)
 
+        public DateTime? BirthDate { get; set; }
         public string? PetName { get; set; }
         public string? AnimalType { get; set; }
         public string? Breed { get; set; }
@@ -32,5 +33,6 @@
         public string? AdoptionStatus { get; set; } // "Available" | "Reserved" | "Adopted"
         public string? PostCode { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public int Likes { get; set; }
     }
 }

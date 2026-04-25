@@ -164,6 +164,7 @@
     </div>
     <div class="s-card-body">
 
+
         @if (!Model.Reports.Any())
         {
             <p style="color:#6b7c5a;text-align:center;padding:2rem">
@@ -173,7 +174,12 @@
 
         @foreach (var r in Model.Reports)
         {
+
             var isActive = r.Status == "Active";
+            var claims = Model.Finders.ContainsKey(r.IdLostReport)
+                         ? Model.Finders[r.IdLostReport]
+                         : new List<Waffy.Models.FoundPetClaim>();
+            var pendingClaims = claims.Where(c => c.Status == "Pending").ToList();
 
             <div class="report-row" style="opacity:@(isActive ? "1" : ".65")">
 
@@ -216,10 +222,170 @@
             </div>
 
             <hr style="border:none;border-top:1px solid #e8f0d8;margin:0.5rem 0">
+
+ 
+
+@if (pendingClaims.Any())
+{
+    <div style="background:#f8fdf2;border:1px solid #d4e8bc;
+                border-radius:12px;padding:1rem;margin:.5rem 0 1rem">
+        <h4 style="font-family:'Fredoka',sans-serif;color:#59652a;margin-bottom:.8rem">
+            🔍 @pendingClaims.Count Person@(pendingClaims.Count > 1 ? "s" : "") Found Your Pet
+        </h4>
+
+        @foreach (var claim in pendingClaims.OrderByDescending(c => c.IsVerified))
+        {
+            <div style="background:#fff;
+                        border:1px solid @(claim.IsVerified ? "#b2dfb2" : "#ffe082");
+                        border-radius:10px;padding:.8rem 1rem;margin-bottom:.6rem">
+                <div style="display:flex;justify-content:space-between;
+                            align-items:start;flex-wrap:wrap;gap:.5rem">
+                    <div>
+                        @if (claim.IsVerified)
+                        {
+                            <span style="background:#e8f5e9;color:#2d7a2d;padding:.2rem .6rem;
+                                          border-radius:999px;font-size:.75rem;font-weight:800">
+                                ✅ Verified — Answered correctly
+                            </span>
+                        }
+                        else
+                        {
+                            <span style="background:#fff8e1;color:#e65100;padding:.2rem .6rem;
+                                          border-radius:999px;font-size:.75rem;font-weight:800">
+                                ⚠️ Unverified — Wrong answer
+                            </span>
+                        }
+                        <br />
+                        <strong>@claim.FinderName</strong>
+                        <span style="color:#7b6c58;font-size:.82rem;margin-left:.4rem">
+                            📞 @claim.FinderPhone
+                        </span>
+                        <br />
+                        <small style="color:#9e8e77">
+                            @claim.CreatedAt?.ToString("MMM dd, yyyy · hh:mm tt")
+                        </small>
+
+                        @if (!claim.IsVerified)
+                        {
+                            <div style="background:#fff8e1;border:1px solid #ffe082;
+                                         border-radius:8px;padding:.4rem .6rem;
+                                         margin-top:.4rem;font-size:.78rem;color:#92400e">
+                                ⚠️ Wrong secret answer. Confirm only if you spoke with this person.
+                            </div>
+                        }
+
+                        @if (r.RewardAmount > 0)
+                        {
+                            <div style="margin-top:.4rem;font-size:.8rem;color:#2d7a2d;font-weight:700">
+                                🎁 Confirming will send @r.RewardAmount JOD to finder's wallet
+                            </div>
+                        }
+                    </div>
+
+                    <div style="display:flex;gap:.5rem;flex-direction:column">
+                        <form method="post"
+                              asp-controller="FoundPetClaim"
+                              asp-action="ConfirmFound"
+                              onsubmit="return confirm('Confirm this person found your pet?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="claimId" value="@claim.IdClaim" />
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                ✅ Confirm Found
+                            </button>
+                        </form>
+
+                        <form method="post"
+                              asp-controller="FoundPetClaim"
+                              asp-action="RejectClaim"
+                              onsubmit="return confirm('Reject this claim?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="claimId" value="@claim.IdClaim" />
+                            <button type="submit" class="btn btn-danger btn-sm">
+                                ❌ Reject
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         }
+    </div>
+}
+        }
+
+
+
 
     </div>
 </div>
+
+@* ══════════════════════════════════════ *@
+@* قسم 2 — My Finder Claims (تتبع العملية) *@
+@* ══════════════════════════════════════ *@
+@if (Model.MyClaims.Any())
+{
+    <div class="s-card" style="margin-top:1.5rem">
+        <div class="s-card-head">
+            <span class="s-card-title">🔍 My Found Pet Claims</span>
+            <span class="badge badge-blue">@Model.MyClaims.Count Claim@(Model.MyClaims.Count > 1 ? "s" : "")</span>
+        </div>
+        <div class="s-card-body">
+            @foreach (var claim in Model.MyClaims)
+            {
+                <div class="report-row" style="flex-wrap:wrap;gap:1rem">
+                    <div class="report-icon lost">🐾</div>
+
+                    <div class="report-info" style="flex:1;min-width:200px">
+                        <h4>@(claim.PetName ?? "Unknown Pet")</h4>
+                        <p>Submitted @claim.CreatedAt?.ToString("MMM dd, yyyy")</p>
+
+                        @* ✅ badge التحقق *@
+                        @if (claim.IsVerified)
+                        {
+                            <span style="background:#e8f5e9;color:#2d7a2d;padding:.2rem .6rem;
+                                          border-radius:999px;font-size:.75rem;font-weight:800">
+                                ✅ Verified Answer
+                            </span>
+                        }
+                        else
+                        {
+                            <span style="background:#fff8e1;color:#e65100;padding:.2rem .6rem;
+                                          border-radius:999px;font-size:.75rem;font-weight:800">
+                                ⚠️ Unverified Answer
+                            </span>
+                        }
+                    </div>
+
+                    <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
+
+                        @* ✅ badge الحالة *@
+                        @if (claim.Status == "Pending")
+                        {
+                            <span class="badge badge-orange">⏳ Pending</span>
+                            <small style="color:#7b6c58;font-size:.78rem">
+                                Waiting for owner confirmation
+                            </small>
+                        }
+                        else if (claim.Status == "Confirmed")
+                        {
+                            <span class="badge badge-green">🎉 Confirmed!</span>
+                            @if (claim.RewardAmount > 0)
+                            {
+                                <span style="color:#2d7a2d;font-size:.85rem;font-weight:800">
+                                    🎁 +@claim.RewardAmount JOD added to wallet
+                                </span>
+                            }
+                        }
+                        else
+                        {
+                            <span class="badge badge-grey">❌ Rejected</span>
+                        }
+                    </div>
+                </div>
+                <hr style="border:none;border-top:1px solid #e8f0d8;margin:.5rem 0">
+            }
+        </div>
+    </div>
+}
             
         </main>
     </div>

@@ -19,9 +19,12 @@ namespace Waffy.Repository
         public async Task<IEnumerable<AdoptionPost>> GetApprovedAsync()
         {
             const string sql = @"
-                SELECT * FROM AdoptionPost
-                WHERE Status = 'Approved' AND AdoptionStatus = 'Available'
-                ORDER BY CreatedAt DESC";
+        SELECT ap.*, p.BirthDate
+        FROM AdoptionPost ap
+        LEFT JOIN Pet p ON ap.IdPet = p.IdPet
+        WHERE ap.Status = 'Approved'
+        AND ap.AdoptionStatus = 'Available'
+        ORDER BY ap.CreatedAt DESC";
 
             using var conn = new SqlConnection(_connectionString);
             return await conn.QueryAsync<AdoptionPost>(sql);
@@ -31,9 +34,11 @@ namespace Waffy.Repository
         public async Task<IEnumerable<AdoptionPost>> GetByUserIdAsync(int userId)
         {
             const string sql = @"
-                SELECT * FROM AdoptionPost
-                WHERE PostedById = @UserId
-                ORDER BY CreatedAt DESC";
+        SELECT ap.*, p.BirthDate
+        FROM AdoptionPost ap
+        LEFT JOIN Pet p ON ap.IdPet = p.IdPet
+        WHERE ap.PostedById = @UserId
+        ORDER BY ap.CreatedAt DESC";
 
             using var conn = new SqlConnection(_connectionString);
             return await conn.QueryAsync<AdoptionPost>(sql, new { UserId = userId });
@@ -51,12 +56,13 @@ namespace Waffy.Repository
         public async Task<int> AddAsync(AdoptionPost post)
         {
             const string sql = @"
-                INSERT INTO AdoptionPost
+                 INSERT INTO AdoptionPost
                     (PostedByType, PostedById, IdPet, PetName, AnimalType, Breed,
                      Color, Age, Gender, EnergyLevel, GoodWithChildren, GoodWithPets,
                      HealthStatus, IsVaccinated, IsNeutered, City, Area,
                      ContactName, ContactPhone, Description, ReasonForAdoption,
                      Status, AdoptionStatus, PostCode, CreatedAt)
+                    
                 VALUES
                     (@PostedByType, @PostedById, @IdPet, @PetName, @AnimalType, @Breed,
                      @Color, @Age, @Gender, @EnergyLevel, @GoodWithChildren, @GoodWithPets,
@@ -68,6 +74,8 @@ namespace Waffy.Repository
             using var conn = new SqlConnection(_connectionString);
             return await conn.ExecuteScalarAsync<int>(sql, post);
         }
+
+    
 
         // ── Update post ──────────────────────────────────────
         public async Task UpdateAsync(AdoptionPost post)
@@ -181,6 +189,46 @@ namespace Waffy.Repository
 
             using var conn = new SqlConnection(_connectionString);
             await conn.ExecuteAsync(sql, new { IdPost = postId });
+        }
+
+        public async Task<bool> HasLikedAsync(int postId, int userId)
+        {
+            const string sql = @"
+        SELECT COUNT(1) FROM AdoptionLike
+        WHERE IdPost = @PostId AND IdUser = @UserId";
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.ExecuteScalarAsync<int>(sql, new { PostId = postId, UserId = userId }) > 0;
+        }
+
+        public async Task AddLikeAsync(int postId, int userId)
+        {
+            const string sql = @"
+        IF NOT EXISTS (SELECT 1 FROM AdoptionLike WHERE IdPost=@PostId AND IdUser=@UserId)
+        BEGIN
+            INSERT INTO AdoptionLike (IdPost, IdUser) VALUES (@PostId, @UserId);
+            UPDATE AdoptionPost SET Likes = Likes + 1 WHERE IdPost = @PostId;
+        END";
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(sql, new { PostId = postId, UserId = userId });
+        }
+
+        public async Task RemoveLikeAsync(int postId, int userId)
+        {
+            const string sql = @"
+        IF EXISTS (SELECT 1 FROM AdoptionLike WHERE IdPost=@PostId AND IdUser=@UserId)
+        BEGIN
+            DELETE FROM AdoptionLike WHERE IdPost=@PostId AND IdUser=@UserId;
+            UPDATE AdoptionPost SET Likes = CASE WHEN Likes > 0 THEN Likes-1 ELSE 0 END WHERE IdPost=@PostId;
+        END";
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(sql, new { PostId = postId, UserId = userId });
+        }
+
+        public async Task<int> GetLikesAsync(int postId)
+        {
+            const string sql = "SELECT Likes FROM AdoptionPost WHERE IdPost = @Id";
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.ExecuteScalarAsync<int>(sql, new { Id = postId });
         }
 
     }
