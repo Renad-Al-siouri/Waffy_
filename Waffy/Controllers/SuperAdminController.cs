@@ -13,19 +13,22 @@ namespace Waffy.Controllers
         private readonly IProductRepository _productRepo;
         private readonly IOrderRepository _orderRepo;
         private readonly IStoreDocumentRepository _docRepo;
+        private readonly IDangerousAnimalReportRepository _dangerRepo;
 
         public SuperAdminController(
             IUserRepository userRepo,
             IStoreRepository storeRepo,
             IProductRepository productRepo,
             IOrderRepository orderRepo,
-            IStoreDocumentRepository docRepo)
+            IStoreDocumentRepository docRepo,
+    IDangerousAnimalReportRepository dangerRepo)
         {
             _userRepo = userRepo;
             _storeRepo = storeRepo;
             _productRepo = productRepo;
             _orderRepo = orderRepo;
             _docRepo = docRepo;
+            _dangerRepo = dangerRepo;
         }
 
         // ── Guards ───────────────────────────────────────────────
@@ -415,6 +418,42 @@ namespace Waffy.Controllers
             return RedirectToAction("Stores");
         }
 
+
+        // ════════════════════════════════════════════════════════
+        // Dangerous_Animals — GET
+        // ════════════════════════════════════════════════════════
+
+        public async Task<IActionResult> Dangerous_Animals()
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var reports = (await _dangerRepo.GetAllAsync()).ToList();
+
+            ViewBag.TotalReports = reports.Count;
+            ViewBag.OpenReports = reports.Count(r => r.Status == "Pending" || r.Status == "Under Review");
+            ViewBag.HighRisk = reports.Count(r => r.Severity == "High");
+            ViewBag.ResolvedReports = reports.Count(r => r.Status == "Resolved");
+
+            if (TempData["DangerSuccess"] != null) ViewBag.Success = TempData["DangerSuccess"];
+            if (TempData["DangerError"] != null) ViewBag.Error = TempData["DangerError"];
+
+            return View(reports);
+        }
+
+        // ════════════════════════════════════════════════════════
+        // Dangerous_Animals — POST
+        // ════════════════════════════════════════════════════════
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateDangerStatus(int reportId, string status)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _dangerRepo.UpdateStatusAsync(reportId, status);
+            TempData["DangerSuccess"] = $"✅ Report status updated to {status}.";
+            return RedirectToAction("Dangerous_Animals");
+        }
+
         // ════════════════════════════════════════════════════════
         // Stubs — من النسخة الأولى (الأكمل)
         // ════════════════════════════════════════════════════════
@@ -430,7 +469,7 @@ namespace Waffy.Controllers
         public IActionResult Analytics_A() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Lost_Pets() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Found_Pets() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
-        public IActionResult Dangerous_Animals() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
+       
         public IActionResult Donations() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Laws_Regulations() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Map() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
