@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -10,7 +7,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Dangerous Animals Report - Waffy</title>
-
     <link rel="stylesheet" href="~/css/dangerous-animals.css" />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -22,31 +18,22 @@
             <header class="topbar">
                 <div class="header-shell">
                     <nav class="navbar">
-
                         <div class="left-nav desktop-nav desktop-links">
                             <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                             <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                             <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                             <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-
                         </div>
-
                         <div class="logo-center">
                             <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
                         </div>
-
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
-
-
-
                                 <div class="services-dropdown" id="servicesDropdown">
                                     <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services
-                                        <span class="dropdown-arrow">▼</span>
+                                        Services <span class="dropdown-arrow">▼</span>
                                     </button>
-
                                     <div class="dropdown-menu" id="servicesMenu">
                                         <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
                                         <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
@@ -60,233 +47,289 @@
                                         <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                     </div>
                                 </div>
-
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
-
                             </div>
-
                             <div class="nav-actions">
-                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon">
                                     <i class="fa-solid fa-cart-shopping"></i>
                                 </a>
-
-                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon" aria-label="Notifications">
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon">
                                     <i class="fa-solid fa-bell"></i>
                                 </a>
-
-                                <a asp-controller="Account" asp-action="Profile" class="profile-btn" aria-label="Profile">
+                                <a asp-controller="Account" asp-action="Profile" class="profile-btn">
                                     <img src="../Images/user.jpg" alt="Profile">
                                 </a>
                                 <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
-
                             <div class="mobile-nav-wrap">
-                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
+                                <button class="menu-btn" id="menuBtn" type="button">☰</button>
                                 <div class="nav-links" id="navLinks">
                                     <div class="mobile-menu-logo">
                                         <img src="../Images/logo.png" alt="Waffy Logo">
                                     </div>
-
                                     <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                                     <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                                     <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                                     <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                                     <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
-
                                     <div class="mobile-services-block" id="mobileServicesBlock">
                                         <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
                                             <span>Services</span>
                                             <span class="dropdown-arrow">▼</span>
                                         </button>
-
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
-
                                             <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                             <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                             <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
                                             <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
-                                            <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
+                                            <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                                     <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
                             </div>
                         </div>
-
                     </nav>
                 </div>
             </header>
         </div>
     </div>
+
     <main class="container danger-page">
+
+        @* رسائل النجاح والخطأ *@
+        @if (TempData["DangerSuccess"] != null)
+        {
+            <div style="background:#f0fff0;border:1px solid #b2dfb2;color:#2d7a2d;
+                            padding:1rem 1.2rem;margin:1rem 0;border-radius:14px;
+                            font-weight:700;font-family:Nunito,sans-serif;font-size:.95rem">
+                @TempData["DangerSuccess"]
+            </div>
+        }
+        @if (TempData["DangerError"] != null)
+        {
+            <div style="background:#fff0f0;border:1px solid #ffb2b2;color:#c0392b;
+                            padding:1rem 1.2rem;margin:1rem 0;border-radius:14px;
+                            font-weight:700;font-family:Nunito,sans-serif;font-size:.95rem">
+                ⚠️ @TempData["DangerError"]
+            </div>
+        }
+
         <section class="danger-hero">
             <h1>Report a Dangerous Animal</h1>
             <p>Help nearby users and clinics by reporting the exact location and condition clearly.</p>
         </section>
 
-        <section class="danger-card">
-            <div class="alert-banner">
-                <div class="alert-icon">🚨</div>
+        @if (Context.Session.GetInt32("UserId") == null)
+        {
+            <div style="background:#fff4e6;border:1px solid #f0d4a8;color:#b36d2c;
+                            padding:1.2rem 1.4rem;margin:1rem 0;border-radius:14px;
+                            font-weight:700;font-family:Nunito,sans-serif;font-size:.95rem;
+                            display:flex;align-items:center;gap:12px">
+                <span style="font-size:1.4rem">🔒</span>
                 <div>
-                    <h3>Area Alert</h3>
-                    <p>Your report will notify nearby clinics and users in the area.</p>
+                    You must be logged in to submit a report.
+                    <a asp-controller="Account" asp-action="Login"
+                       style="color:var(--olive-dark);text-decoration:underline;margin-left:6px">
+                        Log in now →
+                    </a>
                 </div>
             </div>
+        }
 
-            <section class="report-section">
-                <div class="report-head">
-                    <h2>Animal Type & Problem</h2>
-                    <p>Select the type of animal and the issue you noticed.</p>
+        @* ✅ الفورم الكامل مع كل الحقول بداخله مباشرةً *@
+        <form method="post" asp-controller="Map" asp-action="SubmitDanger">
+            @Html.AntiForgeryToken()
+
+            <section class="danger-card">
+                <div class="alert-banner">
+                    <div class="alert-icon">🚨</div>
+                    <div>
+                        <h3>Area Alert</h3>
+                        <p>Your report will notify nearby clinics and users in the area.</p>
+                    </div>
                 </div>
 
-                <div class="divider"></div>
+                <section class="report-section">
+                    <div class="report-head">
+                        <h2>Animal Type & Problem</h2>
+                        <p>Select the type of animal and the issue you noticed.</p>
+                    </div>
+                    <div class="divider"></div>
 
-                <label class="field-label">Animal Type</label>
-                <div class="animal-type-grid">
-                    <button class="choice-btn" data-animal="dog">🐕<span>Dog</span></button>
-                    <button class="choice-btn" data-animal="cat">🐈<span>Cat</span></button>
-                    <button class="choice-btn" data-animal="monkey">🐒<span>Monkey</span></button>
-                    <button class="choice-btn" data-animal="reptile">🦎<span>Reptile</span></button>
-                    <button class="choice-btn" data-animal="other">❓<span>Other</span></button>
-                </div>
+                    @* ✅ Animal Type — select مباشر *@
+                    <label class="field-label">Animal Type</label>
+                    <select name="animalType" class="field-select" required
+                            style="width:100%;padding:12px 14px;border-radius:14px;
+                                   border:1px solid #d8cdbf;font-weight:700;
+                                   margin-bottom:16px;font-family:Nunito,sans-serif">
+                        <option value="">Choose animal type</option>
+                        <option value="Dog">🐕 Dog</option>
+                        <option value="Cat">🐈 Cat</option>
+                        <option value="Monkey">🐒 Monkey</option>
+                        <option value="Reptile">🦎 Reptile</option>
+                        <option value="Other">❓ Other</option>
+                    </select>
 
-                <label class="field-label">Problem Type</label>
-                <div class="problem-grid">
-                    <button class="choice-btn problem-btn" data-problem="aggressive">😡 Aggressive animal</button>
-                    <button class="choice-btn problem-btn" data-problem="injured">😿 Injured animal</button>
-                    <button class="choice-btn problem-btn" data-problem="stray">🚷 Stray animal</button>
-                    <button class="choice-btn problem-btn" data-problem="noise">🔊 Noise / disturbing</button>
-                    <button class="choice-btn problem-btn" data-problem="sick">😷 Sick animal</button>
-                    <button class="choice-btn problem-btn" data-problem="hazard">⚠️ Safety hazard</button>
-                </div>
+                    @* ✅ Problem Type — select مباشر *@
+                    <label class="field-label">Problem Type</label>
+                    <select name="problemType" class="field-select" required
+                            style="width:100%;padding:12px 14px;border-radius:14px;
+                                   border:1px solid #d8cdbf;font-weight:700;
+                                   margin-bottom:16px;font-family:Nunito,sans-serif">
+                        <option value="">Choose problem type</option>
+                        <option value="Aggressive">😡 Aggressive animal</option>
+                        <option value="Injured">😿 Injured animal</option>
+                        <option value="Stray">🚷 Stray animal</option>
+                        <option value="Noise">🔊 Noise / disturbing</option>
+                        <option value="Sick">😷 Sick animal</option>
+                        <option value="Hazard">⚠️ Safety hazard</option>
+                    </select>
 
-                <label class="field-label">Severity Level</label>
-                <div class="severity-grid">
-                    <button class="severity-btn" data-severity="high">
-                        <span class="dot red"></span>
-                        <strong>High</strong>
-                        <small>Danger / urgent</small>
+                    @* ✅ Severity — select مباشر *@
+                    <label class="field-label">Severity Level</label>
+                    <select name="severity"
+                            style="width:100%;padding:12px 14px;border-radius:14px;
+                                   border:1px solid #d8cdbf;font-weight:700;
+                                   margin-bottom:16px;font-family:Nunito,sans-serif">
+                        <option value="High">🔴 High — Danger / urgent</option>
+                        <option value="Medium" selected>🟠 Medium — Needs action</option>
+                        <option value="Low">🟢 Low — Monitor only</option>
+                    </select>
+                </section>
+
+                <section class="report-section">
+                    <div class="report-head">
+                        <h2>Location & Description</h2>
+                        <p>Add the exact area details and describe the situation clearly.</p>
+                    </div>
+                    <div class="divider"></div>
+
+                    <div class="form-grid two">
+                        @* ✅ City مباشر *@
+                        <label>
+                            <span>City</span>
+                            <select name="city" required
+                                    style="width:100%;padding:12px 14px;border-radius:14px;
+                                           border:1px solid #d8cdbf;font-weight:700;
+                                           font-family:Nunito,sans-serif">
+                                <option value="">Choose the city</option>
+                                <option value="Amman">Amman</option>
+                                <option value="Irbid">Irbid</option>
+                                <option value="Zarqa">Zarqa</option>
+                                <option value="Aqaba">Aqaba</option>
+                                <option value="Salt">Salt</option>
+                            </select>
+                        </label>
+
+                        @* ✅ Area مباشر *@
+                        <label>
+                            <span>Area / Street</span>
+                            <input name="area" type="text"
+                                   placeholder="Example: near school, King St..."
+                                   style="width:100%;padding:12px 14px;border-radius:14px;
+                                          border:1px solid #d8cdbf;font-weight:700;
+                                          font-family:Nunito,sans-serif" />
+                        </label>
+                    </div>
+
+                    @* ✅ الخريطة — للعرض فقط، الإحداثيات تُملأ بالـ JS *@
+                    <div class="form-grid one map-only">
+                        <label>
+                            <span>Exact Location (optional)</span>
+                            <div class="map-field-wrap">
+                                <div id="reportMap"></div>
+                            </div>
+                            <small>Click on the map to select the exact location.</small>
+                        </label>
+                    </div>
+
+                    @* ✅ Hidden inputs للإحداثيات فقط *@
+                    <input type="hidden" id="hLatitude" name="latitude" value="" />
+                    <input type="hidden" id="hLongitude" name="longitude" value="" />
+                    <input type="hidden" id="hLocationText" name="locationText" value="" />
+
+                    @* ✅ Description مباشر *@
+                    <div class="form-grid one">
+                        <label>
+                            <span>Description</span>
+                            <textarea name="description" required
+                                      placeholder="Example: A large aggressive dog attacking children near the school..."
+                                      style="width:100%;padding:12px 14px;border-radius:14px;
+                                             border:1px solid #d8cdbf;font-weight:700;
+                                             min-height:120px;font-family:Nunito,sans-serif"></textarea>
+                        </label>
+                    </div>
+                </section>
+
+                <div class="report-actions">
+                    <button type="submit" class="submit-report-btn">
+                        🚨 Submit Report
                     </button>
-
-                    <button class="severity-btn active" data-severity="medium">
-                        <span class="dot orange"></span>
-                        <strong>Medium</strong>
-                        <small>Needs action</small>
-                    </button>
-
-                    <button class="severity-btn" data-severity="low">
-                        <span class="dot green"></span>
-                        <strong>Low</strong>
-                        <small>Monitor only</small>
-                    </button>
                 </div>
+
             </section>
-
-            <section class="report-section">
-                <div class="report-head">
-                    <h2>Location & Description</h2>
-                    <p>Add the exact area details and describe the situation clearly.</p>
-                </div>
-
-                <div class="divider"></div>
-
-                <div class="form-grid two">
-                    <label>
-                        <span>City</span>
-                        <select id="cityInput">
-                            <option value="">Choose the city</option>
-                            <option>Amman</option>
-                            <option>Irbid</option>
-                            <option>Zarqa</option>
-                            <option>Aqaba</option>
-                            <option>Salt</option>
-                        </select>
-                    </label>
-
-                    <label>
-                        <span>Area / Street</span>
-                        <input id="streetInput" type="text" placeholder="Example: near school, King St..." />
-                    </label>
-                </div>
-
-                <div class="form-grid one map-only">
-                    <label>
-                        <span>Exact Location</span>
-                        <div class="map-field-wrap">
-                            <div id="reportMap"></div>
-                        </div>
-                        <small>Click on the map to select the exact location.</small>
-                    </label>
-                </div>
-
-                <div class="form-grid one">
-                    <label>
-                        <span>Description</span>
-                        <textarea id="descriptionInput" placeholder="Example: A large aggressive dog attacking children near the school this morning..."></textarea>
-                    </label>
-                </div>
-
-                <div class="form-grid one">
-                    <label>
-                        <span>Photos / Video</span>
-                        <input id="mediaInput" type="file" accept="image/png,image/jpeg,image/jpg,video/mp4" />
-                        <small>PNG, JPG, MP4 — important for verifying the report.</small>
-                    </label>
-                </div>
-            </section>
-
-            <section class="report-section">
-                <div class="report-head">
-                    <h2>Reporter Information</h2>
-                    <p>Optional information for follow-up if needed.</p>
-                </div>
-
-                <div class="divider"></div>
-
-                <div class="form-grid phone-report-grid">
-                    <label>
-                        <span>Name</span>
-                        <input id="reporterName" type="text" placeholder="Your name" />
-                    </label>
-
-                    <h1></h1>
-                    <h1></h1>
-                    <label>
-                        <span>Country Code</span>
-                        <select id="reporterCode">
-                            <option value="+962">JO +962</option>
-                            <option value="+966">SA +966</option>
-                            <option value="+971">UAE +971</option>
-                            <option value="+20">EG +20</option>
-                            <option value="+970">PS +970</option>
-                        </select>
-                    </label>
-
-                    <label>
-                        <span>Phone</span>
-                        <input id="reporterPhone" type="text" placeholder="7X XXX XXXX" />
-                    </label>
-                </div>
-
-                <div class="info-blue">
-                    ℹ️ Your personal information will not be shared publicly. It will only be used when needed for safety follow-up.
-                </div>
-            </section>
-
-            <div class="report-actions">
-
-                <button id="submitReportBtn" class="submit-report-btn" type="button">Submit Report</button>
-            </div>
-        </section>
+        </form>
     </main>
 
     <div id="toast" class="toast"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="~/js/dangerous-animals.js"></script>
+    <script>
+        // ✅ الخريطة فقط — بدون أي منطق submit
+        document.addEventListener('DOMContentLoaded', function () {
+            var mapEl = document.getElementById('reportMap');
+            if (!mapEl) return;
+
+            var map = L.map('reportMap').setView([31.9539, 35.9106], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+
+            var marker = null;
+            map.on('click', function (e) {
+                if (marker) {
+                    marker.setLatLng(e.latlng);
+                } else {
+                    marker = L.marker(e.latlng).addTo(map);
+                }
+                document.getElementById('hLatitude').value  = e.latlng.lat.toFixed(6);
+                document.getElementById('hLongitude').value = e.latlng.lng.toFixed(6);
+                document.getElementById('hLocationText').value =
+                    e.latlng.lat.toFixed(4) + ', ' + e.latlng.lng.toFixed(4);
+            });
+
+            // Navbar
+            var menuBtn  = document.getElementById('menuBtn');
+            var navLinks = document.getElementById('navLinks');
+            if (menuBtn && navLinks) {
+                menuBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    navLinks.classList.toggle('open');
+                });
+                document.addEventListener('click', function (e) {
+                    if (!navLinks.contains(e.target) && e.target !== menuBtn)
+                        navLinks.classList.remove('open');
+                });
+            }
+            var sd = document.getElementById('servicesDropdown');
+            var st = document.getElementById('servicesToggle');
+            if (sd && st) {
+                st.addEventListener('click', function (e) {
+                    e.stopPropagation(); sd.classList.toggle('open');
+                });
+                document.addEventListener('click', function () {
+                    sd.classList.remove('open');
+                });
+            }
+            var mt = document.getElementById('mobileServicesToggle');
+            var mb = document.getElementById('mobileServicesBlock');
+            if (mt && mb) mt.addEventListener('click', function () {
+                mb.classList.toggle('open');
+            });
+        });
+    </script>
 </body>
 </html>

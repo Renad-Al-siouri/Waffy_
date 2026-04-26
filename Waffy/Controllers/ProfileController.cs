@@ -15,6 +15,8 @@ namespace Waffy.Controllers
         private readonly IReservationRepository _reservationRepo;
         private readonly IFoundPetClaimRepository _claimRepo;
         private readonly IWalletRepository _walletRepo;
+        private readonly IDonationRepository _donationRepo;
+        private readonly IDangerousAnimalReportRepository _dangerRepo;
         public ProfileController(
             IUserRepository userRepository,
             IPetRepository petRepo,
@@ -22,6 +24,8 @@ namespace Waffy.Controllers
             ILostPetRepository lostPetRepo,
             IReservationRepository reservationRepo,
             IFoundPetClaimRepository claimRepo,
+            IDonationRepository donationRepo,
+            IDangerousAnimalReportRepository dangerRepo,
             IWalletRepository walletRepo)
         {
             _userRepository = userRepository;
@@ -31,6 +35,8 @@ namespace Waffy.Controllers
             _reservationRepo = reservationRepo;
             _claimRepo = claimRepo;
             _walletRepo = walletRepo;
+            _donationRepo = donationRepo;
+            _dangerRepo = dangerRepo;
         }
 
         // ── helper: تجلب المستخدم من Session أو ترجع null ──
@@ -446,8 +452,9 @@ namespace Waffy.Controllers
             }
 
             // ✅ 5 — Wallet Transactions
+            // ✅ 5 — Wallet Transactions (بدون Donation لأنها ستظهر بشكل منفصل)
             var transactions = await _walletRepo.GetTransactionsByUserIdAsync(user.UserId);
-            foreach (var t in transactions)
+            foreach (var t in transactions.Where(t => t.Type != "Donation"))
             {
                 events.Add(new TimelineEvent
                 {
@@ -461,6 +468,49 @@ namespace Waffy.Controllers
                 });
             }
 
+            // ✅ 6 — Donations (جديد)
+            var donations = await _donationRepo.GetByUserIdAsync(user.UserId);
+            foreach (var d in donations)
+            {
+                var icon = d.DonationType switch
+                {
+                    "Money" => "💵",
+                    "Food" => "🍖",
+                    "Medicine" => "💊",
+                    _ => "📦"
+                };
+                events.Add(new TimelineEvent
+                {
+                    Icon = icon,
+                    Title = $"Donation — {d.DonationType}",
+                    Description = d.DonationType == "Money"
+                        ? $"{d.Amount:F2} JOD donated · Ref: {d.ReferenceCode}"
+                        : $"Ref: {d.ReferenceCode} · {d.Description}",
+                    Date = d.CreatedAt ?? DateTime.UtcNow,
+                    Color = "#5a9ecf"
+                });
+            }
+            // ✅ 7 — Danger Reports
+            var dangerReports = await _dangerRepo.GetByUserIdAsync(user.UserId);
+            foreach (var dr in dangerReports)
+            {
+                var severityIcon = dr.Severity switch
+                {
+                    "High" => "🔴",
+                    "Medium" => "🟠",
+                    _ => "🟢"
+                };
+                events.Add(new TimelineEvent
+                {
+                    Icon = "🚨",
+                    Title = $"Danger Report — {dr.AnimalType}",
+                    Description = $"{severityIcon} {dr.Severity} · {dr.City} · Ref: {dr.ReportCode}",
+                    Date = dr.CreatedAt ?? DateTime.UtcNow,
+                    Color = dr.Severity == "High" ? "#dc2626" :
+                                  dr.Severity == "Medium" ? "#b36d2c" : "#2d7a2d"
+                });
+            }
+
             // ✅ رتّب حسب التاريخ — الأحدث أولاً
             events = events.OrderByDescending(e => e.Date).ToList();
 
@@ -469,6 +519,44 @@ namespace Waffy.Controllers
                 User = user,
                 Wallet = await _walletRepo.GetByUserIdAsync(user.UserId),
                 TimelineEvents = events
+            });
+        }
+
+        // ════════════════════════════════════════════════════
+        // MY DONATIONS — GET
+        // ════════════════════════════════════════════════════
+        public async Task<IActionResult> My_Donations()
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
+            var donations = (await _donationRepo.GetByUserIdAsync(user.UserId)).ToList();
+
+            return View(new WalletViewModel
+            {
+                User = user,
+                Wallet = wallet,
+                Donations = donations
+            });
+        }
+
+        // ════════════════════════════════════════════════════
+        // MY DANGER REPORTS — GET
+        // ════════════════════════════════════════════════════
+        public async Task<IActionResult> My_Danger_Reports()
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
+            var reports = (await _dangerRepo.GetByUserIdAsync(user.UserId)).ToList();
+
+            return View(new WalletViewModel
+            {
+                User = user,
+                Wallet = wallet,
+                DangerReports = reports
             });
         }
         public IActionResult Complaints() => View();

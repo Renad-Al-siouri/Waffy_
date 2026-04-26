@@ -1,8 +1,6 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
     Layout = null;
+    decimal walletBalance = (decimal)(ViewBag.WalletBalance ?? 0m);
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -10,7 +8,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Donate - Waffy</title>
-
     <link rel="stylesheet" href="~/css/money.css" />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
@@ -22,31 +19,22 @@
             <header class="topbar">
                 <div class="header-shell">
                     <nav class="navbar">
-
                         <div class="left-nav desktop-nav desktop-links">
                             <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                             <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                             <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                             <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-
                         </div>
-
                         <div class="logo-center">
                             <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
                         </div>
-
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
-
-
-
                                 <div class="services-dropdown" id="servicesDropdown">
                                     <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services
-                                        <span class="dropdown-arrow">▼</span>
+                                        Services <span class="dropdown-arrow">▼</span>
                                     </button>
-
                                     <div class="dropdown-menu" id="servicesMenu">
                                         <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
                                         <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
@@ -60,63 +48,50 @@
                                         <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                     </div>
                                 </div>
-
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
-
                             </div>
-
                             <div class="nav-actions">
                                 <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
                                     <i class="fa-solid fa-cart-shopping"></i>
                                 </a>
-
                                 <a asp-controller="Home" asp-action="Notifications" class="nav-icon" aria-label="Notifications">
                                     <i class="fa-solid fa-bell"></i>
                                 </a>
-
                                 <a asp-controller="Account" asp-action="Profile" class="profile-btn" aria-label="Profile">
                                     <img src="../Images/user.jpg" alt="Profile">
                                 </a>
                                 <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
-
                             <div class="mobile-nav-wrap">
                                 <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
                                 <div class="nav-links" id="navLinks">
                                     <div class="mobile-menu-logo">
                                         <img src="../Images/logo.png" alt="Waffy Logo">
                                     </div>
-
                                     <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                                     <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                                     <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                                     <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                                     <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
-
                                     <div class="mobile-services-block" id="mobileServicesBlock">
                                         <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
                                             <span>Services</span>
                                             <span class="dropdown-arrow">▼</span>
                                         </button>
-
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
-
                                             <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                             <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                             <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
                                             <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
-                                            <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
+                                            <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                                     <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
                             </div>
                         </div>
-
                     </nav>
                 </div>
             </header>
@@ -124,14 +99,46 @@
     </div>
 
     <main class="container donate-page">
+
+        @* رسائل النجاح والخطأ *@
+        @if (TempData["DonateSuccess"] != null)
+        {
+            <div style="background:#f0fff0;border:1px solid #b2dfb2;color:#2d7a2d;
+                            padding:1rem 1.2rem;margin:1rem 0;border-radius:14px;
+                            font-weight:700;font-family:Nunito,sans-serif;font-size:.95rem">
+                @TempData["DonateSuccess"]
+            </div>
+        }
+        @if (TempData["DonateError"] != null)
+        {
+            <div style="background:#fff0f0;border:1px solid #ffb2b2;color:#c0392b;
+                            padding:1rem 1.2rem;margin:1rem 0;border-radius:14px;
+                            font-weight:700;font-family:Nunito,sans-serif;font-size:.95rem">
+                ⚠️ @TempData["DonateError"]
+            </div>
+        }
+        @if (Context.Session.GetInt32("UserId") == null)
+        {
+            <div style="background:#fff4e6;border:1px solid #f0d4a8;color:#b36d2c;
+                    padding:1.2rem 1.4rem;margin:1rem 0;border-radius:14px;
+                    font-weight:700;font-family:Nunito,sans-serif;font-size:.95rem;
+                    display:flex;align-items:center;gap:12px">
+                <span style="font-size:1.4rem">🔒</span>
+                <div>
+                    You must be logged in to make a donation.
+                    <a asp-controller="Account" asp-action="Login"
+                       style="color:var(--olive-dark);text-decoration:underline;margin-left:6px">
+                        Log in now →
+                    </a>
+                </div>
+            </div>
+        }
+
         <section class="donate-hero fade-up">
             <div class="hero-text">
                 <h1>Give a Little, Help a Lot ♡</h1>
-                <p>
-                    Your donation can provide food, medicine, care, and hope for animals who need kindness the most.
-                </p>
+                <p>Your donation can provide food, medicine, care, and hope for animals who need kindness the most.</p>
             </div>
-
             <div class="hero-image-box">
                 <img src="../Images/money.png" alt="Human hugging animals" class="hero-image" />
             </div>
@@ -140,41 +147,38 @@
         <section class="donation-form-wrap fade-up">
             <div class="form-card">
 
+                @* Donation Type *@
                 <section class="form-section">
                     <div class="section-head">
                         <h2>Donation Type</h2>
                         <span>❤</span>
                     </div>
-
                     <div class="type-grid">
-                        <button class="type-card" type="button" data-type="supplies">
+                        <button class="type-card" type="button" data-type="Supplies">
                             <div class="type-icon">📦</div>
                             <div class="type-title">Supplies</div>
                         </button>
-
-                        <button class="type-card" type="button" data-type="medicine">
+                        <button class="type-card" type="button" data-type="Medicine">
                             <div class="type-icon">💊</div>
                             <div class="type-title">Medicine</div>
                         </button>
-
-                        <button class="type-card" type="button" data-type="food">
+                        <button class="type-card" type="button" data-type="Food">
                             <div class="type-icon">🍖</div>
                             <div class="type-title">Food</div>
                         </button>
-
-                        <button class="type-card active" type="button" data-type="money">
+                        <button class="type-card active" type="button" data-type="Money">
                             <div class="type-icon">💵</div>
                             <div class="type-title">Money</div>
                         </button>
                     </div>
                 </section>
 
+                @* Money Section *@
                 <section class="form-section" id="moneySection">
                     <div class="section-head">
                         <h2>Donation Amount</h2>
                         <span>💵</span>
                     </div>
-
                     <label class="mini-label">Choose Amount</label>
                     <div class="amount-grid">
                         <button class="amount-btn" type="button" data-amount="custom">Custom</button>
@@ -183,68 +187,52 @@
                         <button class="amount-btn active" type="button" data-amount="10">10 JD</button>
                         <button class="amount-btn" type="button" data-amount="5">5 JD</button>
                     </div>
-
                     <div id="customAmountWrap" class="hidden input-row">
                         <input id="customAmountInput" type="number" min="1" placeholder="Enter custom amount" />
                     </div>
-
                     <label class="mini-label">Payment Method</label>
                     <div class="payment-grid">
                         <button class="payment-card" type="button" data-payment="cliq">
-                            <strong>CliQ</strong>
-                            <small>Instant payment</small>
+                            <strong>CliQ</strong><small>Instant payment</small>
                         </button>
-
                         <button class="payment-card" type="button" data-payment="card">
-                            <strong>Card</strong>
-                            <small>Visa / Mastercard</small>
+                            <strong>Card</strong><small>Visa / Mastercard</small>
                         </button>
-
                         <button class="payment-card active" type="button" data-payment="wallet">
-                            <strong>Waffy Wallet</strong>
-                            <small>Use your balance</small>
+                            <strong>Waffy Wallet</strong><small>Use your balance</small>
                         </button>
                     </div>
 
+                    @* Wallet Box — الرصيد الحقيقي من DB *@
                     <div id="walletBox" class="payment-box">
-                        <div class="wallet-line"><strong>Waffy Wallet</strong> <span>25.00 JD</span></div>
-                        <div class="wallet-line">Selected donation <span id="walletSelectedAmount">10 JD</span></div>
-                        <div class="wallet-line muted-line">Remaining after donation <span id="walletRemainingAmount">15 JD</span></div>
+                        <div class="wallet-line">
+                            <strong>Waffy Wallet</strong>
+                            <span id="walletBalanceDisplay">@walletBalance.ToString("F2") JD</span>
+                        </div>
+                        <div class="wallet-line">
+                            Selected donation
+                            <span id="walletSelectedAmount">10 JD</span>
+                        </div>
+                        <div class="wallet-line muted-line">
+                            Remaining after donation
+                            <span id="walletRemainingAmount">@((walletBalance - 10m).ToString("F2")) JD</span>
+                        </div>
                     </div>
 
                     <div id="cardBox" class="payment-box hidden">
                         <div class="form-grid two">
-                            <label>
-                                <span>Card Number</span>
-                                <input type="text" placeholder="1234 5678 9012 3456" />
-                            </label>
-
-                            <label>
-                                <span>Cardholder Name</span>
-                                <input type="text" placeholder="FIRSTNAME LASTNAME" />
-                            </label>
+                            <label><span>Card Number</span><input type="text" placeholder="1234 5678 9012 3456" /></label>
+                            <label><span>Cardholder Name</span><input type="text" placeholder="FIRSTNAME LASTNAME" /></label>
                         </div>
-
                         <div class="form-grid two">
-                            <label>
-                                <span>Expiry</span>
-                                <input type="text" placeholder="MM / YY" />
-                            </label>
-
-                            <label>
-                                <span>CVV</span>
-                                <input type="text" placeholder="..." />
-                            </label>
+                            <label><span>Expiry</span><input type="text" placeholder="MM / YY" /></label>
+                            <label><span>CVV</span><input type="text" placeholder="..." /></label>
                         </div>
                     </div>
 
                     <div id="cliqBox" class="payment-box hidden">
                         <div class="form-grid two">
-                            <label>
-                                <span>Phone Number</span>
-                                <input type="text" placeholder="7X XXX XXXX" />
-                            </label>
-
+                            <label><span>Phone Number</span><input type="text" placeholder="7X XXX XXXX" /></label>
                             <label>
                                 <span>Country Code</span>
                                 <select>
@@ -259,12 +247,9 @@
                     </div>
                 </section>
 
+                @* Food Section *@
                 <section class="form-section hidden" id="foodSection">
-                    <div class="section-head">
-                        <h2>Food Donation Details</h2>
-                        <span>🍖</span>
-                    </div>
-
+                    <div class="section-head"><h2>Food Donation Details</h2><span>🍖</span></div>
                     <div class="form-grid two">
                         <label>
                             <span>Food Type</span>
@@ -276,19 +261,16 @@
                                 <option>Special Diet Food</option>
                             </select>
                         </label>
-
                         <label>
                             <span>Brand / Product Name</span>
                             <input id="foodName" type="text" placeholder="Example: Royal Canin / Pedigree" />
                         </label>
                     </div>
-
                     <div class="form-grid two">
                         <label>
                             <span>Quantity / Weight</span>
                             <input id="foodWeight" type="text" placeholder="Example: 5 kg / 10 packs" />
                         </label>
-
                         <label>
                             <span>Target Animal</span>
                             <select id="foodAnimal">
@@ -303,18 +285,14 @@
                     </div>
                 </section>
 
+                @* Medicine Section *@
                 <section class="form-section hidden" id="medicineSection">
-                    <div class="section-head">
-                        <h2>Medicine Donation Details</h2>
-                        <span>💊</span>
-                    </div>
-
+                    <div class="section-head"><h2>Medicine Donation Details</h2><span>💊</span></div>
                     <div class="form-grid two">
                         <label>
                             <span>Medicine Name</span>
                             <input id="medicineName" type="text" placeholder="Enter medicine name" />
                         </label>
-
                         <label>
                             <span>Medicine Type</span>
                             <select id="medicineType">
@@ -328,7 +306,6 @@
                             </select>
                         </label>
                     </div>
-
                     <div class="form-grid two">
                         <label>
                             <span>Target Animal</span>
@@ -341,26 +318,21 @@
                                 <option>Any animal in need</option>
                             </select>
                         </label>
-
                         <label>
                             <span>Quantity</span>
-                            <input id="medicineQty" type="text" placeholder="Example: 3 boxes / 2 bottles" />
+                            <input id="medicineQty" type="number" min="1" placeholder="Example: 3" />
                         </label>
                     </div>
                 </section>
 
+                @* Supplies Section *@
                 <section class="form-section hidden" id="suppliesSection">
-                    <div class="section-head">
-                        <h2>Supplies Donation Details</h2>
-                        <span>📦</span>
-                    </div>
-
+                    <div class="section-head"><h2>Supplies Donation Details</h2><span>📦</span></div>
                     <div class="form-grid two">
                         <label>
                             <span>Supply Name</span>
                             <input id="supplyName" type="text" placeholder="Example: blanket / carrier / bowl" />
                         </label>
-
                         <label>
                             <span>Supply Category</span>
                             <select id="supplyCategory">
@@ -374,7 +346,6 @@
                             </select>
                         </label>
                     </div>
-
                     <div class="form-grid two">
                         <label>
                             <span>Target Animal</span>
@@ -387,115 +358,266 @@
                                 <option>General Shelter Use</option>
                             </select>
                         </label>
-
                         <label>
                             <span>Quantity</span>
-                            <input id="supplyQty" type="text" placeholder="Example: 4 pieces / 2 sets" />
+                            <input id="supplyQty" type="number" min="1" placeholder="Example: 4" />
                         </label>
                     </div>
                 </section>
 
+                @* Specific Animal *@
                 <section class="form-section">
-                    <div class="section-head">
-                        <h2>Donate to Specific Animal</h2>
-                        <span>🎯</span>
-                    </div>
-
+                    <div class="section-head"><h2>Donate to Specific Animal</h2><span>🎯</span></div>
                     <div class="animal-note">
                         You can choose a specific animal from our rescue cases if you want your donation to go directly to them.
                     </div>
-
                     <div class="specific-grid">
                         <button class="animal-card" type="button" data-animal-card="Loki">
-                            <strong>Loki — Injured Dog</strong>
-                            <span>Needs medicine and food</span>
+                            <strong>Loki — Injured Dog</strong><span>Needs medicine and food</span>
                         </button>
-
                         <button class="animal-card" type="button" data-animal-card="Milo">
-                            <strong>Milo — Sick Cat</strong>
-                            <span>Needs medicine support</span>
+                            <strong>Milo — Sick Cat</strong><span>Needs medicine support</span>
                         </button>
-
                         <button class="animal-card" type="button" data-animal-card="Sandy">
-                            <strong>Sandy — Shelter Dog</strong>
-                            <span>Needs food donation</span>
+                            <strong>Sandy — Shelter Dog</strong><span>Needs food donation</span>
                         </button>
-
                         <button class="animal-card" type="button" data-animal-card="Bella">
-                            <strong>Bella — Rescue Rabbit</strong>
-                            <span>Needs supplies and care</span>
+                            <strong>Bella — Rescue Rabbit</strong><span>Needs supplies and care</span>
                         </button>
                     </div>
                 </section>
 
+                @* Additional Note *@
                 <section class="form-section">
-                    <div class="section-head">
-                        <h2>Contact Information</h2>
-                        <span>📞</span>
-                    </div>
-
-                    <div class="form-grid two">
-                        <label>
-                            <span>Name</span>
-                            <input id="donorName" type="text" placeholder="Your full name" />
-                        </label>
-
-                        <label>
-                            <span>Phone</span>
-                            <div class="phone-wrap">
-                                <select id="donorCode" class="small-code">
-                                    <option>+962</option>
-                                    <option>+966</option>
-                                    <option>+971</option>
-                                    <option>+20</option>
-                                </select>
-                                <input id="donorPhone" type="text" placeholder="7X XXX XXXX" />
-                            </div>
-                        </label>
-                    </div>
-
+                    <div class="section-head"><h2>Additional Note</h2><span>📝</span></div>
                     <div class="form-grid one">
                         <label>
-                            <span>Email</span>
-                            <input id="donorEmail" type="email" placeholder="email@example.com" />
-                        </label>
-                    </div>
-
-                    <div class="form-grid one">
-                        <label>
-                            <span>Additional Note</span>
+                            <span>Message (optional)</span>
                             <textarea id="donorNote" placeholder="Write any message you want us to know..."></textarea>
                         </label>
                     </div>
                 </section>
 
+                @* الفورم الحقيقي للـ POST *@
+                <form id="donationForm" method="post"
+                      asp-controller="Payment" asp-action="SubmitDonation">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="hDonationType" name="donationType" value="Money" />
+                    <input type="hidden" id="hAmount" name="amount" />
+                    <input type="hidden" id="hQuantity" name="quantity" />
+                    <input type="hidden" id="hUnit" name="unit" />
+                    <input type="hidden" id="hDescription" name="description" />
+                    <input type="hidden" id="hTargetType" name="targetType" value="General" />
+                </form>
+
                 <div class="submit-row">
-                    <button id="cancelBtn" class="cancel-btn" type="button">Cancel</button>
+                    <a asp-controller="Home" asp-action="Home_After" class="cancel-btn">Cancel</a>
                     <button id="submitDonationBtn" class="submit-btn" type="button">❤ Send Donation</button>
                 </div>
+
             </div>
         </section>
     </main>
 
     <footer class="footer">
         <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <span>|</span>
-            <a href="about.html">Contact</a>
-            <span>|</span>
-            <a href="faq.html">FAQ</a>
-            <span>|</span>
-            <div class="social-inline">
-                <span>f</span>
-                <span>🐦</span>
-                <span>◎</span>
-            </div>
+            <a asp-controller="Home" asp-action="About">About Us</a><span>|</span>
+            <a asp-controller="Home" asp-action="Suport">Contact</a><span>|</span>
+            <a asp-controller="Home" asp-action="Faq">FAQ</a><span>|</span>
+            <div class="social-inline"><span>f</span><span>🐦</span><span>◎</span></div>
         </div>
         <div>© 2026 Waffy, all rights reserved.</div>
     </footer>
 
     <div id="toast" class="toast"></div>
 
-    <script src="~/js/money.js"></script>
+    <script>
+        var currentType    = 'Money';
+        var currentAmount  = 10;
+        var currentPayment = 'wallet';
+        var currentAnimal  = '';
+        var walletBalance  = @walletBalance.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
+
+        document.querySelectorAll('.type-card').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.type-card').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentType = this.dataset.type;
+                document.getElementById('hDonationType').value = currentType;
+                ['moneySection','foodSection','medicineSection','suppliesSection'].forEach(id => {
+                    document.getElementById(id).classList.add('hidden');
+                });
+                var map = { Money:'moneySection', Food:'foodSection',
+                            Medicine:'medicineSection', Supplies:'suppliesSection' };
+                if (map[currentType]) document.getElementById(map[currentType]).classList.remove('hidden');
+            });
+        });
+
+        document.querySelectorAll('.amount-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                var v = this.dataset.amount;
+                var wrap = document.getElementById('customAmountWrap');
+                if (v === 'custom') {
+                    wrap.classList.remove('hidden');
+                    currentAmount = null;
+                } else {
+                    wrap.classList.add('hidden');
+                    currentAmount = parseFloat(v);
+                    updateWalletDisplay(currentAmount);
+                }
+            });
+        });
+
+        document.getElementById('customAmountInput')?.addEventListener('input', function () {
+            currentAmount = parseFloat(this.value) || 0;
+            updateWalletDisplay(currentAmount);
+        });
+
+        document.querySelectorAll('.payment-card').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.payment-card').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentPayment = this.dataset.payment;
+                ['walletBox','cardBox','cliqBox'].forEach(id => {
+                    var el = document.getElementById(id);
+                    if (el) el.classList.add('hidden');
+                });
+                var map = { wallet:'walletBox', card:'cardBox', cliq:'cliqBox' };
+                if (map[currentPayment]) document.getElementById(map[currentPayment]).classList.remove('hidden');
+            });
+        });
+
+        document.querySelectorAll('.animal-card').forEach(btn => {
+            btn.addEventListener('click', function () {
+                document.querySelectorAll('.animal-card').forEach(b => b.classList.remove('active'));
+                this.classList.toggle('active');
+                currentAnimal = this.dataset.animalCard || '';
+                document.getElementById('hTargetType').value = currentAnimal || 'General';
+            });
+        });
+
+        function updateWalletDisplay(amt) {
+            var sel = document.getElementById('walletSelectedAmount');
+            var rem = document.getElementById('walletRemainingAmount');
+            if (sel) sel.textContent = (amt || 0).toFixed(2) + ' JD';
+            if (rem) {
+                var remaining = walletBalance - (amt || 0);
+                rem.textContent = remaining.toFixed(2) + ' JD';
+                rem.style.color = remaining < 0 ? '#c0392b' : '';
+            }
+        }
+
+        document.getElementById('submitDonationBtn').addEventListener('click', function () {
+            if (!currentType) { showToast('⚠️ Please select a donation type.'); return; }
+
+            if (currentType === 'Money') {
+                var amt = currentAmount;
+                if (document.querySelector('.amount-btn[data-amount="custom"].active')) {
+                    amt = parseFloat(document.getElementById('customAmountInput').value) || 0;
+                }
+                if (!amt || amt <= 0) { showToast('⚠️ Please select or enter a donation amount.'); return; }
+                if (currentPayment === 'wallet' && amt > walletBalance) {
+                    showToast('❌ Insufficient wallet balance! Your balance: ' + walletBalance.toFixed(2) + ' JD');
+                    return;
+                }
+                document.getElementById('hAmount').value = amt;
+                document.getElementById('hQuantity').value = '';
+                document.getElementById('hUnit').value = '';
+                document.getElementById('hDescription').value = document.getElementById('donorNote').value || '';
+
+            } else if (currentType === 'Food') {
+                var foodType   = document.getElementById('foodType').value;
+                var foodName   = document.getElementById('foodName').value.trim();
+                var foodWeight = document.getElementById('foodWeight').value.trim();
+                var foodAnimal = document.getElementById('foodAnimal').value;
+                if (!foodType || !foodWeight) { showToast('⚠️ Please fill in food type and quantity.'); return; }
+                document.getElementById('hAmount').value   = '';
+                document.getElementById('hQuantity').value = 1;
+                document.getElementById('hUnit').value     = foodWeight;
+                document.getElementById('hDescription').value =
+                    [foodType, foodName, foodAnimal, document.getElementById('donorNote').value].filter(Boolean).join(' | ');
+
+            } else if (currentType === 'Medicine') {
+                var medName   = document.getElementById('medicineName').value.trim();
+                var medType   = document.getElementById('medicineType').value;
+                var medAnimal = document.getElementById('medicineAnimal').value;
+                var medQty    = parseInt(document.getElementById('medicineQty').value) || 1;
+                if (!medName) { showToast('⚠️ Please enter the medicine name.'); return; }
+                document.getElementById('hAmount').value   = '';
+                document.getElementById('hQuantity').value = medQty;
+                document.getElementById('hUnit').value     = 'units';
+                document.getElementById('hDescription').value =
+                    [medName, medType, medAnimal, document.getElementById('donorNote').value].filter(Boolean).join(' | ');
+
+            } else if (currentType === 'Supplies') {
+                var supName   = document.getElementById('supplyName').value.trim();
+                var supCat    = document.getElementById('supplyCategory').value;
+                var supAnimal = document.getElementById('supplyAnimal').value;
+                var supQty    = parseInt(document.getElementById('supplyQty').value) || 1;
+                if (!supName) { showToast('⚠️ Please enter the supply name.'); return; }
+                document.getElementById('hAmount').value   = '';
+                document.getElementById('hQuantity').value = supQty;
+                document.getElementById('hUnit').value     = 'pieces';
+                document.getElementById('hDescription').value =
+                    [supName, supCat, supAnimal, document.getElementById('donorNote').value].filter(Boolean).join(' | ');
+            }
+
+            document.getElementById('donationForm').submit();
+        });
+
+        function showToast(msg, duration) {
+            duration = duration || 3500;
+            var t = document.getElementById('toast');
+            if (!t) return;
+            t.textContent = msg;
+            t.classList.add('show');
+            clearTimeout(t._timer);
+            t._timer = setTimeout(function () { t.classList.remove('show'); }, duration);
+        }
+
+        updateWalletDisplay(10);
+
+                // ════════ Navbar & Animations ════════
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Fade-up animation
+            var fadeEls = document.querySelectorAll('.fade-up');
+            if ('IntersectionObserver' in window) {
+                var obs = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(e) {
+                        if (e.isIntersecting) { e.target.classList.add('show'); obs.unobserve(e.target); }
+                    });
+                }, { threshold: 0.15 });
+                fadeEls.forEach(function(el) { obs.observe(el); });
+            } else {
+                fadeEls.forEach(function(el) { el.classList.add('show'); });
+            }
+
+            // Services dropdown
+            var sd = document.getElementById('servicesDropdown');
+            var st = document.getElementById('servicesToggle');
+            if (sd && st) {
+                st.addEventListener('click', function(e) { e.stopPropagation(); sd.classList.toggle('open'); });
+                document.addEventListener('click', function(e) { if (!sd.contains(e.target)) sd.classList.remove('open'); });
+            }
+
+            // Mobile menu
+            var menuBtn  = document.getElementById('menuBtn');
+            var navLinks = document.getElementById('navLinks');
+            if (menuBtn && navLinks) {
+                menuBtn.addEventListener('click', function(e) { e.stopPropagation(); navLinks.classList.toggle('open'); });
+                document.addEventListener('click', function(e) {
+                    if (!navLinks.contains(e.target) && e.target !== menuBtn) navLinks.classList.remove('open');
+                });
+            }
+
+            // Mobile services toggle
+            var mt = document.getElementById('mobileServicesToggle');
+            var mb = document.getElementById('mobileServicesBlock');
+            if (mt && mb) mt.addEventListener('click', function() { mb.classList.toggle('open'); });
+        });
+    </script>
 </body>
 </html>

@@ -10,5 +10,7 @@ namespace Waffy.Interfaces
 
         Task AddBalanceAsync(int walletId, decimal amount);
         Task AddTransactionAsync(WalletTransaction transaction);
+
+        Task DeductBalanceAsync(int walletId, decimal amount);
     }
 }
