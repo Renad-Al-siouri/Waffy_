@@ -1,0 +1,430 @@
+﻿@model Waffy.Models.Store
+@{
+    Layout = "~/Views/StoreAdmin/_StoreAdminLayout.cshtml";
+    ViewData["Title"] = "Store Settings — Contact";
+    ViewData["ActiveNav"] = "Settings";
+    ViewData["ActiveSettings"] = "Contact";
+    ViewData["BreadSection"] = "Settings";
+    ViewData["BreadPage"] = "Contact & Location";
+
+    double defaultLat = (Model.Latitude != null && Model.Latitude != 0) ? (double)Model.Latitude : 31.9539;
+    double defaultLng = (Model.Longitude != null && Model.Longitude != 0) ? (double)Model.Longitude : 35.9106;
+    bool hasPin = (Model.Latitude != null && Model.Latitude != 0);
+}
+
+@section Styles {
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+    <style>
+        .settings-layout {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 16px;
+            align-items: start
+        }
+
+        .settings-nav {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm)
+        }
+
+        .settings-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            font-size: .84rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            border-left: 3px solid transparent;
+            text-decoration: none;
+            transition: .18s
+        }
+
+            .settings-nav-item:hover {
+                background: var(--brand-ghost);
+                color: var(--brand-dark)
+            }
+
+            .settings-nav-item.on {
+                background: var(--brand-xlight);
+                color: var(--brand-dark);
+                font-weight: 900;
+                border-left-color: var(--brand)
+            }
+
+            .settings-nav-item:last-child {
+                border-bottom: none
+            }
+
+        .settings-nav-ico {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center
+        }
+
+        .settings-content {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm)
+        }
+
+        .settings-section-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        /* Map */
+        .map-wrapper {
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden
+        }
+
+        #storeMap {
+            width: 100%;
+            height: 340px;
+            z-index: 0
+        }
+
+        .map-tip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            background: var(--brand-ghost);
+            border-top: 1px solid var(--border);
+            font-size: .8rem;
+            font-weight: 700;
+            color: var(--brand-dark)
+        }
+
+        .map-coords-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 10px;
+            align-items: end;
+            margin-top: 10px
+        }
+
+        .coord-box {
+            background: var(--brand-ghost);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 12px
+        }
+
+        .coord-label {
+            font-size: .72rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            margin-bottom: 2px
+        }
+
+        .coord-val {
+            font-size: .86rem;
+            font-weight: 900;
+            color: var(--brand-dark);
+            font-family: monospace
+        }
+
+        .pin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: .76rem;
+            font-weight: 800
+        }
+
+            .pin-badge.set {
+                background: #e8f5e9;
+                color: #2e7d32
+            }
+
+            .pin-badge.unset {
+                background: #fff3e0;
+                color: #e65100
+            }
+
+        .btn-reset-pin {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-size: .8rem;
+            font-weight: 800;
+            color: #c0392b;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: .15s
+        }
+
+            .btn-reset-pin:hover {
+                background: #fff0f0;
+                border-color: #c0392b
+            }
+
+        @@media(max-width:900px) {
+            .settings-layout {
+                grid-template-columns: 1fr
+            }
+
+            .settings-nav {
+                display: grid;
+                grid-template-columns: repeat(3,1fr)
+            }
+
+            .settings-nav-item {
+                border-left: none;
+                border-right: 1px solid var(--border);
+                justify-content: center;
+                text-align: center;
+                padding: 10px 8px;
+                font-size: .78rem
+            }
+
+                .settings-nav-item.on {
+                    border-left: none;
+                    border-bottom: 2px solid var(--brand)
+                }
+
+            .map-coords-row {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .btn-reset-pin {
+                grid-column: 1 / -1
+            }
+        }
+
+        @@media(max-width:500px) {
+            .settings-nav {
+                grid-template-columns: repeat(2,1fr)
+            }
+        }
+    </style>
+}
+
+<section class="page-hero">
+    <div class="page-hero-text">
+        <h1>Store Settings ⚙️</h1>
+        <p>Update your contact details and pin your store on the map.</p>
+    </div>
+    <div class="page-hero-actions">
+        <button class="btn btn-primary" form="settingsForm" type="submit">💾 Save Changes</button>
+    </div>
+</section>
+
+<div class="page-body">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="info-box" style="margin-bottom:16px;background:var(--gp);border-color:var(--brand)">
+            @TempData["Success"]
+        </div>
+    }
+
+    <div class="settings-layout">
+
+        @await Html.PartialAsync("_SettingsNav")
+
+        <div class="settings-content">
+            <form id="settingsForm"
+                  method="post"
+                  asp-action="SettingsContact"
+                  asp-controller="StoreAdmin">
+                @Html.AntiForgeryToken()
+
+                <!-- ══ CONTACT ══ -->
+                <div class="settings-section-title">📞 Contact Information</div>
+                <div class="form-group">
+                    <div class="form-field full">
+                        <label class="form-label">Store Email</label>
+                        <input class="form-input" name="email" type="email" value="@Model.Email">
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Phone</label>
+                        <input class="form-input" name="phone" value="@Model.Phone">
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">WhatsApp</label>
+                        <input class="form-input" name="whatsApp" value="@Model.WhatsApp">
+                    </div>
+                </div>
+
+                <!-- ══ ADDRESS ══ -->
+                <div class="settings-section-title" style="margin-top:24px">🏠 Address</div>
+                <div class="form-group">
+                    <div class="form-field">
+                        <label class="form-label">City</label>
+                        <select class="form-select" name="city">
+                            @foreach (var c in new[] { "Amman", "Zarqa", "Irbid", "Salt", "Aqaba", "Madaba", "Jerash" })
+                            {
+                                <option value="@c" selected="@(Model.City == c ? "selected" : null)">@c</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label class="form-label">Area / Street</label>
+                        <input class="form-input" name="area" value="@Model.Area">
+                    </div>
+                    <div class="form-field full">
+                        <label class="form-label">Full Address</label>
+                        <input class="form-input" name="address" value="@Model.Address">
+                    </div>
+                </div>
+
+                <!-- ══ MAP LOCATION ══ -->
+                <div class="settings-section-title" style="margin-top:24px">🗺️ Store Location on Map</div>
+
+                <!-- حقول مخفية ترسل مع الـ form -->
+                <input type="hidden" name="latitude" id="latInput"
+                       value="@(hasPin? Model.Latitude?.ToString("F7") : "")">
+                <input type="hidden" name="longitude" id="lngInput"
+                       value="@(hasPin? Model.Longitude?.ToString("F7") : "")">
+
+                <!-- حالة الدبوس -->
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+                    <span id="pinBadge" class="pin-badge @(hasPin ? "set" : "unset")">
+                        @(hasPin ? "📌 Location pinned" : "📌 No location pinned yet")
+                    </span>
+                    <span style="font-size:.76rem;color:var(--text-muted)">
+                        Click anywhere on the map to place or move the pin. You can also drag it.
+                    </span>
+                </div>
+
+                <!-- الخريطة -->
+                <div class="map-wrapper">
+                    <div id="storeMap"></div>
+                    <div class="map-tip">
+                        🖱️ Click the map to pin your store — drag the pin to adjust
+                    </div>
+                </div>
+
+                <!-- عرض الإحداثيات + زر مسح -->
+                <div class="map-coords-row">
+                    <div class="coord-box">
+                        <div class="coord-label">📐 Latitude</div>
+                        <div class="coord-val" id="latDisplay">
+                            @(hasPin? Model.Latitude?.ToString("F6") : "—")
+                        </div>
+                    </div>
+                    <div class="coord-box">
+                        <div class="coord-label">📐 Longitude</div>
+                        <div class="coord-val" id="lngDisplay">
+                            @(hasPin? Model.Longitude?.ToString("F6") : "—")
+                        </div>
+                    </div>
+                    <button type="button" class="btn-reset-pin" onclick="resetPin()">
+                        🗑 Remove Pin
+                    </button>
+                </div>
+
+                <hr style="border:none;border-top:1px solid var(--border);margin:28px 0">
+
+                <div style="text-align:right">
+                    <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+        (function () {
+            /* ── بيانات أولية من السيرفر ── */
+            var initLat = @defaultLat;
+            var initLng = @defaultLng;
+            var hasSavedPin = @(hasPin ? "true" : "false");
+
+            /* ── إنشاء الخريطة ── */
+            var map = L.map('storeMap', {
+                center: [initLat, initLng],
+                zoom: hasSavedPin ? 15 : 12
+            });
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+                maxZoom: 19
+            }).addTo(map);
+
+            /* ── أيقونة الدبوس ── */
+            var pinIcon = L.divIcon({
+                className: '',
+                html: '<div style="font-size:2rem;filter:drop-shadow(0 3px 6px rgba(0,0,0,.35));line-height:1;user-select:none">📌</div>',
+                iconSize:   [36, 36],
+                iconAnchor: [8, 36]
+            });
+
+            var marker = null;
+
+            /* إذا كان هناك دبوس محفوظ، اعرضه فوراً */
+            if (hasSavedPin) {
+                createMarker(initLat, initLng);
+            }
+
+            /* ── النقر على الخريطة ── */
+            map.on('click', function (e) {
+                createMarker(e.latlng.lat, e.latlng.lng);
+            });
+
+            function createMarker(lat, lng) {
+                if (marker) {
+                    marker.setLatLng([lat, lng]);
+                } else {
+                    marker = L.marker([lat, lng], { icon: pinIcon, draggable: true }).addTo(map);
+                    marker.on('dragend', function () {
+                        var pos = marker.getLatLng();
+                        updateCoords(pos.lat, pos.lng);
+                    });
+                }
+                updateCoords(lat, lng);
+                map.panTo([lat, lng]);
+            }
+
+            function updateCoords(lat, lng) {
+                document.getElementById('latInput').value       = lat.toFixed(7);
+                document.getElementById('lngInput').value       = lng.toFixed(7);
+                document.getElementById('latDisplay').textContent = lat.toFixed(6);
+                document.getElementById('lngDisplay').textContent = lng.toFixed(6);
+                var badge = document.getElementById('pinBadge');
+                badge.textContent = '📌 Location pinned';
+                badge.className   = 'pin-badge set';
+            }
+
+            /* ── حذف الدبوس ── */
+            window.resetPin = function () {
+                if (marker) { map.removeLayer(marker); marker = null; }
+                document.getElementById('latInput').value        = '';
+                document.getElementById('lngInput').value        = '';
+                document.getElementById('latDisplay').textContent = '—';
+                document.getElementById('lngDisplay').textContent = '—';
+                var badge = document.getElementById('pinBadge');
+                badge.textContent = '📌 No location pinned yet';
+                badge.className   = 'pin-badge unset';
+            };
+
+            /* تصحيح حجم الخريطة بعد تحميل الـ layout */
+            setTimeout(function () { map.invalidateSize(); }, 350);
+        })();
+    </script>
+}

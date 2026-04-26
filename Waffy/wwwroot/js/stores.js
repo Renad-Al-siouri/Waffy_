@@ -1,113 +1,83 @@
-﻿const servicesDropdown = document.getElementById("servicesDropdown");
-const servicesToggle = document.getElementById("servicesToggle");
+﻿/* ============================================================
+   stores.js — UI only
+   البحث والفلترة تتم في الباك عبر GET form
+   هنا فقط: dropdown + mobile menu + fade animation
+   + auto-submit البحث عند الكتابة (debounce)
+   ============================================================ */
 
-const menuBtn = document.getElementById("menuBtn");
-const navLinks = document.getElementById("navLinks");
+(function () {
+    "use strict";
 
-const mobileServicesBlock = document.getElementById("mobileServicesBlock");
-const mobileServicesToggle = document.getElementById("mobileServicesToggle");
+    /* ── Dropdown ────────────────────────────────────────── */
+    const dropdown = document.getElementById("servicesDropdown");
+    const toggle = document.getElementById("servicesToggle");
 
-const storeSearch = document.getElementById("storeSearch");
-const storeCards = document.querySelectorAll(".store-card");
-const emptyState = document.getElementById("emptyState");
+    if (dropdown && toggle) {
+        toggle.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            dropdown.classList.toggle("open");
+        });
+        document.addEventListener("click", function (e) {
+            if (!dropdown.contains(e.target)) dropdown.classList.remove("open");
+        });
+    }
 
-function initServicesDropdown() {
-    if (!servicesDropdown || !servicesToggle) return;
+    /* ── Mobile Menu ─────────────────────────────────────── */
+    const menuBtn = document.getElementById("menuBtn");
+    const navLinks = document.getElementById("navLinks");
 
-    servicesToggle.addEventListener("click", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        servicesDropdown.classList.toggle("open");
-    });
-
-    document.addEventListener("click", function (e) {
-        if (!servicesDropdown.contains(e.target)) {
-            servicesDropdown.classList.remove("open");
-        }
-    });
-}
-
-function initMobileMenu() {
     if (menuBtn && navLinks) {
         menuBtn.addEventListener("click", function (e) {
             e.preventDefault();
             e.stopPropagation();
             navLinks.classList.toggle("open");
         });
-
         document.addEventListener("click", function (e) {
-            const clickedInsideMenu = navLinks.contains(e.target);
-            const clickedMenuBtn = menuBtn.contains(e.target);
-
-            if (!clickedInsideMenu && !clickedMenuBtn) {
+            if (navLinks && !navLinks.contains(e.target) && !menuBtn.contains(e.target)) {
                 navLinks.classList.remove("open");
             }
         });
     }
 
-    if (mobileServicesBlock && mobileServicesToggle) {
-        mobileServicesToggle.addEventListener("click", function (e) {
+    const mobileBlock = document.getElementById("mobileServicesBlock");
+    const mobileToggle = document.getElementById("mobileServicesToggle");
+    if (mobileBlock && mobileToggle) {
+        mobileToggle.addEventListener("click", function (e) {
             e.preventDefault();
             e.stopPropagation();
-            mobileServicesBlock.classList.toggle("open");
+            mobileBlock.classList.toggle("open");
         });
     }
-}
 
-function filterStores() {
-    if (!storeCards.length) return;
+    /* ── Auto-submit البحث (debounce 500ms) ──────────────── */
+    const searchInput = document.getElementById("storeSearch");
+    const filterForm = document.getElementById("storeFilterForm");
 
-    const searchValue = (storeSearch?.value || "").trim().toLowerCase();
-    let visibleCount = 0;
-
-    storeCards.forEach((card) => {
-        const cardSearch = (card.dataset.search || "").toLowerCase();
-        const matchesSearch = !searchValue || cardSearch.includes(searchValue);
-
-        if (matchesSearch) {
-            card.style.display = "";
-            visibleCount++;
-        } else {
-            card.style.display = "none";
-        }
-    });
-
-    if (emptyState) {
-        emptyState.classList.toggle("show", visibleCount === 0);
+    if (searchInput && filterForm) {
+        let debounceTimer;
+        searchInput.addEventListener("input", function () {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(function () {
+                filterForm.submit();
+            }, 500);
+        });
     }
-}
 
-function initStoreSearch() {
-    if (!storeSearch) return;
-    storeSearch.addEventListener("input", filterStores);
-    filterStores();
-}
-
-function initFadeUpAnimation() {
-    const fadeElements = document.querySelectorAll(".fade-up");
-
+    /* ── Fade-up Animation (CSS Intersection Observer) ───── */
+    const fadeEls = document.querySelectorAll(".fade-up");
     if ("IntersectionObserver" in window) {
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add("show");
-                        observer.unobserve(entry.target);
-                    }
-                });
-            },
-            { threshold: 0.15 }
-        );
-
-        fadeElements.forEach((el) => observer.observe(el));
+        const obs = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("show");
+                    obs.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.12 });
+        fadeEls.forEach(function (el) { obs.observe(el); });
     } else {
-        fadeElements.forEach((el) => el.classList.add("show"));
+        fadeEls.forEach(function (el) { el.classList.add("show"); });
     }
-}
 
-document.addEventListener("DOMContentLoaded", function () {
-    initServicesDropdown();
-    initMobileMenu();
-    initStoreSearch();
-    initFadeUpAnimation();
-});
+})();

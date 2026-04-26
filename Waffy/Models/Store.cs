@@ -16,8 +16,8 @@
         public string? City { get; set; }
         public string? Area { get; set; }
         public string? Address { get; set; }
-        public decimal? Latitude { get; set; }
-        public decimal? Longitude { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
         public bool DeliveryAvailable { get; set; }
         public string? DeliveryAreas { get; set; }
         public TimeSpan? OpenTime { get; set; }

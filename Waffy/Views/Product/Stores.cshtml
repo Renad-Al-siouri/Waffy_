@@ -1,20 +1,83 @@
-﻿@{
+﻿@model Waffy.Models.ViewModels.StoreListViewModel
+@{
     ViewData["Title"] = "Stores";
     Layout = null;
+
+    // أنواع المتاجر للفلتر
+    var types = new[] { "all", "All Pet Supplies", "Pet Food", "Pet Accessories", "Pet Pharmacy" };
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Waffy - Stores</title>
-
+    <title>Waffy — Pet Stores</title>
     <link rel="stylesheet" href="~/css/stores.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        /* ── Filter Tabs ── */
+        .filter-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 12px
+        }
+
+        .filter-tab {
+            padding: 7px 16px;
+            border-radius: 20px;
+            border: 1px solid var(--border,#e0e0e0);
+            background: #fff;
+            font-size: .82rem;
+            font-weight: 700;
+            color: #666;
+            text-decoration: none;
+            transition: .16s;
+            cursor: pointer
+        }
+
+            .filter-tab:hover {
+                border-color: #8ab56b;
+                color: #4a7c2f
+            }
+
+            .filter-tab.active {
+                background: #8ab56b;
+                border-color: #8ab56b;
+                color: #fff
+            }
+
+        /* ── Empty State ── */
+        .empty-state {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+            color: #999
+        }
+
+            .empty-state.show {
+                display: block
+            }
+
+            .empty-state i {
+                font-size: 3rem;
+                margin-bottom: 12px;
+                display: block
+            }
+
+        /* ── Store Count ── */
+        .stores-count {
+            font-size: .82rem;
+            color: #888;
+            font-weight: 700;
+            margin-bottom: 8px
+        }
+    </style>
 </head>
 <body>
 
+    <!-- ════════════ HEADER ════════════ -->
     <div class="top-hero-area">
         <div class="top-hero-shell">
             <header class="topbar">
@@ -22,29 +85,23 @@
                     <nav class="navbar">
 
                         <div class="left-nav desktop-nav desktop-links">
-                            <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
+                            <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
                             <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
-                            <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
+                            <a asp-controller="Product" asp-action="Stores" class="nav-link active">Stores</a>
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                             <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-
                         </div>
 
                         <div class="logo-center">
-                            <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
+                            <img src="../Images/logo.png" alt="Waffy" class="main-logo">
                         </div>
 
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
-
-
-
                                 <div class="services-dropdown" id="servicesDropdown">
                                     <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services
-                                        <span class="dropdown-arrow">▼</span>
+                                        Services <span class="dropdown-arrow">▼</span>
                                     </button>
-
                                     <div class="dropdown-menu" id="servicesMenu">
                                         <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
                                         <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
@@ -58,291 +115,238 @@
                                         <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                     </div>
                                 </div>
-
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
-
                             </div>
 
                             <div class="nav-actions">
-                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
-                                    <i class="fa-solid fa-cart-shopping"></i>
-                                </a>
-
-                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon" aria-label="Notifications">
-                                    <i class="fa-solid fa-bell"></i>
-                                </a>
-
-                                <a asp-controller="Account" asp-action="Profile" class="profile-btn" aria-label="Profile">
-                                    <img src="../Images/user.jpg" alt="Profile">
-                                </a>
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
+                                <a asp-controller="Account" asp-action="Profile" class="profile-btn"><img src="../Images/user.jpg" alt="Profile"></a>
                                 <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
 
+                            <!-- Mobile -->
                             <div class="mobile-nav-wrap">
-                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
+                                <button class="menu-btn" id="menuBtn" type="button">☰</button>
                                 <div class="nav-links" id="navLinks">
-                                    <div class="mobile-menu-logo">
-                                        <img src="../Images/logo.png" alt="Waffy Logo">
-                                    </div>
-
-                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
+                                    <div class="mobile-menu-logo"><img src="../Images/logo.png" alt="Waffy"></div>
+                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
-                                    <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
+                                    <a asp-controller="Product" asp-action="Stores" class="nav-link active">Stores</a>
                                     <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                                     <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                                     <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
-
                                     <div class="mobile-services-block" id="mobileServicesBlock">
                                         <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
-                                            <span>Services</span>
-                                            <span class="dropdown-arrow">▼</span>
+                                            <span>Services</span><span class="dropdown-arrow">▼</span>
                                         </button>
-
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
-
                                             <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                             <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                             <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
                                             <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
-                                            <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
+                                            <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                                     <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
                             </div>
                         </div>
-
                     </nav>
                 </div>
             </header>
         </div>
     </div>
 
+    <!-- ════════════ MAIN ════════════ -->
     <main class="container stores-page">
+
+        <!-- Hero -->
         <section class="hero-section fade-up">
             <h1>Pet Stores 🛍️</h1>
-            <p>
-                Browse trusted pet stores and explore products with the same cozy Waffy shopping experience.
-            </p>
+            <p>Browse trusted pet stores and explore products with the same cozy Waffy shopping experience.</p>
         </section>
 
+        <!-- ── Search + Filter (GET form → backend) ── -->
         <section class="controls-area fade-up">
-            <div class="search-wrap">
-                <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-                <input type="text" id="storeSearch" placeholder="Search store name..." />
-            </div>
-        </section>
+            <form method="get"
+                  asp-controller="Product"
+                  asp-action="Stores"
+                  id="storeFilterForm">
 
-        <section class="featured-block fade-up" id="featuredSection">
-            <div class="featured-card">
-                <div class="featured-image-wrap">
-                    <img src="~/Images/Animals/clinic1.png" alt="Happy Paws Market" class="featured-image" />
+                <div class="search-wrap">
+                    <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text"
+                           name="search"
+                           id="storeSearch"
+                           value="@Model.Search"
+                           placeholder="Search store name or city..."
+                           autocomplete="off" />
+                    @* حقل مخفي للحفاظ على فلتر النوع عند البحث *@
+                    <input type="hidden" name="storeType" value="@Model.StoreType">
                 </div>
 
-                <div class="featured-content">
-                    <span class="featured-tag">Featured Store</span>
-                    <h3>Happy Paws Market</h3>
-                    <p>
-                        A premium pet store offering top quality food, accessories,
-                        toys, and pet essentials with a beautiful and simple shopping experience.
+                <!-- فلاتر النوع -->
+                <div class="filter-tabs">
+                    @foreach (var t in types)
+                    {
+                        var label = t == "all" ? "All Stores" : t;
+                        var isActive = (string.IsNullOrEmpty(Model.StoreType) && t == "all")
+                        || string.Equals(Model.StoreType, t, StringComparison.OrdinalIgnoreCase);
+                        <a class="filter-tab @(isActive ? "active" : "")"
+                           href="@Url.Action("Stores", "Product", new { search = Model.Search, storeType = t == "all" ? "" : t })">
+                            @label
+                        </a>
+                    }
+                </div>
+            </form>
+        </section>
+
+        <!-- ── Featured Store ── -->
+        @if (Model.FeaturedStore != null && string.IsNullOrEmpty(Model.Search) && string.IsNullOrEmpty(Model.StoreType))
+        {
+            var f = Model.FeaturedStore;
+            <section class="featured-block fade-up">
+                <div class="featured-card">
+                    <div class="featured-image-wrap">
+                        @if (!string.IsNullOrEmpty(f.CoverImageUrl))
+                        {
+                            <img src="@f.CoverImageUrl" alt="@f.Name" class="featured-image" />
+                        }
+                        else
+                        {
+                            <img src="~/Images/Animals/clinic1.png" alt="@f.Name" class="featured-image" />
+                        }
+                    </div>
+                    <div class="featured-content">
+                        <span class="featured-tag">Featured Store</span>
+                        <h3>@f.Name</h3>
+                        <p>@(f.Description ?? "Discover products at this trusted Waffy store.")</p>
+                        <div class="featured-meta">
+                            @if (!string.IsNullOrEmpty(f.City))
+                            {
+                                <span><i class="fa-solid fa-location-dot"></i> @f.City, Jordan</span>
+                            }
+                            @if (!string.IsNullOrEmpty(f.StoreType))
+                            {
+                                <span><i class="fa-solid fa-box-open"></i> @f.StoreType</span>
+                            }
+                        </div>
+                        <div class="featured-actions">
+                            <a asp-controller="Product"
+                               asp-action="Products"
+                               asp-route-storeId="@f.IdStore"
+                               class="btn btn-primary">Shop Now</a>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        }
+
+        <!-- ── Stores Grid ── -->
+        @if (Model.Stores.Any())
+        {
+            <div class="stores-count fade-up">
+                Showing <strong>@Model.Stores.Count</strong> store@(Model.Stores.Count != 1 ? "s" : "")
+                @if (!string.IsNullOrEmpty(Model.Search))
+                {
+                    <span> for "<em>@Model.Search</em>"</span>
+                }
+            </div>
+
+            <section class="stores-grid fade-up">
+                @foreach (var s in Model.Stores)
+                {
+                    <article class="store-card">
+                        <div class="store-image-wrap">
+                            @if (!string.IsNullOrEmpty(s.LogoUrl))
+                            {
+                                <img src="@s.LogoUrl" alt="@s.Name" class="store-image" />
+                            }
+                            else if (!string.IsNullOrEmpty(s.CoverImageUrl))
+                            {
+                                <img src="@s.CoverImageUrl" alt="@s.Name" class="store-image" />
+                            }
+                            else
+                            {
+                                <img src="~/Images/Animals/clinic1.png" alt="@s.Name" class="store-image" />
+                            }
+                        </div>
+
+                        <div class="store-body">
+                            <div class="store-top">
+                                <h3>@s.Name</h3>
+                                @if (!string.IsNullOrEmpty(s.City))
+                                {
+                                    <div class="store-location">
+                                        <i class="fa-solid fa-location-dot"></i>
+                                        <span>@s.City, Jordan</span>
+                                    </div>
+                                }
+                        </div>
+
+                        <p>
+                            @(string.IsNullOrEmpty(s.Description)
+                                                    ? "Visit this store to explore our pet products."
+                                                    : s.Description.Length > 90
+                                                    ? s.Description.Substring(0, 90) + "…"
+                                                    : s.Description)
                     </p>
 
-                    <div class="featured-meta">
-                        <span><i class="fa-solid fa-location-dot"></i> Amman, Jordan</span>
-                        <span><i class="fa-solid fa-box-open"></i> Food • Toys • Beds</span>
-                    </div>
+                    @if (!string.IsNullOrEmpty(s.StoreType))
+                            {
+                                <div class="store-tags">
+                                    @foreach (var tag in s.StoreType.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                    {
+                                        <span>@tag.Trim()</span>
+                                    }
+                                </div>
+                            }
 
-                    <div class="featured-actions">
-                        <a asp-controller="Product" asp-action="Products" asp-route-storeId="1" class="btn btn-primary">
-                            Shop Now
-                        </a>
-                    </div>
-                </div>
+                            <a asp-controller="Product"
+                               asp-action="Products"
+                               asp-route-storeId="@s.IdStore"
+                               class="store-btn">Shop Now</a>
+                        </div>
+                    </article>
+                }
+            </section>
+        }
+        else
+        {
+            <div class="empty-state show">
+                <i class="fa-solid fa-store-slash"></i>
+                <h3>No stores found</h3>
+                <p>
+                    @if (!string.IsNullOrEmpty(Model.Search))
+                    {
+                        <span>No stores match "<strong>@Model.Search</strong>". </span>
+                    }
+                    <a href="@Url.Action("Stores", "Product")">View all stores</a>
+                </p>
             </div>
-        </section>
+        }
 
-        <section class="stores-grid fade-up" id="storesGrid">
-
-            <article class="store-card" data-category="food" data-search="happy paws market amman food toys beds">
-                <div class="store-image-wrap">
-                    <img src="~/Images/Animals/clinic2.png" alt="Happy Paws Market" class="store-image" />
-                    <span class="store-badge">Top Rated</span>
-                </div>
-                <div class="store-body">
-                    <div class="store-top">
-                        <h3>Happy Paws Market</h3>
-                        <div class="store-location">
-                            <i class="fa-solid fa-location-dot"></i>
-                            <span>Amman, Jordan</span>
-                        </div>
-                    </div>
-
-                    <p>Premium pet food, playful toys, comfy beds, and trusted daily essentials.</p>
-
-                    <div class="store-tags">
-                        <span>Food</span>
-                        <span>Toys</span>
-                        <span>Beds</span>
-                    </div>
-
-                    <a asp-controller="Product" asp-action="Products" asp-route-storeId="1" class="store-btn">Shop Now</a>
-                </div>
-            </article>
-
-            <article class="store-card" data-category="accessories" data-search="pet zone irbid accessories collars bowls carriers">
-                <div class="store-image-wrap">
-                    <img src="~/Images/Animals/clinic3.png" alt="Pet Zone" class="store-image" />
-                </div>
-                <div class="store-body">
-                    <div class="store-top">
-                        <h3>Pet Zone</h3>
-                        <div class="store-location">
-                            <i class="fa-solid fa-location-dot"></i>
-                            <span>Irbid, Jordan</span>
-                        </div>
-                    </div>
-
-                    <p>Stylish accessories, collars, bowls, harnesses, and travel carriers.</p>
-
-                    <div class="store-tags">
-                        <span>Accessories</span>
-                        <span>Bowls</span>
-                        <span>Carriers</span>
-                    </div>
-
-                    <a asp-controller="Product" asp-action="Products" asp-route-storeId="2" class="store-btn">Shop Now</a>
-                </div>
-            </article>
-
-            <article class="store-card" data-category="grooming" data-search="paw care center zarqa grooming shampoos brushes hygiene">
-                <div class="store-image-wrap">
-                    <img src="~/Images/Animals/clinic4.png" alt="Paw Care Center" class="store-image" />
-                    <span class="store-badge soft">Popular</span>
-                </div>
-                <div class="store-body">
-                    <div class="store-top">
-                        <h3>Paw Care Center</h3>
-                        <div class="store-location">
-                            <i class="fa-solid fa-location-dot"></i>
-                            <span>Zarqa, Jordan</span>
-                        </div>
-                    </div>
-
-                    <p>Grooming supplies, shampoos, brushes, and wellness products for pets.</p>
-
-                    <div class="store-tags">
-                        <span>Grooming</span>
-                        <span>Health</span>
-                        <span>Care</span>
-                    </div>
-
-                    <a asp-controller="Product" asp-action="Products" asp-route-storeId="3" class="store-btn">Shop Now</a>
-                </div>
-            </article>
-
-            <article class="store-card" data-category="mixed" data-search="woofy corner aqaba mixed food grooming accessories">
-                <div class="store-image-wrap">
-                    <img src="~/Images/Animals/clinic4.png" alt="Woofy Corner" class="store-image" />
-                </div>
-                <div class="store-body">
-                    <div class="store-top">
-                        <h3>Woofy Corner</h3>
-                        <div class="store-location">
-                            <i class="fa-solid fa-location-dot"></i>
-                            <span>Aqaba, Jordan</span>
-                        </div>
-                    </div>
-
-                    <p>A complete stop for food, grooming, accessories, and daily pet needs.</p>
-
-                    <div class="store-tags">
-                        <span>Mixed</span>
-                        <span>Food</span>
-                        <span>Grooming</span>
-                    </div>
-
-                    <a asp-controller="Product" asp-action="Products" asp-route-storeId="4" class="store-btn">Shop Now</a>
-                </div>
-            </article>
-
-            <article class="store-card" data-category="food" data-search="tail treats salt nutrition dry food snacks">
-                <div class="store-image-wrap">
-                    <img src="~/Images/Animals/clinic5.png" alt="Tail Treats" class="store-image" />
-                </div>
-                <div class="store-body">
-                    <div class="store-top">
-                        <h3>Tail Treats</h3>
-                        <div class="store-location">
-                            <i class="fa-solid fa-location-dot"></i>
-                            <span>Salt, Jordan</span>
-                        </div>
-                    </div>
-
-                    <p>Nutritious dry food, snacks, canned meals, and special feeding products.</p>
-
-                    <div class="store-tags">
-                        <span>Nutrition</span>
-                        <span>Dry Food</span>
-                        <span>Snacks</span>
-                    </div>
-
-                    <a asp-controller="Product" asp-action="Products" asp-route-storeId="5" class="store-btn">Shop Now</a>
-                </div>
-            </article>
-
-            <article class="store-card" data-category="mixed" data-search="little paws karak home daily care accessories mixed">
-                <div class="store-image-wrap">
-                    <img src="~/Images/Animals/clinic1.png" alt="Little Paws Store" class="store-image" />
-                </div>
-                <div class="store-body">
-                    <div class="store-top">
-                        <h3>Little Paws Store</h3>
-                        <div class="store-location">
-                            <i class="fa-solid fa-location-dot"></i>
-                            <span>Karak, Jordan</span>
-                        </div>
-                    </div>
-
-                    <p>Friendly local store with daily essentials, home products, and accessories.</p>
-
-                    <div class="store-tags">
-                        <span>Mixed</span>
-                        <span>Home</span>
-                        <span>Daily Care</span>
-                    </div>
-
-                    <a asp-controller="Product" asp-action="Products" asp-route-storeId="6" class="store-btn">Shop Now</a>
-                </div>
-            </article>
-        </section>
-
-        <div class="empty-state" id="emptyState">
-            <i class="fa-solid fa-store-slash"></i>
-            <h3>No stores found</h3>
-            <p>Try another search term.</p>
-        </div>
     </main>
 
+    <!-- ════════════ FOOTER ════════════ -->
     <footer class="footer">
         <div class="footer-links">
-            <a href="about.html">About Us</a>
+            <a asp-controller="Home" asp-action="About">About Us</a>
             <span>|</span>
-            <a href="about.html">Contact</a>
+            <a asp-controller="Home" asp-action="About">Contact</a>
             <span>|</span>
-            <a href="faq.html">FAQ</a>
+            <a asp-controller="Home" asp-action="Faq">FAQ</a>
             <span>|</span>
             <div class="social-inline">
-                <span>f</span>
-                <span>🐦</span>
-                <span>◎</span>
+                <span>f</span><span>🐦</span><span>◎</span>
             </div>
         </div>
         <div>© 2026 Waffy, all rights reserved.</div>
     </footer>
 
+    <!-- ════════════ JS (minimal — UI only) ════════════ -->
     <script src="~/js/stores.js"></script>
 </body>
 </html>

@@ -1,0 +1,219 @@
+﻿@model Waffy.Models.Store
+@{
+    Layout = "~/Views/StoreAdmin/_StoreAdminLayout.cshtml";
+    ViewData["Title"] = "Store Settings — Images";
+    ViewData["ActiveNav"] = "Settings";
+    ViewData["ActiveSettings"] = "Images";
+    ViewData["BreadSection"] = "Settings";
+    ViewData["BreadPage"] = "Images & Logo";
+}
+
+@section Styles {
+    <style>
+        .settings-layout {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 16px;
+            align-items: start
+        }
+
+        .settings-nav {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm)
+        }
+
+        .settings-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            font-size: .84rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            border-left: 3px solid transparent;
+            text-decoration: none;
+            transition: .18s
+        }
+
+            .settings-nav-item:hover {
+                background: var(--brand-ghost);
+                color: var(--brand-dark)
+            }
+
+            .settings-nav-item.on {
+                background: var(--brand-xlight);
+                color: var(--brand-dark);
+                font-weight: 900;
+                border-left-color: var(--brand)
+            }
+
+            .settings-nav-item:last-child {
+                border-bottom: none
+            }
+
+        .settings-nav-ico {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center
+        }
+
+        .settings-content {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm)
+        }
+
+        .settings-section-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        @@media(max-width:900px) {
+            .settings-layout {
+                grid-template-columns: 1fr
+            }
+
+            .settings-nav {
+                display: grid;
+                grid-template-columns: repeat(3,1fr)
+            }
+
+            .settings-nav-item {
+                border-left: none;
+                border-right: 1px solid var(--border);
+                justify-content: center;
+                text-align: center;
+                padding: 10px 8px;
+                font-size: .78rem
+            }
+
+                .settings-nav-item.on {
+                    border-left: none;
+                    border-bottom: 2px solid var(--brand)
+                }
+        }
+
+        @@media(max-width:500px) {
+            .settings-nav {
+                grid-template-columns: repeat(2,1fr)
+            }
+        }
+    </style>
+}
+
+<section class="page-hero">
+    <div class="page-hero-text">
+        <h1>Store Settings ⚙️</h1>
+        <p>Update your store logo and banner image.</p>
+    </div>
+    <div class="page-hero-actions">
+        <button class="btn btn-primary" form="settingsForm" type="submit">💾 Save Changes</button>
+    </div>
+</section>
+
+<div class="page-body">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="info-box" style="margin-bottom:16px;background:var(--gp);border-color:var(--brand)">
+            @TempData["Success"]
+        </div>
+    }
+
+    <div class="settings-layout">
+
+        @await Html.PartialAsync("_SettingsNav")
+
+        <div class="settings-content">
+            <form id="settingsForm"
+                  method="post"
+                  asp-action="SettingsImages"
+                  asp-controller="StoreAdmin"
+                  enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+
+                <div class="settings-section-title">🖼 Images & Logo</div>
+
+                <div class="form-group">
+
+                    <!-- Logo -->
+                    @if (!string.IsNullOrEmpty(Model.LogoUrl))
+                    {
+                        <div class="form-field full" style="margin-bottom:8px">
+                            <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:4px">Current Logo:</div>
+                            <img src="@Model.LogoUrl" alt="Logo"
+                                 style="width:80px;height:80px;object-fit:contain;border-radius:12px;border:1px solid var(--border)">
+                        </div>
+                    }
+
+                    <div class="form-field full">
+                        <label class="form-label">Store Logo</label>
+                        <label class="upload-zone" for="logoInput">
+                            <span class="upload-zone-ico">🖼️</span>
+                            <span class="upload-zone-label">Upload new Logo</span>
+                            <span class="upload-zone-hint">PNG or SVG — 512×512px recommended</span>
+                        </label>
+                        <input id="logoInput" type="file" name="logoFile" accept="image/*" hidden
+                               onchange="previewImage(this,'logoPreview')">
+                        <img id="logoPreview" src="" alt="" style="display:none;margin-top:8px;width:80px;height:80px;object-fit:contain;border-radius:10px;border:1px solid var(--border)">
+                    </div>
+
+                    <!-- Banner -->
+                    @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+                    {
+                        <div class="form-field full" style="margin-bottom:8px">
+                            <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:4px">Current Banner:</div>
+                            <img src="@Model.CoverImageUrl" alt="Banner"
+                                 style="width:100%;max-height:100px;object-fit:cover;border-radius:12px;border:1px solid var(--border)">
+                        </div>
+                    }
+
+                    <div class="form-field full">
+                        <label class="form-label">Store Banner</label>
+                        <label class="upload-zone" for="bannerInput">
+                            <span class="upload-zone-ico">🏞</span>
+                            <span class="upload-zone-label">Upload new Banner</span>
+                            <span class="upload-zone-hint">PNG or JPG — 1200×400px recommended</span>
+                        </label>
+                        <input id="bannerInput" type="file" name="coverFile" accept="image/*" hidden
+                               onchange="previewImage(this,'bannerPreview')">
+                        <img id="bannerPreview" src="" alt=""
+                             style="display:none;margin-top:8px;width:100%;max-height:100px;object-fit:cover;border-radius:10px;border:1px solid var(--border)">
+                    </div>
+                </div>
+
+                <div style="text-align:right;margin-top:20px">
+                    <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function previewImage(input, previewId) {
+            const file = input.files?.[0];
+            if (!file) return;
+            const img = document.getElementById(previewId);
+            const reader = new FileReader();
+            reader.onload = e => { img.src = e.target.result; img.style.display = 'block'; };
+            reader.readAsDataURL(file);
+        }
+    </script>
+}

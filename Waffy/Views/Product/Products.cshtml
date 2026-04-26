@@ -1,22 +1,228 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Waffy.Models.ViewModels.ProductListViewModel
 @{
-    Layout = null;  
+    Layout = null;
+    ViewData["Title"] = Model.Store.Name + " — Products";
+
+    var priceRanges = new (decimal? Value, string Label)[]
+    {
+        (null,  "All Prices"),
+        (5m,    "Up to 5 JD"),
+        (10m,   "Up to 10 JD"),
+        (20m,   "Up to 20 JD"),
+        (35m,   "Up to 35 JD"),
+        (50m,   "Up to 50 JD"),
+    };
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pet Products - Waffy</title>
-
+    <title>@ViewData["Title"]</title>
     <link rel="stylesheet" href="~/css/prodstayle.css" />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        /* Store Header */
+        .store-header-strip {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 0 12px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e8f0e0;
+        }
+
+        .store-logo-box {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            object-fit: cover;
+            border: 2px solid #dce8cc;
+            background: #f4f8ee;
+            flex-shrink: 0;
+        }
+
+        .store-logo-placeholder {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            background: #e8f0d8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7rem;
+            flex-shrink: 0;
+        }
+
+        .store-header-info h2 {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #3a5e1f;
+            margin: 0 0 4px;
+        }
+
+        .store-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: .78rem;
+            color: #7a9a60;
+            font-weight: 600;
+        }
+
+            .store-meta span {
+                display: flex;
+                align-items: center;
+                gap: 4px;
+            }
+
+        .back-link {
+            margin-left: auto;
+            font-size: .82rem;
+            font-weight: 700;
+            color: #6a9a3a;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+            .back-link:hover {
+                color: #3a5e1f;
+            }
+
+        /* Category Tabs */
+        .cat-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+
+        .cat-tab {
+            padding: 7px 16px;
+            border-radius: 20px;
+            border: 1px solid #dce8cc;
+            background: #fff;
+            font-size: .82rem;
+            font-weight: 700;
+            color: #7a9a60;
+            text-decoration: none;
+            transition: .15s;
+            white-space: nowrap;
+        }
+
+            .cat-tab:hover {
+                border-color: #8ab56b;
+                color: #4a7c2f;
+            }
+
+            .cat-tab.active {
+                background: #8ab56b;
+                border-color: #8ab56b;
+                color: #fff;
+            }
+
+        /* Price Select */
+        .price-select {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 1px solid #dce8cc;
+            background: #fff;
+            font-size: .82rem;
+            font-weight: 700;
+            color: #7a9a60;
+            cursor: pointer;
+            outline: none;
+            transition: .15s;
+        }
+
+            .price-select:focus {
+                border-color: #8ab56b;
+            }
+
+        /* Results Info */
+        .results-info {
+            font-size: .8rem;
+            color: #999;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        /* Product Card Extras */
+        .badge-row {
+            margin-bottom: 6px;
+            min-height: 22px;
+        }
+
+        .badge-oos {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            background: #fdecea;
+            color: #c0392b;
+            font-size: .72rem;
+            font-weight: 800;
+        }
+
+        .badge-sale {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            background: #fff3e0;
+            color: #e65100;
+            font-size: .72rem;
+            font-weight: 800;
+        }
+
+        .price-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .price-original {
+            font-size: .8rem;
+            color: #bbb;
+            text-decoration: line-through;
+        }
+
+        .price-sale {
+            color: #e65100 !important;
+        }
+
+        /* Empty State */
+        .empty-products {
+            text-align: center;
+            padding: 60px 20px;
+            color: #aaa;
+            grid-column: 1/-1;
+        }
+
+            .empty-products i {
+                font-size: 3rem;
+                display: block;
+                margin-bottom: 12px;
+            }
+
+            .empty-products h3 {
+                font-size: 1.1rem;
+                margin: 0 0 8px;
+                color: #888;
+            }
+
+            .empty-products a {
+                color: #8ab56b;
+                font-weight: 700;
+            }
+    </style>
 </head>
 <body>
 
+    <!-- ════════ NAVBAR ════════ -->
     <div class="top-hero-area">
         <div class="top-hero-shell">
             <header class="topbar">
@@ -24,29 +230,23 @@
                     <nav class="navbar">
 
                         <div class="left-nav desktop-nav desktop-links">
-                            <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
+                            <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
                             <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
-                            <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
+                            <a asp-controller="Product" asp-action="Stores" class="nav-link active">Stores</a>
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                             <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-
                         </div>
 
                         <div class="logo-center">
-                            <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
+                            <img src="../Images/logo.png" alt="Waffy" class="main-logo">
                         </div>
 
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
-
-
-
                                 <div class="services-dropdown" id="servicesDropdown">
                                     <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services
-                                        <span class="dropdown-arrow">▼</span>
+                                        Services <span class="dropdown-arrow">▼</span>
                                     </button>
-
                                     <div class="dropdown-menu" id="servicesMenu">
                                         <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
                                         <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
@@ -60,57 +260,38 @@
                                         <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                     </div>
                                 </div>
-
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
-
                             </div>
 
                             <div class="nav-actions">
-                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
-                                    <i class="fa-solid fa-cart-shopping"></i>
-                                </a>
-
-                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon" aria-label="Notifications">
-                                    <i class="fa-solid fa-bell"></i>
-                                </a>
-
-                                <a asp-controller="Account" asp-action="Profile" class="profile-btn" aria-label="Profile">
-                                    <img src="../Images/user.jpg" alt="Profile">
-                                </a>
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
+                                <a asp-controller="Account" asp-action="Profile" class="profile-btn"><img src="../Images/user.jpg" alt="Profile"></a>
                                 <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
 
                             <div class="mobile-nav-wrap">
-                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
+                                <button class="menu-btn" id="menuBtn" type="button">☰</button>
                                 <div class="nav-links" id="navLinks">
-                                    <div class="mobile-menu-logo">
-                                        <img src="../Images/logo.png" alt="Waffy Logo">
-                                    </div>
-
-                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
+                                    <div class="mobile-menu-logo"><img src="../Images/logo.png" alt="Waffy"></div>
+                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
-                                    <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
+                                    <a asp-controller="Product" asp-action="Stores" class="nav-link active">Stores</a>
                                     <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                                     <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                                     <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
-
                                     <div class="mobile-services-block" id="mobileServicesBlock">
                                         <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
-                                            <span>Services</span>
-                                            <span class="dropdown-arrow">▼</span>
+                                            <span>Services</span><span class="dropdown-arrow">▼</span>
                                         </button>
-
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
-
                                             <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                             <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                             <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
                                             <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
-                                            <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
+                                            <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                                     <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
@@ -123,73 +304,229 @@
         </div>
     </div>
 
+    <!-- ════════ MAIN ════════ -->
     <main class="container products-page">
+
+        <!-- Hero -->
         <section class="hero-section fade-up">
             <h1>Pet Products 🐾</h1>
-            <p>
-                Find and buy everything your furry friend needs, all in one adorable place.
-            </p>
+            <p>Find everything your furry friend needs, all in one adorable place.</p>
         </section>
 
+        <!-- Store Strip -->
+        <div class="store-header-strip fade-up">
+            @if (!string.IsNullOrEmpty(Model.Store.LogoUrl))
+            {
+                <img src="@Model.Store.LogoUrl" alt="@Model.Store.Name" class="store-logo-box">
+            }
+            else
+            {
+                <div class="store-logo-placeholder">🏪</div>
+            }
+            <div class="store-header-info">
+                <h2>@Model.Store.Name</h2>
+                <div class="store-meta">
+                    @if (!string.IsNullOrEmpty(Model.Store.City))
+                    {
+                        <span><i class="fa-solid fa-location-dot"></i> @Model.Store.City</span>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Store.StoreType))
+                    {
+                        <span><i class="fa-solid fa-tag"></i> @Model.Store.StoreType</span>
+                    }
+                    <span><i class="fa-solid fa-box"></i> @Model.TotalCount product@(Model.TotalCount != 1 ? "s" : "")</span>
+                </div>
+            </div>
+            <a asp-controller="Product" asp-action="Stores" class="back-link">
+                ← Back to Stores
+            </a>
+        </div>
+
+        <!-- ════════ FILTERS (GET → server) ════════ -->
         <section class="controls-area fade-up">
-            <div class="search-wrap">
-                <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-                <input type="text"
-                       id="searchInput"
-                       placeholder="Search products..." />
-            </div>
+            <form method="get"
+                  asp-controller="Product"
+                  asp-action="Products"
+                  id="filterForm">
 
-            <div class="filters-row">
-                <div class="category-filters">
-                    <button class="category-btn active" data-category="all">All</button>
-                    <button class="category-btn" data-category="food">Food</button>
-                    <button class="category-btn" data-category="treats">Treats</button>
-                    <button class="category-btn" data-category="toys">Toys</button>
-                    <button class="category-btn" data-category="beds">Beds</button>
-                    <button class="category-btn" data-category="accessories">Accessories</button>
-                    <button class="category-btn" data-category="care">Care</button>
+                <input type="hidden" name="storeId" value="@Model.Store.IdStore">
+                <input type="hidden" name="categoryId" id="hiddenCategoryId" value="@Model.CategoryId">
+                <input type="hidden" name="maxPrice" id="hiddenMaxPrice" value="@Model.MaxPrice">
+
+                <!-- Search -->
+                <div class="search-wrap">
+                    <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                    <input type="text"
+                           name="search"
+                           id="searchInput"
+                           value="@Model.Search"
+                           placeholder="Search products..."
+                           autocomplete="off">
                 </div>
 
-                <div class="price-filter-box">
-                    <label for="priceFilter">Filter by price:</label>
-                    <select id="priceFilter">
-                        <option value="all">All prices</option>
-                        <option value="1">1 JD</option>
-                        <option value="2">2 JD</option>
-                        <option value="5">5 JD</option>
-                        <option value="7">7 JD</option>
-                        <option value="10">10 JD</option>
-                        <option value="15">15 JD</option>
-                        <option value="20">20 JD</option>
-                        <option value="25">25 JD</option>
-                        <option value="35">35 JD</option>
-                    </select>
+                <div class="filters-row">
+                    <!-- Category Tabs -->
+                    <div class="cat-tabs">
+                        <a class="cat-tab @(!Model.CategoryId.HasValue ? "active" : "")"
+                           href="@Url.Action("Products", "Product", new { storeId = Model.Store.IdStore, search = Model.Search, maxPrice = Model.MaxPrice })">
+                            All
+                        </a>
+                        @foreach (var cat in Waffy.Models.ViewModels.ProductListViewModel.CategoryMap)
+                        {
+                            <a class="cat-tab @(Model.CategoryId == cat.Id ? "active" : "")"
+                               href="@Url.Action("Products", "Product", new { storeId = Model.Store.IdStore, search = Model.Search, categoryId = cat.Id, maxPrice = Model.MaxPrice })">
+                                @cat.Icon @cat.Name
+                            </a>
+                        }
+                    </div>
+
+                    <!-- Price Filter -->
+                    <div class="price-filter-box">
+                        <label for="priceSelect">Price:</label>
+                        <select id="priceSelect"
+                                name="maxPrice"
+                                class="price-select"
+                                onchange="this.form.submit()">
+                            @foreach (var r in priceRanges)
+                            {
+                                <option value="@r.Value"
+                                        selected="@(Model.MaxPrice == r.Value ? "selected" : null)">
+                                    @r.Label
+                                </option>
+                            }
+                        </select>
+                    </div>
                 </div>
-            </div>
+            </form>
         </section>
 
-        <section id="productsGrid" class="products-grid fade-up"></section>
+        <!-- ════════ PRODUCTS GRID ════════ -->
+        <section id="productsGrid" class="products-grid fade-up">
+
+            @if (!Model.Products.Any())
+            {
+                <div class="empty-products">
+                    <i class="fa-solid fa-box-open"></i>
+                    <h3>No products found</h3>
+                    <p>
+                        @if (!string.IsNullOrEmpty(Model.Search))
+                        {
+                            <span>No results for "<strong>@Model.Search</strong>". </span>
+                        }
+                        <a href="@Url.Action("Products", "Product", new { storeId = Model.Store.IdStore })">
+                            View all products
+                        </a>
+                    </p>
+                </div>
+            }
+            else
+            {
+                @foreach (var p in Model.Products)
+                {
+                    var displayPrice = p.SalePrice ?? p.Price;
+                    var isOnSale = p.SalePrice.HasValue && p.SalePrice < p.Price;
+                    var isOutOfStock = p.StockQuantity <= 0;
+
+                    <article class="product-card"
+                             data-id="@p.Id"
+                             data-name="@System.Text.Json.JsonEncodedText.Encode(p.Name)"
+                             data-price="@displayPrice.ToString("F2")"
+                             data-image="@(p.ImageUrl ?? "")">
+
+                        <!-- صورة المنتج -->
+                        <div class="product-image-box">
+                            @if (!string.IsNullOrEmpty(p.ImageUrl))
+                            {
+                                <img src="@p.ImageUrl" alt="@p.Name" loading="lazy">
+                            }
+                            else
+                            {
+                                <div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:3rem;color:#ccc">
+                                    🐾
+                                </div>
+                            }
+                        </div>
+
+                        <!-- بيانات المنتج -->
+                        <div class="product-content">
+
+                            <div class="badge-row">
+                                @if (isOutOfStock)
+                                {
+                                    <span class="badge-oos">Out of Stock</span>
+                                }
+                                else if (isOnSale)
+                                {
+
+                                    <span class="badge-sale">🔥 Sale</span>
+                                }
+                            </div>
+
+                            <h3 class="product-title">@p.Name</h3>
+
+                            <div class="price-row">
+                                <p class="product-price @(isOnSale ? "price-sale" : "")">
+                                    @displayPrice.ToString("F2") JD
+                                </p>
+                                @if (isOnSale)
+                                {
+                                    <span class="price-original">@p.Price.ToString("F2") JD</span>
+                                }
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(p.Description))
+                            {
+                                <p class="product-meta">
+                                    @(p.Description.Length > 80
+                                                            ? p.Description[..80] + "…"
+                                                            : p.Description)
+                    </p>
+                                        }
+
+                            <div class="product-bottom">
+                                @if (!isOutOfStock)
+                                {
+                                    <div class="qty-control">
+                                        <button class="qty-btn" data-action="decrease" type="button">−</button>
+                                        <span class="qty-value">1</span>
+                                        <button class="qty-btn" data-action="increase" type="button">+</button>
+                                    </div>
+                                    <button class="add-cart-btn" data-action="add-cart" type="button">
+                                        🛒 Add to Cart
+                                    </button>
+                                }
+                                else
+                                {
+                                    <span style="font-size:.8rem;color:#c0392b;font-weight:700">
+                                        Currently unavailable
+                                    </span>
+                                }
+                            </div>
+
+                        </div>
+                    </article>
+                }
+            }
+
+        </section>
+
     </main>
 
+    <!-- ════════ FOOTER ════════ -->
     <footer class="footer">
         <div class="footer-links">
-            <a href="about.html">About Us</a>
+            <a asp-controller="Home" asp-action="About">About Us</a>
             <span>|</span>
-            <a href="about.html">Contact</a>
+            <a asp-controller="Home" asp-action="About">Contact</a>
             <span>|</span>
-            <a href="faq.html">FAQ</a>
+            <a asp-controller="Home" asp-action="Faq">FAQ</a>
             <span>|</span>
-            <div class="social-inline">
-                <span>f</span>
-                <span>🐦</span>
-                <span>◎</span>
-            </div>
+            <div class="social-inline"><span>f</span><span>🐦</span><span>◎</span></div>
         </div>
         <div>© 2026 Waffy, all rights reserved.</div>
     </footer>
 
     <div id="toast" class="toast"></div>
-
-    <script src="~/js/prodjs.js"></script>
+    <script src="~/js/prodjs.js?v=2"></script>
 </body>
 </html>

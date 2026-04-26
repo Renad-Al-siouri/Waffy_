@@ -1,0 +1,37 @@
+﻿@*
+    _SettingsNav.cshtml
+    يُستخدم في كل صفحة من صفحات الإعدادات.
+    يتوقع ViewData["ActiveSettings"] بإحدى القيم:
+    "Info" | "Images" | "Contact" | "Delivery" | "Payment" | "Security"
+*@
+@{
+    string active = ViewData["ActiveSettings"]?.ToString() ?? "Info";
+    Func<string, string> cls = s => active == s ? "settings-nav-item on" : "settings-nav-item";
+}
+
+<div class="settings-nav">
+    <a class="@cls("Info")"
+       href="@Url.Action("SettingsInfo", "StoreAdmin")">
+        <span class="settings-nav-ico">🏪</span> Store Info
+    </a>
+    <a class="@cls("Images")"
+       href="@Url.Action("SettingsImages", "StoreAdmin")">
+        <span class="settings-nav-ico">🖼</span> Images
+    </a>
+    <a class="@cls("Contact")"
+       href="@Url.Action("SettingsContact", "StoreAdmin")">
+        <span class="settings-nav-ico">📞</span> Contact
+    </a>
+    <a class="@cls("Delivery")"
+       href="@Url.Action("SettingsDelivery", "StoreAdmin")">
+        <span class="settings-nav-ico">🚚</span> Delivery
+    </a>
+    <a class="@cls("Payment")"
+       href="@Url.Action("SettingsPayment", "StoreAdmin")">
+        <span class="settings-nav-ico">💳</span> Payment
+    </a>
+    <a class="@cls("Security")"
+       href="@Url.Action("SettingsSecurity", "StoreAdmin")">
+        <span class="settings-nav-ico">🔒</span> Security
+    </a>
+</div>

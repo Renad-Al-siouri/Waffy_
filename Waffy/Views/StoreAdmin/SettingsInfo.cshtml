@@ -1,0 +1,179 @@
+﻿@model Waffy.Models.Store
+@{
+    Layout = "~/Views/StoreAdmin/_StoreAdminLayout.cshtml";
+    ViewData["Title"] = "Store Settings — Info";
+    ViewData["ActiveNav"] = "Settings";
+    ViewData["ActiveSettings"] = "Info";
+    ViewData["BreadSection"] = "Settings";
+    ViewData["BreadPage"] = "Store Info";
+}
+
+@section Styles {
+    <style>
+        .settings-layout {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 16px;
+            align-items: start
+        }
+
+        .settings-nav {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm)
+        }
+
+        .settings-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            font-size: .84rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            border-left: 3px solid transparent;
+            text-decoration: none;
+            transition: .18s
+        }
+
+            .settings-nav-item:hover {
+                background: var(--brand-ghost);
+                color: var(--brand-dark)
+            }
+
+            .settings-nav-item.on {
+                background: var(--brand-xlight);
+                color: var(--brand-dark);
+                font-weight: 900;
+                border-left-color: var(--brand)
+            }
+
+            .settings-nav-item:last-child {
+                border-bottom: none
+            }
+
+        .settings-nav-ico {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center
+        }
+
+        .settings-content {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm)
+        }
+
+        .settings-section-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        @@media(max-width:900px) {
+            .settings-layout {
+                grid-template-columns: 1fr
+            }
+
+            .settings-nav {
+                display: grid;
+                grid-template-columns: repeat(3,1fr)
+            }
+
+            .settings-nav-item {
+                border-left: none;
+                border-right: 1px solid var(--border);
+                justify-content: center;
+                text-align: center;
+                padding: 10px 8px;
+                font-size: .78rem
+            }
+
+                .settings-nav-item.on {
+                    border-left: none;
+                    border-bottom: 2px solid var(--brand)
+                }
+        }
+
+        @@media(max-width:500px) {
+            .settings-nav {
+                grid-template-columns: repeat(2,1fr)
+            }
+        }
+    </style>
+}
+
+<section class="page-hero">
+    <div class="page-hero-text">
+        <h1>Store Settings ⚙️</h1>
+        <p>Manage your store's basic information.</p>
+    </div>
+    <div class="page-hero-actions">
+        <button class="btn btn-primary" form="settingsForm" type="submit">💾 Save Changes</button>
+    </div>
+</section>
+
+<div class="page-body">
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="info-box" style="margin-bottom:16px;background:var(--gp);border-color:var(--brand)">
+            @TempData["Success"]
+        </div>
+    }
+
+    <div class="settings-layout">
+
+        @await Html.PartialAsync("_SettingsNav")
+
+        <div class="settings-content">
+            <form id="settingsForm"
+                  method="post"
+                  asp-action="SettingsInfo"
+                  asp-controller="StoreAdmin">
+                @Html.AntiForgeryToken()
+
+                <div class="settings-section-title">🏪 Basic Store Information</div>
+
+                <div class="form-group">
+                    <div class="form-field full">
+                        <label class="form-label">Store Name <span class="req">*</span></label>
+                        <input class="form-input" name="name" value="@Model.Name" required>
+                    </div>
+
+                    <div class="form-field full">
+                        <label class="form-label">Store Description</label>
+                        <textarea class="form-textarea" name="description">@Model.Description</textarea>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="form-label">Store Type</label>
+                        <select class="form-select" name="storeType">
+                            @foreach (var t in new[] { "All Pet Supplies", "Pet Food", "Pet Accessories", "Pet Pharmacy" })
+                            {
+                                <option value="@t" selected="@(Model.StoreType == t ? "selected" : null)">@t</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div style="text-align:right;margin-top:20px">
+                    <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>

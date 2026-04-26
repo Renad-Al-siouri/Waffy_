@@ -22,8 +22,13 @@ namespace Waffy.Interfaces
         // حذف متجر
         Task DeleteAsync(int idStore);
 
-        // أضف هذين السطرين في نهاية الـ interface
+        // تحديث حالة الاعتماد
         Task UpdateVerificationAsync(int idStore, string status);
+
+        // جلب المتاجر المنتظرة (للأدمن)
         Task<IEnumerable<Store>> GetPendingStoresAsync();
+
+        // ✅ جديد — جلب المتاجر المعتمدة فقط (للعرض العام)
+        Task<IEnumerable<Store>> GetApprovedStoresAsync();
     }
 }
