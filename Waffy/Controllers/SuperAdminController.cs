@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using Waffy.Interfaces;
+using Waffy.Models;
 using Waffy.Models.ViewModels;
 
 namespace Waffy.Controllers
@@ -14,6 +15,8 @@ namespace Waffy.Controllers
         private readonly IOrderRepository _orderRepo;
         private readonly IStoreDocumentRepository _docRepo;
         private readonly IDangerousAnimalReportRepository _dangerRepo;
+        private readonly IDonationRepository _donationRepo;
+        private readonly IDonationAnimalRepository _donationAnimalRepo;
 
         public SuperAdminController(
             IUserRepository userRepo,
@@ -21,7 +24,9 @@ namespace Waffy.Controllers
             IProductRepository productRepo,
             IOrderRepository orderRepo,
             IStoreDocumentRepository docRepo,
-    IDangerousAnimalReportRepository dangerRepo)
+            IDangerousAnimalReportRepository dangerRepo,
+            IDonationRepository donationRepo,           
+            IDonationAnimalRepository donationAnimalRepo)
         {
             _userRepo = userRepo;
             _storeRepo = storeRepo;
@@ -29,6 +34,8 @@ namespace Waffy.Controllers
             _orderRepo = orderRepo;
             _docRepo = docRepo;
             _dangerRepo = dangerRepo;
+            _donationRepo = donationRepo;        
+            _donationAnimalRepo = donationAnimalRepo;  
         }
 
         // ── Guards ───────────────────────────────────────────────
@@ -455,6 +462,92 @@ namespace Waffy.Controllers
         }
 
         // ════════════════════════════════════════════════════════
+        // Donations — GET
+        // ════════════════════════════════════════════════════════
+        public async Task<IActionResult> Donations()
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var donations = (await _donationRepo.GetAllWithDonorAsync()).ToList();
+            var animals = (await _donationAnimalRepo.GetAllAsync()).ToList();
+
+            ViewBag.Donations = donations;
+            ViewBag.Animals = animals;
+            ViewBag.TotalDonations = donations.Count;
+            ViewBag.PendingDonations = donations.Count(d => d.Status == "Pending");
+            ViewBag.CompletedDonations = donations.Count(d => d.Status == "Completed");
+            ViewBag.ActiveAnimals = animals.Count(a => a.Status == "Active");
+
+            if (TempData["DonationSuccess"] != null) ViewBag.Success = TempData["DonationSuccess"];
+            if (TempData["DonationError"] != null) ViewBag.Error = TempData["DonationError"];
+
+            return View();
+        }
+
+        // ════════════════════════════════════════════════════════
+        // AddDonationAnimal — POST
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> AddDonationAnimal(
+            string name, string animalType, string condition,
+            string? location, string story, decimal? goalAmount)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            await _donationAnimalRepo.CreateAsync(new DonationAnimal
+            {
+                Name = name,
+                AnimalType = animalType,
+                Condition = condition,
+                Location = location,
+                Story = story,
+                GoalAmount = goalAmount,
+                Status = "Active",
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["DonationSuccess"] = $"✅ {name} added successfully.";
+            return RedirectToAction("Donations");
+        }
+
+        // ════════════════════════════════════════════════════════
+        // UpdateDonationAnimalStatus — POST
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateDonationAnimalStatus(int animalId, string status)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _donationAnimalRepo.UpdateStatusAsync(animalId, status);
+            TempData["DonationSuccess"] = $"✅ Animal status updated to {status}.";
+            return RedirectToAction("Donations");
+        }
+
+        // ════════════════════════════════════════════════════════
+        // DeleteDonationAnimal — POST
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteDonationAnimal(int animalId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _donationAnimalRepo.DeleteAsync(animalId);
+            TempData["DonationSuccess"] = "🗑 Animal removed.";
+            return RedirectToAction("Donations");
+        }
+
+        // ════════════════════════════════════════════════════════
+        // UpdateDonationStatus — POST
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateDonationStatus(int donationId, string status)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _donationRepo.UpdateStatusAsync(donationId, status);
+            TempData["DonationSuccess"] = $"✅ Donation marked as {status}.";
+            return RedirectToAction("Donations");
+        }
+
+        // ════════════════════════════════════════════════════════
         // Stubs — من النسخة الأولى (الأكمل)
         // ════════════════════════════════════════════════════════
         public IActionResult Clinics() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
@@ -470,7 +563,6 @@ namespace Waffy.Controllers
         public IActionResult Lost_Pets() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Found_Pets() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
        
-        public IActionResult Donations() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Laws_Regulations() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Map() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Notifications() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }

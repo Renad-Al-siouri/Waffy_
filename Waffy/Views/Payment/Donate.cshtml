@@ -1,10 +1,48 @@
-﻿@{
+﻿@using Waffy.Models
+@{
     Layout = null;
     decimal walletBalance = (decimal)(ViewBag.WalletBalance ?? 0m);
+    var animals = ViewBag.Animals as List<DonationAnimal> ?? new List<DonationAnimal>();
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <style>
+        /* ✅ Flip Card */
+        .flip-card {
+            perspective: 1000px;
+        }
+
+        .flip-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.55s cubic-bezier(.4,0,.2,1);
+            transform-style: preserve-3d;
+        }
+
+        .flip-card.flipped .flip-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flip-front, .flip-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .flip-back {
+            transform: rotateY(180deg);
+        }
+
+        /* Open Form Btn hover */
+        #openFormBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(95,116,48,.45) !important;
+        }
+    </style>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Donate - Waffy</title>
@@ -104,16 +142,16 @@
         @if (TempData["DonateSuccess"] != null)
         {
             <div style="background:#f0fff0;border:1px solid #b2dfb2;color:#2d7a2d;
-                            padding:1rem 1.2rem;margin:1rem 0;border-radius:14px;
-                            font-weight:700;font-family:Nunito,sans-serif;font-size:.95rem">
+                        padding:1rem 1.2rem;margin:1rem 0;border-radius:14px;
+                        font-weight:700;font-family:Nunito,sans-serif;font-size:.95rem">
                 @TempData["DonateSuccess"]
             </div>
         }
         @if (TempData["DonateError"] != null)
         {
             <div style="background:#fff0f0;border:1px solid #ffb2b2;color:#c0392b;
-                            padding:1rem 1.2rem;margin:1rem 0;border-radius:14px;
-                            font-weight:700;font-family:Nunito,sans-serif;font-size:.95rem">
+                        padding:1rem 1.2rem;margin:1rem 0;border-radius:14px;
+                        font-weight:700;font-family:Nunito,sans-serif;font-size:.95rem">
                 ⚠️ @TempData["DonateError"]
             </div>
         }
@@ -134,6 +172,7 @@
             </div>
         }
 
+        @* Hero *@
         <section class="donate-hero fade-up">
             <div class="hero-text">
                 <h1>Give a Little, Help a Lot ♡</h1>
@@ -144,15 +183,158 @@
             </div>
         </section>
 
-        <section class="donation-form-wrap fade-up">
+        @* ✅ Call-to-Action Card *@
+        <div class="fade-up" style="margin:28px 0 24px;">
+            <div style="background:linear-gradient(135deg,#f9f5ee 0%,#eef5db 100%);
+                    border:1.5px solid #c8dfa0;border-radius:22px;
+                    padding:28px 32px;display:flex;align-items:center;
+                    justify-content:space-between;flex-wrap:wrap;gap:18px;
+                    box-shadow:0 8px 28px rgba(95,116,48,.1);">
+                <div>
+                    @* <div style="font-size:1.7rem;margin-bottom:6px;">💛</div>*@
+                    <div style="font-family:'Fredoka',sans-serif;font-size:1.45rem;
+                            font-weight:700;color:#4a6228;margin-bottom:6px;">
+                        Help an Animal <span style="font-size:1.7rem;margin-bottom:6px;">💛</span>
+                    </div>
+                    <p style="font-size:.92rem;font-weight:700;color:#7a8e5a;max-width:670px;line-height:1.55;">
+                        Every donation — big or small — helps us provide food, medicine, and care
+                        to animals who need it most. Choose a specific case or donate generally.
+                    </p>
+                </div>
+                <button id="openFormBtn" type="button"
+                        style="background:linear-gradient(135deg,#8ba94a,#5f7430);
+                           color:#fff;border:none;border-radius:var(--pill, 999px);
+                           padding:14px 28px;font-family:'Nunito',sans-serif;
+                           font-size:.95rem;font-weight:800;cursor:pointer;
+                           box-shadow:0 6px 18px rgba(95,116,48,.35);
+                           transition:transform .2s,box-shadow .2s;
+                           display:flex;align-items:center;gap:8px;white-space:nowrap;">
+                    <span style="font-size:1.1rem;">＋</span> Add Donation
+                </button>
+            </div>
+        </div>
+
+        @* ✅ Flip Cards — الحيوانات من DB *@
+        @if (animals.Any())
+        {
+
+            <div class="fade-up" style="margin-bottom:28px;">
+                <div style="font-family:'Fredoka',sans-serif;font-size:1.2rem;
+                            font-weight:700;color:#4a6228;margin-bottom:14px;">
+                    🐾 Animals That Need Your Help
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;">
+                    @foreach (var a in animals)
+                    {
+                        var emoji = a.AnimalType?.ToLower() switch
+                        {
+                            "dog" => "🐕",
+                            "cat" => "🐈",
+                            "bird" => "🐦",
+                            _ => "🐾"
+                        };
+                        var pct = (a.GoalAmount.HasValue && a.GoalAmount > 0)
+                        ? (int)Math.Min(100, Math.Round(a.CollectedAmount / a.GoalAmount.Value * 100))
+                        : 0;
+                        var remaining = a.GoalAmount.HasValue
+                        ? Math.Max(0, a.GoalAmount.Value - a.CollectedAmount)
+                        : 0;
+                        <div class="flip-card" style="height:290px;cursor:pointer;" onclick="this.classList.toggle('flipped')">
+                            <div class="flip-inner">
+                                @* وجه أمامي *@
+                                <div class="flip-front" style="background:#fff;border:1.5px solid #d8eaac;
+                                                border-radius:18px;display:flex;flex-direction:column;
+                                                align-items:center;justify-content:center;gap:8px;padding:20px;">
+                                    <div style="font-size:3rem;">@emoji</div>
+                                    <div style="font-family:'Fredoka',sans-serif;font-size:1.1rem;
+                                                    font-weight:700;color:#4a6228;text-align:center;">
+                                        @a.Name
+                                    </div>
+                                    <div style="font-size:.78rem;font-weight:800;
+                                                    background:#f0f8e0;color:#5f7430;
+                                                    padding:4px 12px;border-radius:999px;">
+                                        @a.Condition
+                                    </div>
+                                    @if (a.Location != null)
+                                    {
+                                        <div style="font-size:.72rem;color:#9aaa7a;font-weight:700;">
+                                            📍 @a.Location
+                                        </div>
+                                    }
+                                    <div style="font-size:.7rem;color:#aaa;font-weight:700;margin-top:4px;">
+                                        Tap to see story →
+                                    </div>
+                                </div>
+                                @* وجه خلفي *@
+                                <div class="flip-back" style="background:linear-gradient(135deg,#4a6228,#6b8c35);
+                                                                border-radius:18px;display:flex;flex-direction:column;
+                                                                justify-content:space-between;padding:18px;color:#fff;
+                                                                overflow-y:auto;">
+                                    <div>
+                                        <div style="font-family:'Fredoka',sans-serif;font-size:1rem;
+                                                        font-weight:700;margin-bottom:8px;">
+                                            @emoji @a.Name's Story
+                                        </div>
+                                        <p style="font-size:.78rem;font-weight:700;line-height:1.55;
+                                                      color:rgba(255,255,255,.9);">
+                                            @{
+                                                var shortStory = a.Story?.Length > 130 ? a.Story[..130] : a.Story;
+                                                var hasMore = a.Story?.Length > 130;
+                                            }
+                                            <span class="story-text-@a.Id">@shortStory</span>
+                                            @if (hasMore)
+                                            {
+                                                <span class="story-more-@a.Id" style="display:none;">@a.Story</span>
+                                                <button type="button"
+                                                        onclick="this.previousElementSibling.style.display='inline';
+                                 this.previousElementSibling.previousElementSibling.style.display='none';
+                                 this.style.display='none';"
+                                                        style="background:rgba(255,255,255,.2);border:none;color:#c8f060;
+                               font-size:.7rem;font-weight:800;padding:3px 8px;border-radius:999px;
+                               cursor:pointer;margin-top:4px;font-family:'Nunito',sans-serif;">
+                                                    Read more
+                                                </button>
+                                            }
+                                        </p>
+                                    </div>
+                                    @if (a.GoalAmount.HasValue)
+                                    {
+                                        <div>
+                                            <div style="display:flex;justify-content:space-between;
+                                                                font-size:.72rem;font-weight:800;
+                                                                color:rgba(255,255,255,.85);margin-bottom:5px;">
+                                                <span>@a.CollectedAmount.ToString("F0") JOD raised</span>
+                                                <span>@remaining.ToString("F0") JOD left</span>
+                                            </div>
+                                            <div style="height:7px;background:rgba(255,255,255,.25);
+                                                                border-radius:999px;overflow:hidden;">
+                                                <div style="height:100%;width:@pct%;
+                                                                    background:#c8f060;border-radius:999px;
+                                                                    transition:width .6s ease;">
+                                                </div>
+                                            </div>
+                                            <div style="text-align:right;font-size:.68rem;
+                                                                color:rgba(255,255,255,.7);font-weight:800;margin-top:3px;">
+                                                @pct% of @a.GoalAmount.Value.ToString("F0") JOD goal
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+        @* ✅ الفورم — مخفي بالبداية *@
+        <section id="donationFormSection" class="donation-form-wrap fade-up"
+                 style="display:none;margin-bottom:32px;">
             <div class="form-card">
 
                 @* Donation Type *@
                 <section class="form-section">
-                    <div class="section-head">
-                        <h2>Donation Type</h2>
-                        <span>❤</span>
-                    </div>
+                    <div class="section-head"><h2>Donation Type</h2><span>❤</span></div>
                     <div class="type-grid">
                         <button class="type-card" type="button" data-type="Supplies">
                             <div class="type-icon">📦</div>
@@ -175,10 +357,7 @@
 
                 @* Money Section *@
                 <section class="form-section" id="moneySection">
-                    <div class="section-head">
-                        <h2>Donation Amount</h2>
-                        <span>💵</span>
-                    </div>
+                    <div class="section-head"><h2>Donation Amount</h2><span>💵</span></div>
                     <label class="mini-label">Choose Amount</label>
                     <div class="amount-grid">
                         <button class="amount-btn" type="button" data-amount="custom">Custom</button>
@@ -202,8 +381,6 @@
                             <strong>Waffy Wallet</strong><small>Use your balance</small>
                         </button>
                     </div>
-
-                    @* Wallet Box — الرصيد الحقيقي من DB *@
                     <div id="walletBox" class="payment-box">
                         <div class="wallet-line">
                             <strong>Waffy Wallet</strong>
@@ -218,7 +395,6 @@
                             <span id="walletRemainingAmount">@((walletBalance - 10m).ToString("F2")) JD</span>
                         </div>
                     </div>
-
                     <div id="cardBox" class="payment-box hidden">
                         <div class="form-grid two">
                             <label><span>Card Number</span><input type="text" placeholder="1234 5678 9012 3456" /></label>
@@ -229,7 +405,6 @@
                             <label><span>CVV</span><input type="text" placeholder="..." /></label>
                         </div>
                     </div>
-
                     <div id="cliqBox" class="payment-box hidden">
                         <div class="form-grid two">
                             <label><span>Phone Number</span><input type="text" placeholder="7X XXX XXXX" /></label>
@@ -365,25 +540,45 @@
                     </div>
                 </section>
 
-                @* Specific Animal *@
+                @* ✅ Donate to Specific Animal — مع خيار General *@
                 <section class="form-section">
                     <div class="section-head"><h2>Donate to Specific Animal</h2><span>🎯</span></div>
                     <div class="animal-note">
-                        You can choose a specific animal from our rescue cases if you want your donation to go directly to them.
+                        Choose a specific animal or leave unselected for general shelter support.
                     </div>
                     <div class="specific-grid">
-                        <button class="animal-card" type="button" data-animal-card="Loki">
-                            <strong>Loki — Injured Dog</strong><span>Needs medicine and food</span>
+
+                        @* ✅ خيار General *@
+                        <button class="animal-card active" type="button"
+                                data-animal-card="" data-animal-name="General">
+                            <div style="font-size:1.6rem;margin-bottom:6px;">🌍</div>
+                            <strong>General Support</strong>
+                            <span>Your donation helps all shelter animals</span>
                         </button>
-                        <button class="animal-card" type="button" data-animal-card="Milo">
-                            <strong>Milo — Sick Cat</strong><span>Needs medicine support</span>
-                        </button>
-                        <button class="animal-card" type="button" data-animal-card="Sandy">
-                            <strong>Sandy — Shelter Dog</strong><span>Needs food donation</span>
-                        </button>
-                        <button class="animal-card" type="button" data-animal-card="Bella">
-                            <strong>Bella — Rescue Rabbit</strong><span>Needs supplies and care</span>
-                        </button>
+
+                        @foreach (var a in animals)
+                        {
+                            var emoji = a.AnimalType?.ToLower() switch
+                            {
+                                "dog" => "🐕",
+                                "cat" => "🐈",
+                                "bird" => "🐦",
+                                _ => "🐾"
+                            };
+                            <button class="animal-card" type="button"
+                                    data-animal-card="@a.Id"
+                                    data-animal-name="@a.Name">
+                                <div style="font-size:1.6rem;margin-bottom:6px;">@emoji</div>
+                                <strong>@a.Name — @a.Condition</strong>
+                                <span>@(a.Story?.Length > 55 ? a.Story[..55] + "…" : a.Story)</span>
+                                @if (a.GoalAmount.HasValue)
+                                {
+                                    <span style="font-size:.72rem;color:var(--olive-dark);font-weight:800;margin-top:4px;">
+                                        Goal: @a.GoalAmount.Value.ToString("F0") JOD
+                                    </span>
+                                }
+                            </button>
+                        }
                     </div>
                 </section>
 
@@ -398,7 +593,7 @@
                     </div>
                 </section>
 
-                @* الفورم الحقيقي للـ POST *@
+                @* Hidden Form *@
                 <form id="donationForm" method="post"
                       asp-controller="Payment" asp-action="SubmitDonation">
                     @Html.AntiForgeryToken()
@@ -408,15 +603,18 @@
                     <input type="hidden" id="hUnit" name="unit" />
                     <input type="hidden" id="hDescription" name="description" />
                     <input type="hidden" id="hTargetType" name="targetType" value="General" />
+                    <input type="hidden" id="hTargetId" name="targetId" value="" />
+                    <input type="hidden" id="hPaymentMethod" name="paymentMethod" value="wallet" />
                 </form>
 
                 <div class="submit-row">
-                    <a asp-controller="Home" asp-action="Home_After" class="cancel-btn">Cancel</a>
+                    <button type="button" class="cancel-btn" onclick="closeForm()">Cancel</button>
                     <button id="submitDonationBtn" class="submit-btn" type="button">❤ Send Donation</button>
                 </div>
 
             </div>
         </section>
+
     </main>
 
     <footer class="footer">
@@ -431,31 +629,45 @@
 
     <div id="toast" class="toast"></div>
 
+  
+
     <script>
         var currentType    = 'Money';
         var currentAmount  = 10;
         var currentPayment = 'wallet';
-        var currentAnimal  = '';
         var walletBalance  = @walletBalance.ToString("F2", System.Globalization.CultureInfo.InvariantCulture);
 
-        document.querySelectorAll('.type-card').forEach(btn => {
-            btn.addEventListener('click', function () {
-                document.querySelectorAll('.type-card').forEach(b => b.classList.remove('active'));
+        // ✅ Open / Close Form
+        document.getElementById('openFormBtn').addEventListener('click', function() {
+            var section = document.getElementById('donationFormSection');
+            section.style.display = 'block';
+            section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        function closeForm() {
+            document.getElementById('donationFormSection').style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // ✅ Donation Type
+        document.querySelectorAll('.type-card').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.type-card').forEach(function(b) { b.classList.remove('active'); });
                 this.classList.add('active');
                 currentType = this.dataset.type;
                 document.getElementById('hDonationType').value = currentType;
-                ['moneySection','foodSection','medicineSection','suppliesSection'].forEach(id => {
+                ['moneySection','foodSection','medicineSection','suppliesSection'].forEach(function(id) {
                     document.getElementById(id).classList.add('hidden');
                 });
-                var map = { Money:'moneySection', Food:'foodSection',
-                            Medicine:'medicineSection', Supplies:'suppliesSection' };
+                var map = { Money:'moneySection', Food:'foodSection', Medicine:'medicineSection', Supplies:'suppliesSection' };
                 if (map[currentType]) document.getElementById(map[currentType]).classList.remove('hidden');
             });
         });
 
-        document.querySelectorAll('.amount-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+        // ✅ Amount Buttons
+        document.querySelectorAll('.amount-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.amount-btn').forEach(function(b) { b.classList.remove('active'); });
                 this.classList.add('active');
                 var v = this.dataset.amount;
                 var wrap = document.getElementById('customAmountWrap');
@@ -470,17 +682,19 @@
             });
         });
 
-        document.getElementById('customAmountInput')?.addEventListener('input', function () {
+        document.getElementById('customAmountInput')?.addEventListener('input', function() {
             currentAmount = parseFloat(this.value) || 0;
             updateWalletDisplay(currentAmount);
         });
 
-        document.querySelectorAll('.payment-card').forEach(btn => {
-            btn.addEventListener('click', function () {
-                document.querySelectorAll('.payment-card').forEach(b => b.classList.remove('active'));
+        // ✅ Payment Method
+        document.querySelectorAll('.payment-card').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.payment-card').forEach(function(b) { b.classList.remove('active'); });
                 this.classList.add('active');
                 currentPayment = this.dataset.payment;
-                ['walletBox','cardBox','cliqBox'].forEach(id => {
+                document.getElementById('hPaymentMethod').value = currentPayment;
+                ['walletBox','cardBox','cliqBox'].forEach(function(id) {
                     var el = document.getElementById(id);
                     if (el) el.classList.add('hidden');
                 });
@@ -489,15 +703,23 @@
             });
         });
 
-        document.querySelectorAll('.animal-card').forEach(btn => {
-            btn.addEventListener('click', function () {
-                document.querySelectorAll('.animal-card').forEach(b => b.classList.remove('active'));
-                this.classList.toggle('active');
-                currentAnimal = this.dataset.animalCard || '';
-                document.getElementById('hTargetType').value = currentAnimal || 'General';
+        // ✅ Animal Cards — General مختار بالبداية
+        document.querySelectorAll('.animal-card').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.animal-card').forEach(function(b) { b.classList.remove('active'); });
+                this.classList.add('active');
+                var animalId = this.dataset.animalCard || '';
+                if (animalId === '') {
+                    document.getElementById('hTargetType').value = 'General';
+                    document.getElementById('hTargetId').value   = '';
+                } else {
+                    document.getElementById('hTargetType').value = 'Animal';
+                    document.getElementById('hTargetId').value   = animalId;
+                }
             });
         });
 
+        // ✅ Wallet Display
         function updateWalletDisplay(amt) {
             var sel = document.getElementById('walletSelectedAmount');
             var rem = document.getElementById('walletRemainingAmount');
@@ -509,7 +731,8 @@
             }
         }
 
-        document.getElementById('submitDonationBtn').addEventListener('click', function () {
+        // ✅ Submit
+        document.getElementById('submitDonationBtn').addEventListener('click', function() {
             if (!currentType) { showToast('⚠️ Please select a donation type.'); return; }
 
             if (currentType === 'Money') {
@@ -518,13 +741,15 @@
                     amt = parseFloat(document.getElementById('customAmountInput').value) || 0;
                 }
                 if (!amt || amt <= 0) { showToast('⚠️ Please select or enter a donation amount.'); return; }
+
+                // ✅ شرط الرصيد فقط عند اختيار Wallet
                 if (currentPayment === 'wallet' && amt > walletBalance) {
                     showToast('❌ Insufficient wallet balance! Your balance: ' + walletBalance.toFixed(2) + ' JD');
                     return;
                 }
-                document.getElementById('hAmount').value = amt;
-                document.getElementById('hQuantity').value = '';
-                document.getElementById('hUnit').value = '';
+                document.getElementById('hAmount').value      = amt;
+                document.getElementById('hQuantity').value    = '';
+                document.getElementById('hUnit').value        = '';
                 document.getElementById('hDescription').value = document.getElementById('donorNote').value || '';
 
             } else if (currentType === 'Food') {
@@ -533,9 +758,9 @@
                 var foodWeight = document.getElementById('foodWeight').value.trim();
                 var foodAnimal = document.getElementById('foodAnimal').value;
                 if (!foodType || !foodWeight) { showToast('⚠️ Please fill in food type and quantity.'); return; }
-                document.getElementById('hAmount').value   = '';
-                document.getElementById('hQuantity').value = 1;
-                document.getElementById('hUnit').value     = foodWeight;
+                document.getElementById('hAmount').value      = '';
+                document.getElementById('hQuantity').value    = 1;
+                document.getElementById('hUnit').value        = foodWeight;
                 document.getElementById('hDescription').value =
                     [foodType, foodName, foodAnimal, document.getElementById('donorNote').value].filter(Boolean).join(' | ');
 
@@ -545,9 +770,9 @@
                 var medAnimal = document.getElementById('medicineAnimal').value;
                 var medQty    = parseInt(document.getElementById('medicineQty').value) || 1;
                 if (!medName) { showToast('⚠️ Please enter the medicine name.'); return; }
-                document.getElementById('hAmount').value   = '';
-                document.getElementById('hQuantity').value = medQty;
-                document.getElementById('hUnit').value     = 'units';
+                document.getElementById('hAmount').value      = '';
+                document.getElementById('hQuantity').value    = medQty;
+                document.getElementById('hUnit').value        = 'units';
                 document.getElementById('hDescription').value =
                     [medName, medType, medAnimal, document.getElementById('donorNote').value].filter(Boolean).join(' | ');
 
@@ -557,9 +782,9 @@
                 var supAnimal = document.getElementById('supplyAnimal').value;
                 var supQty    = parseInt(document.getElementById('supplyQty').value) || 1;
                 if (!supName) { showToast('⚠️ Please enter the supply name.'); return; }
-                document.getElementById('hAmount').value   = '';
-                document.getElementById('hQuantity').value = supQty;
-                document.getElementById('hUnit').value     = 'pieces';
+                document.getElementById('hAmount').value      = '';
+                document.getElementById('hQuantity').value    = supQty;
+                document.getElementById('hUnit').value        = 'pieces';
                 document.getElementById('hDescription').value =
                     [supName, supCat, supAnimal, document.getElementById('donorNote').value].filter(Boolean).join(' | ');
             }
@@ -574,15 +799,13 @@
             t.textContent = msg;
             t.classList.add('show');
             clearTimeout(t._timer);
-            t._timer = setTimeout(function () { t.classList.remove('show'); }, duration);
+            t._timer = setTimeout(function() { t.classList.remove('show'); }, duration);
         }
 
         updateWalletDisplay(10);
 
-                // ════════ Navbar & Animations ════════
-        document.addEventListener('DOMContentLoaded', function () {
-
-            // Fade-up animation
+        // ════════ Navbar & Animations ════════
+        document.addEventListener('DOMContentLoaded', function() {
             var fadeEls = document.querySelectorAll('.fade-up');
             if ('IntersectionObserver' in window) {
                 var obs = new IntersectionObserver(function(entries) {
@@ -595,7 +818,6 @@
                 fadeEls.forEach(function(el) { el.classList.add('show'); });
             }
 
-            // Services dropdown
             var sd = document.getElementById('servicesDropdown');
             var st = document.getElementById('servicesToggle');
             if (sd && st) {
@@ -603,7 +825,6 @@
                 document.addEventListener('click', function(e) { if (!sd.contains(e.target)) sd.classList.remove('open'); });
             }
 
-            // Mobile menu
             var menuBtn  = document.getElementById('menuBtn');
             var navLinks = document.getElementById('navLinks');
             if (menuBtn && navLinks) {
@@ -613,11 +834,11 @@
                 });
             }
 
-            // Mobile services toggle
             var mt = document.getElementById('mobileServicesToggle');
             var mb = document.getElementById('mobileServicesBlock');
             if (mt && mb) mt.addEventListener('click', function() { mb.classList.toggle('open'); });
         });
     </script>
+         
 </body>
 </html>

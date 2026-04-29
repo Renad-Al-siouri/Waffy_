@@ -6,5 +6,8 @@ namespace Waffy.Interfaces
     {
         Task<int> CreateAsync(Donation donation);
         Task<IEnumerable<Donation>> GetByUserIdAsync(int userId);
+        Task<IEnumerable<Donation>> GetAllAsync();
+        Task<IEnumerable<Donation>> GetAllWithDonorAsync();
+        Task UpdateStatusAsync(int id, string status);
     }
 }
