@@ -55,5 +55,38 @@ namespace Waffy.Repository
             using var conn = new SqlConnection(_connectionString);
             return await conn.QueryAsync<Donation>(sql, new { UserId = userId });
         }
+
+        public async Task<IEnumerable<Donation>> GetAllWithDonorAsync()
+        {
+            const string sql = @"
+        SELECT d.*, u.FullName as DonorName
+        FROM Donation d
+        LEFT JOIN Users u ON d.IdUser = u.UserId
+        ORDER BY d.CreatedAt DESC";
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<Donation>(sql);
+        }
+
+        public async Task UpdateStatusAsync(int id, string status)
+        {
+            const string sql = @"
+        UPDATE Donation
+        SET Status = @Status
+        WHERE Id = @Id";
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(sql, new { Id = id, Status = status });
+        }
+
+
+        public async Task<IEnumerable<Donation>> GetAllAsync()
+        {
+            const string sql = @"
+        SELECT * FROM Donation
+        ORDER BY CreatedAt DESC";
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<Donation>(sql);
+        }
+
     }
+
 }

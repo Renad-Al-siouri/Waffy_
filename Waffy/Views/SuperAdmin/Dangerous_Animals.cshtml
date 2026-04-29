@@ -1,6 +1,11 @@
-﻿@{
+﻿@model List<Waffy.Models.DangerousAnimalReport>
+@{
     ViewData["Title"] = "Waffy — Super Admin | Dangerous Animals";
     Layout = null;
+    var totalReports = (int)(ViewBag.TotalReports ?? 0);
+    var openReports = (int)(ViewBag.OpenReports ?? 0);
+    var highRisk = (int)(ViewBag.HighRisk ?? 0);
+    var resolvedReports = (int)(ViewBag.ResolvedReports ?? 0);
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -34,7 +39,6 @@
         .report-row {
             padding: 16px 18px;
             border-bottom: 1px solid rgba(221,209,191,.55);
-            cursor: pointer;
             transition: .15s;
         }
 
@@ -83,7 +87,7 @@
             </div>
             <nav class="sb-nav">
                 <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard" data-tip="Dashboard">
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
                         <span class="sb-lbl">Dashboard</span>
                     </a>
@@ -106,7 +110,7 @@
                     <div>
                         <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
                             <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
-                            <span class="sb-lbl">Clinics</span><span class="sb-bdg bd-y">4</span>
+                            <span class="sb-lbl">Clinics</span>
                             <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
                         </button>
                         <div class="sb-sub" id="g-clinics">
@@ -118,21 +122,21 @@
                         </div>
                     </div>
                     <div>
-                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" data-tip="Shop" type="button">
+                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button">
                             <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
-                            <span class="sb-lbl">Shop</span><span class="sb-bdg bd-r">3</span>
+                            <span class="sb-lbl">Shop</span>
                             <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
                         </button>
                         <div class="sb-sub" id="g-shop">
                             <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span><span class="sb-bdg bd-y sb-child-bdg">3</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_S"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span><span class="sb-bdg bd-r sb-child-bdg">6</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_S"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
                                 <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_S"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" data-tip="Adoption" type="button">
+                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button">
                             <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
                             <span class="sb-lbl">Adoption</span>
                             <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
@@ -140,23 +144,28 @@
                         <div class="sb-sub" id="g-adopt">
                             <div class="sb-sub-inner">
                                 <a class="sb-child" asp-controller="SuperAdmin" asp-action="Listings"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span><span class="sb-bdg bd-r sb-child-bdg">3</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span></a>
                                 <a class="sb-child" asp-controller="SuperAdmin" asp-action="Adopted_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
                                 <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_A"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <button class="sb-row open active" id="t-rep" onclick="acc('g-rep','t-rep')" data-tip="Reports" type="button">
+                        <button class="sb-row open active" id="t-rep" onclick="acc('g-rep','t-rep')" type="button">
                             <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
-                            <span class="sb-lbl">Reports</span><span class="sb-bdg bd-r">4</span>
+                            <span class="sb-lbl">Reports</span>
+                            <span class="sb-bdg bd-r">@openReports</span>
                             <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
                         </button>
                         <div class="sb-sub open" id="g-rep" style="height:auto;">
                             <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span><span class="sb-bdg bd-y sb-child-bdg">8</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span><span class="sb-bdg bd-g sb-child-bdg">5</span></a>
-                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span><span class="sb-bdg bd-r sb-child-bdg">4</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span></a>
+                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Dangerous_Animals">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">Dangerous Animals</span>
+                                    <span class="sb-bdg bd-r sb-child-bdg">@openReports</span>
+                                </a>
                                 <a class="sb-child" asp-controller="SuperAdmin" asp-action="Donations"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
                                 <a class="sb-child" asp-controller="SuperAdmin" asp-action="Laws_Regulations"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
                             </div>
@@ -166,26 +175,54 @@
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Tools</div>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Map" data-tip="Map"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span><span class="sb-lbl">Map</span></a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications" data-tip="Notifications"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span><span class="sb-lbl">Notifications</span><span class="sb-bdg bd-r">12</span></a>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Map">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span>
+                        <span class="sb-lbl">Map</span>
+                    </a>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
+                        <span class="sb-lbl">Notifications</span>
+                    </a>
                 </div>
             </nav>
             <div class="sb-foot">
-                <div class="sb-user-row"><div class="sb-av">DC</div><div class="sb-user-info"><div class="sb-user-name">Daniel Carter</div><div class="sb-user-role">Operations Director</div></div></div>
-                <button class="sb-logout" onclick="alert('Sign out')" type="button"><svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg><span class="sb-logout-lbl">Sign Out</span></button>
+                <div class="sb-user-row">
+                    <div class="sb-av">@(ViewBag.AdminInitials ?? "AD")</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">@(ViewBag.AdminName ?? "Admin")</div>
+                        <div class="sb-user-role">Super Admin</div>
+                    </div>
+                </div>
+                <a class="sb-logout" asp-controller="Account" asp-action="Logout">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                    <span class="sb-logout-lbl">Sign Out</span>
+                </a>
             </div>
         </aside>
 
         <!-- ══ TOPNAV ══ -->
         <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button"><svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg></button>
+            <button class="tn-toggle" onclick="toggleSb()" type="button">
+                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+            </button>
             <nav class="tn-bread"><span>Reports</span><span>/</span><b>Dangerous Animals</b></nav>
-            <div class="tn-center"><div class="tn-center-main">Dangerous Animals</div><div class="tn-center-sub">Super Admin Panel</div></div>
+            <div class="tn-center">
+                <div class="tn-center-main">Dangerous Animals</div>
+                <div class="tn-center-sub">Super Admin Panel</div>
+            </div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-                <a class="tn-btn" asp-controller="SuperAdmin" asp-action="Notifications"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg><span class="tn-count">9</span></a>
+                <a class="tn-btn" asp-controller="SuperAdmin" asp-action="Notifications">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+                </a>
                 <div class="tn-sep"></div>
-                <div class="tn-profile" onclick="alert('Profile')"><div class="tn-av">DC</div><div><div class="tn-pname">Daniel Carter</div><div class="tn-prole">Operations Director</div></div></div>
+                <div class="tn-profile">
+                    <div class="tn-av">@(ViewBag.AdminInitials ?? "AD")</div>
+                    <div>
+                        <div class="tn-pname">@(ViewBag.AdminName ?? "Admin")</div>
+                        <div class="tn-prole">Super Admin</div>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -194,236 +231,439 @@
             <section class="page-hero">
                 <div>
                     <h1>🚨 Dangerous Animals</h1>
-                    <p>Review reports and send internal alerts to clinics or the municipality.</p>
+                    <p>Review and manage dangerous animal reports submitted by users.</p>
                 </div>
             </section>
 
             <div class="page-body">
 
-                <!-- KPI -->
+                @* رسائل النجاح والخطأ *@
+                @if (ViewBag.Success != null)
+                {
+                    <div style="background:var(--success-soft);border:1px solid rgba(47,158,95,.25);
+                                color:#2e7d32;padding:12px 16px;border-radius:14px;
+                                font-weight:800;font-size:.86rem;margin-bottom:16px;">
+                        @ViewBag.Success
+                    </div>
+                }
+                @if (ViewBag.Error != null)
+                {
+                    <div style="background:var(--danger-soft);border:1px solid rgba(217,83,79,.25);
+                                color:var(--danger);padding:12px 16px;border-radius:14px;
+                                font-weight:800;font-size:.86rem;margin-bottom:16px;">
+                        @ViewBag.Error
+                    </div>
+                }
+
+                @* KPI *@
                 <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
-                    <div class="kpi-card c4"><div class="kpi-ico red">🚨</div><div class="kpi-val" id="kpiOpen">4</div><div class="kpi-label">Open Reports</div><div class="kpi-chip chip-red">Needs action</div></div>
-                    <div class="kpi-card c4"><div class="kpi-ico red">🔴</div><div class="kpi-val" id="kpiHigh">2</div><div class="kpi-label">High Risk</div><div class="kpi-chip chip-red">Urgent</div></div>
-                    <div class="kpi-card c1"><div class="kpi-ico green">✅</div><div class="kpi-val" id="kpiResolved">12</div><div class="kpi-label">Resolved This Month</div><div class="kpi-chip chip-green">Closed</div></div>
-                    <div class="kpi-card c3"><div class="kpi-ico yellow">🚩</div><div class="kpi-val" id="kpiFake">1</div><div class="kpi-label">Suspected Fake</div><div class="kpi-chip chip-yellow">Review needed</div></div>
+                    <div class="kpi-card c4">
+                        <div class="kpi-ico red">🚨</div>
+                        <div class="kpi-val">@openReports</div>
+                        <div class="kpi-label">Open Reports</div>
+                        <div class="kpi-chip chip-red">Needs action</div>
+                    </div>
+                    <div class="kpi-card c4">
+                        <div class="kpi-ico red">🔴</div>
+                        <div class="kpi-val">@highRisk</div>
+                        <div class="kpi-label">High Risk</div>
+                        <div class="kpi-chip chip-red">Urgent</div>
+                    </div>
+                    <div class="kpi-card c1">
+                        <div class="kpi-ico green">✅</div>
+                        <div class="kpi-val">@resolvedReports</div>
+                        <div class="kpi-label">Resolved</div>
+                        <div class="kpi-chip chip-green">Closed</div>
+                    </div>
+                    <div class="kpi-card c2">
+                        <div class="kpi-ico blue">📋</div>
+                        <div class="kpi-val">@totalReports</div>
+                        <div class="kpi-label">Total Reports</div>
+                    </div>
                 </div>
 
-                <!-- Filters -->
-                <div class="toolbar" style="grid-template-columns:1fr auto auto auto auto;margin-bottom:14px;">
-                    <div class="search-wrap">
-                        <span style="color:var(--text-muted);font-size:1rem;flex-shrink:0;">🔍</span>
-                        <input id="searchInput" placeholder="Search by type, city or area..." oninput="render()" />
+                @* Filters — JS ثانوي فقط للفلترة المرئية *@
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                    <div class="search-wrap" style="flex:1 1 200px;">
+                        <span style="color:var(--text-muted);">🔍</span>
+                        <input id="searchInput" placeholder="Search by type, city or area..." oninput="filterReports()" />
                     </div>
-                    <select class="sel-wrap" id="sevFilter" onchange="render()" style="height:48px;width:auto;min-width:140px;">
+                    <select class="sel-wrap" id="sevFilter" onchange="filterReports()" style="height:48px;width:auto;min-width:140px;">
                         <option value="">All Severity</option>
-                        <option value="high">🔴 High</option>
-                        <option value="med">🟠 Medium</option>
-                        <option value="low">🟢 Low</option>
+                        <option value="High">🔴 High</option>
+                        <option value="Medium">🟠 Medium</option>
+                        <option value="Low">🟢 Low</option>
                     </select>
-                    <select class="sel-wrap" id="statusFilter" onchange="render()" style="height:48px;width:auto;min-width:130px;">
+                    <select class="sel-wrap" id="statusFilter" onchange="filterReports()" style="height:48px;width:auto;min-width:140px;">
                         <option value="">All Statuses</option>
-                        <option value="open">Open</option>
-                        <option value="processing">Processing</option>
-                        <option value="resolved">Resolved</option>
-                    </select>
-                    <select class="sel-wrap" id="cityFilter" onchange="render()" style="height:48px;width:auto;min-width:120px;">
-                        <option value="">All Cities</option>
-                        <option>Amman</option>
-                        <option>Zarqa</option>
-                        <option>Irbid</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Under Review">Under Review</option>
+                        <option value="Resolved">Resolved</option>
                     </select>
                     <button class="btn btn-outline btn-sm" onclick="resetFilters()">Reset</button>
                 </div>
 
-                <!-- List -->
+                @* قائمة البلاغات *@
                 <div class="table-card">
-                    <div class="table-head-bar"><div class="table-head-title">Dangerous Animal Reports</div><span class="table-count" id="tableCount">— reports</span></div>
-                    <div id="reportList"></div>
-                </div>
+                    <div class="table-head-bar">
+                        <div class="table-head-title">Dangerous Animal Reports</div>
+                        <span class="table-count">@totalReports reports</span>
+                    </div>
+                    <div id="reportList">
+                        @if (!Model.Any())
+                        {
+                            <div style="text-align:center;padding:40px;color:var(--text-muted);">
+                                <div style="font-size:2.5rem;margin-bottom:12px;">🐾</div>
+                                <p style="font-weight:800;">No dangerous animal reports yet.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var r in Model)
+                            {
+                                var sevDot = r.Severity == "High" ? "sev-high" : r.Severity == "Medium" ? "sev-med" : "sev-low";
+                                var sevBadge = r.Severity == "High" ? "badge-danger" : r.Severity == "Medium" ? "badge-warning" : "badge-success";
+                                var sevLabel = r.Severity == "High" ? "🔴 High" : r.Severity == "Medium" ? "🟠 Medium" : "🟢 Low";
+                                var stBadge = r.Status == "Resolved" ? "badge-success" : r.Status == "Under Review" ? "badge-warning" : "badge-danger";
+                                var animalIcon = r.AnimalType switch
+                                {
+                                    "Dog" => "🐕",
+                                    "Cat" => "🐈",
+                                    "Monkey" => "🐒",
+                                    "Reptile" => "🦎",
+                                    _ => "❓"
+                                };
 
+                                <div class="report-row"
+                                     data-type="@r.AnimalType"
+                                     data-problem="@r.ProblemType"
+                                     data-sev="@r.Severity"
+                                     data-status="@r.Status"
+                                     data-city="@r.City"
+                                     data-area="@(r.Area ?? "")"
+                                     data-desc="@(r.Description ?? "")"
+                                     data-code="@r.ReportCode"
+                                     data-date="@r.CreatedAt?.ToString("MMM dd, yyyy")"
+                                     onclick="openDetail(@r.IdDangReport)">
+
+                                    <div style="display:flex;align-items:center;justify-content:space-between;
+                                                    gap:10px;margin-bottom:6px;flex-wrap:wrap;">
+                                        <div style="display:flex;align-items:center;gap:9px;">
+                                            <div class="sev-dot @sevDot"></div>
+                                            <div style="font-weight:900;font-size:.9rem;color:var(--brand-dark);">
+                                                @r.ProblemType — @animalIcon @r.AnimalType
+                                            </div>
+                                        </div>
+                                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                            <span class="badge @sevBadge">@sevLabel</span>
+                                            <span class="badge @stBadge">@r.Status</span>
+                                        </div>
+                                    </div>
+
+                                    <div style="font-size:.78rem;color:var(--text-muted);font-weight:700;margin-bottom:7px;">
+                                        📍 @r.City @(!string.IsNullOrEmpty(r.Area) ? $"— {r.Area}" : "")
+                                        &nbsp;·&nbsp;
+                                        📅 @r.CreatedAt?.ToString("MMM dd, yyyy")
+                                        &nbsp;·&nbsp;
+                                        🔖 @r.ReportCode
+                                    </div>
+
+                                    @if (!string.IsNullOrEmpty(r.Description))
+                                    {
+                                        <div style="font-size:.82rem;color:var(--text-muted);font-weight:700;margin-bottom:10px;">
+                                            @(r.Description.Length > 120 ? r.Description[..120] + "…" : r.Description)
+                                        </div>
+                                    }
+
+                                    @* ✅ أزرار Status — HTML forms حقيقية *@
+                                    <div class="action-group">
+                                        @if (r.Status != "Under Review")
+                                        {
+                                            <form method="post"
+                                                  asp-controller="SuperAdmin"
+                                                  asp-action="UpdateDangerStatus"
+                                                  style="display:inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="reportId" value="@r.IdDangReport" />
+                                                <input type="hidden" name="status" value="Under Review" />
+                                                <button type="submit" class="btn btn-warning btn-xs">
+                                                    🔍 Under Review
+                                                </button>
+                                            </form>
+                                        }
+                                        @if (r.Status != "Resolved")
+                                        {
+                                            <form method="post"
+                                                  asp-controller="SuperAdmin"
+                                                  asp-action="UpdateDangerStatus"
+                                                  style="display:inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="reportId" value="@r.IdDangReport" />
+                                                <input type="hidden" name="status" value="Resolved" />
+                                                <button type="submit" class="btn btn-success btn-xs">
+                                                    ✅ Resolve
+                                                </button>
+                                            </form>
+                                        }
+                                        @if (r.Status != "Pending")
+                                        {
+                                            <form method="post"
+                                                  asp-controller="SuperAdmin"
+                                                  asp-action="UpdateDangerStatus"
+                                                  style="display:inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="reportId" value="@r.IdDangReport" />
+                                                <input type="hidden" name="status" value="Pending" />
+                                                <button type="submit" class="btn btn-outline btn-xs">
+                                                    🔄 Reopen
+                                                </button>
+                                            </form>
+                                        }
+                                        <button class="btn btn-outline btn-xs"
+                                                onclick="openDetail(@r.IdDangReport)">
+                                            👁 Details
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
             </div>
         </main>
     </div>
 
-    <!-- ══ DETAIL PANEL ══ -->
-    <div class="detail-overlay" id="detailModal" onclick="if(event.target===this)closeModal('detailModal')">
-        <div class="detail-panel" style="max-width:620px;">
-            <div class="dp-header"><div class="dp-title" id="dTitle">🚨 Report Details</div><button class="dp-close" onclick="closeModal('detailModal')">✕</button></div>
+    @* ══ DETAIL PANEL — للعرض فقط (JS ثانوي) ══ *@
+
+    @* ══ DETAIL PANEL ══ *@
+    <div class="detail-overlay" id="detailModal">
+        <div class="detail-panel" style="max-width:660px;">
+            <div class="dp-header">
+                <div class="dp-title" id="dTitle">🚨 Report Details</div>
+                <button class="dp-close" onclick="closeModal()">✕</button>
+            </div>
             <div class="dp-body">
-                <div id="dSevBox" style="border-radius:var(--r);padding:12px 14px;margin-bottom:14px;font-size:.84rem;font-weight:800;"></div>
+
+                @* Severity Box *@
+                <div id="dSevBox" style="border-radius:var(--r);padding:12px 14px;
+                                     margin-bottom:14px;font-size:.84rem;font-weight:800;"></div>
+
+                @* Report Info *@
                 <div class="dp-section" id="dInfo"></div>
-                <div class="dp-section" style="margin-top:12px;">
+
+                @* Send Internal Alert *@
+                <div class="dp-section" style="margin-top:14px;">
                     <div class="dp-section-title">📢 Send Internal Alert</div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
-                        <button class="btn btn-success" onclick="sendAlert('clinic')" style="justify-content:center;">🏥 Notify Clinics</button>
-                        <button class="btn btn-warning" onclick="sendAlert('municipality')" style="justify-content:center;">🏛 Notify Municipality</button>
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;
+                            gap:10px;margin-bottom:12px;">
+                        <button class="btn btn-success btn-sm"
+                                onclick="sendAlert('clinic')"
+                                style="justify-content:center;">
+                            🏥 Notify Clinics
+                        </button>
+                        <button class="btn btn-warning btn-sm"
+                                onclick="sendAlert('municipality')"
+                                style="justify-content:center;">
+                            🏛 Municipality
+                        </button>
+                        <button class="btn btn-info btn-sm"
+                                onclick="sendAlert('police')"
+                                style="justify-content:center;">
+                            🚔 Civil Defense
+                        </button>
                     </div>
                     <div class="field">
-                        <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Admin Note (optional)</label>
-                        <textarea id="dNote" placeholder="Add internal notes..." style="width:100%;min-height:80px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:12px 14px;font-weight:700;font-size:.86rem;outline:none;font-family:'Nunito',sans-serif;resize:vertical;"></textarea>
+                        <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">
+                            Admin Note (optional)
+                        </label>
+                        <textarea id="dNote"
+                                  placeholder="Add internal notes..."
+                                  style="width:100%;min-height:80px;border:1.5px solid var(--border);
+                                     border-radius:12px;background:#fff;padding:12px 14px;
+                                     font-weight:700;font-size:.86rem;outline:none;
+                                     font-family:'Nunito',sans-serif;resize:vertical;"></textarea>
                     </div>
                 </div>
+
+                @* Change Status *@
+                <div class="dp-section" style="margin-top:14px;">
+                    <div class="dp-section-title">⚙️ Update Status</div>
+                    <div id="dStatusForms"></div>
+                </div>
+
             </div>
             <div class="dp-footer">
-                <button class="btn btn-success btn-sm" onclick="resolveReport()">✅ Close Report</button>
-                <button class="btn btn-danger btn-sm" onclick="markFake()">🚩 Fake — Remove</button>
-                <button class="btn btn-outline btn-sm" onclick="closeModal('detailModal')">Close</button>
+                <button class="btn btn-outline btn-sm" onclick="closeModal()">Close</button>
             </div>
         </div>
     </div>
 
-    <div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;padding:11px 22px;border-radius:var(--pill);font-weight:800;font-size:.85rem;z-index:1999;display:none;align-items:center;gap:6px;box-shadow:0 8px 22px rgba(89,101,42,.3);white-space:nowrap;"></div>
+    <div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+     background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;
+     padding:11px 22px;border-radius:var(--pill);font-weight:800;font-size:.85rem;
+     z-index:1999;display:none;align-items:center;gap:6px;
+     box-shadow:0 8px 22px rgba(89,101,42,.3);white-space:nowrap;"></div>
 
     <script src="~/js/Waffy-Shell.js"></script>
-    <script src="~/js/superAdminClinic.js"></script>
     <script>
-        const reports = [
-            { id:1, type:'Aggressive', animal:'🐕 Dog',  city:'Amman', area:'Jubaiha',   desc:'A large dog is attacking pedestrians near the school.',           sev:'high', status:'open',       date:'Mar 13, 2026' },
-            { id:2, type:'Injured',    animal:'🐈 Cat',  city:'Zarqa', area:'Russeifa',  desc:'A cat with a deep wound on its leg, possibly hit by a car.',      sev:'med',  status:'open',       date:'Mar 12, 2026' },
-            { id:3, type:'Stray Pack', animal:'🐕 Dogs', city:'Irbid', area:'Downtown',  desc:'A group of stray dogs near the public park — scaring residents.', sev:'med',  status:'processing', date:'Mar 11, 2026' },
-            { id:4, type:'Disturbance',animal:'🐕 Dog',  city:'Amman', area:'Rabieh',   desc:'A dog is howling continuously at night — neighbors complained.',   sev:'low',  status:'open',       date:'Mar 10, 2026' },
-        ];
+        // ✅ منع تفجير الـ click من action-group للـ report-row
+        document.querySelectorAll('.action-group').forEach(function(el) {
+            el.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+        });
 
-        let selectedId = null;
+        // ✅ إغلاق الـ Modal عند الضغط على الـ overlay
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
 
-        const sevConfig = {
-            high: { label:'🔴 High',   badge:'badge-danger',  dot:'sev-high', box:'background:var(--danger-soft);color:var(--danger);border:1px solid rgba(217,83,79,.2);' },
-            med:  { label:'🟠 Medium', badge:'badge-orange',  dot:'sev-med',  box:'background:var(--warning-soft);color:#9b6000;border:1px solid rgba(226,163,58,.2);' },
-            low:  { label:'🟢 Low',    badge:'badge-success', dot:'sev-low',  box:'background:var(--success-soft);color:#2e7d32;border:1px solid rgba(47,158,95,.2);' },
-        };
-        const statusConfig = {
-            open:       { label:'Open',        badge:'badge-danger'  },
-            processing: { label:'In Progress', badge:'badge-warning' },
-            resolved:   { label:'Resolved',    badge:'badge-success' },
-        };
+        // ✅ إغلاق بـ Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
 
-        function render() {
-            const q      = (document.getElementById('searchInput')?.value || '').toLowerCase();
-            const sev    = document.getElementById('sevFilter')?.value    || '';
-            const status = document.getElementById('statusFilter')?.value || '';
-            const city   = document.getElementById('cityFilter')?.value   || '';
+        // ✅ جمع كل الـ rows للفلترة
+        var allRows = Array.from(document.querySelectorAll('.report-row'));
 
-            const filtered = reports.filter(r => {
-                const mQ   = !q      || r.type.toLowerCase().includes(q) || r.city.toLowerCase().includes(q) || r.area.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q);
-                const mSev = !sev    || r.sev === sev;
-                const mSt  = !status || r.status === status;
-                const mC   = !city   || r.city === city;
-                return mQ && mSev && mSt && mC;
+        // ══ فلترة ══
+        function filterReports() {
+            var q      = (document.getElementById('searchInput')?.value || '').toLowerCase();
+            var sev    = document.getElementById('sevFilter')?.value    || '';
+            var status = document.getElementById('statusFilter')?.value || '';
+
+            var visible = 0;
+            allRows.forEach(function(row) {
+                var type    = (row.dataset.type    || '').toLowerCase();
+                var city    = (row.dataset.city    || '').toLowerCase();
+                var desc    = (row.dataset.desc    || '').toLowerCase();
+                var problem = (row.dataset.problem || '').toLowerCase();
+                var rSev    = row.dataset.sev    || '';
+                var rStat   = row.dataset.status || '';
+
+                var mQ  = !q      || type.includes(q) || city.includes(q) ||
+                                      desc.includes(q) || problem.includes(q);
+                var mS  = !sev    || rSev === sev;
+                var mSt = !status || rStat === status;
+
+                var show = mQ && mS && mSt;
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
             });
 
-            const list = document.getElementById('reportList');
-            list.innerHTML = filtered.length
-                ? filtered.map(r => {
-                    const sc  = sevConfig[r.sev];
-                    const stc = statusConfig[r.status] || { label:r.status, badge:'badge-muted' };
-                    return `
-                    <div class="report-row" onclick="openDetail(${r.id})">
-                        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px;flex-wrap:wrap;">
-                            <div style="display:flex;align-items:center;gap:9px;">
-                                <div class="sev-dot ${sc.dot}"></div>
-                                <div style="font-weight:900;font-size:.9rem;color:var(--brand-dark);">${r.type} — ${r.animal}</div>
-                            </div>
-                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                                <span class="badge ${sc.badge}">${sc.label}</span>
-                                <span class="badge ${stc.badge}">${stc.label}</span>
-                            </div>
-                        </div>
-                        <div style="font-size:.78rem;color:var(--text-muted);font-weight:700;margin-bottom:7px;">📍 ${r.city} — ${r.area} &nbsp;·&nbsp; 📅 ${r.date}</div>
-                        <div style="font-size:.82rem;color:var(--text-muted);font-weight:700;margin-bottom:10px;">${r.desc}</div>
-                        <div class="action-group" onclick="event.stopPropagation()">
-                            <button class="btn btn-success btn-xs" onclick="quickNotify(${r.id},'clinic')">🏥 Notify Clinics</button>
-                            <button class="btn btn-warning btn-xs" onclick="quickNotify(${r.id},'municipality')">🏛 Notify Municipality</button>
-                            <button class="btn btn-outline btn-xs" onclick="quickResolve(${r.id})">✅ Close</button>
-                            <button class="btn btn-danger btn-xs" onclick="quickFake(${r.id})">🚩 Fake</button>
-                        </div>
-                    </div>`;
-                }).join('')
-                : `<div style="text-align:center;padding:28px;color:var(--text-muted);">No reports found.</div>`;
-
-            document.getElementById('tableCount').textContent = filtered.length + ' reports';
-            document.getElementById('kpiOpen').textContent     = reports.filter(r => r.status === 'open').length;
-            document.getElementById('kpiHigh').textContent     = reports.filter(r => r.sev === 'high').length;
-            document.getElementById('kpiResolved').textContent = reports.filter(r => r.status === 'resolved').length;
+            var count = document.querySelector('.table-count');
+            if (count) count.textContent = visible + ' reports';
         }
 
-        function openDetail(id) {
-            const r = reports.find(x => x.id === id);
-            if (!r) return;
-            selectedId = id;
-            const sc  = sevConfig[r.sev];
-            const stc = statusConfig[r.status] || { label:r.status, badge:'badge-muted' };
-
-            document.getElementById('dTitle').textContent = `🚨 ${r.type} — ${r.animal}`;
-            document.getElementById('dSevBox').style.cssText = sc.box + 'font-size:.84rem;font-weight:800;';
-            document.getElementById('dSevBox').textContent =
-                r.sev === 'high' ? '🔴 High Severity — Immediate action may be required.' :
-                r.sev === 'med'  ? '🟠 Medium Severity — Needs follow-up soon.' :
-                                   '🟢 Low Severity — Monitor and document.';
-
-            document.getElementById('dInfo').innerHTML = `
-                <div class="dp-section-title">Report Details</div>
-                <div class="info-row"><span class="info-key">Type</span><span class="info-val">${r.type}</span></div>
-                <div class="info-row"><span class="info-key">Animal</span><span class="info-val">${r.animal}</span></div>
-                <div class="info-row"><span class="info-key">Location</span><span class="info-val">📍 ${r.city} — ${r.area}</span></div>
-                <div class="info-row"><span class="info-key">Date</span><span class="info-val">${r.date}</span></div>
-                <div class="info-row"><span class="info-key">Severity</span><span class="info-val"><span class="badge ${sc.badge}">${sc.label}</span></span></div>
-                <div class="info-row"><span class="info-key">Status</span><span class="info-val"><span class="badge ${stc.badge}">${stc.label}</span></span></div>
-                <div style="margin-top:10px;background:var(--surface-2);border-radius:var(--r);padding:10px 12px;font-size:.83rem;color:var(--text-muted);font-weight:700;">${r.desc}</div>`;
-
-            document.getElementById('dNote').value = '';
-            openModal('detailModal');
-        }
-
-        function sendAlert(target) {
-            const r = reports.find(x => x.id === selectedId);
-            if (!r) return;
-            const who = target === 'clinic' ? 'nearby clinics' : 'the municipality';
-            showToast(`📢 Internal alert sent to ${who} for ${r.city} — ${r.area}.`);
-        }
-        function quickNotify(id, target) {
-            const r = reports.find(x => x.id === id);
-            if (!r) return;
-            const who = target === 'clinic' ? '🏥 clinics' : '🏛 municipality';
-            showToast(`📢 Alert sent to ${who} for ${r.city}.`);
-        }
-        function resolveReport() {
-            const r = reports.find(x => x.id === selectedId);
-            if (!r) return;
-            r.status = 'resolved';
-            closeModal('detailModal'); render();
-            showToast('✅ Report closed.');
-        }
-        function quickResolve(id) {
-            const r = reports.find(x => x.id === id);
-            if (r) { r.status = 'resolved'; render(); showToast('✅ Report closed.'); }
-        }
-        function markFake() {
-            const r = reports.find(x => x.id === selectedId);
-            if (!r || !confirm('Remove this report as fake?')) return;
-            reports.splice(reports.indexOf(r), 1);
-            closeModal('detailModal'); render();
-            showToast('🚩 Fake report removed.');
-        }
-        function quickFake(id) {
-            const idx = reports.findIndex(x => x.id === id);
-            if (idx < 0 || !confirm('Remove as fake?')) return;
-            reports.splice(idx, 1); render();
-            showToast('🚩 Fake report removed.');
-        }
         function resetFilters() {
             document.getElementById('searchInput').value = '';
-            ['sevFilter','statusFilter','cityFilter'].forEach(id => document.getElementById(id).selectedIndex = 0);
-            render();
-        }
-        function openModal(id)  { document.getElementById(id).classList.add('open'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg; t.style.display = 'flex';
-            setTimeout(() => t.style.display = 'none', 3000);
+            document.getElementById('sevFilter').selectedIndex    = 0;
+            document.getElementById('statusFilter').selectedIndex = 0;
+            filterReports();
         }
 
-        render();
+        // ══ Detail Modal ══
+        function openDetail(id) {
+            var row = document.querySelector('.report-row[onclick*="' + id + '"]');
+            if (!row) return;
+
+            var type    = row.dataset.type    || '';
+            var problem = row.dataset.problem || '';
+            var sev     = row.dataset.sev     || '';
+            var status  = row.dataset.status  || '';
+            var city    = row.dataset.city    || '';
+            var area    = row.dataset.area    || '';
+            var desc    = row.dataset.desc    || '';
+            var code    = row.dataset.code    || '';
+            var date    = row.dataset.date    || '';
+
+            // Severity Box
+            var sevBox = document.getElementById('dSevBox');
+            var sevStyle = sev === 'High'
+                ? 'background:var(--danger-soft);color:var(--danger);border:1px solid rgba(217,83,79,.2);'
+                : sev === 'Medium'
+                ? 'background:var(--warning-soft);color:#9b6000;border:1px solid rgba(226,163,58,.2);'
+                : 'background:var(--success-soft);color:#2e7d32;border:1px solid rgba(47,158,95,.2);';
+            sevBox.style.cssText = sevStyle +
+                'font-size:.84rem;font-weight:800;border-radius:var(--r);padding:12px 14px;margin-bottom:14px;';
+            sevBox.textContent = sev === 'High'
+                ? '🔴 High Severity — Immediate action may be required.'
+                : sev === 'Medium'
+                ? '🟠 Medium Severity — Needs follow-up soon.'
+                : '🟢 Low Severity — Monitor and document.';
+
+            // Title
+            document.getElementById('dTitle').textContent = '🚨 ' + type + ' Report';
+
+            // Info
+            document.getElementById('dInfo').innerHTML =
+                '<div class="dp-section-title">Report Details</div>' +
+                '<div class="info-row"><span class="info-key">Animal Type</span><span class="info-val">' + type + '</span></div>' +
+                '<div class="info-row"><span class="info-key">Problem</span><span class="info-val">' + problem + '</span></div>' +
+                '<div class="info-row"><span class="info-key">Severity</span><span class="info-val">' + sev + '</span></div>' +
+                '<div class="info-row"><span class="info-key">Status</span><span class="info-val">' + status + '</span></div>' +
+                '<div class="info-row"><span class="info-key">Location</span><span class="info-val">📍 ' + city + (area ? ' — ' + area : '') + '</span></div>' +
+                '<div class="info-row"><span class="info-key">Date</span><span class="info-val">📅 ' + date + '</span></div>' +
+                '<div class="info-row"><span class="info-key">Reference</span><span class="info-val" style="font-family:monospace;">' + code + '</span></div>' +
+                (desc ? '<div style="margin-top:10px;background:var(--surface-2);border-radius:var(--r);' +
+                    'padding:10px 12px;font-size:.83rem;color:var(--text-muted);font-weight:700;">' +
+                    '📝 ' + desc + '</div>' : '');
+
+            // Status Forms
+            var token = getToken();
+            var formsHtml = '';
+            if (status !== 'Under Review') {
+                formsHtml += '<form method="post" action="/SuperAdmin/UpdateDangerStatus" style="display:inline;margin:4px;">' +
+                    '<input type="hidden" name="__RequestVerificationToken" value="' + token + '">' +
+                    '<input type="hidden" name="reportId" value="' + id + '">' +
+                    '<input type="hidden" name="status" value="Under Review">' +
+                    '<button type="submit" class="btn btn-warning btn-sm">🔍 Under Review</button></form>';
+            }
+            if (status !== 'Resolved') {
+                formsHtml += '<form method="post" action="/SuperAdmin/UpdateDangerStatus" style="display:inline;margin:4px;">' +
+                    '<input type="hidden" name="__RequestVerificationToken" value="' + token + '">' +
+                    '<input type="hidden" name="reportId" value="' + id + '">' +
+                    '<input type="hidden" name="status" value="Resolved">' +
+                    '<button type="submit" class="btn btn-success btn-sm">✅ Resolve</button></form>';
+            }
+            if (status !== 'Pending') {
+                formsHtml += '<form method="post" action="/SuperAdmin/UpdateDangerStatus" style="display:inline;margin:4px;">' +
+                    '<input type="hidden" name="__RequestVerificationToken" value="' + token + '">' +
+                    '<input type="hidden" name="reportId" value="' + id + '">' +
+                    '<input type="hidden" name="status" value="Pending">' +
+                    '<button type="submit" class="btn btn-outline btn-sm">🔄 Reopen</button></form>';
+            }
+            document.getElementById('dStatusForms').innerHTML = formsHtml;
+            document.getElementById('dNote').value = '';
+
+            document.getElementById('detailModal').classList.add('open');
+        }
+
+        function closeModal() {
+            document.getElementById('detailModal').classList.remove('open');
+        }
+
+        // ══ Send Alert (JS ثانوي) ══
+        function sendAlert(target) {
+            var note = document.getElementById('dNote').value.trim();
+            var who  = target === 'clinic'       ? '🏥 nearby clinics'
+                     : target === 'municipality' ? '🏛 the municipality'
+                     :                            '🚔 civil defense';
+            showToast('📢 Alert sent to ' + who + (note ? ' — ' + note.slice(0, 40) : ''));
+        }
+
+        // ══ Helpers ══
+        function getToken() {
+            var el = document.querySelector('input[name="__RequestVerificationToken"]');
+            return el ? el.value : '';
+        }
+
+        function showToast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'flex';
+            setTimeout(function() { t.style.display = 'none'; }, 3000);
+        }
     </script>
 </body>
 </html>

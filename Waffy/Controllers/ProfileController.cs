@@ -17,6 +17,9 @@ namespace Waffy.Controllers
         private readonly IWalletRepository _walletRepo;
         private readonly IDonationRepository _donationRepo;
         private readonly IDangerousAnimalReportRepository _dangerRepo;
+        private readonly IComplaintRepository _complaintRepo;
+        private readonly IClinicRepository _clinicRepo;
+        private readonly IStoreRepository _storeRepo;
         public ProfileController(
             IUserRepository userRepository,
             IPetRepository petRepo,
@@ -26,6 +29,9 @@ namespace Waffy.Controllers
             IFoundPetClaimRepository claimRepo,
             IDonationRepository donationRepo,
             IDangerousAnimalReportRepository dangerRepo,
+            IComplaintRepository complaintRepo,
+            IClinicRepository clinicRepo,
+            IStoreRepository storeRepo,
             IWalletRepository walletRepo)
         {
             _userRepository = userRepository;
@@ -37,6 +43,9 @@ namespace Waffy.Controllers
             _walletRepo = walletRepo;
             _donationRepo = donationRepo;
             _dangerRepo = dangerRepo;
+            _complaintRepo = complaintRepo;
+            _clinicRepo = clinicRepo;
+            _storeRepo = storeRepo;
         }
 
         // ── helper: تجلب المستخدم من Session أو ترجع null ──
@@ -510,6 +519,20 @@ namespace Waffy.Controllers
                                   dr.Severity == "Medium" ? "#b36d2c" : "#2d7a2d"
                 });
             }
+            // ✅ 8 — Complaints
+            var complaints = await _complaintRepo.GetByUserIdAsync(user.UserId);
+            foreach (var comp in complaints)
+            {
+                events.Add(new TimelineEvent
+                {
+                    Icon = "📢",
+                    Title = $"Complaint — {comp.TargetType}",
+                    Description = $"{comp.Title} · Status: {comp.Status} · Priority: {comp.Priority}",
+                    Date = comp.CreatedAt ?? DateTime.UtcNow,
+                    Color = comp.Priority == "High" || comp.Priority == "Urgent"
+                                    ? "#dc2626" : "#b36d2c"
+                });
+            }
 
             // ✅ رتّب حسب التاريخ — الأحدث أولاً
             events = events.OrderByDescending(e => e.Date).ToList();
@@ -559,7 +582,70 @@ namespace Waffy.Controllers
                 DangerReports = reports
             });
         }
-        public IActionResult Complaints() => View();
+        // ════════════════════════════════════════════════════
+        // COMPLAINTS — GET
+        // ════════════════════════════════════════════════════
+        public async Task<IActionResult> Complaints()
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
+            var complaints = (await _complaintRepo.GetByUserIdAsync(user.UserId)).ToList();
+            // ✅ المعتمدون فقط
+            var clinics = (await _clinicRepo.GetAllAsync())
+                .Where(c => c.VerificationStatus == "Approved").ToList();
+            var stores = (await _storeRepo.GetAllAsync())
+                .Where(s => s.VerificationStatus == "Approved").ToList();
+
+            ViewBag.Clinics = clinics;
+            ViewBag.Stores = stores;
+
+            return View(new WalletViewModel
+            {
+                User = user,
+                Wallet = wallet,
+                Complaints = complaints
+            });
+        }
+
+        // ════════════════════════════════════════════════════
+        // SUBMIT COMPLAINT — POST
+        // ════════════════════════════════════════════════════
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitComplaint(
+            string targetType,
+            int? targetId,
+            string title,
+            string description,
+            string priority)
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            if (string.IsNullOrWhiteSpace(title) ||
+                string.IsNullOrWhiteSpace(description))
+            {
+                TempData["ComplaintError"] = "Please fill in all required fields.";
+                return RedirectToAction("Complaints");
+            }
+
+            await _complaintRepo.CreateAsync(new Complaint
+            {
+                IdUser = user.UserId,
+                TargetType = targetType,
+                TargetId = targetType == "System" ? null : targetId,
+                Title = title,
+                Description = description,
+                Status = "Open",
+                Priority = priority ?? "Medium",
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["ComplaintSuccess"] = "✅ Your complaint was submitted successfully!";
+            return RedirectToAction("Complaints");
+        }
         // =========================
         // Security — GET
         // =========================

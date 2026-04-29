@@ -20,6 +20,8 @@ namespace Waffy.Models.ViewModels
         public List<TimelineEvent> TimelineEvents { get; set; } = new();
         public List<Donation> Donations { get; set; } = new();
         public List<DangerousAnimalReport> DangerReports { get; set; } = new();
+
+        public List<Complaint> Complaints { get; set; } = new();
     }
 
     public class TimelineEvent

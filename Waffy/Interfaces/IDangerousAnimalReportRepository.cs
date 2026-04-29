@@ -6,5 +6,8 @@ namespace Waffy.Interfaces
     {
         Task<int> CreateAsync(DangerousAnimalReport report);
         Task<IEnumerable<DangerousAnimalReport>> GetByUserIdAsync(int userId);
+
+        Task<IEnumerable<DangerousAnimalReport>> GetAllAsync();       
+        Task UpdateStatusAsync(int id, string status);
     }
 }

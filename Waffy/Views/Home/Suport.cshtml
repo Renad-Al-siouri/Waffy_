@@ -1,8 +1,11 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
     Layout = null;
+    var clinics = ViewBag.Clinics as List<Waffy.Models.Clinic> ?? new();
+    var stores = ViewBag.Stores as List<Waffy.Models.Store> ?? new();
+    var hasSuccess = TempData["SupportSuccess"] != null;
+    var successMsg = TempData["SupportSuccess"]?.ToString();
+    var hasError = TempData["SupportError"] != null;
+    var errorMsg = TempData["SupportError"]?.ToString();
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -10,43 +13,32 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Support & Reports - Waffy</title>
-
-    <link rel="stylesheet" href="~/css//support.css" />
+    <link rel="stylesheet" href="~/css/support.css" />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
-
     <div class="top-hero-area">
         <div class="top-hero-shell">
             <header class="topbar">
                 <div class="header-shell">
                     <nav class="navbar">
-
                         <div class="left-nav desktop-nav desktop-links">
                             <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                             <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                             <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                             <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-
                         </div>
-
                         <div class="logo-center">
                             <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
                         </div>
-
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
-
-
-
                                 <div class="services-dropdown" id="servicesDropdown">
                                     <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services
-                                        <span class="dropdown-arrow">▼</span>
+                                        Services <span class="dropdown-arrow">▼</span>
                                     </button>
-
                                     <div class="dropdown-menu" id="servicesMenu">
                                         <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
                                         <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
@@ -60,63 +52,50 @@
                                         <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                     </div>
                                 </div>
-
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
-
                             </div>
-
                             <div class="nav-actions">
-                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon">
                                     <i class="fa-solid fa-cart-shopping"></i>
                                 </a>
-
-                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon" aria-label="Notifications">
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon">
                                     <i class="fa-solid fa-bell"></i>
                                 </a>
-
-                                <a asp-controller="Account" asp-action="Profile" class="profile-btn" aria-label="Profile">
+                                <a asp-controller="Account" asp-action="Profile" class="profile-btn">
                                     <img src="../Images/user.jpg" alt="Profile">
                                 </a>
                                 <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
-
                             <div class="mobile-nav-wrap">
-                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
+                                <button class="menu-btn" id="menuBtn" type="button">☰</button>
                                 <div class="nav-links" id="navLinks">
                                     <div class="mobile-menu-logo">
                                         <img src="../Images/logo.png" alt="Waffy Logo">
                                     </div>
-
                                     <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                                     <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                                     <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                                     <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                                     <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
-
                                     <div class="mobile-services-block" id="mobileServicesBlock">
                                         <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
                                             <span>Services</span>
                                             <span class="dropdown-arrow">▼</span>
                                         </button>
-
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
-
                                             <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                             <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                             <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
                                             <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
-                                            <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
+                                            <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                                     <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
                             </div>
                         </div>
-
                     </nav>
                 </div>
             </header>
@@ -124,9 +103,28 @@
     </div>
 
     <main class="container support-page">
+
+        @* رسائل *@
+        @if (hasSuccess)
+        {
+            <div style="background:#f0fff0;border:1px solid #b2dfb2;color:#2d7a2d;
+                            padding:1rem 1.2rem;margin:1rem 0;border-radius:14px;
+                            font-weight:700;font-family:Nunito,sans-serif;font-size:.95rem">
+                @successMsg
+            </div>
+        }
+        @if (hasError)
+        {
+            <div style="background:#fff0f0;border:1px solid #ffb2b2;color:#c0392b;
+                            padding:1rem 1.2rem;margin:1rem 0;border-radius:14px;
+                            font-weight:700;font-family:Nunito,sans-serif;font-size:.95rem">
+                ⚠️ @errorMsg
+            </div>
+        }
+
         <section class="hero-section fade-up">
-            <h1>We’re Here For You ♡</h1>
-            <p>Tell us what happened, and we’ll take care of it.</p>
+            <h1>We're Here For You ♡</h1>
+            <p>Tell us what happened, and we'll take care of it.</p>
         </section>
 
         <section class="support-cards fade-up">
@@ -134,7 +132,6 @@
                 <div class="support-image-wrap">
                     <img src="../Images/support/com.png" alt="Technical issue" class="support-image" />
                 </div>
-
                 <div class="support-card-body">
                     <h2>Technical Issue</h2>
                     <ul>
@@ -143,8 +140,8 @@
                         <li>Account issues</li>
                         <li>Technical glitches</li>
                     </ul>
-
-                    <button class="report-btn" type="button" data-report-type="technical">
+                    <button class="report-btn" type="button"
+                            onclick="openModal('technical')">
                         Report Technical Issue
                     </button>
                 </div>
@@ -154,7 +151,6 @@
                 <div class="support-image-wrap">
                     <img src="../Images/support/pet.png" alt="Clinic issue" class="support-image" />
                 </div>
-
                 <div class="support-card-body">
                     <h2>Clinic Issue</h2>
                     <ul>
@@ -163,8 +159,8 @@
                         <li>Delay or bad service</li>
                         <li>Treatment inquiry</li>
                     </ul>
-
-                    <button class="report-btn" type="button" data-report-type="clinic">
+                    <button class="report-btn" type="button"
+                            onclick="openModal('clinic')">
                         Report Clinic Issue
                     </button>
                 </div>
@@ -174,7 +170,6 @@
                 <div class="support-image-wrap">
                     <img src="../Images/support/car.png" alt="Store issue" class="support-image" />
                 </div>
-
                 <div class="support-card-body">
                     <h2>Store Issue</h2>
                     <ul>
@@ -183,8 +178,8 @@
                         <li>Missing order item</li>
                         <li>Store service complaint</li>
                     </ul>
-
-                    <button class="report-btn" type="button" data-report-type="store">
+                    <button class="report-btn" type="button"
+                            onclick="openModal('store')">
                         Report Store Issue
                     </button>
                 </div>
@@ -194,76 +189,115 @@
 
     <footer class="footer">
         <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <span>|</span>
-            <a href="about.html">Contact</a>
-            <span>|</span>
-            <a href="faq.html">FAQ</a>
-            <span>|</span>
-            <div class="social-inline">
-                <span>f</span>
-                <span>🐦</span>
-                <span>◎</span>
-            </div>
+            <a asp-controller="Home" asp-action="About">About Us</a><span>|</span>
+            <a asp-controller="Home" asp-action="Suport">Contact</a><span>|</span>
+            <a asp-controller="Home" asp-action="Faq">FAQ</a>
         </div>
         <div>© 2026 Waffy, all rights reserved.</div>
     </footer>
 
+    @* ✅ الـ Modal مع فورم حقيقي *@
     <div id="reportModal" class="modal hidden">
-        <div class="modal-overlay" data-close-modal></div>
-
+        <div class="modal-overlay" onclick="closeModal()"></div>
         <div class="modal-card">
-            <button class="modal-close" type="button" data-close-modal>&times;</button>
+            <button class="modal-close" type="button" onclick="closeModal()">&times;</button>
 
             <div class="modal-head">
                 <h3 id="modalTitle">Report Issue</h3>
                 <p id="modalSubtitle">Please fill in the details below.</p>
             </div>
 
-            <form id="reportForm" class="report-form">
-                <div class="form-grid two">
-                    <label>
-                        <span>Your Name</span>
-                        <input id="userName" type="text" placeholder="Enter your name" />
-                    </label>
+            @* ✅ فورم حقيقي يرسل للـ Controller *@
+            <form method="post"
+                  asp-controller="Home"
+                  asp-action="SubmitSupport">
+                @Html.AntiForgeryToken()
 
-                    <label>
-                        <span>Phone Number</span>
-                        <input id="userPhone" type="text" placeholder="+962 7X XXX XXXX" />
+                @* ✅ hidden inputs تتحدث بالـ JS *@
+                <input type="hidden" id="hTargetType" name="targetType" value="System" />
+          
+
+                @* Clinic Select — من DB *@
+                <div id="clinicWrap" style="display:none;margin-bottom:14px">
+                    <label style="font-weight:800;font-size:.82rem;display:block;margin-bottom:6px">
+                        Clinic Name
                     </label>
+                    <select id="clinicSelect" name="targetId"
+                            style="width:100%;min-height:50px;border-radius:16px;
+                                   border:1px solid rgba(163,149,118,.24);padding:0 14px;
+                                   font-weight:700;font-family:Nunito,sans-serif">
+                        <option value="">Choose clinic</option>
+                        @foreach (var clinic in clinics)
+                        {
+                            <option value="@clinic.IdClinic">@clinic.Name</option>
+                        }
+                    </select>
+                    <div style="font-size:.76rem;color:#7b6c58;font-weight:700;margin-top:4px">
+                        Sent to Clinic Admin + Super Admin
+                    </div>
                 </div>
 
-                <div id="entityFieldWrap" class="form-grid one hidden">
-                    <label>
-                        <span id="entityLabel">Clinic Name</span>
-                        <select id="entityName">
-                            <option value="">Select an option</option>
-                        </select>
+                @* Store Select — من DB *@
+                <div id="storeWrap" style="display:none;margin-bottom:14px">
+                    <label style="font-weight:800;font-size:.82rem;display:block;margin-bottom:6px">
+                        Store Name
                     </label>
+                    <select id="storeSelect" name="targetId"
+                            style="width:100%;min-height:50px;border-radius:16px;
+                                   border:1px solid rgba(163,149,118,.24);padding:0 14px;
+                                   font-weight:700;font-family:Nunito,sans-serif">
+                        <option value="">Choose store</option>
+                        @foreach (var store in stores)
+                        {
+                            <option value="@store.IdStore">@store.Name</option>
+                        }
+                    </select>
+                    <div style="font-size:.76rem;color:#7b6c58;font-weight:700;margin-top:4px">
+                        Sent to Store Admin + Super Admin
+                    </div>
                 </div>
 
+                @* Issue Reason = Title *@
                 <div class="form-grid one">
                     <label>
                         <span>Issue Reason</span>
-                        <select id="issueReason">
+                        <select id="issueReason" name="title">
                             <option value="">Select a reason</option>
                         </select>
                     </label>
                 </div>
 
+                @* ✅ Priority — ظاهر للمستخدم *@
+                <div class="form-grid one" style="margin-bottom:14px">
+                    <label>
+                        <span>Priority</span>
+                        <select name="priority"
+                                style="width:100%;min-height:50px;border-radius:16px;
+                       border:1px solid rgba(163,149,118,.24);padding:0 14px;
+                       font-weight:700;font-family:Nunito,sans-serif">
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                            <option value="Urgent">Urgent</option>
+                        </select>
+                    </label>
+                </div>
+
+                @* Description *@
                 <div class="form-grid one">
                     <label>
                         <span>Describe the Problem</span>
-                        <textarea id="issueMessage" placeholder="Write your issue here..."></textarea>
+                        <textarea name="description" required
+                                  placeholder="Write your issue here..."></textarea>
                     </label>
                 </div>
 
                 <div class="notice-box">
-                    Don’t worry — we received your issue and our team will contact you as soon as possible.
+                    Don't worry — we received your issue and our team will contact you soon.
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="cancel-btn" data-close-modal>Cancel</button>
+                    <button type="button" class="cancel-btn" onclick="closeModal()">Cancel</button>
                     <button type="submit" class="submit-btn">Send Report</button>
                 </div>
             </form>
@@ -272,6 +306,96 @@
 
     <div id="toast" class="toast"></div>
 
-    <script src="~/js/suport.js"></script>
+    <script>
+        var currentType = 'technical';
+
+        var reasonOptions = {
+            technical: ['Site bug','Payment issue','Login problem','Account issue','Page not working','Other technical problem'],
+            clinic:    ['Wrong clinic information','Appointment problem','Doctor issue','Delay in service','Treatment concern','Other clinic issue'],
+            store:     ['Wrong product information','Delivery problem','Missing item','Bad store service','Order issue','Other store issue']
+        };
+
+        function fillReasonOptions(type) {
+            var sel = document.getElementById('issueReason');
+            sel.innerHTML = '<option value="">Select a reason</option>';
+            reasonOptions[type].forEach(function(r) {
+                var opt = document.createElement('option');
+                opt.value = r; opt.textContent = r;
+                sel.appendChild(opt);
+            });
+        }
+
+        function openModal(type) {
+            currentType = type;
+
+            // ✅ تحديث hidden input
+            document.getElementById('hTargetType').value =
+                type === 'technical' ? 'System' :
+                type === 'clinic'    ? 'Clinic' : 'Store';
+
+            // ✅ عنوان الـ Modal
+            var titles = {
+                technical: ['Technical Issue Report', 'Tell us about the technical problem.'],
+                clinic:    ['Clinic Issue Report',    'Please choose the clinic related to the issue.'],
+                store:     ['Store Issue Report',     'Please choose the store related to the issue.']
+            };
+            document.getElementById('modalTitle').textContent    = titles[type][0];
+            document.getElementById('modalSubtitle').textContent = titles[type][1];
+
+            // ✅ إظهار/إخفاء الـ dropdowns
+            document.getElementById('clinicWrap').style.display = type === 'clinic' ? 'block' : 'none';
+            document.getElementById('storeWrap').style.display  = type === 'store'  ? 'block' : 'none';
+
+            // ✅ ملء قائمة الأسباب
+            fillReasonOptions(type);
+
+            document.getElementById('reportModal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            document.getElementById('reportModal').classList.add('hidden');
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // Navbar
+        document.addEventListener('DOMContentLoaded', function () {
+            var fadeEls = document.querySelectorAll('.fade-up');
+            if ('IntersectionObserver' in window) {
+                var obs = new IntersectionObserver(function(entries) {
+                    entries.forEach(function(e) {
+                        if (e.isIntersecting) { e.target.classList.add('show'); obs.unobserve(e.target); }
+                    });
+                }, { threshold: 0.15 });
+                fadeEls.forEach(function(el) { obs.observe(el); });
+            } else {
+                fadeEls.forEach(function(el) { el.classList.add('show'); });
+            }
+
+            var sd = document.getElementById('servicesDropdown');
+            var st = document.getElementById('servicesToggle');
+            if (sd && st) {
+                st.addEventListener('click', function(e) { e.stopPropagation(); sd.classList.toggle('open'); });
+                document.addEventListener('click', function(e) { if (!sd.contains(e.target)) sd.classList.remove('open'); });
+            }
+
+            var menuBtn  = document.getElementById('menuBtn');
+            var navLinks = document.getElementById('navLinks');
+            if (menuBtn && navLinks) {
+                menuBtn.addEventListener('click', function(e) { e.stopPropagation(); navLinks.classList.toggle('open'); });
+                document.addEventListener('click', function(e) {
+                    if (!navLinks.contains(e.target) && e.target !== menuBtn) navLinks.classList.remove('open');
+                });
+            }
+
+            var mt = document.getElementById('mobileServicesToggle');
+            var mb = document.getElementById('mobileServicesBlock');
+            if (mt && mb) mt.addEventListener('click', function() { mb.classList.toggle('open'); });
+        });
+    </script>
 </body>
 </html>

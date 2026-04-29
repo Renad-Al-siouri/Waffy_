@@ -1,0 +1,55 @@
+﻿using Dapper;
+using Microsoft.Data.SqlClient;
+using Waffy.Interfaces;
+using Waffy.Models;
+
+namespace Waffy.Repository
+{
+    public class ComplaintRepository : IComplaintRepository
+    {
+        private readonly string _connectionString;
+
+        public ComplaintRepository(IConfiguration configuration)
+        {
+            _connectionString = configuration.GetConnectionString("WaffyConnection")
+                ?? throw new Exception("WaffyConnection not found");
+        }
+
+        public async Task<int> CreateAsync(Complaint complaint)
+        {
+            const string sql = @"
+                INSERT INTO Complaint
+                    (IdComplaint, IdUser, TargetType, TargetId,
+                     Title, Description, Status, Priority, CreatedAt)
+                SELECT ISNULL(MAX(IdComplaint), 0) + 1,
+                       @IdUser, @TargetType, @TargetId,
+                       @Title, @Description, @Status, @Priority, @CreatedAt
+                FROM Complaint;
+                SELECT ISNULL(MAX(IdComplaint), 0) FROM Complaint;";
+
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.ExecuteScalarAsync<int>(sql, new
+            {
+                complaint.IdUser,
+                complaint.TargetType,
+                complaint.TargetId,
+                complaint.Title,
+                complaint.Description,
+                complaint.Status,
+                complaint.Priority,
+                complaint.CreatedAt
+            });
+        }
+
+        public async Task<IEnumerable<Complaint>> GetByUserIdAsync(int userId)
+        {
+            const string sql = @"
+                SELECT * FROM Complaint
+                WHERE IdUser = @UserId
+                ORDER BY CreatedAt DESC";
+
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<Complaint>(sql, new { UserId = userId });
+        }
+    }
+}

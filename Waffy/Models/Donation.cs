@@ -15,5 +15,6 @@
         public string? ReferenceCode { get; set; }   // WAF-DON-XXXXXX
         public string? Status { get; set; }
         public DateTime? CreatedAt { get; set; }
+        public string? DonorName { get; set; } // ← جديد — يُملأ من JOIN
     }
 }

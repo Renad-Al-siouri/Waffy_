@@ -9,5 +9,6 @@ namespace Waffy.Interfaces
         Task<Clinic?> GetByOwnerUserIdAsync(int ownerUserId);
         Task UpdateAsync(Clinic clinic);
         Task DeleteAsync(int idClinic);
+        Task<IEnumerable<Clinic>> GetAllAsync();
     }
 }

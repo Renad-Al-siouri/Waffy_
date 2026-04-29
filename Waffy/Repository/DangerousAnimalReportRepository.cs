@@ -59,5 +59,24 @@ namespace Waffy.Repository
             using var conn = new SqlConnection(_connectionString);
             return await conn.QueryAsync<DangerousAnimalReport>(sql, new { UserId = userId });
         }
+
+        public async Task<IEnumerable<DangerousAnimalReport>> GetAllAsync()
+        {
+            const string sql = @"
+        SELECT * FROM DangerousAnimalReport
+        ORDER BY CreatedAt DESC";
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<DangerousAnimalReport>(sql);
+        }
+
+        public async Task UpdateStatusAsync(int id, string status)
+        {
+            const string sql = @"
+        UPDATE DangerousAnimalReport
+        SET Status = @Status
+        WHERE IdDangReport = @Id";
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(sql, new { Id = id, Status = status });
+        }
     }
 }

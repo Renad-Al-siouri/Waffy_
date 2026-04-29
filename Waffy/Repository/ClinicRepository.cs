@@ -83,5 +83,13 @@ namespace Waffy.Repositories
             var sql = "DELETE FROM Clinic WHERE IdClinic = @IdClinic";
             await connection.ExecuteAsync(sql, new { IdClinic = idClinic });
         }
+
+        // ✅ جلب كل العيادات
+        public async Task<IEnumerable<Clinic>> GetAllAsync()
+        {
+            const string sql = "SELECT * FROM Clinic ORDER BY CreatedAt DESC";
+            using var connection = new SqlConnection(_ConnectionString);
+            return await connection.QueryAsync<Clinic>(sql);
+        }
     }
 }
