@@ -51,5 +51,51 @@ namespace Waffy.Repository
             using var conn = new SqlConnection(_connectionString);
             return await conn.QueryAsync<Complaint>(sql, new { UserId = userId });
         }
+
+        public async Task UpdateStatusAsync(int id, string status)
+        {
+            const string sql = @"
+                UPDATE Complaint
+                SET Status = @Status
+                WHERE IdComplaint = @Id";
+
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(sql, new { Id = id, Status = status });
+        }
+
+        public async Task<IEnumerable<Complaint>> GetAllByTargetTypeAsync(string targetType)
+        {
+            var sql = @"
+                SELECT 
+                    c.IdComplaint,
+                    c.IdUser,
+                    c.TargetType,
+                    c.TargetId,
+                    c.Title,
+                    c.Description,
+                    c.Status,
+                    c.Priority,
+                    c.CreatedAt,
+                    u.FullName AS ComplainantName,
+                    CASE 
+                        WHEN c.TargetType = 'Clinic' THEN cl.Name
+                        WHEN c.TargetType = 'Store'  THEN st.Name
+                        ELSE NULL
+                    END AS TargetName
+                FROM Complaint c
+                LEFT JOIN Users u
+                    ON c.IdUser = u.UserId
+                LEFT JOIN Clinic cl
+                    ON c.TargetId = cl.IdClinic
+                    AND c.TargetType = 'Clinic'
+                LEFT JOIN Store st
+                    ON c.TargetId = st.IdStore
+                    AND c.TargetType = 'Store'
+                WHERE c.TargetType = @TargetType
+                ORDER BY c.CreatedAt DESC";
+
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<Complaint>(sql, new { TargetType = targetType });
+        }
     }
 }

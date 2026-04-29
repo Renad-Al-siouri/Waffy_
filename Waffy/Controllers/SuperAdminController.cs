@@ -17,6 +17,7 @@ namespace Waffy.Controllers
         private readonly IDangerousAnimalReportRepository _dangerRepo;
         private readonly IDonationRepository _donationRepo;
         private readonly IDonationAnimalRepository _donationAnimalRepo;
+        private readonly IComplaintRepository _complaintRepo;
 
         public SuperAdminController(
             IUserRepository userRepo,
@@ -26,7 +27,9 @@ namespace Waffy.Controllers
             IStoreDocumentRepository docRepo,
             IDangerousAnimalReportRepository dangerRepo,
             IDonationRepository donationRepo,           
-            IDonationAnimalRepository donationAnimalRepo)
+            IDonationAnimalRepository donationAnimalRepo,
+            IComplaintRepository complaintRepo)
+
         {
             _userRepo = userRepo;
             _storeRepo = storeRepo;
@@ -36,6 +39,7 @@ namespace Waffy.Controllers
             _dangerRepo = dangerRepo;
             _donationRepo = donationRepo;        
             _donationAnimalRepo = donationAnimalRepo;  
+            _complaintRepo = complaintRepo;
         }
 
         // ── Guards ───────────────────────────────────────────────
@@ -548,13 +552,64 @@ namespace Waffy.Controllers
         }
 
         // ════════════════════════════════════════════════════════
+        // Reviews_Complaints_C — GET (Clinics)
+        // ════════════════════════════════════════════════════════
+        public async Task<IActionResult> Reviews_Complaints_C()
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var complaints = (await _complaintRepo.GetAllByTargetTypeAsync("Clinic")).ToList();
+
+            ViewBag.Complaints = complaints;
+            ViewBag.TotalComplaints = complaints.Count;
+            ViewBag.OpenComplaints = complaints.Count(c => c.Status == "Open" || c.Status == "Pending");
+            ViewBag.ResolvedComplaints = complaints.Count(c => c.Status == "Resolved");
+
+            if (TempData["ComplaintSuccess"] != null) ViewBag.Success = TempData["ComplaintSuccess"];
+
+            return View();
+        }
+
+        // ════════════════════════════════════════════════════════
+        // Reviews_Complaints_S — GET (Stores)
+        // ════════════════════════════════════════════════════════
+        public async Task<IActionResult> Reviews_Complaints_S()
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var complaints = (await _complaintRepo.GetAllByTargetTypeAsync("Store")).ToList();
+
+            ViewBag.Complaints = complaints;
+            ViewBag.TotalComplaints = complaints.Count;
+            ViewBag.OpenComplaints = complaints.Count(c => c.Status == "Open" || c.Status == "Pending");
+            ViewBag.ResolvedComplaints = complaints.Count(c => c.Status == "Resolved");
+
+            if (TempData["ComplaintSuccess"] != null) ViewBag.Success = TempData["ComplaintSuccess"];
+
+            return View();
+        }
+
+        // ════════════════════════════════════════════════════════
+        // UpdateComplaintStatus — POST (مشترك للاثنين)
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateComplaintStatus(
+            int complaintId, string status, string returnPage = "Reviews_Complaints_S")
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _complaintRepo.UpdateStatusAsync(complaintId, status);
+            TempData["ComplaintSuccess"] = $"✅ Complaint status updated to {status}.";
+            return RedirectToAction(returnPage);
+        }
+
+        // ════════════════════════════════════════════════════════
         // Stubs — من النسخة الأولى (الأكمل)
         // ════════════════════════════════════════════════════════
         public IActionResult Clinics() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Details_C() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
-        public IActionResult Reviews_Complaints_C() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Analytics_C() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
-        public IActionResult Reviews_Complaints_S() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Analytics_S() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Listings() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Flagged() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }

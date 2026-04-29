@@ -325,15 +325,13 @@
             });
         }
 
-        function openModal(type) {
+                function openModal(type) {
             currentType = type;
 
-            // ✅ تحديث hidden input
             document.getElementById('hTargetType').value =
                 type === 'technical' ? 'System' :
                 type === 'clinic'    ? 'Clinic' : 'Store';
 
-            // ✅ عنوان الـ Modal
             var titles = {
                 technical: ['Technical Issue Report', 'Tell us about the technical problem.'],
                 clinic:    ['Clinic Issue Report',    'Please choose the clinic related to the issue.'],
@@ -342,13 +340,20 @@
             document.getElementById('modalTitle').textContent    = titles[type][0];
             document.getElementById('modalSubtitle').textContent = titles[type][1];
 
-            // ✅ إظهار/إخفاء الـ dropdowns
-            document.getElementById('clinicWrap').style.display = type === 'clinic' ? 'block' : 'none';
-            document.getElementById('storeWrap').style.display  = type === 'store'  ? 'block' : 'none';
+            // ✅ إظهار/إخفاء + تفعيل/تعطيل
+            var clinicWrap  = document.getElementById('clinicWrap');
+            var storeWrap   = document.getElementById('storeWrap');
+            var clinicSel   = document.getElementById('clinicSelect');
+            var storeSel    = document.getElementById('storeSelect');
 
-            // ✅ ملء قائمة الأسباب
+            clinicWrap.style.display = type === 'clinic' ? 'block' : 'none';
+            storeWrap.style.display  = type === 'store'  ? 'block' : 'none';
+
+            // ✅ المفتاح — disabled يمنع إرسال القيمة
+            clinicSel.disabled = type !== 'clinic';
+            storeSel.disabled  = type !== 'store';
+
             fillReasonOptions(type);
-
             document.getElementById('reportModal').classList.remove('hidden');
             document.body.style.overflow = 'hidden';
         }

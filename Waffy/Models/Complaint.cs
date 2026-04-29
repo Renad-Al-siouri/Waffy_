@@ -11,5 +11,7 @@
         public string? Status { get; set; }
         public string? Priority { get; set; }
         public DateTime? CreatedAt { get; set; }
+        public string? ComplainantName { get; set; }
+        public string? TargetName { get; set; }     
     }
 }

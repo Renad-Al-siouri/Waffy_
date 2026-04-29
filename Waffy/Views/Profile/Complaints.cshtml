@@ -236,7 +236,7 @@
                             <div id="clinicWrap" style="display:none;margin-bottom:14px">
                                 <label style="font-weight:800;font-size:.82rem;color:#716451;
                                               display:block;margin-bottom:6px">Select Clinic</label>
-                                <select name="targetId"
+                                <select name="targetId" disabled
                                         style="width:100%;padding:11px 14px;border-radius:14px;
                                                border:1px solid #d8cdbf;font-weight:700;
                                                font-family:Nunito,sans-serif;background:#fff">
@@ -255,7 +255,7 @@
                             <div id="storeWrap" style="display:none;margin-bottom:14px">
                                 <label style="font-weight:800;font-size:.82rem;color:#716451;
                                               display:block;margin-bottom:6px">Select Store</label>
-                                <select name="targetId"
+                                <select name="targetId" disabled
                                         style="width:100%;padding:11px 14px;border-radius:14px;
                                                border:1px solid #d8cdbf;font-weight:700;
                                                font-family:Nunito,sans-serif;background:#fff">
@@ -501,10 +501,18 @@
         });
 
         // ✅ إظهار/إخفاء الـ dropdowns
-        function handleTargetType(val) {
-            document.getElementById('clinicWrap').style.display  = val === 'Clinic' ? 'block' : 'none';
-            document.getElementById('storeWrap').style.display   = val === 'Store'  ? 'block' : 'none';
-            document.getElementById('systemNote').style.display  = val === 'System' ? 'block' : 'none';
+                function handleTargetType(val) {
+            var clinicWrap = document.getElementById('clinicWrap');
+            var storeWrap  = document.getElementById('storeWrap');
+            var systemNote = document.getElementById('systemNote');
+
+            clinicWrap.style.display = val === 'Clinic' ? 'block' : 'none';
+            storeWrap.style.display  = val === 'Store'  ? 'block' : 'none';
+            systemNote.style.display = val === 'System' ? 'block' : 'none';
+
+            // ✅ المفتاح — disabled يمنع إرسال القيمة
+            clinicWrap.querySelector('select').disabled = val !== 'Clinic';
+            storeWrap.querySelector('select').disabled  = val !== 'Store';
         }
 
         // ✅ toggle الفورم
