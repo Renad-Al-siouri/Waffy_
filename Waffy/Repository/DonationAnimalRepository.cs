@@ -18,13 +18,15 @@ namespace Waffy.Repository
         public async Task<IEnumerable<DonationAnimal>> GetAllAsync()
         {
             const string sql = @"
-        SELECT da.*,
-               ISNULL((SELECT SUM(d.Amount) FROM Donation d
-                        WHERE d.TargetId = da.Id
-                        AND d.TargetType = 'Animal'
-                        AND d.Status = 'Completed'), 0) AS CollectedAmount
-        FROM DonationAnimal da
-        ORDER BY da.CreatedAt DESC";
+                SELECT da.*,
+                       ISNULL((SELECT SUM(d.Amount)
+                                FROM Donation d
+                                WHERE d.TargetId   = da.Id
+                                AND   d.TargetType = 'Animal'
+                                AND   d.Status     = 'Completed'), 0) AS CollectedAmount
+                FROM DonationAnimal da
+                ORDER BY da.CreatedAt DESC";
+
             using var conn = new SqlConnection(_connectionString);
             return await conn.QueryAsync<DonationAnimal>(sql);
         }
@@ -32,14 +34,20 @@ namespace Waffy.Repository
         public async Task<IEnumerable<DonationAnimal>> GetActiveAsync()
         {
             const string sql = @"
-                SELECT * FROM DonationAnimal
-                WHERE Status = 'Active'
-                ORDER BY CreatedAt DESC";
+                SELECT da.*,
+                       ISNULL((SELECT SUM(d.Amount)
+                                FROM Donation d
+                                WHERE d.TargetId   = da.Id
+                                AND   d.TargetType = 'Animal'
+                                AND   d.Status     = 'Completed'), 0) AS CollectedAmount
+                FROM DonationAnimal da
+                WHERE da.Status = 'Active'
+                ORDER BY da.CreatedAt DESC";
+
             using var conn = new SqlConnection(_connectionString);
             return await conn.QueryAsync<DonationAnimal>(sql);
         }
 
-        // ✅ IDENTITY → لا نحتاج MAX(Id)+1
         public async Task<int> CreateAsync(DonationAnimal animal)
         {
             const string sql = @"
@@ -50,6 +58,7 @@ namespace Waffy.Repository
                     (@Name, @AnimalType, @Condition, @Location, @Story,
                      @GoalAmount, @Status, @CreatedAt);
                 SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
             using var conn = new SqlConnection(_connectionString);
             return await conn.ExecuteScalarAsync<int>(sql, new
             {
@@ -70,6 +79,7 @@ namespace Waffy.Repository
                 UPDATE DonationAnimal
                 SET Status = @Status
                 WHERE Id = @Id";
+
             using var conn = new SqlConnection(_connectionString);
             await conn.ExecuteAsync(sql, new { Id = id, Status = status });
         }
@@ -77,6 +87,7 @@ namespace Waffy.Repository
         public async Task DeleteAsync(int id)
         {
             const string sql = "DELETE FROM DonationAnimal WHERE Id = @Id";
+
             using var conn = new SqlConnection(_connectionString);
             await conn.ExecuteAsync(sql, new { Id = id });
         }

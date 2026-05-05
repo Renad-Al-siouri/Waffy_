@@ -1,16 +1,21 @@
-﻿@{
-    ViewData["Title"] = "Waffy — Super Admin | Reviews & Complaints";
+﻿@using Waffy.Models
+@{
     Layout = null;
+    var complaints = ViewBag.Complaints as List<Complaint> ?? new List<Complaint>();
+    var openComplaints     = (int)(ViewBag.OpenComplaints     ?? 0);
+    var resolvedComplaints = (int)(ViewBag.ResolvedComplaints ?? 0);
+    var totalReviews       = (int)(ViewBag.TotalReviews       ?? 0);
+    var reportedReviews    = (int)(ViewBag.ReportedReviews    ?? 0);
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
+    <title>Waffy — Super Admin | Shop Reviews &amp; Complaints</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" />
+    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
 </head>
 <body>
     <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
@@ -24,8 +29,8 @@
             </div>
             <nav class="sb-nav">
                 <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard" data-tip="Dashboard">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
+                    <a class="sb-row" href="@Url.Action("Dashboard","SuperAdmin")" data-tip="Dashboard">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
                         <span class="sb-lbl">Dashboard</span>
                     </a>
                 </div>
@@ -33,100 +38,86 @@
                 <div class="sb-group">
                     <div class="sb-grp-hd">Management</div>
                     <div>
-                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" data-tip="Users" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span>
+                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>
                             <span class="sb-lbl">Users</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
                         </button>
-                        <div class="sb-sub" id="g-users">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Users"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a>
-                            </div>
-                        </div>
+                        <div class="sb-sub" id="g-users"><div class="sb-sub-inner"><a class="sb-child" href="@Url.Action("Users","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a></div></div>
                     </div>
                     <div>
                         <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
                             <span class="sb-lbl">Clinics</span><span class="sb-bdg bd-y">4</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
                         </button>
-                        <div class="sb-sub" id="g-clinics">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_C"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
+                        <div class="sb-sub" id="g-clinics"><div class="sb-sub-inner">
+                            <a class="sb-child" href="@Url.Action("Clinics","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
+                            <a class="sb-child" href="@Url.Action("Reviews_Complaints_C","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
+                            <a class="sb-child" href="@Url.Action("Analytics_C","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                        </div></div>
                     </div>
                     <div>
-                        <button class="sb-row open active" id="t-shop" onclick="acc('g-shop','t-shop')" data-tip="Shop" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
+                        <button class="sb-row open active" id="t-shop" onclick="acc('g-shop','t-shop')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
                             <span class="sb-lbl">Shop</span><span class="sb-bdg bd-r">3</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
                         </button>
-                        <div class="sb-sub open" id="g-shop" style="height:auto;">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span><span class="sb-bdg bd-y sb-child-bdg">3</span></a>
-                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_S"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span><span class="sb-bdg bd-r sb-child-bdg">6</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_S"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
+                        <div class="sb-sub open" id="g-shop" style="height:auto;"><div class="sb-sub-inner">
+                            <a class="sb-child" href="@Url.Action("Stores","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span><span class="sb-bdg bd-y sb-child-bdg">3</span></a>
+                            <a class="sb-child active" href="@Url.Action("Reviews_Complaints_S","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span><span class="sb-bdg bd-r sb-child-bdg">6</span></a>
+                            <a class="sb-child" href="@Url.Action("Analytics_S","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                        </div></div>
                     </div>
                     <div>
-                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" data-tip="Adoption" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
+                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
                             <span class="sb-lbl">Adoption</span><span class="sb-bdg bd-y">5</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
                         </button>
-                        <div class="sb-sub" id="g-adopt">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Listings"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span><span class="sb-bdg bd-y sb-child-bdg">5</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span><span class="sb-bdg bd-r sb-child-bdg">3</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Adopted_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_A"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
+                        <div class="sb-sub" id="g-adopt"><div class="sb-sub-inner">
+                            <a class="sb-child" href="@Url.Action("Listings","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span><span class="sb-bdg bd-y sb-child-bdg">5</span></a>
+                            <a class="sb-child" href="@Url.Action("Flagged","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span><span class="sb-bdg bd-r sb-child-bdg">3</span></a>
+                            <a class="sb-child" href="@Url.Action("Adopted_Pets","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
+                            <a class="sb-child" href="@Url.Action("Analytics_A","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                        </div></div>
                     </div>
                     <div>
-                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" data-tip="Reports" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
+                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
                             <span class="sb-lbl">Reports</span><span class="sb-bdg bd-y">8</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
                         </button>
-                        <div class="sb-sub" id="g-rep">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span><span class="sb-bdg bd-y sb-child-bdg">8</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span><span class="sb-bdg bd-g sb-child-bdg">5</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span><span class="sb-bdg bd-r sb-child-bdg">4</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Donations"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Laws_Regulations"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
-                            </div>
-                        </div>
+                        <div class="sb-sub" id="g-rep"><div class="sb-sub-inner">
+                            <a class="sb-child" href="@Url.Action("Lost_Pets","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span><span class="sb-bdg bd-y sb-child-bdg">8</span></a>
+                            <a class="sb-child" href="@Url.Action("Found_Pets","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span><span class="sb-bdg bd-g sb-child-bdg">5</span></a>
+                            <a class="sb-child" href="@Url.Action("Dangerous_Animals","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span><span class="sb-bdg bd-r sb-child-bdg">4</span></a>
+                            <a class="sb-child" href="@Url.Action("Donations","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
+                            <a class="sb-child" href="@Url.Action("Laws_Regulations","SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
+                        </div></div>
                     </div>
                 </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Tools</div>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Map" data-tip="Map"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span><span class="sb-lbl">Map</span></a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications" data-tip="Notifications"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span><span class="sb-lbl">Notifications</span><span class="sb-bdg bd-r">12</span></a>
+                    <a class="sb-row" href="@Url.Action("Map","SuperAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg></span><span class="sb-lbl">Map</span></a>
+                    <a class="sb-row" href="@Url.Action("Notifications","SuperAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span class="sb-lbl">Notifications</span><span class="sb-bdg bd-r">12</span></a>
                 </div>
             </nav>
             <div class="sb-foot">
                 <div class="sb-user-row"><div class="sb-av">DC</div><div class="sb-user-info"><div class="sb-user-name">Daniel Carter</div><div class="sb-user-role">Operations Director</div></div></div>
-                <button class="sb-logout" onclick="alert('Sign out')" type="button"><svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg><span class="sb-logout-lbl">Sign Out</span></button>
+                <button class="sb-logout" onclick="alert('Sign out')" type="button"><svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg><span class="sb-logout-lbl">Sign Out</span></button>
             </div>
         </aside>
 
         <!-- ══ TOPNAV ══ -->
         <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button"><svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg></button>
+            <button class="tn-toggle" onclick="toggleSb()" type="button"><svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
             <nav class="tn-bread"><span>Shop</span><span>/</span><b>Reviews &amp; Complaints</b></nav>
             <div class="tn-center"><div class="tn-center-main">Moderation Center</div><div class="tn-center-sub">Super Admin Panel</div></div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-                <button class="tn-btn" type="button"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg></button>
-                <a class="tn-btn" asp-controller="SuperAdmin" asp-action="Notifications"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg><span class="tn-count">12</span></a>
-                <a class="tn-btn" href="#"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg><span class="tn-dot dot-g"></span></a>
+                <a class="tn-btn" href="@Url.Action("Notifications","SuperAdmin")"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="tn-count">12</span></a>
                 <div class="tn-sep"></div>
                 <div class="tn-profile" onclick="alert('Profile')"><div class="tn-av">DC</div><div><div class="tn-pname">Daniel Carter</div><div class="tn-prole">Operations Director</div></div></div>
             </div>
@@ -138,33 +129,55 @@
             <section class="page-hero">
                 <div>
                     <h1>Reviews &amp; Complaints</h1>
-                    <p>Moderate customer reviews and handle store complaints — all in one place.</p>
+                    <p>Moderate customer reviews and handle store complaints from one unified center.</p>
                 </div>
                 <div class="page-hero-actions">
-                    <button class="btn btn-outline btn-sm" onclick="exportData()">📥 Export</button>
+                    <button class="btn btn-outline btn-sm" onclick="toast('Exporting...','success')">📥 Export</button>
                 </div>
             </section>
 
             <div class="page-body">
 
-                <!-- KPI -->
+                <!-- ══ KPIs ══ -->
                 <div class="kpi-grid kpi-grid-4">
-                    <div class="kpi-card c1"><div class="kpi-ico green">⭐</div><div class="kpi-val" id="kpiTotalReviews">5</div><div class="kpi-label">Total Reviews</div></div>
-                    <div class="kpi-card c4"><div class="kpi-ico red">🚩</div><div class="kpi-val" id="kpiReported">2</div><div class="kpi-label">Reported Reviews</div><div class="kpi-chip chip-red">Need action</div></div>
-                    <div class="kpi-card c3"><div class="kpi-ico yellow">🚨</div><div class="kpi-val" id="kpiOpenComplaints">3</div><div class="kpi-label">Open Complaints</div><div class="kpi-chip chip-yellow">Pending</div></div>
-                    <div class="kpi-card c1"><div class="kpi-ico green">✅</div><div class="kpi-val" id="kpiResolved">1</div><div class="kpi-label">Resolved</div><div class="kpi-chip chip-green">This month</div></div>
+                    <div class="kpi-card c1">
+                        <div class="kpi-ico green">⭐</div>
+                        <div class="kpi-val" id="kpiReviews">@totalReviews</div>
+                        <div class="kpi-label">Total Reviews</div>
+                    </div>
+                    <div class="kpi-card c4">
+                        <div class="kpi-ico red">🚩</div>
+                        <div class="kpi-val" id="kpiReported">@reportedReviews</div>
+                        <div class="kpi-label">Reported Reviews</div>
+                        <div class="kpi-chip chip-red">Need action</div>
+                    </div>
+                    <div class="kpi-card c3">
+                        <div class="kpi-ico yellow">🚨</div>
+                        <div class="kpi-val">@openComplaints</div>
+                        <div class="kpi-label">Open Complaints</div>
+                        @if (openComplaints > 0)
+                        {
+                            <div class="kpi-chip chip-yellow">Pending</div>
+                        }
+                    </div>
+                    <div class="kpi-card c1">
+                        <div class="kpi-ico green">✅</div>
+                        <div class="kpi-val">@resolvedComplaints</div>
+                        <div class="kpi-label">Resolved This Month</div>
+                        <div class="kpi-chip chip-green">Good progress</div>
+                    </div>
                 </div>
 
-                <!-- Tabs -->
+                <!-- ══ TABS ══ -->
                 <div class="tabs-bar">
-                    <button class="tab-btn active" onclick="switchTab('reviews',this)">⭐ Reviews <span class="tab-count" id="tcReviews">5</span></button>
-                    <button class="tab-btn" onclick="switchTab('complaints',this)">🚨 Complaints <span class="tab-count" id="tcComplaints">4</span></button>
+                    <button class="tab-btn active" onclick="switchTab('reviews',this)">⭐ Reviews <span class="tab-count" id="tcReviews">0</span></button>
+                    <button class="tab-btn" onclick="switchTab('complaints',this)">🚨 Complaints <span class="tab-count" id="tcComplaints">@complaints.Count</span></button>
                 </div>
 
-                <!-- ── REVIEWS TAB ── -->
+                <!-- ══ REVIEWS TAB ══ -->
                 <div id="tab-reviews">
-                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-                        <div class="search-wrap" style="flex:1 1 260px;"><span style="color:var(--text-muted)">🔍</span><input type="text" id="revSearch" placeholder="Search reviews..." oninput="renderReviews()" /></div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                        <div class="search-wrap" style="flex:1 1 240px;"><span style="color:var(--text-muted);">🔍</span><input type="text" id="revSearch" placeholder="Search reviews..." oninput="renderReviews()" /></div>
                         <select class="sel-wrap" style="width:auto;min-width:160px;" id="revStoreFilter" onchange="renderReviews()">
                             <option value="">All Stores</option>
                             <option>Pet Friends Store</option>
@@ -177,32 +190,168 @@
                             <option value="reported">🚩 Reported</option>
                             <option value="hidden">🙈 Hidden</option>
                             <option value="5">⭐⭐⭐⭐⭐ 5 Stars</option>
-                            <option value="low">⭐ 1-2 Stars</option>
+                            <option value="low">⭐ 1–2 Stars</option>
                         </select>
                     </div>
                     <div id="reviewsList"></div>
                 </div>
 
-                <!-- ── COMPLAINTS TAB ── -->
+                <!-- ══ COMPLAINTS TAB ══ -->
                 <div id="tab-complaints" style="display:none;">
-                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-                        <div class="search-wrap" style="flex:1 1 260px;"><span style="color:var(--text-muted)">🔍</span><input type="text" id="compSearch" placeholder="Search complaints..." oninput="renderComplaints()" /></div>
-                        <select class="sel-wrap" style="width:auto;min-width:160px;" id="compTypeFilter" onchange="renderComplaints()">
-                            <option value="">All Types</option>
-                            <option>Bad Product</option>
-                            <option>Fake Item</option>
-                            <option>Late Delivery</option>
-                            <option>Order Not Received</option>
-                            <option>Rude Behavior</option>
-                        </select>
-                        <select class="sel-wrap" style="width:auto;min-width:160px;" id="compStatusFilter" onchange="renderComplaints()">
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                        <div class="search-wrap" style="flex:1 1 240px;">
+                            <span style="color:var(--text-muted);">🔍</span>
+                            <input type="text" id="compSearch" placeholder="Search complaints..." oninput="filterComplaints()" />
+                        </div>
+                        <select class="sel-wrap" style="width:auto;min-width:160px;" id="compStatusFilter" onchange="filterComplaints()">
                             <option value="">All Statuses</option>
                             <option value="open">Open</option>
-                            <option value="investigating">Investigating</option>
+                            <option value="pending">Pending</option>
                             <option value="resolved">Resolved</option>
                         </select>
+                        <button class="btn btn-outline btn-sm" onclick="resetCompFilters()">Reset</button>
                     </div>
-                    <div id="complaintsList"></div>
+
+                    @* ✅ Real DB data *@
+                    <div id="complaintsList">
+                        @if (!complaints.Any())
+                        {
+                            <div style="text-align:center;padding:40px;color:var(--text-muted);">
+                                <div style="font-size:2rem;margin-bottom:12px;">📋</div>
+                                <p style="font-weight:800;">No store complaints yet.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            @foreach (var c in complaints)
+                            {
+                                var priorityColor = c.Priority == "High"    ? "var(--danger)"
+                                                  : c.Priority == "Medium"  ? "var(--warning)"
+                                                  : "var(--border)";
+
+                                var stBadge = c.Status switch {
+                                    "Resolved"      => "badge-success",
+                                    "Pending"       => "badge-warning",
+                                    "Investigating" => "badge-warning",
+                                    "Open"          => "badge-danger",
+                                    _               => "badge-muted"
+                                };
+
+                                var prBadge = c.Priority switch {
+                                    "High"   => "badge-danger",
+                                    "Medium" => "badge-warning",
+                                    _        => "badge-muted"
+                                };
+
+                                @* ✅ TargetName comes from JOIN with Store table (set in controller) *@
+                                var storeName = c.TargetName ?? $"Store #{c.TargetId}";
+
+                                <div class="complaint-row"
+                                     data-search="@(c.Title ?? "")@(c.ComplainantName ?? "")@(c.Description ?? "")@storeName"
+                                     data-status="@c.Status?.ToLower()"
+                                     data-id="@c.IdComplaint"
+                                     data-title="@(c.Title ?? "Complaint")"
+                                     data-target="@storeName"
+                                     data-complainant="@(c.ComplainantName ?? $"User #{c.IdUser}")"
+                                     data-date="@c.CreatedAt?.ToString("MMM dd, yyyy")"
+                                     data-priority="@c.Priority"
+                                     data-description="@c.Description"
+                                     data-status-val="@c.Status"
+                                     style="background:#fff;border:1px solid var(--border);
+                                            border-left:4px solid @priorityColor;
+                                            border-radius:var(--r-lg);padding:18px;
+                                            margin-bottom:12px;box-shadow:var(--shadow);">
+
+                                    @* Card Header *@
+                                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+                                        <div>
+                                            <div style="font-size:.92rem;font-weight:900;color:var(--brand-dark);">
+                                                @(c.Title ?? "Complaint")
+                                            </div>
+                                            @* ✅ Full info displayed on card *@
+                                            <div style="font-size:.78rem;color:var(--text-muted);margin-top:4px;">
+                                                🏪 @storeName
+                                                &nbsp;·&nbsp;
+                                                👤 @(c.ComplainantName ?? $"User #{c.IdUser}")
+                                                &nbsp;·&nbsp;
+                                                📅 @c.CreatedAt?.ToString("MMM dd, yyyy")
+                                            </div>
+                                        </div>
+                                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                            @if (c.Priority != null)
+                                            {
+                                                <span class="badge @prBadge" style="font-size:.68rem;">
+                                                    @(c.Priority == "High" ? "🔴" : c.Priority == "Medium" ? "🟡" : "🟢")
+                                                    @c.Priority
+                                                </span>
+                                            }
+                                            <span class="badge @stBadge">@c.Status</span>
+                                        </div>
+                                    </div>
+
+                                    @if (!string.IsNullOrEmpty(c.Description))
+                                    {
+                                        <div style="font-size:.84rem;color:var(--text-muted);line-height:1.55;margin-bottom:12px;">
+                                            @(c.Description.Length > 120 ? c.Description[..120] + "…" : c.Description)
+                                        </div>
+                                    }
+
+                                    <div class="action-group" style="display:flex;gap:8px;flex-wrap:wrap;">
+
+                                        @* ✅ Details button reads from data-* attributes *@
+                                        <button type="button" class="btn btn-outline btn-xs"
+                                                onclick="openDetails(this.closest('.complaint-row'))">
+                                            👁 Details
+                                        </button>
+
+                                        @if (c.Status != "Resolved")
+                                        {
+                                            <form method="post" asp-controller="SuperAdmin"
+                                                  asp-action="UpdateComplaintStatus" style="display:inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="complaintId" value="@c.IdComplaint" />
+                                                <input type="hidden" name="status"      value="Resolved" />
+                                                <input type="hidden" name="returnPage"  value="Reviews_Complaints_S" />
+                                                <button type="submit" class="btn btn-success btn-xs">✅ Resolve</button>
+                                            </form>
+
+                                            <form method="post" asp-controller="SuperAdmin"
+                                                  asp-action="UpdateComplaintStatus" style="display:inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="complaintId" value="@c.IdComplaint" />
+                                                <input type="hidden" name="status"      value="Investigating" />
+                                                <input type="hidden" name="returnPage"  value="Reviews_Complaints_S" />
+                                                <button type="submit" class="btn btn-warning btn-xs">🔍 Investigate</button>
+                                            </form>
+                                        }
+
+                                        @if (c.Status != "Open")
+                                        {
+                                            <form method="post" asp-controller="SuperAdmin"
+                                                  asp-action="UpdateComplaintStatus" style="display:inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="complaintId" value="@c.IdComplaint" />
+                                                <input type="hidden" name="status"      value="Open" />
+                                                <input type="hidden" name="returnPage"  value="Reviews_Complaints_S" />
+                                                <button type="submit" class="btn btn-outline btn-xs">🔄 Reopen</button>
+                                            </form>
+                                        }
+
+                                        @* ✅ Warn / Suspend use real TargetName from DB *@
+                                        <button type="button" class="btn btn-warning btn-xs"
+                                                onclick="warnTarget('@storeName')">
+                                            ⚠️ Warn
+                                        </button>
+
+                                        <button type="button" class="btn btn-danger btn-xs"
+                                                onclick="suspendTarget('@storeName')">
+                                            🔒 Suspend
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
                 </div>
 
             </div>
@@ -211,37 +360,40 @@
 
     <!-- ══ MODAL: Review Detail ══ -->
     <div class="modal-overlay" id="reviewDetailModal">
-        <div class="modal-box" style="max-width:560px;">
+        <div class="modal-box" style="max-width:540px;">
             <div class="modal-head"><div class="modal-title">⭐ Review Details</div><button class="dp-close" onclick="closeM('reviewDetailModal')">✕</button></div>
             <div class="modal-body" id="reviewDetailBody"></div>
             <div class="modal-footer" id="reviewDetailFooter"></div>
         </div>
     </div>
 
-    <!-- ══ MODAL: Complaint Detail Panel ══ -->
-    <div class="detail-overlay" id="complaintDetailPanel">
-        <div class="detail-panel" style="max-width:800px;">
-            <div class="dp-header">
-                <div class="dp-title" id="compPanelTitle">🚨 Complaint Details</div>
-                <button class="dp-close" onclick="closeM('complaintDetailPanel')">✕</button>
-            </div>
-            <div class="dp-body" id="complaintDetailBody"></div>
-            <div class="dp-footer" id="complaintDetailFooter"></div>
+    <!-- ══ PANEL: Complaint Detail ══ -->
+    <div class="detail-overlay" id="complaintPanel">
+        <div class="detail-panel" style="max-width:780px;">
+            <div class="dp-header"><div class="dp-title" id="compPanelTitle">🚨 Complaint Details</div><button class="dp-close" onclick="closeM('complaintPanel')">✕</button></div>
+            <div class="dp-body" id="complaintPanelBody"></div>
+            <div class="dp-footer" id="complaintPanelFooter"></div>
         </div>
     </div>
 
     <!-- ══ MODAL: Warn Store ══ -->
     <div class="modal-overlay" id="warnModal">
         <div class="modal-box" style="max-width:500px;">
-            <div class="modal-head"><div class="modal-title">⚠️ Send Warning to Store</div><button class="dp-close" onclick="closeM('warnModal')">✕</button></div>
+            <div class="modal-head"><div class="modal-title">⚠️ Send Warning</div><button class="dp-close" onclick="closeM('warnModal')">✕</button></div>
             <div class="modal-body">
-                <div style="background:var(--warning-soft);border:1px solid rgba(226,163,58,.2);border-radius:12px;padding:12px;font-size:.82rem;font-weight:700;color:#9b6000;margin-bottom:14px;">The warning will be sent to the store owner and recorded in moderation history.</div>
-                <div class="field"><label>Target Store</label><input type="text" id="warnTarget" readonly style="background:#f5f0e8;" /></div>
+                <div style="background:var(--warning-soft);border:1px solid rgba(226,163,58,.2);border-radius:12px;padding:12px;font-size:.82rem;font-weight:700;color:#9b6000;margin-bottom:14px;">Warning will be sent to the store owner and recorded in moderation history.</div>
+                <div class="field"><label>Target</label><input type="text" id="warnTarget" readonly style="background:#f5f0e8;" /></div>
                 <div class="field">
-                    <label>Warning Type</label>
-                    <select id="warnType"><option>High complaint volume</option><option>Product policy violation</option><option>Misleading information</option><option>Repeated delivery delays</option><option>Terms of service violation</option></select>
+                    <label>Type</label>
+                    <select>
+                        <option>High complaint volume</option>
+                        <option>Product policy violation</option>
+                        <option>Misleading information</option>
+                        <option>Repeated delivery delays</option>
+                        <option>Terms of service violation</option>
+                    </select>
                 </div>
-                <div class="field"><label>Warning Message</label><textarea id="warnMessage" placeholder="Write the official warning..."></textarea></div>
+                <div class="field"><label>Message</label><textarea id="warnMsg" placeholder="Write the official warning..."></textarea></div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeM('warnModal')">Cancel</button>
@@ -255,10 +407,15 @@
         <div class="modal-box" style="max-width:500px;">
             <div class="modal-head"><div class="modal-title">🔒 Suspend Store</div><button class="dp-close" onclick="closeM('suspendModal')">✕</button></div>
             <div class="modal-body">
-                <div class="field"><label>Target Store</label><input type="text" id="suspendTarget" readonly style="background:#f5f0e8;" /></div>
+                <div class="field"><label>Target</label><input type="text" id="suspendTarget" readonly style="background:#f5f0e8;" /></div>
                 <div class="field">
-                    <label>Suspension Reason</label>
-                    <select><option>Policy violation</option><option>Multiple complaints</option><option>Suspicious activity</option></select>
+                    <label>Reason</label>
+                    <select>
+                        <option>Multiple complaints</option>
+                        <option>Product policy violation</option>
+                        <option>Suspicious activity</option>
+                        <option>Terms of service violation</option>
+                    </select>
                 </div>
                 <div class="field">
                     <label>Duration</label>
@@ -268,199 +425,204 @@
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="closeM('suspendModal')">Cancel</button>
-                <button class="btn btn-danger" onclick="confirmSuspendStore()">Suspend Store</button>
+                <button class="btn btn-danger" onclick="confirmSuspend()">Suspend Store</button>
             </div>
         </div>
     </div>
 
-    <script src="~/js/Waffy-Shell.js"></script>
-    <script src="~/js/superAdminClinic.js"></script>
+    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
     <script>
+        /* ═══════════════════════════════════════════════
+           REVIEWS — Static data (replace with API if needed)
+        ═══════════════════════════════════════════════ */
         const reviews = [
-            {id:1,user:"Samar Al-Qasim",store:"Pet Friends Store",rating:5,time:"2 days ago",text:"Excellent quality products and very fast delivery. Will definitely order again!",status:"active",hidden:false},
-            {id:2,user:"Yousef Khaled",store:"BestPet Store",rating:4,time:"5 days ago",text:"Nice products but the packaging could be improved. Overall a good experience.",status:"active",hidden:false},
-            {id:3,user:"Dana Mustafa",store:"Pet Friends Store",rating:1,time:"1 week ago",text:"I received an item close to its expiry date. Very disappointed.",status:"reported",hidden:false},
-            {id:4,user:"Raneem Ali",store:"Happy Tails Market",rating:2,time:"9 days ago",text:"My order was delayed for 2 weeks and customer support was unhelpful.",status:"reported",hidden:false},
-            {id:5,user:"Ahmad Ziad",store:"Cat House",rating:5,time:"Today",text:"Amazing cat products and super fast response from the team. Highly recommended!",status:"active",hidden:false},
+            { id:1, user:"Samar Al-Qasim",  store:"Pet Friends Store",  rating:5, time:"2 days ago", text:"Excellent quality products and very fast delivery. Will definitely order again!", status:"active",   hidden:false },
+            { id:2, user:"Yousef Khaled",   store:"BestPet Store",       rating:4, time:"5 days ago", text:"Nice products but the packaging could be improved. Overall a good experience.",  status:"active",   hidden:false },
+            { id:3, user:"Dana Mustafa",    store:"Pet Friends Store",   rating:1, time:"1 week ago", text:"I received an item close to its expiry date. Very disappointed.",                status:"reported", hidden:false },
+            { id:4, user:"Raneem Ali",      store:"Happy Tails Market",  rating:2, time:"9 days ago", text:"My order was delayed for 2 weeks and customer support was unhelpful.",           status:"reported", hidden:false },
+            { id:5, user:"Ahmad Ziad",      store:"Cat House",           rating:5, time:"Today",      text:"Amazing cat products and super fast response from the team. Highly recommended!", status:"active",   hidden:false },
         ];
-        const complaints = [
-            {id:1,store:"Pet Friends Store",type:"Bad Product",complainant:"Nadine Khalaf",email:"nadine@email.com",date:"2026-03-20",status:"open",text:"I received expired cat food and the store refused my return request. The product was completely unusable.",priority:"high"},
-            {id:2,store:"Happy Tails Market",type:"Late Delivery",complainant:"Omar Haddad",email:"omar@email.com",date:"2026-03-18",status:"investigating",text:"My order took more than 10 days without any update or tracking information.",priority:"medium"},
-            {id:3,store:"Pet Friends Store",type:"Fake Item",complainant:"Salma Yasser",email:"salma@email.com",date:"2026-03-17",status:"open",text:"The medicine packaging looked suspicious and appeared to be unsealed and repackaged.",priority:"high"},
-            {id:4,store:"BestPet Store",type:"Order Not Received",complainant:"Raghad Nour",email:"raghad@email.com",date:"2026-03-10",status:"resolved",text:"Order was delayed significantly but the store eventually resolved it.",priority:"low"},
-        ];
-        let currentComplaintId = null;
-        let currentWarnStore   = '';
 
-        function reviewStatusBadge(r) {
+        let currentWarnTarget = '';
+
+        /* ── Helpers ── */
+        function stars(n) { return '⭐'.repeat(n) + '☆'.repeat(5 - n); }
+        function statusBadge(r) {
             if (r.hidden)              return `<span class="badge badge-muted">🙈 Hidden</span>`;
             if (r.status==='reported') return `<span class="badge badge-danger">🚩 Reported</span>`;
             return `<span class="badge badge-success">✅ Active</span>`;
         }
-        function complaintStatusBadge(s) {
-            const map = { open:['badge-danger','🔴 Open'], investigating:['badge-warning','🔍 Investigating'], resolved:['badge-success','✅ Resolved'] };
-            const [cls,lbl] = map[s]||['badge-muted',s];
-            return `<span class="badge ${cls}">${lbl}</span>`;
-        }
-        function priorityBadge(p) {
-            const map = {high:['badge-danger','🔴 High'],medium:['badge-warning','🟡 Medium'],low:['badge-muted','🟢 Low']};
-            const [cls,lbl] = map[p]||['badge-muted',p];
-            return `<span class="badge ${cls}" style="font-size:.68rem;">${lbl}</span>`;
-        }
-        function stars(n) { return '⭐'.repeat(n)+'☆'.repeat(5-n); }
 
+        /* ── Render Reviews ── */
         function renderReviews() {
-            const q   = (document.getElementById('revSearch')?.value||'').toLowerCase();
-            const st  = document.getElementById('revStoreFilter')?.value||'';
-            const tp  = document.getElementById('revTypeFilter')?.value||'';
+            const q  = (document.getElementById('revSearch')?.value   || '').toLowerCase();
+            const sf = document.getElementById('revStoreFilter')?.value || '';
+            const tf = document.getElementById('revTypeFilter')?.value  || '';
+
             const data = reviews.filter(r => {
-                const mQ  = !q  || r.user.toLowerCase().includes(q) || r.text.toLowerCase().includes(q) || r.store.toLowerCase().includes(q);
-                const mSt = !st || r.store===st;
-                const mTp = !tp || (tp==='reported'&&r.status==='reported') || (tp==='hidden'&&r.hidden) || (tp==='5'&&r.rating===5) || (tp==='low'&&r.rating<=2);
-                return mQ && mSt && mTp;
+                const mQ = !q  || r.user.toLowerCase().includes(q) || r.text.toLowerCase().includes(q) || r.store.toLowerCase().includes(q);
+                const mS = !sf || r.store === sf;
+                const mT = !tf
+                    || (tf === 'reported' && r.status === 'reported')
+                    || (tf === 'hidden'   && r.hidden)
+                    || (tf === '5'        && r.rating === 5)
+                    || (tf === 'low'      && r.rating <= 2);
+                return mQ && mS && mT;
             });
-            document.getElementById('tcReviews').textContent = data.length;
-            document.getElementById('kpiTotalReviews').textContent = reviews.length;
-            document.getElementById('kpiReported').textContent = reviews.filter(r=>r.status==='reported').length;
-            const el = document.getElementById('reviewsList');
-            el.innerHTML = data.length ? data.map(r=>`
-                <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;margin-bottom:12px;box-shadow:var(--shadow);transition:.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
-                        <div style="display:flex;align-items:center;gap:12px;">
-                            <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;display:grid;place-items:center;font-weight:900;font-size:.86rem;flex-shrink:0;">${r.user.charAt(0)}</div>
-                            <div><div style="font-weight:900;color:var(--brand-dark);font-size:.9rem;">${r.user}</div><div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">on <strong>${r.store}</strong> · ${r.time}</div></div>
+
+            document.getElementById('tcReviews').textContent   = data.length;
+            document.getElementById('kpiReviews').textContent  = reviews.length;
+            document.getElementById('kpiReported').textContent = reviews.filter(r => r.status === 'reported').length;
+
+            document.getElementById('reviewsList').innerHTML = data.length
+                ? data.map(r => `
+                    <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;margin-bottom:12px;box-shadow:var(--shadow);transition:.2s;${r.hidden ? 'opacity:.7;' : ''}"
+                         onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
+                        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                <div style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;display:grid;place-items:center;font-weight:900;font-size:.86rem;flex-shrink:0;">${r.user.charAt(0)}</div>
+                                <div>
+                                    <div style="font-weight:900;color:var(--brand-dark);font-size:.9rem;">${r.user}</div>
+                                    <div style="font-size:.75rem;color:var(--text-muted);margin-top:2px;">on <strong>${r.store}</strong> · ${r.time}</div>
+                                </div>
+                            </div>
+                            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;"><span style="color:#d9a93c;">${stars(r.rating)}</span>${statusBadge(r)}</div>
                         </div>
-                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;"><span style="color:#d9a93c;font-size:.9rem;">${stars(r.rating)}</span>${reviewStatusBadge(r)}</div>
-                    </div>
-                    <div style="font-size:.86rem;color:var(--text);line-height:1.6;margin-bottom:12px;padding:12px;background:var(--surface-2);border-radius:10px;">"${r.text}"</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <button class="btn btn-outline btn-xs" onclick="viewReview(${r.id})">👁 View</button>
-                        <button class="btn btn-warning btn-xs" onclick="toggleHideReview(${r.id})">${r.hidden?'👁 Show':'🙈 Hide'}</button>
-                        <button class="btn btn-danger btn-xs" onclick="deleteReview(${r.id})">🗑 Delete</button>
-                        ${r.status==='reported'?`<button class="btn btn-success btn-xs" onclick="clearReport(${r.id})">✅ Clear Report</button>`:''}
-                        <button class="btn btn-outline btn-xs" onclick="warnStore('${r.store}')">⚠️ Warn Store</button>
-                    </div>
-                </div>`).join('')
-            : `<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:.9rem;">No reviews found matching your filters.</div>`;
+                        <div style="font-size:.86rem;color:var(--text);line-height:1.6;margin-bottom:12px;padding:12px;background:var(--surface-2);border-radius:10px;">"${r.text}"</div>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <button class="btn btn-outline btn-xs" onclick="viewReview(${r.id})">👁 View</button>
+                            <button class="btn btn-warning btn-xs" onclick="toggleHide(${r.id})">${r.hidden ? '👁 Show' : '🙈 Hide'}</button>
+                            <button class="btn btn-danger btn-xs"  onclick="deleteReview(${r.id})">🗑 Delete</button>
+                            ${r.status === 'reported' ? `<button class="btn btn-success btn-xs" onclick="clearReport(${r.id})">✅ Clear Report</button>` : ''}
+                            <button class="btn btn-outline btn-xs" onclick="warnTarget('${r.store}')">⚠️ Warn Store</button>
+                        </div>
+                    </div>`).join('')
+                : '<div style="text-align:center;padding:40px;color:var(--text-muted);">No reviews found.</div>';
         }
 
         function viewReview(id) {
-            const r = reviews.find(x=>x.id===id);
-            if (!r) return;
+            const r = reviews.find(x => x.id === id); if (!r) return;
             document.getElementById('reviewDetailBody').innerHTML = `
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-                    <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;display:grid;place-items:center;font-weight:900;font-size:1rem;flex-shrink:0;">${r.user.charAt(0)}</div>
-                    <div><div style="font-weight:900;color:var(--brand-dark);">${r.user}</div><div style="font-size:.78rem;color:var(--text-muted);">on ${r.store} · ${r.time}</div><div style="color:#d9a93c;margin-top:4px;">${stars(r.rating)} (${r.rating}/5)</div></div>
+                    <div style="width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;display:grid;place-items:center;font-weight:900;font-size:1rem;">${r.user.charAt(0)}</div>
+                    <div><div style="font-weight:900;color:var(--brand-dark);">${r.user}</div>
+                    <div style="font-size:.78rem;color:var(--text-muted);">${r.store} · ${r.time}</div>
+                    <div style="color:#d9a93c;margin-top:4px;">${stars(r.rating)} (${r.rating}/5)</div></div>
                 </div>
                 <div style="background:var(--surface-2);border-radius:12px;padding:14px;font-size:.88rem;line-height:1.6;margin-bottom:14px;">"${r.text}"</div>
-                <div style="display:flex;gap:8px;">${reviewStatusBadge(r)}</div>`;
+                <div style="display:flex;gap:8px;">${statusBadge(r)}</div>`;
             document.getElementById('reviewDetailFooter').innerHTML = `
                 <button class="btn btn-outline" onclick="closeM('reviewDetailModal')">Close</button>
-                <button class="btn btn-warning btn-sm" onclick="toggleHideReview(${r.id});closeM('reviewDetailModal')">${r.hidden?'👁 Show':'🙈 Hide'}</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteReview(${r.id});closeM('reviewDetailModal')">🗑 Delete</button>`;
+                <button class="btn btn-warning btn-sm" onclick="toggleHide(${r.id});closeM('reviewDetailModal')">${r.hidden ? '👁 Show' : '🙈 Hide'}</button>
+                <button class="btn btn-danger btn-sm"  onclick="deleteReview(${r.id});closeM('reviewDetailModal')">🗑 Delete</button>`;
             openM('reviewDetailModal');
         }
-        function toggleHideReview(id) { const r=reviews.find(x=>x.id===id); if(!r) return; r.hidden=!r.hidden; renderReviews(); toast(r.hidden?'Review hidden.':'Review is now visible.',r.hidden?'warning':'success'); }
-        function deleteReview(id) { const idx=reviews.findIndex(x=>x.id===id); if(idx>-1) reviews.splice(idx,1); renderReviews(); toast('Review deleted.','danger'); }
-        function clearReport(id) { const r=reviews.find(x=>x.id===id); if(!r) return; r.status='active'; renderReviews(); toast('Report cleared — review marked as active.','success'); }
 
-        function renderComplaints() {
-            const q  = (document.getElementById('compSearch')?.value||'').toLowerCase();
-            const tp = document.getElementById('compTypeFilter')?.value||'';
-            const sf = document.getElementById('compStatusFilter')?.value||'';
-            const data = complaints.filter(c=>
-                (!q  || c.store.toLowerCase().includes(q) || c.complainant.toLowerCase().includes(q) || c.text.toLowerCase().includes(q)) &&
-                (!tp || c.type===tp) && (!sf || c.status===sf)
-            );
-            document.getElementById('tcComplaints').textContent      = data.length;
-            document.getElementById('kpiOpenComplaints').textContent = complaints.filter(c=>c.status==='open').length;
-            document.getElementById('kpiResolved').textContent       = complaints.filter(c=>c.status==='resolved').length;
-            const el = document.getElementById('complaintsList');
-            el.innerHTML = data.length ? data.map(c=>`
-                <div style="background:#fff;border:1px solid var(--border);border-left:4px solid ${c.priority==='high'?'var(--danger)':c.priority==='medium'?'var(--warning)':'var(--border)'};border-radius:var(--r-lg);padding:18px;margin-bottom:12px;box-shadow:var(--shadow);cursor:pointer;transition:.2s;" onclick="viewComplaint(${c.id})" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform=''">
-                    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px;">
-                        <div><div style="font-size:.92rem;font-weight:900;color:var(--brand-dark);">${c.type}</div><div style="font-size:.78rem;color:var(--text-muted);margin-top:4px;">🏪 ${c.store} · 👤 ${c.complainant} · 📅 ${c.date}</div></div>
-                        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">${priorityBadge(c.priority)}${complaintStatusBadge(c.status)}</div>
-                    </div>
-                    <div style="font-size:.84rem;color:var(--text-muted);line-height:1.55;margin-bottom:12px;">${c.text.length>120?c.text.slice(0,120)+'…':c.text}</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;" onclick="event.stopPropagation()">
-                        <button class="btn btn-outline btn-xs" onclick="viewComplaint(${c.id})">👁 Full Details</button>
-                        ${c.status!=='resolved'?`
-                            <button class="btn btn-success btn-xs" onclick="resolveComplaint(${c.id})">✅ Resolve</button>
-                            <button class="btn btn-warning btn-xs" onclick="setInvestigating(${c.id})">🔍 Investigate</button>
-                            <button class="btn btn-warning btn-xs" onclick="warnStore('${c.store}')">⚠️ Warn Store</button>
-                            <button class="btn btn-danger btn-xs" onclick="suspendStore('${c.store}')">🔒 Suspend</button>`
-                        :`<span style="font-size:.78rem;font-weight:700;color:var(--success);">✅ This complaint has been resolved.</span>`}
-                    </div>
-                </div>`).join('')
-            : `<div style="text-align:center;padding:40px;color:var(--text-muted);font-size:.9rem;">No complaints found matching your filters.</div>`;
-        }
+        function toggleHide(id)   { const r=reviews.find(x=>x.id===id); if(!r) return; r.hidden=!r.hidden; renderReviews(); toast(r.hidden?'Review hidden.':'Review visible.','warning'); }
+        function deleteReview(id) { const i=reviews.findIndex(x=>x.id===id); if(i>-1) reviews.splice(i,1); renderReviews(); toast('Review deleted.','danger'); }
+        function clearReport(id)  { const r=reviews.find(x=>x.id===id); if(!r) return; r.status='active'; renderReviews(); toast('Report cleared.','success'); }
 
-        function viewComplaint(id) {
-            const c = complaints.find(x=>x.id===id);
-            if (!c) return;
-            currentComplaintId = id;
-            document.getElementById('compPanelTitle').textContent = `🚨 ${c.type} — ${c.store}`;
-            document.getElementById('complaintDetailBody').innerHTML = `
+        /* ═══════════════════════════════════════════════
+           COMPLAINTS — Real DB rows (rendered server-side)
+           Filter runs client-side on data-* attributes.
+        ═══════════════════════════════════════════════ */
+        function openDetails(row) {
+            const title       = row.dataset.title       || 'Complaint';
+            const target      = row.dataset.target      || '—';
+            const complainant = row.dataset.complainant || '—';
+            const date        = row.dataset.date        || '—';
+            const priority    = row.dataset.priority    || '—';
+            const description = row.dataset.description || '—';
+            const status      = row.dataset.statusVal   || row.dataset.status || '—';
+
+            document.getElementById('compPanelTitle').textContent = '🚨 ' + title;
+
+            const prBadge = priority === 'High'
+                ? '<span class="badge badge-danger">🔴 High</span>'
+                : priority === 'Medium'
+                ? '<span class="badge badge-warning">🟡 Medium</span>'
+                : '<span class="badge badge-muted">🟢 Low</span>';
+
+            const stBadge = status === 'Resolved'
+                ? '<span class="badge badge-success">✅ Resolved</span>'
+                : status === 'Investigating'
+                ? '<span class="badge badge-warning">🔍 Investigating</span>'
+                : '<span class="badge badge-danger">🔴 Open</span>';
+
+            document.getElementById('complaintPanelBody').innerHTML = `
                 <div class="dp-section">
-                    <div class="dp-section-title">Complaint Overview</div>
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">${complaintStatusBadge(c.status)} ${priorityBadge(c.priority)}<span class="badge badge-info">${c.type}</span></div>
+                    <div class="dp-section-title">Overview</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">${stBadge} ${prBadge}</div>
                     <div class="dp-grid">
-                        <div class="dp-info-item"><div class="dp-info-label">Reported Store</div><div class="dp-info-val">🏪 ${c.store}</div></div>
-                        <div class="dp-info-item"><div class="dp-info-label">Date Filed</div><div class="dp-info-val">${c.date}</div></div>
-                        <div class="dp-info-item"><div class="dp-info-label">Complainant</div><div class="dp-info-val">${c.complainant}</div></div>
-                        <div class="dp-info-item"><div class="dp-info-label">Email</div><div class="dp-info-val">${c.email}</div></div>
+                        <div class="dp-info-item"><div class="dp-info-label">🏪 Store</div><div class="dp-info-val">${target}</div></div>
+                        <div class="dp-info-item"><div class="dp-info-label">📅 Date Filed</div><div class="dp-info-val">${date}</div></div>
+                        <div class="dp-info-item"><div class="dp-info-label">👤 Complainant</div><div class="dp-info-val">${complainant}</div></div>
+                        <div class="dp-info-item"><div class="dp-info-label">⚡ Priority</div><div class="dp-info-val">${priority || '—'}</div></div>
                     </div>
                 </div>
                 <div class="dp-section">
-                    <div class="dp-section-title">Complaint Description</div>
-                    <div style="background:var(--surface-2);border-radius:12px;padding:16px;font-size:.88rem;line-height:1.7;color:var(--text);">${c.text}</div>
-                </div>
-                <div class="dp-section">
-                    <div class="dp-section-title">Admin Decision</div>
-                    <select class="sel-wrap" style="height:44px;width:100%;margin-bottom:10px;" id="compDecision">
-                        <option value="investigating" ${c.status==='investigating'?'selected':''}>🔍 Under Investigation</option>
-                        <option value="open" ${c.status==='open'?'selected':''}>🔴 Keep Open</option>
-                        <option value="resolved" ${c.status==='resolved'?'selected':''}>✅ Resolved</option>
-                    </select>
-                    <textarea class="sel-wrap" style="height:90px;padding:12px;resize:vertical;font-family:'Nunito',sans-serif;" placeholder="Add admin notes..."></textarea>
+                    <div class="dp-section-title">Description</div>
+                    <div style="background:var(--surface-2);border-radius:12px;padding:16px;font-size:.88rem;line-height:1.7;">${description}</div>
                 </div>`;
-            document.getElementById('complaintDetailFooter').innerHTML = `
-                ${c.status!=='resolved'?`
-                    <button class="btn btn-warning btn-sm" onclick="warnStore('${c.store}');closeM('complaintDetailPanel')">⚠️ Warn Store</button>
-                    <button class="btn btn-danger btn-sm" onclick="suspendStore('${c.store}');closeM('complaintDetailPanel')">🔒 Suspend Store</button>
-                    <button class="btn btn-success btn-sm" onclick="resolveComplaint(${c.id});closeM('complaintDetailPanel')">✅ Mark Resolved</button>`:''}
-                <button class="btn btn-outline btn-sm" onclick="closeM('complaintDetailPanel')">Close</button>`;
-            openM('complaintDetailPanel');
+
+            document.getElementById('complaintPanelFooter').innerHTML = `
+                <button class="btn btn-warning btn-sm" onclick="warnTarget('${target}');closeM('complaintPanel')">⚠️ Warn</button>
+                <button class="btn btn-danger btn-sm"  onclick="suspendTarget('${target}');closeM('complaintPanel')">🔒 Suspend</button>
+                <button class="btn btn-outline btn-sm" onclick="closeM('complaintPanel')">Close</button>`;
+
+            openM('complaintPanel');
         }
 
-        function resolveComplaint(id) { const c=complaints.find(x=>x.id===id); if(!c) return; c.status='resolved'; renderComplaints(); toast(`Complaint #${id} resolved.`,'success'); }
-        function setInvestigating(id) { const c=complaints.find(x=>x.id===id); if(!c) return; c.status='investigating'; renderComplaints(); toast(`Complaint #${id} is now under investigation.`,'warning'); }
-        function warnStore(storeName) { currentWarnStore=storeName; document.getElementById('warnTarget').value=storeName; document.getElementById('warnMessage').value=''; openM('warnModal'); }
-        function sendWarning() { closeM('warnModal'); toast(`Warning sent to ${currentWarnStore}.`,'warning'); }
-        function suspendStore(storeName) { document.getElementById('suspendTarget').value=storeName; openM('suspendModal'); }
-        function confirmSuspendStore() { const name=document.getElementById('suspendTarget').value; closeM('suspendModal'); toast(`${name} has been suspended.`,'danger'); }
+        /* ── Filter complaints (client-side, data-* based) ── */
+        function filterComplaints() {
+            const q      = (document.getElementById('compSearch')?.value || '').toLowerCase();
+            const status = (document.getElementById('compStatusFilter')?.value || '').toLowerCase();
+            document.querySelectorAll('.complaint-row').forEach(row => {
+                const mQ = !q      || (row.dataset.search || '').toLowerCase().includes(q);
+                const mS = !status || (row.dataset.status || '') === status;
+                row.style.display = (mQ && mS) ? '' : 'none';
+            });
+        }
+        function resetCompFilters() {
+            document.getElementById('compSearch').value = '';
+            document.getElementById('compStatusFilter').selectedIndex = 0;
+            filterComplaints();
+        }
 
+        /* ── Warn / Suspend ── */
+        function warnTarget(name)    { currentWarnTarget = name; document.getElementById('warnTarget').value = name; openM('warnModal'); }
+        function suspendTarget(name) { document.getElementById('suspendTarget').value = name; openM('suspendModal'); }
+        function sendWarning()       { closeM('warnModal');    toast(`Warning sent to ${currentWarnTarget}.`, 'warning'); }
+        function confirmSuspend()    { const n = document.getElementById('suspendTarget').value; closeM('suspendModal'); toast(`${n} has been suspended.`, 'danger'); }
+
+        /* ── Tab switch ── */
         function switchTab(id, btn) {
-            ['reviews','complaints'].forEach(t => { document.getElementById('tab-'+t).style.display = t===id?'block':'none'; });
-            document.querySelectorAll('.tabs-bar .tab-btn').forEach(b=>b.classList.remove('active'));
+            ['reviews', 'complaints'].forEach(t => { document.getElementById('tab-' + t).style.display = t === id ? 'block' : 'none'; });
+            document.querySelectorAll('.tabs-bar .tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
         }
-        function exportData() { toast('Exporting moderation data...','success'); }
-        function openM(id)  { const m=document.getElementById(id); if(m) m.classList.add('open'); }
-        function closeM(id) { const m=document.getElementById(id); if(m) m.classList.remove('open'); }
-        document.querySelectorAll('.modal-overlay,.detail-overlay').forEach(m=>{ m.addEventListener('click',e=>{if(e.target===m) m.classList.remove('open');}); });
-        function toast(msg,type='success') {
-            const bg={success:'var(--success-soft)',danger:'var(--danger-soft)',warning:'var(--warning-soft)'}, col={success:'var(--success)',danger:'var(--danger)',warning:'#9b6000'};
-            const t=document.createElement('div');
-            t.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:9999;padding:14px 20px;border-radius:14px;background:${bg[type]};border:1px solid ${col[type]}40;color:${col[type]};font-weight:800;font-size:.86rem;font-family:'Nunito',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.12);animation:fadeUp .25s ease;max-width:320px;`;
-            t.textContent=msg; document.body.appendChild(t); setTimeout(()=>t.remove(),3000);
+
+        /* ── Modal helpers ── */
+        function openM(id)  { const m = document.getElementById(id); if (m) m.classList.add('open'); }
+        function closeM(id) { const m = document.getElementById(id); if (m) m.classList.remove('open'); }
+        document.querySelectorAll('.modal-overlay,.detail-overlay').forEach(m => {
+            m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+        });
+
+        /* ── Toast ── */
+        function toast(msg, type = 'success') {
+            const bg  = { success:'var(--success-soft)', danger:'var(--danger-soft)', warning:'var(--warning-soft)' };
+            const col = { success:'var(--success)', danger:'var(--danger)', warning:'#9b6000' };
+            const t = document.createElement('div');
+            t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;padding:14px 20px;border-radius:14px;background:${bg[type]};border:1px solid ${col[type]}40;color:${col[type]};font-weight:800;font-size:.86rem;font-family:'Nunito',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.12);animation:fadeUp .25s ease;max-width:320px;`;
+            t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 3000);
         }
-        const ts=document.createElement('style');
-        ts.textContent=`@@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`;
-        document.head.appendChild(ts);
+        const _ts = document.createElement('style');
+        _ts.textContent = `@@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`;
+        document.head.appendChild(_ts);
+
+        /* ── Init ── */
         renderReviews();
-        renderComplaints();
     </script>
 </body>
 </html>
