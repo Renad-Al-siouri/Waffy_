@@ -1,22 +1,13 @@
 ﻿using Waffy.Models;
-
 namespace Waffy.Interfaces
 {
     public interface IStoreDocumentRepository
     {
-        // جلب جميع وثائق متجر معين
         Task<IEnumerable<StoreDocument>> GetByStoreIdAsync(int idStore);
-
-        // جلب وثيقة واحدة بالـ ID
         Task<StoreDocument?> GetByIdAsync(int id);
-
-        // إضافة وثيقة جديدة
         Task AddAsync(StoreDocument document);
-
-        // تحديث حالة الوثيقة (مثلاً Approved / Rejected)
-        Task UpdateStatusAsync(int id, string status);
-
-        // حذف وثيقة
+        // ← محدّث: أضفنا adminNote و adminId
+        Task UpdateStatusAsync(int id, string status, string? adminNote, int adminId);
         Task DeleteAsync(int id);
     }
 }

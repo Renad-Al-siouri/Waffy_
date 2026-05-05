@@ -1,52 +1,131 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model List<Waffy.Models.CartItem>
 @{
     Layout = null;
+    var safeModel = Model ?? new List<Waffy.Models.CartItem>();
+    var subtotal = ViewBag.Subtotal != null ? (decimal)ViewBag.Subtotal : 0m;
+    var byStore = safeModel.GroupBy(i => new { i.IdStore, i.StoreName }).ToList();
+    decimal total = subtotal;
 }
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cart - Waffy</title>
-
     <link rel="stylesheet" href="~/css/cartstyle.css" />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        .store-group {
+            margin-bottom: 10px;
+        }
+
+        .store-group-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: #e8f0d8;
+            border: 1px solid #dce8cc;
+            border-radius: 14px 14px 0 0;
+            margin-bottom: 0;
+        }
+
+            .store-group-header .store-name {
+                font-weight: 900;
+                font-size: .88rem;
+                color: #3a5e1f;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+            }
+
+            .store-group-header .store-subtotal {
+                font-size: .82rem;
+                font-weight: 800;
+                color: #5a7a2f;
+            }
+
+        .store-group-items {
+            border: 1px solid #dce8cc;
+            border-top: none;
+            border-radius: 0 0 14px 14px;
+            overflow: hidden;
+            background: rgba(255,255,255,0.78);
+        }
+
+            .store-group-items .cart-item:last-child {
+                border-bottom: none;
+            }
+
+            .store-group-items .cart-item {
+                border-radius: 0;
+                border: none;
+                border-bottom: 1px solid rgba(163,149,118,0.15);
+            }
+
+        .multi-notice {
+            background: #fff8e1;
+            border: 1px solid #f5d87a;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            font-size: .82rem;
+            color: #7a5a00;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .price-original {
+            font-size: .78rem;
+            color: #bbb;
+            text-decoration: line-through;
+            margin-left: 6px;
+        }
+
+        .price-sale {
+            color: #e65100 !important;
+        }
+
+        .badge-oos {
+            font-size: .7rem;
+            background: #fdecea;
+            color: #c0392b;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 800;
+        }
+    </style>
 </head>
 <body>
 
+    <!-- ════════ NAVBAR ════════ -->
     <div class="top-hero-area">
         <div class="top-hero-shell">
             <header class="topbar">
                 <div class="header-shell">
                     <nav class="navbar">
-
                         <div class="left-nav desktop-nav desktop-links">
                             <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                             <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                             <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                             <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-
                         </div>
 
                         <div class="logo-center">
-                            <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
+                            <img src="../Images/logo.png" alt="Waffy" class="main-logo">
                         </div>
 
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
-
-
-
                                 <div class="services-dropdown" id="servicesDropdown">
                                     <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services
-                                        <span class="dropdown-arrow">▼</span>
+                                        Services <span class="dropdown-arrow">▼</span>
                                     </button>
-
                                     <div class="dropdown-menu" id="servicesMenu">
                                         <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
                                         <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
@@ -60,144 +139,452 @@
                                         <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                     </div>
                                 </div>
-
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
-
                             </div>
-
                             <div class="nav-actions">
-                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon active-cart-icon" aria-label="Cart">
                                     <i class="fa-solid fa-cart-shopping"></i>
+                                    @if (safeModel.Any())
+                                    {
+                                        <span class="cart-badge">@safeModel.Sum(i => i.Quantity)</span>
+                                    }
                                 </a>
-
-                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon" aria-label="Notifications">
-                                    <i class="fa-solid fa-bell"></i>
-                                </a>
-
-                                <a asp-controller="Account" asp-action="Profile" class="profile-btn" aria-label="Profile">
-                                    <img src="../Images/user.jpg" alt="Profile">
-                                </a>
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
+                                <a asp-controller="Account" asp-action="Profile" class="profile-btn"><img src="../Images/user.jpg" alt="Profile"></a>
                                 <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
-
                             <div class="mobile-nav-wrap">
-                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
+                                <button class="menu-btn" id="menuBtn" type="button">☰</button>
                                 <div class="nav-links" id="navLinks">
-                                    <div class="mobile-menu-logo">
-                                        <img src="../Images/logo.png" alt="Waffy Logo">
-                                    </div>
-
-                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
+                                    <div class="mobile-menu-logo"><img src="../Images/logo.png" alt="Waffy"></div>
+                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                                     <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                                     <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                                     <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                                     <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
-
                                     <div class="mobile-services-block" id="mobileServicesBlock">
                                         <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
-                                            <span>Services</span>
-                                            <span class="dropdown-arrow">▼</span>
+                                            <span>Services</span><span class="dropdown-arrow">▼</span>
                                         </button>
-
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
-
                                             <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                             <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                             <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
                                             <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
-                                            <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
+                                            <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                                     <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
                             </div>
                         </div>
-
                     </nav>
                 </div>
             </header>
         </div>
     </div>
 
+    <!-- ════════ MAIN ════════ -->
     <main class="container cart-page">
+
         <section class="hero-section fade-up">
             <h1>Your Cart 🛒</h1>
-            <p>
-                Review your selected products, remove anything you don’t need,
-                or continue to checkout when you're ready.
-            </p>
+            <p>Review your items and checkout when ready.</p>
         </section>
 
         <section class="cart-layout">
+
+            <!-- ════ CART ITEMS ════ -->
             <div class="cart-items-card fade-up">
                 <div class="section-head">
                     <div class="section-title-wrap">
                         <span>🐾</span>
-                        <h2>Cart Items</h2>
+                        <h2>
+                            Cart Items
+                            @if (safeModel.Any())
+                            {
+                                <span style="font-size:.8rem;color:#8ab56b;font-weight:700;margin-left:6px">
+                                    (@safeModel.Sum(i => i.Quantity) item@(safeModel.Sum(i => i.Quantity) != 1 ? "s" : ""))
+                                </span>
+                            }
+                        </h2>
                     </div>
-                    <button id="clearCartBtn" class="clear-cart-btn" type="button">Clear Cart</button>
                 </div>
 
-                <div id="cartItems" class="cart-items-list"></div>
+                <div id="cartItems" class="cart-items-list">
+
+                    @if (!safeModel.Any())
+                    {
+                        <div class="empty-cart">
+                            <div style="font-size:3rem;margin-bottom:10px">🛒</div>
+                            <h3>Your cart is empty</h3>
+                            <p>Add products from our stores to get started</p>
+                            <a asp-controller="Product" asp-action="Stores"
+                               style="display:inline-block;margin-top:14px;padding:10px 24px;background:#8ab56b;color:#fff;border-radius:20px;font-weight:700">
+                                Browse Stores
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        @if (byStore.Count > 1)
+                        {
+                            <div class="multi-notice">
+                                ⚠️ Items from <strong style="margin:0 4px">@byStore.Count stores</strong> —
+                                each store = <strong style="margin:0 4px">separate order & delivery</strong>
+                            </div>
+                        }
+
+                        @foreach (var store in byStore)
+                        {
+                            var storeTotal = store.Sum(i => i.Quantity * i.EffectivePrice);
+
+                            <div class="store-group">
+
+                                <div class="store-group-header">
+                                    <div class="store-name">
+                                        🏪 @(store.Key.StoreName ?? "Store")
+                                    </div>
+                                    <div style="display:flex;align-items:center;gap:14px">
+                                        <span style="font-size:.72rem;color:#8ab56b;font-weight:700">
+                                            <i class="fa-solid fa-truck"></i> Separate delivery
+                                        </span>
+                                        <span class="store-subtotal">@storeTotal.ToString("F3") JD</span>
+                                    </div>
+                                </div>
+
+                                <div class="store-group-items">
+                                    @foreach (var item in store)
+                                    {
+                                        var effectivePrice = item.EffectivePrice;
+                                        var isOnSale = item.SalePrice.HasValue && item.SalePrice > 0;
+                                        var isOOS = item.StockQuantity <= 0;
+
+                                        <div class="cart-item" id="row-@item.Id">
+
+                                            <!-- صورة مع Mini Slider -->
+                                            <div class="cart-item-image" style="position:relative;overflow:hidden">
+                                                @if (item.Images.Count > 1)
+                                                {
+                                                    <div class="ci-slider" id="slider-@item.Id"
+                                                         style="position:relative;width:100%;height:100%">
+
+                                                        @* ✅ imgStyle كمتغير منفصل — لا double quotes داخل style *@
+                                                        @for (int imgIdx = 0; imgIdx < item.Images.Count; imgIdx++)
+                                                        {
+                                                            var imgStyle = imgIdx == 0
+                                                            ? "position:relative;width:100%;height:100%;object-fit:cover;opacity:1;transition:opacity .3s"
+                                                            : "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .3s";
+                                                            <img src="@item.Images[imgIdx]"
+                                                                 alt="@item.ProductName"
+                                                                 class="ci-slide"
+                                                                 style="@imgStyle" />
+                                                        }
+
+                                                        <button onclick="ciSlide('@item.Id', -1)"
+                                                                style="position:absolute;left:2px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.4);color:#fff;border:none;border-radius:4px;width:18px;height:24px;font-size:.7rem;cursor:pointer;z-index:2">
+                                                            ‹
+                                                        </button>
+
+                                                        <button onclick="ciSlide('@item.Id', 1)"
+                                                                style="position:absolute;right:2px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.4);color:#fff;border:none;border-radius:4px;width:18px;height:24px;font-size:.7rem;cursor:pointer;z-index:2">
+                                                            ›
+                                                        </button>
+
+                                                        @* ✅ dotIdx منفصل عن imgIdx *@
+                                                        <div style="position:absolute;bottom:4px;left:50%;transform:translateX(-50%);display:flex;gap:3px;z-index:2">
+                                                            @for (int dotIdx = 0; dotIdx < item.Images.Count; dotIdx++)
+                                                            {
+                                                                var dotBg = dotIdx == 0 ? "#fff" : "rgba(255,255,255,.5)";
+                                                                <span id="dot-@(item.Id)-@dotIdx"
+                                                                      onclick="ciGoTo('@item.Id', @dotIdx)"
+                                                                      style="width:5px;height:5px;border-radius:50%;cursor:pointer;background:@dotBg"></span>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                }
+                                                else if (item.Images.Any())
+                                                {
+                                                    <img src="@item.Images[0]" alt="@item.ProductName"
+                                                         style="width:100%;height:100%;object-fit:cover" />
+                                                }
+                                                else
+                                                {
+                                                    <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.2rem">🐾</div>
+                                                }
+                                            </div>
+
+                                            <!-- معلومات المنتج -->
+                                            <div class="cart-item-info">
+                                                <h3>@item.ProductName</h3>
+                                                @if (isOOS)
+                                                {
+                                                    <span class="badge-oos">Out of Stock</span>
+                                                }
+                                                <div class="cart-item-meta">
+                                                    <div class="qty-mini">
+                                                        <button class="qty-mini-btn"
+                                                                onclick="changeQty(@item.Id, @item.Quantity, -1)"
+                                                                type="button">
+                                                            −
+                                                        </button>
+                                                        <span class="qty-mini-value" id="qty-@item.Id">@item.Quantity</span>
+                                                        <button class="qty-mini-btn"
+                                                                onclick="changeQty(@item.Id, @item.Quantity, 1)"
+                                                                type="button">
+                                                            +
+                                                        </button>
+                                                    </div>
+                                                    <span class="cart-item-price @(isOnSale ? "price-sale" : "")">
+                                                        @effectivePrice.ToString("F3") JD
+                                                    </span>
+                                                    @if (isOnSale)
+                                                    {
+                                                        <span class="price-original">@item.UnitPrice.ToString("F3") JD</span>
+                                                    }
+                                                </div>
+                                            </div>
+
+                                            <!-- الإجمالي + حذف -->
+                                            <div class="cart-item-actions">
+                                                <div class="cart-item-price" id="sub-@item.Id"
+                                                     style="text-align:right;font-size:.92rem">
+                                                    @item.LineTotal.ToString("F3") JD
+                                                </div>
+                                                <button class="remove-btn"
+                                                        onclick="removeItem(@item.Id)"
+                                                        type="button">
+                                                    🗑 Remove
+                                                </button>
+                                            </div>
+
+                                        </div>
+                                    }
+                                </div>
+
+                                <div style="margin-top:8px;text-align:right">
+                                    <a asp-controller="Payment" asp-action="Check"
+                                       asp-route-storeId="@store.Key.IdStore"
+                                       class="checkout-btn"
+                                       style="display:inline-block;width:auto;padding:10px 24px;text-decoration:none">
+                                        Checkout @store.Key.StoreName →
+                                    </a>
+                                </div>
+
+                            </div>
+                        }
+                    }
+                </div>
             </div>
 
+            <!-- ════ SUMMARY ════ -->
             <aside class="summary-card fade-up">
                 <h3>Order Summary</h3>
 
+                @if (byStore.Count > 1)
+                {
+                    @foreach (var store in byStore)
+                    {
+                        var st = store.Sum(i => i.Quantity * i.EffectivePrice);
+                        <div class="summary-line" style="font-size:.78rem">
+                            <span style="color:#6a9a3a;font-weight:800">
+                                🏪 @(store.Key.StoreName ?? "Store")
+                            </span>
+                            <strong>@st.ToString("F3") JD</strong>
+                        </div>
+                    }
+                    <hr style="border:none;border-top:1px dashed #e0ead0;margin:4px 0">
+                }
+
                 <div class="summary-line">
                     <span>Total Items</span>
-                    <strong id="summaryItems">0</strong>
+                    <strong id="summaryItems">@safeModel.Sum(i => i.Quantity)</strong>
                 </div>
-
                 <div class="summary-line">
                     <span>Subtotal</span>
-                    <strong id="summarySubtotal">0.00 JD</strong>
+                    <strong id="summarySubtotal">@subtotal.ToString("F3") JD</strong>
                 </div>
-
                 <div class="summary-line">
-                    <span>Service Fee</span>
-                    <strong id="summaryFee">1.50 JD</strong>
+                    <span>Delivery Fee</span>
+                    <strong>Calculated at checkout</strong>
                 </div>
-
                 <div class="summary-line total-line">
                     <span>Total</span>
-                    <strong id="summaryTotal">0.00 JD</strong>
+                    <strong id="summaryTotal">@total.ToString("F3") JD</strong>
                 </div>
 
-                <div id="paymentNotice" class="payment-notice hidden">
-                    Payment completed successfully. Please remove purchased products from your cart.
-                </div>
+                @if (safeModel.Any())
+                {
+                    <div class="payment-notice">
+                        🏪 Each store is a <strong>separate order</strong> with its own delivery.
+                    </div>
 
-                <a id="checkoutBtn" class="checkout-btn" asp-controller="Payment" asp-action="Check">
-                    Checkout
-                </a>
+                    <a class="checkout-btn"
+                       asp-controller="Product" asp-action="Stores"
+                       style="display:block;text-align:center;text-decoration:none;margin-top:15px">
+                        + Continue Shopping
+                    </a>
+                }
+                else
+                {
+                    <a class="checkout-btn"
+                       asp-controller="Product" asp-action="Stores"
+                       style="display:block;text-align:center;text-decoration:none;background:#aaa">
+                        Browse Stores
+                    </a>
+                }
             </aside>
+
         </section>
     </main>
 
+    <!-- ════════ FOOTER ════════ -->
     <footer class="footer">
         <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <span>|</span>
-            <a href="about.html">Contact</a>
-            <span>|</span>
-            <a href="faq.html">FAQ</a>
-            <span>|</span>
-            <div class="social-inline">
-                <span>f</span>
-                <span>🐦</span>
-                <span>◎</span>
-            </div>
+            <a asp-controller="Home" asp-action="About">About Us</a><span>|</span>
+            <a asp-controller="Home" asp-action="About">Contact</a><span>|</span>
+            <a asp-controller="Home" asp-action="Faq">FAQ</a><span>|</span>
+            <div class="social-inline"><span>f</span><span>🐦</span><span>◎</span></div>
         </div>
         <div>© 2026 Waffy, all rights reserved.</div>
     </footer>
 
     <div id="toast" class="toast"></div>
 
-    <script src="~/js/cartjs.js"></script>
+    <!-- ════════ JS ════════ -->
+    <script>
+        function showToast(msg, ok) {
+            if (ok === undefined) ok = true;
+            var t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.background = ok ? '#5e6e32' : '#c0392b';
+            t.classList.add('show');
+            setTimeout(function() { t.classList.remove('show'); }, 2200);
+        }
+
+        async function changeQty(itemId, cur, delta) {
+            var newQ = cur + delta;
+            if (newQ < 1) {
+                if (!confirm('Remove this item from cart?')) return;
+                removeItem(itemId);
+                return;
+            }
+            var fd = new FormData();
+            fd.append('itemId', itemId);
+            fd.append('quantity', newQ);
+            var res  = await fetch('/Payment/UpdateQuantity', { method: 'POST', body: fd });
+            var data = await res.json();
+            if (data.success) {
+                document.getElementById('qty-' + itemId).textContent = newQ;
+                var subEl = document.getElementById('sub-' + itemId);
+                if (subEl) {
+                    var unit = parseFloat(subEl.textContent.replace(' JD', '').trim()) / cur;
+                    subEl.textContent = (unit * newQ).toFixed(3) + ' JD';
+                }
+                document.getElementById('summarySubtotal').textContent = data.subtotal + ' JD';
+                document.getElementById('summaryTotal').textContent    = data.subtotal + ' JD';
+                document.getElementById('summaryItems').textContent    = data.cartCount;
+            }
+        }
+
+        async function removeItem(itemId) {
+            var row = document.getElementById('row-' + itemId);
+            if (row) row.style.opacity = '.3';
+            var fd = new FormData();
+            fd.append('itemId', itemId);
+            var res  = await fetch('/Payment/RemoveItem', { method: 'POST', body: fd });
+            var data = await res.json();
+            if (data.success) {
+                if (row) row.remove();
+                document.getElementById('summarySubtotal').textContent = data.subtotal + ' JD';
+                document.getElementById('summaryTotal').textContent    = data.subtotal + ' JD';
+                document.getElementById('summaryItems').textContent    = data.cartCount;
+                showToast('🗑 Item removed', false);
+                if (data.empty) setTimeout(function() { location.reload(); }, 800);
+            } else {
+                if (row) row.style.opacity = '1';
+            }
+        }
+
+        // ── Mini Image Slider ─────────────────────────────────────
+        var ciState = {};
+
+        function ciSlide(itemId, dir) {
+            var slider = document.getElementById('slider-' + itemId);
+            if (!slider) return;
+            var slides = slider.querySelectorAll('.ci-slide');
+            var total  = slides.length;
+            if (!total) return;
+            var cur  = ciState[itemId] !== undefined ? ciState[itemId] : 0;
+            var next = (cur + dir + total) % total;
+            ciGoTo(itemId, next);
+        }
+
+        function ciGoTo(itemId, idx) {
+            var slider = document.getElementById('slider-' + itemId);
+            if (!slider) return;
+            var slides = slider.querySelectorAll('.ci-slide');
+            var cur    = ciState[itemId] !== undefined ? ciState[itemId] : 0;
+
+            if (slides[cur]) {
+                slides[cur].style.opacity  = '0';
+                slides[cur].style.position = 'absolute';
+            }
+            var curDot = document.getElementById('dot-' + itemId + '-' + cur);
+            if (curDot) curDot.style.background = 'rgba(255,255,255,.5)';
+
+            if (slides[idx]) {
+                slides[idx].style.opacity  = '1';
+                slides[idx].style.position = 'relative';
+            }
+            var newDot = document.getElementById('dot-' + itemId + '-' + idx);
+            if (newDot) newDot.style.background = '#fff';
+
+            ciState[itemId] = idx;
+        }
+
+        // ── Navbar ───────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.fade-up').forEach(function(el) {
+                setTimeout(function() { el.classList.add('show'); }, 100);
+            });
+
+            var sd = document.getElementById('servicesDropdown');
+            var st = document.getElementById('servicesToggle');
+            if (st) {
+                st.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (sd) sd.classList.toggle('open');
+                });
+            }
+            document.addEventListener('click', function() {
+                if (sd) sd.classList.remove('open');
+            });
+
+            var mb  = document.getElementById('menuBtn');
+            var nav = document.getElementById('navLinks');
+            if (mb) {
+                mb.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (nav) nav.classList.toggle('open');
+                });
+            }
+            document.addEventListener('click', function(e) {
+                if (nav && !nav.contains(e.target) && e.target !== mb)
+                    nav.classList.remove('open');
+            });
+
+            var mst = document.getElementById('mobileServicesToggle');
+            var msb = document.getElementById('mobileServicesBlock');
+            if (mst) {
+                mst.addEventListener('click', function() {
+                    if (msb) msb.classList.toggle('open');
+                });
+            }
+        });
+    </script>
+
 </body>
 </html>

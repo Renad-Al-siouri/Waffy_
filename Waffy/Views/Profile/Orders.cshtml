@@ -1,6 +1,8 @@
-﻿@{
+﻿@model List<Waffy.Models.Order>
+@{
     ViewData["Title"] = "My Orders";
     Layout = null;
+    var storeNames = ViewBag.StoreNames as Dictionary<int, string> ?? new();
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -13,9 +15,392 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="~/css/waffy-shared.css">
     <link rel="stylesheet" href="~/css/waffy-responsive-patch.css">
+    <style>
+        /* ══ Order Cards ══ */
+        .order-card {
+            background: #fff;
+            border: 1px solid var(--line, #eee);
+            border-radius: 14px;
+            margin-bottom: 14px;
+            overflow: hidden;
+            transition: box-shadow .2s;
+        }
+
+            .order-card:hover {
+                box-shadow: 0 4px 18px rgba(0,0,0,.08);
+            }
+
+        .order-card-hd {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #f9fbf6;
+            border-bottom: 1px solid var(--line, #eee);
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .order-code {
+            font-family: monospace;
+            font-weight: 900;
+            font-size: .85rem;
+            color: #59652a;
+        }
+
+        .order-date {
+            font-size: .74rem;
+            color: #aaa;
+            font-weight: 700;
+        }
+
+        .order-card-body {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            flex-wrap: wrap;
+        }
+
+        .order-store-name {
+            font-weight: 800;
+            font-size: .86rem;
+            color: #2d3a1f;
+        }
+
+        .order-payment {
+            font-size: .74rem;
+            color: #aaa;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .order-card-ft {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 16px;
+            background: #f9fbf6;
+            border-top: 1px solid var(--line, #eee);
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .order-address {
+            font-size: .74rem;
+            color: #aaa;
+            font-weight: 700;
+            max-width: 240px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .track-btn {
+            padding: 6px 14px;
+            background: #59652a;
+            color: #fff;
+            border-radius: 20px;
+            font-size: .76rem;
+            font-weight: 800;
+            text-decoration: none;
+            transition: .15s;
+            cursor: pointer;
+            border: none;
+        }
+
+            .track-btn:hover {
+                background: #59652a;
+            }
+
+        /* ══ Status Badges ══ */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: .7rem;
+            font-weight: 900;
+        }
+
+        .badge-pending {
+            background: #fff8e1;
+            color: #f39c12;
+        }
+
+        .badge-confirmed {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        .badge-preparing {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        .badge-shipped {
+            background: #e0f7fa;
+            color: #00838f;
+        }
+
+        .badge-delivered {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .badge-cancelled {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        /* ══ Track Modal ══ */
+        .track-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.5);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .track-overlay.open {
+                display: flex;
+            }
+
+        .track-modal {
+            background: #fff;
+            border-radius: 20px;
+            max-width: 480px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 24px;
+            box-shadow: 0 12px 40px rgba(0,0,0,.15);
+        }
+
+        .track-modal-hd {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .track-modal-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #59652a;
+        }
+
+        .track-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            background: #f0f5e8;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #59652a;
+        }
+
+        /* ══ Timeline ══ */
+        .timeline {
+            position: relative;
+            padding-left: 36px;
+        }
+
+            .timeline::before {
+                content: '';
+                position: absolute;
+                left: 14px;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                background: #e8f0e0;
+            }
+
+        .tl-item {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+            .tl-item:last-child {
+                margin-bottom: 0;
+            }
+
+        .tl-dot {
+            position: absolute;
+            left: -30px;
+            top: 2px;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 2px solid #e8f0e0;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .75rem;
+        }
+
+            .tl-dot.done {
+                background: #8ab56b;
+                border-color: #8ab56b;
+                color: #fff;
+            }
+
+            .tl-dot.active {
+                background: #59652a;
+                border-color: #59652a;
+                color: #fff;
+                box-shadow: 0 0 0 4px rgba(58,94,31,.12);
+            }
+
+            .tl-dot.cancelled-dot {
+                background: #e74c3c;
+                border-color: #e74c3c;
+                color: #fff;
+            }
+
+        .tl-label {
+            font-weight: 900;
+            font-size: .88rem;
+            color: #2d3a1f;
+        }
+
+            .tl-label.muted {
+                color: #ccc;
+            }
+
+            .tl-label.active-lbl {
+                color: #3a5e1f;
+            }
+
+        .tl-desc {
+            font-size: .74rem;
+            color: #aaa;
+            margin-top: 2px;
+        }
+
+        .tl-current {
+            font-size: .72rem;
+            color: #2d3a1f;
+            font-weight: 800;
+            margin-top: 2px;
+        }
+
+        /* ══ Order Items in Modal ══ */
+        .modal-items {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #e8f0e0;
+        }
+
+        .modal-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #f5f8f0;
+            font-size: .84rem;
+        }
+
+            .modal-item:last-child {
+                border-bottom: none;
+            }
+
+        .modal-item-name {
+            font-weight: 700;
+            color: #2d3a1f;
+        }
+
+        .modal-item-qty {
+            color: #aaa;
+            font-size: .76rem;
+        }
+
+        .modal-item-price {
+            font-weight: 900;
+            color: #3a5e1f;
+        }
+
+        .modal-total {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px solid #e8f0e0;
+            font-weight: 900;
+            color: #2d3a1f;
+        }
+
+        /* ══ Empty ══ */
+        .empty-orders {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+            .empty-orders .ico {
+                font-size: 3rem;
+                margin-bottom: 10px;
+            }
+
+            .empty-orders h3 {
+                color: #888;
+                font-size: 1rem;
+                margin-bottom: 6px;
+            }
+
+            .empty-orders a {
+                display: inline-block;
+                margin-top: 12px;
+                padding: 10px 22px;
+                background: #2d3a1f;
+                color: #fff;
+                border-radius: 20px;
+                font-weight: 700;
+                text-decoration: none;
+                font-size: .88rem;
+            }
+
+        /* ══ Filter Bar ══ */
+        .filter-bar {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .filter-chip {
+            padding: 5px 14px;
+            border-radius: 20px;
+            border: 1.5px solid #e0ead0;
+            background: #fff;
+            font-size: .76rem;
+            font-weight: 700;
+            color: #2d3a1f;
+            cursor: pointer;
+            transition: .15s;
+        }
+
+            .filter-chip:hover {
+                border-color: #2d3a1f;
+                color: #4a7c2f;
+            }
+
+            .filter-chip.active {
+                background: #8ab56b;
+                border-color: #8ab56b;
+                color: #fff;
+            }
+    </style>
 </head>
 <body>
 
+    <!-- ══ NAVBAR ══ -->
     <div class="top-hero-area">
         <div class="top-hero-shell">
             <header class="topbar">
@@ -53,19 +438,18 @@
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                             </div>
                             <div class="nav-actions">
-                                <a href="/Cart/Index" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
-                                <a href="/Notifications/Index" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
-                                <a href="/Profile/Edit_Profile" class="profile-btn">
+                                <a asp-controller="Cart" asp-action="Index" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
+                                <a asp-controller="Account" asp-action="Profile" class="profile-btn">
                                     <img src="~/Images/user.jpg" alt="Profile">
                                 </a>
-                                <a href="/Account/Logout" class="nav-link login-btn">Log out</a>
+                                <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
                             <div class="mobile-nav-wrap">
                                 <button class="menu-btn" id="menuBtn" type="button">&#9776;</button>
                                 <div class="nav-links" id="navLinks">
                                     <div class="mobile-menu-logo"><img src="~/Images/logo.png" alt="Waffy"></div>
-
-                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
+                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                                     <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                                     <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
@@ -80,10 +464,9 @@
                                             <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                             <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
                                             <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
-                                            <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
+                                            <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                                     <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
@@ -95,6 +478,7 @@
         </div>
     </div>
 
+    <!-- ══ PAGE WRAP ══ -->
     <div class="page-wrap">
         <aside class="sidebar">
             <div class="sb-profile">
@@ -105,12 +489,8 @@
                         <input type="file" id="avatarFile" accept="image/*" hidden onchange="changeAvatar(this)">
                     </div>
                     <div class="sb-profile-text">
-                        <div class="sb-name" id="sidebarName">Batool Jaber</div>
-                        <div class="sb-email" id="sidebarEmail">Batool@@email.com</div>
-                        <div class="sb-wallet-mini">
-                            <span>&#128155; Wallet</span>
-                            <strong id="sidebarBalance">100.50 JOD</strong>
-                        </div>
+                        <div class="sb-name" id="sidebarName">@(ViewBag.FullName ?? "User")</div>
+                        <div class="sb-email" id="sidebarEmail">@(ViewBag.Email ?? "")</div>
                     </div>
                 </div>
             </div>
@@ -118,18 +498,20 @@
                 <div class="sb-nav-label">Account</div>
                 <a href="/Profile/Edit_Profile" class="sb-item"><i class="fa-solid fa-user"></i> Edit Profile</a>
                 <a href="/Profile/Contact_Info" class="sb-item"><i class="fa-solid fa-address-card"></i> Contact Info</a>
-                <a href="/Profile/My_Wallet" class="sb-item"><i class="fa-solid fa-wallet"></i> My Wallet<span class="sb-badge">32.50</span></a>
-                <a href="/Profile/Rewards" class="sb-item"><i class="fa-solid fa-gift"></i> Rewards<span class="sb-badge">3</span></a>
+                <a href="/Profile/My_Wallet" class="sb-item"><i class="fa-solid fa-wallet"></i> My Wallet</a>
+                <a href="/Profile/Rewards" class="sb-item"><i class="fa-solid fa-gift"></i> Rewards</a>
 
                 <div class="sb-nav-label">Pets &amp; Services</div>
-                <a href="/Profile/Appointments" class="sb-item"><i class="fa-solid fa-calendar-check"></i> Appointments<span class="sb-badge">2</span></a>
-                <a href="/Profile/Orders" class="sb-item active"><i class="fa-solid fa-box"></i> Orders<span class="sb-badge">3</span></a>
-                <a href="/Profile/Lost_Reports" class="sb-item"><i class="fa-solid fa-magnifying-glass"></i> Lost Reports<span class="sb-badge red">1</span></a>
-                <a href="/Profile/Adoption_Ads" class="sb-item"><i class="fa-solid fa-paw"></i> Adoption Ads<span class="sb-badge">1</span></a>
-                <a asp-controller="Profile" asp-action="My_Donations" class="sb-item"><i class="fa-solid fa-heart"></i> My Donations</a>
-                <a asp-controller="Profile" asp-action="My_Danger_Reports" class="sb-item">
-                    <i class="fa-solid fa-triangle-exclamation"></i> Danger Reports
+                <a href="/Profile/Appointments" class="sb-item"><i class="fa-solid fa-calendar-check"></i> Appointments</a>
+                <a href="/Profile/Orders" class="sb-item active">
+                    <i class="fa-solid fa-box"></i> Orders
+                    <span class="sb-badge">@Model.Count(o => o.Status == "Pending")</span>
                 </a>
+                <a href="/Profile/Lost_Reports" class="sb-item"><i class="fa-solid fa-magnifying-glass"></i> Lost Reports</a>
+                <a href="/Profile/Adoption_Ads" class="sb-item"><i class="fa-solid fa-paw"></i> Adoption Ads</a>
+                <a asp-controller="Profile" asp-action="My_Donations" class="sb-item"><i class="fa-solid fa-heart"></i> My Donations</a>
+                <a asp-controller="Profile" asp-action="My_Danger_Reports" class="sb-item"><i class="fa-solid fa-triangle-exclamation"></i> Danger Reports</a>
+
                 <div class="sb-nav-label">History</div>
                 <a href="/Profile/Timeline" class="sb-item"><i class="fa-solid fa-clock-rotate-left"></i> Timeline</a>
                 <a href="/Profile/Complaints" class="sb-item"><i class="fa-solid fa-triangle-exclamation"></i> Complaints</a>
@@ -140,103 +522,282 @@
         </aside>
 
         <main class="main-content">
-            <div class="page-header"><div><h2>My Orders &#128717;&#65039;</h2><p>Track your purchases</p></div></div>
-
-            <div class="s-card">
-                <div class="s-card-head">
-                    <span class="s-card-title">Recent Orders</span>
-                    <select id="orderFilter" style="padding:6px 12px;border:1px solid var(--line);border-radius:var(--pill);font-size:.78rem;font-weight:700;background:#fff;outline:none;cursor:pointer" onchange="filterOrders(this.value)">
-                        <option value="all">All</option>
-                        <option value="delivered">Delivered</option>
-                        <option value="shipped">Shipped</option>
-                    </select>
+            <div class="page-header">
+                <div>
+                    <h2>My Orders 📦</h2>
+                    <p>@Model.Count order@(Model.Count != 1 ? "s" : "") total</p>
                 </div>
-                <div class="s-card-body">
-                    <div class="order-row" data-status="delivered">
-                        <div class="order-img">&#129464;</div>
-                        <div class="order-info"><h4>Royal Canin Dog Food &middot; 2kg</h4><p>Pet Friends Store &middot; Mar 8 &middot; 2 items</p></div>
-                        <div style="text-align:right"><div class="order-amount">18.50 JOD</div><span class="badge badge-green" style="margin-top:5px">Delivered</span></div>
-                    </div>
-                    <div class="order-row" data-status="shipped">
-                        <div class="order-img">&#128138;</div>
-                        <div class="order-info"><h4>Flea &amp; Tick Treatment</h4><p>PetCare Pharmacy &middot; Mar 1 &middot; 1 item</p></div>
-                        <div style="text-align:right"><div class="order-amount">8.00 JOD</div><span class="badge badge-blue" style="margin-top:5px">Shipped</span></div>
-                    </div>
-                    <div class="order-row" data-status="delivered">
-                        <div class="order-img">&#129382;</div>
-                        <div class="order-info"><h4>Cat Toy Set</h4><p>Colorful Birds Store &middot; Feb 20 &middot; 3 items</p></div>
-                        <div style="text-align:right"><div class="order-amount">12.00 JOD</div><span class="badge badge-grey" style="margin-top:5px">Delivered</span></div>
-                    </div>
-                </div>
+                <a asp-controller="Product" asp-action="Stores"
+                   style="padding:8px 18px;background:#8ab56b;color:#fff;border-radius:20px;font-size:.82rem;font-weight:800;text-decoration:none">
+                    + Shop More
+                </a>
             </div>
+
+            <!-- Filter chips -->
+            <div class="filter-bar">
+                <span class="filter-chip active" onclick="filterBy('all',this)">All (@Model.Count)</span>
+                <span class="filter-chip" onclick="filterBy('pending',this)">
+                    Pending (@Model.Count(o => (o.Status ?? "").ToLower() == "pending"))
+                </span>
+                <span class="filter-chip" onclick="filterBy('confirmed',this)">Confirmed</span>
+                <span class="filter-chip" onclick="filterBy('preparing',this)">Preparing</span>
+                <span class="filter-chip" onclick="filterBy('shipped',this)">Shipped</span>
+                <span class="filter-chip" onclick="filterBy('delivered',this)">Delivered</span>
+                <span class="filter-chip" onclick="filterBy('cancelled',this)">Cancelled</span>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="empty-orders">
+                    <div class="ico">📭</div>
+                    <h3>No orders yet</h3>
+                    <p style="color:#aaa;font-size:.84rem">Start shopping to track your orders here</p>
+                    <a asp-controller="Product" asp-action="Stores">Browse Stores</a>
+                </div>
+            }
+            else
+            {
+                <div id="ordersList">
+                    @foreach (var o in Model)
+                    {
+                        var status = (o.Status ?? "pending").ToLower();
+                        var badgeCls = "badge-" + status;
+                        var storeName = storeNames.GetValueOrDefault(o.IdStore, "Store");
+
+                        <div class="order-card" data-status="@status">
+                            <div class="order-card-hd">
+                                <div>
+                                    <div class="order-code">@o.OrderCode</div>
+                                    <div class="order-date">@o.CreatedAt.ToString("dd MMM yyyy · hh:mm tt")</div>
+                                </div>
+                                <span class="badge @badgeCls">@(o.Status ?? "Pending")</span>
+                            </div>
+                            <div class="order-card-body">
+                                <div style="width:38px;height:38px;background:#e8f0d8;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">🏪</div>
+                                <div style="flex:1">
+                                    <div class="order-store-name">@storeName</div>
+                                    <div class="order-payment">
+                                        @(o.PaymentMethod ?? "—") · @(o.PaymentStatus ?? "Pending")
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="order-card-ft">
+                                <div class="order-address">
+                                    📍 @(o.DeliveryAddress?.Length > 45 ? o.DeliveryAddress[..45] + "…" : o.DeliveryAddress)
+                                </div>
+                                <button class="track-btn"
+                                        onclick="openTrackModal(@o.IdOrder, '@o.OrderCode', '@status', '@storeName', '@o.RecipientName', '@o.DeliveryAddress', '@(o.PaymentMethod ?? "")')">
+                                    Track Order →
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
         </main>
     </div>
 
-    <!-- Mobile Bottom Navigation -->
-    <div class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile bottom navigation">
+    <!-- ══ TRACK MODAL ══ -->
+    <div class="track-overlay" id="trackOverlay" onclick="closeTrackModal()">
+        <div class="track-modal" onclick="event.stopPropagation()">
+            <div class="track-modal-hd">
+                <div class="track-modal-title">📦 Order Tracking</div>
+                <button class="track-close" onclick="closeTrackModal()">✕</button>
+            </div>
+
+            <!-- Order Info -->
+            <div style="background:#f9fbf6;border-radius:12px;padding:12px 14px;margin-bottom:16px">
+                <div style="font-family:monospace;font-weight:900;font-size:.9rem;color:#3a5e1f" id="modalCode"></div>
+                <div style="font-size:.76rem;color:#888;margin-top:4px" id="modalStore"></div>
+                <div style="font-size:.76rem;color:#888;margin-top:2px" id="modalAddress"></div>
+                <div style="font-size:.76rem;color:#888;margin-top:2px" id="modalPayment"></div>
+            </div>
+
+            <!-- Timeline -->
+            <div class="timeline" id="modalTimeline"></div>
+
+            <!-- Items -->
+            <div class="modal-items" id="modalItems">
+                <div style="text-align:center;color:#aaa;font-size:.82rem;padding:10px">Loading items...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══ Mobile Bottom Nav ══ -->
+    <div class="mobile-bottom-nav" id="mobileBottomNav">
         <a href="/Profile/Edit_Profile" class="mb-nav-item"><i class="fa-solid fa-user"></i><span>Edit</span></a>
         <a href="/Profile/My_Wallet" class="mb-nav-item"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
-        <a href="/Profile/Appointments" class="mb-nav-item"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></a>
+        <a href="/Profile/Appointments" class="mb-nav-item"><i class="fa-solid fa-calendar-check"></i><span>Appts</span></a>
         <a href="/Profile/Orders" class="mb-nav-item active"><i class="fa-solid fa-box"></i><span>Orders</span></a>
-        <button type="button" class="mb-nav-item mb-more-btn" id="mbMoreBtn" aria-expanded="false" aria-controls="mbMoreDrawer">
+        <button type="button" class="mb-nav-item mb-more-btn" id="mbMoreBtn">
             <i class="fa-solid fa-grid-2"></i><span>More</span>
         </button>
     </div>
-
     <div class="mb-more-overlay" id="mbMoreOverlay"></div>
-    <div class="mb-more-drawer" id="mbMoreDrawer" aria-hidden="true">
+    <div class="mb-more-drawer" id="mbMoreDrawer">
         <div class="mb-more-head">
             <h3>More Pages</h3>
-            <button type="button" class="mb-more-close" id="mbMoreClose" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" class="mb-more-close" id="mbMoreClose"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="mb-more-grid">
-            <a href="/Profile/Contact_Info" class="mb-more-link"><i class="fa-solid fa-address-card"></i><span>Contact Info</span></a>
+            <a href="/Profile/Contact_Info" class="mb-more-link"><i class="fa-solid fa-address-card"></i><span>Contact</span></a>
             <a href="/Profile/Rewards" class="mb-more-link"><i class="fa-solid fa-gift"></i><span>Rewards</span></a>
-            <a href="/Profile/Lost_Reports" class="mb-more-link"><i class="fa-solid fa-magnifying-glass"></i><span>Lost Reports</span></a>
-            <a href="/Profile/Adoption_Ads" class="mb-more-link"><i class="fa-solid fa-paw"></i><span>Adoption Ads</span></a>
+            <a href="/Profile/Lost_Reports" class="mb-more-link"><i class="fa-solid fa-magnifying-glass"></i><span>Lost</span></a>
+            <a href="/Profile/Adoption_Ads" class="mb-more-link"><i class="fa-solid fa-paw"></i><span>Adoption</span></a>
             <a href="/Profile/Timeline" class="mb-more-link"><i class="fa-solid fa-clock-rotate-left"></i><span>Timeline</span></a>
-            <a href="/Profile/Complaints" class="mb-more-link"><i class="fa-solid fa-triangle-exclamation"></i><span>Complaints</span></a>
             <a href="/Profile/Security" class="mb-more-link"><i class="fa-solid fa-lock"></i><span>Security</span></a>
         </div>
     </div>
 
     <div class="toast" id="toast"></div>
+
     <footer class="footer">
         <div class="container">
             <div class="footer-links">
-                <a href="/Home/Index">Home</a><span>|</span>
-                <a href="/Clinics/Index">Clinics</a><span>|</span>
-                <a href="/Stores/Index">Supplies</a><span>|</span>
-                <a href="/About/Index">About Us</a>
+                <a asp-controller="Home" asp-action="About">About Us</a><span>|</span>
+                <a asp-controller="Home" asp-action="Faq">FAQ</a>
             </div>
             <p>&#169; 2026 Waffy. All rights reserved.</p>
         </div>
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-          const moreBtn = document.getElementById('mbMoreBtn'); const moreDrawer = document.getElementById('mbMoreDrawer'); const moreOverlay = document.getElementById('mbMoreOverlay'); const moreClose = document.getElementById('mbMoreClose');
-          if (!moreBtn || !moreDrawer || !moreOverlay) return;
-          function openMoreDrawer() { moreDrawer.classList.add('open'); moreOverlay.classList.add('open'); moreBtn.setAttribute('aria-expanded','true'); moreDrawer.setAttribute('aria-hidden','false'); document.body.classList.add('mb-menu-open'); }
-          function closeMoreDrawer() { moreDrawer.classList.remove('open'); moreOverlay.classList.remove('open'); moreBtn.setAttribute('aria-expanded','false'); moreDrawer.setAttribute('aria-hidden','true'); document.body.classList.remove('mb-menu-open'); }
-          function toggleMoreDrawer() { moreDrawer.classList.contains('open') ? closeMoreDrawer() : openMoreDrawer(); }
-          moreBtn.addEventListener('click', toggleMoreDrawer);
-          if (moreClose) moreClose.addEventListener('click', closeMoreDrawer);
-          moreOverlay.addEventListener('click', closeMoreDrawer);
-          document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMoreDrawer(); });
-          window.addEventListener('resize', () => { if (window.innerWidth >= 768) closeMoreDrawer(); });
+        // ── Filter ──────────────────────────────────────────────────────
+        function filterBy(status, chipEl){
+            document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+            chipEl.classList.add('active');
+            document.querySelectorAll('.order-card').forEach(card=>{
+                card.style.display = (status==='all' || card.dataset.status===status) ? '' : 'none';
+            });
+        }
+
+        // ── Timeline builder ─────────────────────────────────────────────
+        const stages      = ['pending','confirmed','preparing','shipped','delivered'];
+        const stageIcons  = ['🕐','✅','🍳','🚚','🎉'];
+        const stageLabels = ['Order Placed','Confirmed','Preparing','Out for Delivery','Delivered'];
+        const stageDescs  = [
+            'Your order was received',
+            'The store confirmed your order',
+            'Your items are being packed',
+            'Your order is on its way',
+            'Order delivered!'
+        ];
+
+        function buildTimeline(status){
+            const isCancelled = status === 'cancelled';
+            if(isCancelled){
+                return `
+                <div class="tl-item">
+                    <div class="tl-dot done">✓</div>
+                    <div class="tl-label">Order Placed</div>
+                    <div class="tl-desc">Your order was received</div>
+                </div>
+                <div class="tl-item">
+                    <div class="tl-dot cancelled-dot">✕</div>
+                    <div class="tl-label" style="color:#e74c3c">Cancelled</div>
+                    <div class="tl-desc">This order was cancelled</div>
+                </div>`;
+            }
+            const cur = stages.indexOf(status);
+            return stages.map((s,i)=>{
+                const isDone   = i < cur;
+                const isActive = i === cur;
+                const dotCls   = isDone ? 'done' : isActive ? 'active' : '';
+                const lblCls   = isActive ? 'active-lbl' : (!isDone ? 'muted' : '');
+                const icon     = isDone ? '✓' : stageIcons[i];
+                return `
+                <div class="tl-item">
+                    <div class="tl-dot ${dotCls}">${icon}</div>
+                    <div>
+                        <div class="tl-label ${lblCls}">${stageLabels[i]}</div>
+                        <div class="tl-desc">${stageDescs[i]}</div>
+                        ${isActive ? '<div class="tl-current">Current status</div>' : ''}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ── Open Track Modal ─────────────────────────────────────────────
+        async function openTrackModal(orderId, code, status, storeName, recipient, address, payment){
+            document.getElementById('modalCode').textContent    = code;
+            document.getElementById('modalStore').textContent   = '🏪 ' + storeName + ' · ' + recipient;
+            document.getElementById('modalAddress').textContent = '📍 ' + (address || '—');
+            document.getElementById('modalPayment').textContent = '💳 ' + (payment || '—');
+            document.getElementById('modalTimeline').innerHTML  = buildTimeline(status);
+
+            // جلب عناصر الطلب
+            document.getElementById('modalItems').innerHTML =
+                '<div style="text-align:center;color:#aaa;font-size:.82rem;padding:10px">Loading items...</div>';
+
+            try{
+                const res  = await fetch(`/Profile/OrderItems?orderId=${orderId}`);
+                const data = await res.json();
+                if(data.items && data.items.length){
+                    document.getElementById('modalItems').innerHTML = `
+                        <div style="font-size:.78rem;font-weight:800;color:#6a9a3a;margin-bottom:8px">Items Ordered</div>
+                        ${data.items.map(item=>`
+                            <div class="modal-item">
+                                <div>
+                                    <div class="modal-item-name">${item.name}</div>
+                                    <div class="modal-item-qty">× ${item.qty}</div>
+                                </div>
+                                <div class="modal-item-price">${item.subtotal} JD</div>
+                            </div>`).join('')}
+                        <div class="modal-total">
+                            <span>Total</span>
+                            <span>${data.total} JD</span>
+                        </div>`;
+                } else {
+                    document.getElementById('modalItems').innerHTML = '';
+                }
+            } catch(e){
+                document.getElementById('modalItems').innerHTML = '';
+            }
+
+            document.getElementById('trackOverlay').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeTrackModal(){
+            document.getElementById('trackOverlay').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeTrackModal(); });
+
+        // ── Mobile menu & dropdowns ──────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            const moreBtn = document.getElementById('mbMoreBtn');
+            const moreDrawer = document.getElementById('mbMoreDrawer');
+            const moreOverlay = document.getElementById('mbMoreOverlay');
+            const moreClose = document.getElementById('mbMoreClose');
+            if(moreBtn){
+                moreBtn.addEventListener('click', ()=>{ moreDrawer?.classList.toggle('open'); moreOverlay?.classList.toggle('open'); });
+                moreClose?.addEventListener('click', ()=>{ moreDrawer?.classList.remove('open'); moreOverlay?.classList.remove('open'); });
+                moreOverlay?.addEventListener('click', ()=>{ moreDrawer?.classList.remove('open'); moreOverlay?.classList.remove('open'); });
+            }
+            const menuBtn = document.getElementById('menuBtn');
+            const navLinks = document.getElementById('navLinks');
+            menuBtn?.addEventListener('click', e=>{ e.stopPropagation(); navLinks?.classList.toggle('open'); });
+            document.addEventListener('click', ()=> navLinks?.classList.remove('open'));
+            const sd = document.getElementById('servicesDropdown');
+            const st = document.getElementById('servicesToggle');
+            st?.addEventListener('click', e=>{ e.stopPropagation(); sd?.classList.toggle('open'); });
+            document.addEventListener('click', ()=> sd?.classList.remove('open'));
+            const mt = document.getElementById('mobileServicesToggle');
+            const mb = document.getElementById('mobileServicesBlock');
+            mt?.addEventListener('click', ()=> mb?.classList.toggle('open'));
         });
-        function showToast(msg, duration = 3000) { const t = document.getElementById("toast"); if (!t) return; t.textContent = msg; t.classList.add("show"); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove("show"), duration); }
-        document.addEventListener("DOMContentLoaded", () => {
-          const menuBtn = document.getElementById("menuBtn"); const navLinks = document.getElementById("navLinks");
-          if (menuBtn && navLinks) { menuBtn.addEventListener("click", e => { e.stopPropagation(); navLinks.classList.toggle("open"); }); document.addEventListener("click", e => { if (!navLinks.contains(e.target) && e.target !== menuBtn) navLinks.classList.remove("open"); }); }
-          const sd = document.getElementById("servicesDropdown"); const st = document.getElementById("servicesToggle");
-          if (sd && st) { st.addEventListener("click", e => { e.stopPropagation(); sd.classList.toggle("open"); }); document.addEventListener("click", () => sd.classList.remove("open")); }
-          const mt = document.getElementById("mobileServicesToggle"); const mb = document.getElementById("mobileServicesBlock");
-          if (mt && mb) mt.addEventListener("click", () => mb.classList.toggle("open"));
-        });
-        function changeAvatar(input) { if (input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { const sb = document.getElementById("sidebarAvatar"); if (sb) sb.innerHTML = `<img src="${e.target.result}" alt="Profile">`; const big = document.getElementById("bigAvatar"); if (big) big.innerHTML = `<img src="${e.target.result}" alt="Profile">`; }; r.readAsDataURL(input.files[0]); } }
-        function filterOrders(v) { document.querySelectorAll(".order-row").forEach(r => r.style.display = (v === "all" || r.dataset.status === v) ? "flex" : "none"); }
+
+        function changeAvatar(input){
+            if(input.files && input.files[0]){
+                const r = new FileReader();
+                r.onload = e => {
+                    const sb = document.getElementById('sidebarAvatar');
+                    if(sb) sb.innerHTML = `<img src="${e.target.result}" alt="Profile">`;
+                };
+                r.readAsDataURL(input.files[0]);
+            }
+        }
     </script>
 </body>
 </html>

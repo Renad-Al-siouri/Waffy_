@@ -1,0 +1,44 @@
+﻿@{
+    Layout = null;
+    ViewData["Title"] = "Order Confirmed - Waffy";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/check.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <main style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px">
+        <div class="success-card" style="position:relative;z-index:1">
+            <img src="~/Images/logo.png" alt="Waffy Logo" class="success-logo" />
+            <h3>Payment Completed Successfully!</h3>
+            <p>
+                Thank you for your order from <strong>@ViewBag.StoreName</strong>.
+                Your checkout has been confirmed successfully.
+            </p>
+            <div style="background:#e8f0d8;border-radius:12px;padding:12px;margin:16px 0;
+                    font-family:'Fredoka',sans-serif">
+                <div style="font-size:.78rem;color:#7a9a60;font-weight:700">Order Code</div>
+                <div style="font-size:1.3rem;color:#3a5e1f;letter-spacing:1px">@ViewBag.OrderCode</div>
+                <div style="font-size:.84rem;color:#5a7a2f;font-weight:700;margin-top:4px">
+                    Total: @ViewBag.OrderTotal JD
+                </div>
+            </div>
+            <a asp-controller="Payment" asp-action="Cart"
+               class="back-cart-btn"
+               style="display:block;text-decoration:none;text-align:center">
+                Back to Cart
+            </a>
+            <a asp-controller="Account" asp-action="Profile"
+               style="display:block;text-align:center;margin-top:10px;
+                  font-size:.82rem;color:#8ab56b;font-weight:700;text-decoration:none">
+                📦 View My Orders
+            </a>
+        </div>
+    </main>
+</body>
+</html>

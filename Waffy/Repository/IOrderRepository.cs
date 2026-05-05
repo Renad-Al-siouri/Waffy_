@@ -1,18 +1,21 @@
 ﻿using Waffy.Models;
-using Waffy.DTOs;
 
 namespace Waffy.Interfaces
 {
     public interface IOrderRepository
     {
-        Task<IEnumerable<Order>> GetByStoreIdAsync(int idStore);
-        Task<Order?> GetByIdAsync(int idOrder);
-        Task<IEnumerable<Order>> GetByStoreIdAndStatusAsync(int idStore, string status);
-        Task UpdateStatusAsync(int idOrder, string status);
-        Task<int> GetOrdersCountByStoreAsync(int idStore);
-        Task<decimal> GetTotalRevenueByStoreAsync(int idStore);
+        Task<int> CreateAsync(Order order);
+        Task AddItemAsync(OrderItem item);
+        Task<IEnumerable<Order>> GetByUserIdAsync(int userId);
+        Task<IEnumerable<OrderItem>> GetItemsByOrderIdAsync(int idOrder);
 
-        // ── جديد ──
-        Task<IEnumerable<CustomerStoreDto>> GetCustomersByStoreAsync(int idStore);
+        Task<Order?> GetByIdAsync(int orderId);
+        Task<IEnumerable<Order>> GetByStoreIdAsync(int storeId);
+        Task<decimal> GetTotalRevenueByStoreAsync(int storeId);
+
+        Task UpdateStatusAsync(int orderId, string status);
+        Task<IEnumerable<CustomerSummary>> GetCustomersByStoreAsync(int storeId);
+
+
     }
 }

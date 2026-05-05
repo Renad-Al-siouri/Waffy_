@@ -2,15 +2,13 @@
 @{
     ViewData["Title"] = "Stores";
     Layout = null;
-
-    // أنواع المتاجر للفلتر
     var types = new[] { "all", "All Pet Supplies", "Pet Food", "Pet Accessories", "Pet Pharmacy" };
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>Waffy — Pet Stores</title>
     <link rel="stylesheet" href="~/css/stores.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -27,7 +25,7 @@
         .filter-tab {
             padding: 7px 16px;
             border-radius: 20px;
-            border: 1px solid var(--border,#e0e0e0);
+            border: 1px solid #e0e0e0;
             background: #fff;
             font-size: .82rem;
             font-weight: 700;
@@ -66,12 +64,174 @@
                 display: block
             }
 
-        /* ── Store Count ── */
         .stores-count {
             font-size: .82rem;
             color: #888;
             font-weight: 700;
             margin-bottom: 8px
+        }
+
+        /* ══════════════════════════════════════
+                   STORE IMAGE SLIDER
+                ══════════════════════════════════════ */
+        .store-image-wrap {
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px 16px 0 0; /* أعلى الكارد فقط */
+            background: #f0f5e8;
+        }
+
+        /* الصور */
+        .store-slide {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity .4s ease;
+        }
+
+            .store-slide.active {
+                opacity: 1;
+                position: relative;
+            }
+
+        /* أزرار التنقل */
+        .store-slide-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,.35);
+            color: #fff;
+            border: none;
+            width: 28px;
+            height: 38px;
+            border-radius: 6px;
+            font-size: 1rem;
+            cursor: pointer;
+            z-index: 4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: .2s;
+        }
+
+        .store-image-wrap:hover .store-slide-btn {
+            opacity: 1
+        }
+
+        .store-slide-btn.prev {
+            left: 6px
+        }
+
+        .store-slide-btn.next {
+            right: 6px
+        }
+
+        /* Dots */
+        .store-dots {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            z-index: 4;
+        }
+
+        .store-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.5);
+            cursor: pointer;
+            transition: .2s;
+        }
+
+            .store-dot.active {
+                background: #fff;
+                transform: scale(1.3)
+            }
+
+        /* عداد الصور */
+        .store-img-count {
+            position: absolute;
+            top: 8px;
+            right: 10px;
+            background: rgba(0,0,0,.4);
+            color: #fff;
+            font-size: .65rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 10px;
+            z-index: 4;
+        }
+
+        /* ── Lightbox ── */
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.9);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+            .lightbox.open {
+                display: flex
+            }
+
+        .lightbox-img {
+            max-width: 90vw;
+            max-height: 80vh;
+            border-radius: 12px;
+            object-fit: contain;
+            box-shadow: 0 8px 40px rgba(0,0,0,.5);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            line-height: 1;
+            background: none;
+            border: none
+        }
+
+        .lightbox-prev, .lightbox-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,.15);
+            color: #fff;
+            border: none;
+            width: 44px;
+            height: 64px;
+            font-size: 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .lightbox-prev {
+            left: 12px
+        }
+
+        .lightbox-next {
+            right: 12px
+        }
+
+        .lightbox-ctr {
+            color: rgba(255,255,255,.7);
+            font-size: .85rem;
+            font-weight: 700
         }
     </style>
 </head>
@@ -83,7 +243,6 @@
             <header class="topbar">
                 <div class="header-shell">
                     <nav class="navbar">
-
                         <div class="left-nav desktop-nav desktop-links">
                             <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
                             <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
@@ -91,11 +250,9 @@
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                             <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                         </div>
-
                         <div class="logo-center">
                             <img src="../Images/logo.png" alt="Waffy" class="main-logo">
                         </div>
-
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
                                 <div class="services-dropdown" id="servicesDropdown">
@@ -117,15 +274,12 @@
                                 </div>
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                             </div>
-
                             <div class="nav-actions">
                                 <a asp-controller="Payment" asp-action="Cart" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
                                 <a asp-controller="Home" asp-action="Notifications" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
                                 <a asp-controller="Account" asp-action="Profile" class="profile-btn"><img src="../Images/user.jpg" alt="Profile"></a>
                                 <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
-
-                            <!-- Mobile -->
                             <div class="mobile-nav-wrap">
                                 <button class="menu-btn" id="menuBtn" type="button">☰</button>
                                 <div class="nav-links" id="navLinks">
@@ -162,32 +316,20 @@
     <!-- ════════════ MAIN ════════════ -->
     <main class="container stores-page">
 
-        <!-- Hero -->
         <section class="hero-section fade-up">
             <h1>Pet Stores 🛍️</h1>
             <p>Browse trusted pet stores and explore products with the same cozy Waffy shopping experience.</p>
         </section>
 
-        <!-- ── Search + Filter (GET form → backend) ── -->
+        <!-- Search + Filter -->
         <section class="controls-area fade-up">
-            <form method="get"
-                  asp-controller="Product"
-                  asp-action="Stores"
-                  id="storeFilterForm">
-
+            <form method="get" asp-controller="Product" asp-action="Stores" id="storeFilterForm">
                 <div class="search-wrap">
                     <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-                    <input type="text"
-                           name="search"
-                           id="storeSearch"
-                           value="@Model.Search"
-                           placeholder="Search store name or city..."
-                           autocomplete="off" />
-                    @* حقل مخفي للحفاظ على فلتر النوع عند البحث *@
+                    <input type="text" name="search" id="storeSearch"
+                           value="@Model.Search" placeholder="Search store name or city..." autocomplete="off" />
                     <input type="hidden" name="storeType" value="@Model.StoreType">
                 </div>
-
-                <!-- فلاتر النوع -->
                 <div class="filter-tabs">
                     @foreach (var t in types)
                     {
@@ -203,7 +345,7 @@
             </form>
         </section>
 
-        <!-- ── Featured Store ── -->
+        <!-- Featured Store -->
         @if (Model.FeaturedStore != null && string.IsNullOrEmpty(Model.Search) && string.IsNullOrEmpty(Model.StoreType))
         {
             var f = Model.FeaturedStore;
@@ -216,6 +358,7 @@
                         }
                         else
                         {
+
                             <img src="~/Images/Animals/clinic1.png" alt="@f.Name" class="featured-image" />
                         }
                     </div>
@@ -234,17 +377,15 @@
                             }
                         </div>
                         <div class="featured-actions">
-                            <a asp-controller="Product"
-                               asp-action="Products"
-                               asp-route-storeId="@f.IdStore"
-                               class="btn btn-primary">Shop Now</a>
+                            <a asp-controller="Product" asp-action="Products"
+                               asp-route-storeId="@f.IdStore" class="btn btn-primary">Shop Now</a>
                         </div>
                     </div>
                 </div>
             </section>
         }
 
-        <!-- ── Stores Grid ── -->
+        <!-- Stores Grid -->
         @if (Model.Stores.Any())
         {
             <div class="stores-count fade-up">
@@ -259,19 +400,11 @@
                 @foreach (var s in Model.Stores)
                 {
                     <article class="store-card">
-                        <div class="store-image-wrap">
-                            @if (!string.IsNullOrEmpty(s.LogoUrl))
-                            {
-                                <img src="@s.LogoUrl" alt="@s.Name" class="store-image" />
-                            }
-                            else if (!string.IsNullOrEmpty(s.CoverImageUrl))
-                            {
-                                <img src="@s.CoverImageUrl" alt="@s.Name" class="store-image" />
-                            }
-                            else
-                            {
-                                <img src="~/Images/Animals/clinic1.png" alt="@s.Name" class="store-image" />
-                            }
+
+                        <!-- ══ صور المتجر مع Slider ══ -->
+                        <div class="store-image-wrap" id="siwrap-@s.IdStore">
+                            <!-- تُبنى بـ JS -->
+                            <img src="~/Images/Animals/clinic1.png" alt="@s.Name" class="store-slide active" id="sslide-@s.IdStore-0">
                         </div>
 
                         <div class="store-body">
@@ -285,15 +418,13 @@
                                     </div>
                                 }
                         </div>
-
                         <p>
                             @(string.IsNullOrEmpty(s.Description)
                                                     ? "Visit this store to explore our pet products."
                                                     : s.Description.Length > 90
-                                                    ? s.Description.Substring(0, 90) + "…"
+                                                    ? s.Description[..90] + "…"
                                                     : s.Description)
                     </p>
-
                     @if (!string.IsNullOrEmpty(s.StoreType))
                             {
                                 <div class="store-tags">
@@ -303,11 +434,8 @@
                                     }
                                 </div>
                             }
-
-                            <a asp-controller="Product"
-                               asp-action="Products"
-                               asp-route-storeId="@s.IdStore"
-                               class="store-btn">Shop Now</a>
+                            <a asp-controller="Product" asp-action="Products"
+                               asp-route-storeId="@s.IdStore" class="store-btn">Shop Now</a>
                         </div>
                     </article>
                 }
@@ -330,23 +458,186 @@
 
     </main>
 
-    <!-- ════════════ FOOTER ════════════ -->
+    <!-- ════════ LIGHTBOX ════════ -->
+    <div class="lightbox" id="storeLightbox">
+        <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+        <button class="lightbox-prev" onclick="lbGo(-1)">‹</button>
+        <img class="lightbox-img" id="lbImg" src="" alt="">
+        <span class="lightbox-ctr" id="lbCtr"></span>
+        <button class="lightbox-next" onclick="lbGo(1)">›</button>
+    </div>
+
+    <!-- ════════ FOOTER ════════ -->
     <footer class="footer">
         <div class="footer-links">
-            <a asp-controller="Home" asp-action="About">About Us</a>
-            <span>|</span>
-            <a asp-controller="Home" asp-action="About">Contact</a>
-            <span>|</span>
-            <a asp-controller="Home" asp-action="Faq">FAQ</a>
-            <span>|</span>
-            <div class="social-inline">
-                <span>f</span><span>🐦</span><span>◎</span>
-            </div>
+            <a asp-controller="Home" asp-action="About">About Us</a><span>|</span>
+            <a asp-controller="Home" asp-action="About">Contact</a><span>|</span>
+            <a asp-controller="Home" asp-action="Faq">FAQ</a><span>|</span>
+            <div class="social-inline"><span>f</span><span>🐦</span><span>◎</span></div>
         </div>
         <div>© 2026 Waffy, all rights reserved.</div>
     </footer>
 
-    <!-- ════════════ JS (minimal — UI only) ════════════ -->
+    <!-- ════════ DATA ════════ -->
+    <script>
+        // صور كل متجر: { storeId: ["url1","url2",...] }
+        window.storeImages = @Html.Raw(ViewBag.StoreImagesJson ?? "{}");
+    </script>
+
+    <!-- ════════ SLIDER + LIGHTBOX SCRIPT ════════ -->
+    <script>
+        (function(){
+        'use strict';
+
+        const imgMap   = window.storeImages || {};
+        const sliders  = {}; // state: { storeId: currentIndex }
+
+        // ── بناء slider لكل متجر ─────────────────────────────────────
+        function buildStoreSlider(storeId) {
+            const wrap   = document.getElementById('siwrap-' + storeId);
+            if (!wrap) return;
+
+            const images = imgMap[storeId] || [];
+            if (!images.length) return; // يبقى placeholder
+
+            // امسح المحتوى
+            wrap.innerHTML = '';
+            sliders[storeId] = 0;
+
+            // الصور
+            images.forEach((url, i) => {
+                const img = document.createElement('img');
+                img.src       = url;
+                img.alt       = '';
+                img.className = 'store-slide' + (i === 0 ? ' active' : '');
+                if (i !== 0) img.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s';
+                img.style.cursor = 'zoom-in';
+                img.onclick = () => openLightbox(storeId, sliders[storeId]);
+                wrap.appendChild(img);
+            });
+
+            // أزرار فقط إذا أكثر من صورة
+            if (images.length > 1) {
+                const prev = document.createElement('button');
+                prev.className = 'store-slide-btn prev';
+                prev.innerHTML = '‹';
+                prev.onclick = e => { e.stopPropagation(); go(storeId, -1); };
+                wrap.appendChild(prev);
+
+                const next = document.createElement('button');
+                next.className = 'store-slide-btn next';
+                next.innerHTML = '›';
+                next.onclick = e => { e.stopPropagation(); go(storeId, 1); };
+                wrap.appendChild(next);
+
+                // Dots
+                const dotsWrap = document.createElement('div');
+                dotsWrap.className = 'store-dots';
+                images.forEach((_, i) => {
+                    const d = document.createElement('span');
+                    d.className = 'store-dot' + (i === 0 ? ' active' : '');
+                    d.onclick = e => { e.stopPropagation(); goTo(storeId, i); };
+                    dotsWrap.appendChild(d);
+                });
+                wrap.appendChild(dotsWrap);
+
+                // عداد
+                const ctr = document.createElement('span');
+                ctr.className = 'store-img-count';
+                ctr.id = 'sctr-' + storeId;
+                ctr.textContent = '1/' + images.length;
+                wrap.appendChild(ctr);
+            }
+        }
+
+        function go(storeId, dir) {
+            const imgs = imgMap[storeId] || [];
+            if (!imgs.length) return;
+            const n = (sliders[storeId] + dir + imgs.length) % imgs.length;
+            goTo(storeId, n);
+        }
+
+        function goTo(storeId, idx) {
+            const wrap = document.getElementById('siwrap-' + storeId);
+            if (!wrap) return;
+            const slides = wrap.querySelectorAll('.store-slide');
+            const dots   = wrap.querySelectorAll('.store-dot');
+            const ctr    = document.getElementById('sctr-' + storeId);
+            const cur    = sliders[storeId] || 0;
+
+            // إخفاء الحالي
+            if (slides[cur]) {
+                slides[cur].classList.remove('active');
+                slides[cur].style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s;cursor:zoom-in';
+            }
+            if (dots[cur]) dots[cur].classList.remove('active');
+
+            // إظهار الجديد
+            sliders[storeId] = idx;
+            if (slides[idx]) {
+                slides[idx].classList.add('active');
+                slides[idx].style.cssText = 'position:relative;width:100%;height:100%;object-fit:cover;cursor:zoom-in';
+            }
+            if (dots[idx]) dots[idx].classList.add('active');
+            if (ctr)       ctr.textContent = (idx+1) + '/' + slides.length;
+        }
+
+        // ── Lightbox ─────────────────────────────────────────────────
+        let lbImages = [];
+        let lbIdx    = 0;
+
+        function openLightbox(storeId, startIdx) {
+            lbImages = imgMap[storeId] || [];
+            if (!lbImages.length) return;
+            lbIdx = startIdx;
+            updateLb();
+            document.getElementById('storeLightbox').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeLightbox() {
+            document.getElementById('storeLightbox').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        function lbGo(dir) {
+            lbIdx = (lbIdx + dir + lbImages.length) % lbImages.length;
+            updateLb();
+        }
+        function updateLb() {
+            document.getElementById('lbImg').src  = lbImages[lbIdx];
+            document.getElementById('lbCtr').textContent = (lbIdx+1) + ' / ' + lbImages.length;
+        }
+
+        // expose للـ HTML
+        window.closeLightbox = closeLightbox;
+        window.lbGo          = lbGo;
+
+        // ESC key
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+        document.getElementById('storeLightbox').addEventListener('click', e => {
+            if (e.target === document.getElementById('storeLightbox')) closeLightbox();
+        });
+
+        // ── Auto-slide (اختياري — كل 4 ثوانٍ) ───────────────────────
+        function startAutoSlide() {
+            setInterval(() => {
+                Object.keys(sliders).forEach(id => {
+                    const imgs = imgMap[id] || [];
+                    if (imgs.length > 1) go(parseInt(id), 1);
+                });
+            }, 4000);
+        }
+
+        // ── Init ─────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            // بناء الـ sliders
+            Object.keys(imgMap).forEach(id => buildStoreSlider(parseInt(id)));
+            // تشغيل auto-slide
+            startAutoSlide();
+        });
+
+        })();
+    </script>
+
     <script src="~/js/stores.js"></script>
 </body>
 </html>

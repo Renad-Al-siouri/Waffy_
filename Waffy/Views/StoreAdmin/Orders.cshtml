@@ -6,25 +6,12 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/waffy-theme.css">
     <link rel="stylesheet" href="~/css/waffy-store-compat.css">
-    <style>
-        @@media(max-width:900px) {
-            .orders-stats {
-                grid-template-columns: repeat(3,1fr) !important
-            }
-        }
-
-        @@media(max-width:500px) {
-            .orders-stats {
-                grid-template-columns: repeat(2,1fr) !important
-            }
-        }
-    </style>
 </head>
 <body>
     <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
@@ -45,58 +32,27 @@
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Store</div>
-                    <a class="sb-row" href="@Url.Action("Products", "StoreAdmin")" data-tip="Products">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
-                        <span class="sb-lbl">Products</span>
-                        <span class="sb-bdg bd-g" id="productsCountBadge">0</span>
-                    </a>
-                    <a class="sb-row active" href="@Url.Action("Orders", "StoreAdmin")" data-tip="Orders">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /></svg></span>
-                        <span class="sb-lbl">Orders</span>
-                        <span class="sb-bdg bd-y" id="ordersCountBadge">0</span>
-                    </a>
-                    <a class="sb-row" href="@Url.Action("Customers", "StoreAdmin")" data-tip="Customers">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
-                        <span class="sb-lbl">Customers</span>
-                    </a>
-                    <a class="sb-row" href="@Url.Action("Reviews", "StoreAdmin")" data-tip="Reviews">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></span>
-                        <span class="sb-lbl">Reviews</span>
-                        <span class="sb-bdg bd-r" id="reviewsCountBadge">0</span>
-                    </a>
+                    <a class="sb-row" href="@Url.Action("Products", "StoreAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span><span class="sb-lbl">Products</span><span class="sb-bdg bd-g" id="productsCountBadge">0</span></a>
+                    <a class="sb-row active" href="@Url.Action("Orders", "StoreAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /></svg></span><span class="sb-lbl">Orders</span><span class="sb-bdg bd-y" id="ordersCountBadge">0</span></a>
+                    <a class="sb-row" href="@Url.Action("Customers", "StoreAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span><span class="sb-lbl">Customers</span></a>
+                    <a class="sb-row" href="@Url.Action("Reviews", "StoreAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></span><span class="sb-lbl">Reviews</span></a>
                 </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group sb-group-flat">
-                    <a class="sb-row" href="@Url.Action("Adoption", "StoreAdmin")" data-tip="Adoption">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
-                        <span class="sb-lbl">Adoption</span>
-                    </a>
+                    <a class="sb-row" href="@Url.Action("Adoption", "StoreAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span><span class="sb-lbl">Adoption</span></a>
                 </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Management</div>
-                    <a class="sb-row" href="@Url.Action("Notifications", "StoreAdmin")" data-tip="Notifications">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
-                        <span class="sb-lbl">Notifications</span>
-                        <span class="sb-bdg bd-r" id="notifCountBadge">0</span>
-                    </a>
-                    <a class="sb-row" href="@Url.Action("Settings", "StoreAdmin")" data-tip="Settings">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg></span>
-                        <span class="sb-lbl">Store Settings</span>
-                    </a>
-                    <a class="sb-row" href="@Url.Action("Subscription", "StoreAdmin")" data-tip="Subscription">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></span>
-                        <span class="sb-lbl">Subscription</span>
-                    </a>
+                    <a class="sb-row" href="@Url.Action("Notifications", "StoreAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span><span class="sb-lbl">Notifications</span></a>
+                    <a class="sb-row" href="@Url.Action("SettingsInfo", "StoreAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg></span><span class="sb-lbl">Store Settings</span></a>
+                    <a class="sb-row" href="@Url.Action("Subscription", "StoreAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></span><span class="sb-lbl">Subscription</span></a>
                 </div>
             </nav>
             <div class="sb-foot">
                 <div class="sb-user-row">
                     <div class="sb-av">@ViewBag.OwnerInitial</div>
-                    <div class="sb-user-info">
-                        <div class="sb-user-name">@ViewBag.OwnerName</div>
-                        <div class="sb-user-role">@ViewBag.StoreName</div>
-                    </div>
+                    <div class="sb-user-info"><div class="sb-user-name">@ViewBag.OwnerName</div><div class="sb-user-role">@ViewBag.StoreName</div></div>
                 </div>
                 <a class="sb-logout" href="@Url.Action("Logout", "Account")">
                     <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
@@ -106,45 +62,33 @@
         </aside>
 
         <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button">
-                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
-            </button>
+            <button class="tn-toggle" onclick="toggleSb()" type="button"><svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg></button>
             <nav class="tn-bread"><span>Store</span><span>/</span><b>Orders</b></nav>
             <div class="tn-center"><div class="tn-center-main">Orders</div><div class="tn-center-sub">Store Admin Panel</div></div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-                <button class="tn-btn" type="button"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg></button>
-                <a class="tn-btn" href="@Url.Action("Notifications", "StoreAdmin")">
-                    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-                    <span class="tn-count" id="tnNotifCount">0</span>
-                </a>
-                <div class="tn-sep"></div>
-                <div class="tn-profile">
-                    <div class="tn-av">@ViewBag.OwnerInitial</div>
-                    <div><div class="tn-pname">@ViewBag.OwnerName</div><div class="tn-prole">@ViewBag.StoreName</div></div>
-                </div>
+                <div class="tn-profile"><div class="tn-av">@ViewBag.OwnerInitial</div><div><div class="tn-pname">@ViewBag.OwnerName</div><div class="tn-prole">@ViewBag.StoreName</div></div></div>
             </div>
         </header>
 
         <main class="wa-main" id="waMain">
             <section class="page-hero">
-                <div class="page-hero-text">
-                    <h1>Orders 🧾</h1>
-                    <p>Track, manage, and update all customer orders from one place.</p>
-                </div>
-                <div class="page-hero-actions"><button class="btn btn-outline">📥 Export</button></div>
+                <div class="page-hero-text"><h1>Orders 🧾</h1><p>Track and manage all customer orders.</p></div>
+                <div class="page-hero-actions"><button class="btn btn-outline" onclick="exportOrders()">📥 Export</button></div>
             </section>
             <div class="page-body">
 
-                <div class="orders-stats kpi-grid" style="grid-template-columns:repeat(6,1fr);margin-bottom:16px">
-                    <div class="kpi-card" style="cursor:pointer;padding:14px" onclick="filterOrders('all')"><div class="kpi-val" id="allOrdersStat" style="font-size:1.7rem">0</div><div class="kpi-label">All</div></div>
-                    <div class="kpi-card c3" style="cursor:pointer;padding:14px" onclick="filterOrders('pending')"><div class="kpi-val" id="pendingOrdersStat" style="font-size:1.7rem;color:var(--warning)">0</div><div class="kpi-label">Pending</div></div>
-                    <div class="kpi-card c2" style="cursor:pointer;padding:14px" onclick="filterOrders('confirmed')"><div class="kpi-val" id="confirmedOrdersStat" style="font-size:1.7rem;color:var(--info)">0</div><div class="kpi-label">Confirmed</div></div>
-                    <div class="kpi-card c5" style="cursor:pointer;padding:14px" onclick="filterOrders('preparing')"><div class="kpi-val" id="preparingOrdersStat" style="font-size:1.7rem;color:var(--purple)">0</div><div class="kpi-label">Preparing</div></div>
-                    <div class="kpi-card c1" style="cursor:pointer;padding:14px" onclick="filterOrders('shipped')"><div class="kpi-val" id="shippedOrdersStat" style="font-size:1.7rem;color:var(--success)">0</div><div class="kpi-label">Shipped</div></div>
-                    <div class="kpi-card c1" style="cursor:pointer;padding:14px" onclick="filterOrders('delivered')"><div class="kpi-val" id="deliveredOrdersStat" style="font-size:1.7rem">0</div><div class="kpi-label">Delivered</div></div>
+                <!-- Stats -->
+                <div class="kpi-grid" style="grid-template-columns:repeat(6,1fr);margin-bottom:16px">
+                    <div class="kpi-card" style="cursor:pointer;padding:12px" onclick="filterOrders('all')"><div class="kpi-val" id="statAll" style="font-size:1.6rem">0</div><div class="kpi-label">All</div></div>
+                    <div class="kpi-card c3" style="cursor:pointer;padding:12px" onclick="filterOrders('pending')"><div class="kpi-val" id="statPending" style="font-size:1.6rem;color:var(--warning)">0</div><div class="kpi-label">Pending</div></div>
+                    <div class="kpi-card c2" style="cursor:pointer;padding:12px" onclick="filterOrders('confirmed')"><div class="kpi-val" id="statConfirmed" style="font-size:1.6rem;color:var(--info)">0</div><div class="kpi-label">Confirmed</div></div>
+                    <div class="kpi-card c5" style="cursor:pointer;padding:12px" onclick="filterOrders('preparing')"><div class="kpi-val" id="statPreparing" style="font-size:1.6rem;color:var(--purple)">0</div><div class="kpi-label">Preparing</div></div>
+                    <div class="kpi-card c1" style="cursor:pointer;padding:12px" onclick="filterOrders('shipped')"><div class="kpi-val" id="statShipped" style="font-size:1.6rem;color:var(--success)">0</div><div class="kpi-label">Shipped</div></div>
+                    <div class="kpi-card c1" style="cursor:pointer;padding:12px" onclick="filterOrders('delivered')"><div class="kpi-val" id="statDelivered" style="font-size:1.6rem">0</div><div class="kpi-label">Delivered</div></div>
                 </div>
 
+                <!-- Table -->
                 <div class="table-card">
                     <div class="table-head-bar">
                         <div class="search-wrap" style="flex:1;max-width:320px"><span>🔍</span><input id="orderSearch" placeholder="Search by order ID or customer..."></div>
@@ -160,7 +104,7 @@
                     </div>
                     <div class="table-wrap">
                         <table>
-                            <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Products</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+                            <thead><tr><th>Order ID</th><th>Customer</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
                             <tbody id="ordersBody"></tbody>
                         </table>
                     </div>
@@ -169,10 +113,7 @@
                 <!-- Order Detail Modal -->
                 <div class="overlay" id="orderModal">
                     <div class="modal wide">
-                        <div class="modal-hd">
-                            <div class="modal-title">🧾 Order Details</div>
-                            <button class="modal-close" onclick="closeModal('orderModal')">✕</button>
-                        </div>
+                        <div class="modal-hd"><div class="modal-title">🧾 Order Details</div><button class="modal-close" onclick="closeModal('orderModal')">✕</button></div>
                         <div class="modal-body" id="orderModalBody"></div>
                         <div class="modal-ft">
                             <button class="btn btn-outline" onclick="closeModal('orderModal')">Close</button>
@@ -180,7 +121,6 @@
                         </div>
                     </div>
                 </div>
-
             </div>
         </main>
     </div>
@@ -191,23 +131,151 @@
     </script>
     <script>
         const shell=document.getElementById('waShell'),sb=document.getElementById('waSb'),ovl=document.getElementById('waOvl');
-        const mob=()=>window.innerWidth<=992;let mini=false;
+        const mob=()=>window.innerWidth<=992; let mini=false;
         function save(v){localStorage.setItem('wa_mini',v);}
         function miniOn(){mini=true;shell.classList.add('mini');save('1');}
         function miniOff(){mini=false;shell.classList.remove('mini');save('0');}
         function openMob(){sb.classList.add('mob-open');ovl.classList.add('show');document.body.style.overflow='hidden';}
         function closeMob(){sb.classList.remove('mob-open');ovl.classList.remove('show');document.body.style.overflow='';}
         function toggleSb(){if(mob()){sb.classList.contains('mob-open')?closeMob():openMob();}else{mini?miniOff():miniOn();}}
-        function toggleSidebar(){toggleSb();}function closeSidebar(){closeMob();}
+        function openModal(id){document.getElementById(id)?.classList.add('on');}
+        function closeModal(id){document.getElementById(id)?.classList.remove('on');}
+        function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='flex';setTimeout(()=>t.style.display='none',2400);}
         let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!mob()){closeMob();localStorage.getItem('wa_mini')==='1'?miniOn():miniOff();}else{shell.classList.remove('mini');mini=false;}},90);});
-        document.addEventListener('keydown',e=>{if(e.key==='['&&!e.ctrlKey&&!e.metaKey)toggleSb();if(e.key==='Escape')closeMob();});
-        let tx=0;
-        document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
-        document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(!mob())return;if(dx>55&&tx<28)openMob();if(dx<-55)closeMob();},{passive:true});
+        document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMob();});
+
+        const STATUS_NEXT = {
+            pending:['confirmed','cancelled'],
+            confirmed:['preparing','cancelled'],
+            preparing:['shipped','cancelled'],
+            shipped:['delivered','cancelled'],
+            delivered:[], cancelled:[]
+        };
+        function statusBadge(s){
+            const c={pending:'#f39c12',confirmed:'#3498db',preparing:'#9b59b6',shipped:'#1abc9c',delivered:'#27ae60',cancelled:'#e74c3c'}[s]||'#999';
+            return `<span style="background:${c}20;color:${c};border:1px solid ${c}40;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:800;text-transform:capitalize">${s}</span>`;
+        }
+
+        let allOrders = window.serverOrders || [];
+        let currentFilter = 'all';
+
+        function updateStats(){
+            const counts={all:allOrders.length};
+            ['pending','confirmed','preparing','shipped','delivered','cancelled'].forEach(s=>{counts[s]=allOrders.filter(o=>o.status===s).length;});
+            document.getElementById('statAll').textContent       = counts.all;
+            document.getElementById('statPending').textContent   = counts.pending;
+            document.getElementById('statConfirmed').textContent = counts.confirmed;
+            document.getElementById('statPreparing').textContent = counts.preparing;
+            document.getElementById('statShipped').textContent   = counts.shipped;
+            document.getElementById('statDelivered').textContent = counts.delivered;
+        }
+
+        function filterOrders(status){
+            currentFilter=status;
+            document.getElementById('orderStatusSelect').value=status==='all'?'all':status;
+            renderOrders();
+        }
+
+        function renderOrders(){
+            const q   = document.getElementById('orderSearch').value.toLowerCase();
+            const st  = document.getElementById('orderStatusSelect').value;
+            currentFilter = st;
+            let list  = allOrders;
+            if(st!=='all') list=list.filter(o=>o.status===st);
+            if(q)          list=list.filter(o=>(o.id||'').toLowerCase().includes(q)||(o.cust||'').toLowerCase().includes(q));
+
+            const tbody=document.getElementById('ordersBody');
+            if(!list.length){tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:30px">No orders found</td></tr>';return;}
+            tbody.innerHTML=list.map(o=>`
+                <tr>
+                    <td><span style="font-weight:900;font-family:monospace;font-size:.88rem">#${o.id||o.idOrder}</span></td>
+                    <td><div style="font-weight:700">${o.cust||'—'}</div><div style="font-size:.72rem;color:var(--text-muted)">${o.phone||''}</div></td>
+                    <td style="font-size:.8rem;color:var(--text-muted)">${o.date||'—'}</td>
+                    <td style="font-size:.82rem">${o.prods||0} item(s)</td>
+                    <td><strong>${parseFloat(o.total||0).toFixed(3)} JD</strong></td>
+                    <td>${statusBadge(o.status||'pending')}</td>
+                    <td>
+                        <button class="btn btn-outline btn-sm" onclick="openOrderDetail(${JSON.stringify(o).replace(/"/g,'&quot;')})">View</button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        let currentOrder = null;
+        function openOrderDetail(o){
+            currentOrder=o;
+            const body=document.getElementById('orderModalBody');
+            body.innerHTML=`
+                <div style="padding:20px">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+                        <div><div style="font-size:.72rem;color:var(--text-muted);font-weight:700">Order ID</div><div style="font-weight:900;font-family:monospace">#${o.id||o.idOrder}</div></div>
+                        <div><div style="font-size:.72rem;color:var(--text-muted);font-weight:700">Date</div><div>${o.date||'—'}</div></div>
+                        <div><div style="font-size:.72rem;color:var(--text-muted);font-weight:700">Customer</div><div style="font-weight:700">${o.cust||'—'}</div></div>
+                        <div><div style="font-size:.72rem;color:var(--text-muted);font-weight:700">Phone</div><div>${o.phone||'—'}</div></div>
+                        <div style="grid-column:1/-1"><div style="font-size:.72rem;color:var(--text-muted);font-weight:700">Delivery Address</div><div>${o.address||'—'}</div></div>
+                    </div>
+                    <div style="font-size:.78rem;font-weight:800;color:var(--brand-dark);margin-bottom:8px">Order Items:</div>
+                    <ul style="margin:0;padding-left:18px;margin-bottom:16px">
+                        ${(o.items||[]).map(i=>`<li style="font-size:.84rem;margin-bottom:4px">${i}</li>`).join('') || '<li style="color:var(--text-muted)">No items</li>'}
+                    </ul>
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding-top:12px;border-top:1px solid var(--border)">
+                        <span style="font-weight:800">Total Amount:</span>
+                        <span style="font-size:1.1rem;font-weight:900;color:var(--brand-dark)">${parseFloat(o.total||0).toFixed(3)} JD</span>
+                    </div>
+                    <div style="margin-top:10px">${statusBadge(o.status||'pending')}</div>
+                </div>`;
+
+            // أزرار تغيير الحالة
+            const actionsDiv=document.getElementById('orderStatusActions');
+            const nextStatuses=STATUS_NEXT[o.status||'pending']||[];
+            actionsDiv.innerHTML=nextStatuses.map(s=>{
+                const labels={confirmed:'✅ Confirm',preparing:'🍳 Preparing',shipped:'🚚 Ship',delivered:'✔ Delivered',cancelled:'❌ Cancel'};
+                const colors={cancelled:'btn-danger'};
+                return `<button class="btn ${colors[s]||'btn-primary'} btn-sm" onclick="updateStatus(${o.idOrder||o.id},'${s}')">${labels[s]||s}</button>`;
+            }).join('');
+
+            openModal('orderModal');
+        }
+
+        async function updateStatus(idOrder, status){
+            const fd=new FormData();
+            fd.append('idOrder',idOrder);
+            fd.append('status',status);
+            try{
+                const res  = await fetch('/StoreAdmin/UpdateOrderStatus',{method:'POST',body:fd});
+                const data = await res.json();
+                if(data.success){
+                    const o=allOrders.find(x=>(x.idOrder||x.id)==idOrder);
+                    if(o) o.status=status;
+                    updateStats();
+                    renderOrders();
+                    closeModal('orderModal');
+                    showToast(`✅ Order status updated to ${status}`);
+                } else {
+                    showToast('❌ Update failed');
+                }
+            } catch(err){
+                showToast('❌ Network error');
+            }
+        }
+
+        function exportOrders(){
+            const list = allOrders;
+            if(!list.length){showToast('⚠️ No orders to export');return;}
+            const rows  = ['Order ID,Customer,Phone,Date,Items,Total,Status'];
+            list.forEach(o=>rows.push(`"${o.id||o.idOrder}","${o.cust||''}","${o.phone||''}","${o.date||''}","${o.prods||0}","${parseFloat(o.total||0).toFixed(3)}","${o.status||''}"`));
+            const blob  = new Blob([rows.join('\n')],{type:'text/csv'});
+            const link  = document.createElement('a');
+            link.href   = URL.createObjectURL(blob);
+            link.download = 'orders.csv';
+            link.click();
+        }
+
         document.addEventListener('DOMContentLoaded',()=>{
-            if(!mob()&&localStorage.getItem('wa_mini')==='1')miniOn();
-            const el=document.getElementById('tnNotifCount'),b=document.getElementById('notifCountBadge');
-            if(el&&b)el.textContent=b.textContent;
+            if(!mob()&&localStorage.getItem('wa_mini')==='1') miniOn();
+            updateStats();
+            renderOrders();
+            document.getElementById('orderSearch').addEventListener('input',renderOrders);
+            document.getElementById('orderStatusSelect').addEventListener('change',renderOrders);
         });
     </script>
     <script src="~/js/AdminStore.js"></script>

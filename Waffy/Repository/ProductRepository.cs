@@ -81,5 +81,17 @@ namespace Waffy.Repository
             using var connection = new SqlConnection(_connectionString);
             await connection.ExecuteAsync(sql, new { Id = id, StockQuantity = newQuantity });
         }
+        public async Task DeductStockAsync(int productId, int quantity)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(@"
+        UPDATE Product
+        SET StockQuantity = CASE
+            WHEN StockQuantity - @Quantity < 0 THEN 0
+            ELSE StockQuantity - @Quantity
+        END
+        WHERE Id = @ProductId",
+                new { ProductId = productId, Quantity = quantity });
+        }
     }
 }

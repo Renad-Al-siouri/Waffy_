@@ -2,72 +2,72 @@
 @{
     Layout = null;
     ViewData["Title"] = Model.Store.Name + " — Products";
-
     var priceRanges = new (decimal? Value, string Label)[]
     {
-        (null,  "All Prices"),
-        (5m,    "Up to 5 JD"),
-        (10m,   "Up to 10 JD"),
-        (20m,   "Up to 20 JD"),
-        (35m,   "Up to 35 JD"),
-        (50m,   "Up to 50 JD"),
+    (null,  "All Prices"),
+    (5m,    "Under 5 JD"),
+    (10m,   "Under 10 JD"),
+    (20m,   "Under 20 JD"),
+    (35m,   "Under 35 JD"),
+    (50m,   "Under 50 JD"),
     };
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
     <link rel="stylesheet" href="~/css/prodstayle.css" />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <style>
-        /* Store Header */
+        /* ══════════════════════════════════════
+                   STORE HEADER
+                ══════════════════════════════════════ */
         .store-header-strip {
             display: flex;
             align-items: center;
-            gap: 16px;
-            padding: 16px 0 12px;
-            margin-bottom: 20px;
+            gap: 12px;
+            padding: 14px 0 12px;
+            margin-bottom: 16px;
             border-bottom: 2px solid #e8f0e0;
         }
 
         .store-logo-box {
-            width: 56px;
-            height: 56px;
-            border-radius: 14px;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
             object-fit: cover;
             border: 2px solid #dce8cc;
-            background: #f4f8ee;
             flex-shrink: 0;
         }
 
         .store-logo-placeholder {
-            width: 56px;
-            height: 56px;
-            border-radius: 14px;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
             background: #e8f0d8;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.7rem;
+            font-size: 1.5rem;
             flex-shrink: 0;
         }
 
         .store-header-info h2 {
             font-family: 'Fredoka',sans-serif;
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 700;
             color: #3a5e1f;
-            margin: 0 0 4px;
+            margin: 0 0 3px;
         }
 
         .store-meta {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
-            font-size: .78rem;
+            font-size: .74rem;
             color: #7a9a60;
             font-weight: 600;
         }
@@ -75,44 +75,65 @@
             .store-meta span {
                 display: flex;
                 align-items: center;
-                gap: 4px;
+                gap: 3px;
             }
 
         .back-link {
             margin-left: auto;
-            font-size: .82rem;
+            font-size: .78rem;
             font-weight: 700;
             color: #6a9a3a;
             text-decoration: none;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             white-space: nowrap;
+            padding: 6px 12px;
+            border: 1px solid #dce8cc;
+            border-radius: 20px;
+            background: #f8faf4;
+            transition: .15s;
         }
 
             .back-link:hover {
+                background: #e8f0d8;
                 color: #3a5e1f;
             }
 
-        /* Category Tabs */
-        .cat-tabs {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 4px;
+        /* ══════════════════════════════════════
+                   FILTERS — Mobile Optimized
+                ══════════════════════════════════════ */
+        .filters-wrap {
+            margin-bottom: 16px;
         }
 
+        /* شريط التمرير الأفقي للفئات */
+        .cat-scroll {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+            -webkit-overflow-scrolling: touch;
+            margin-bottom: 10px;
+        }
+
+            .cat-scroll::-webkit-scrollbar {
+                display: none;
+            }
+
         .cat-tab {
-            padding: 7px 16px;
+            flex-shrink: 0;
+            padding: 5px 12px;
             border-radius: 20px;
-            border: 1px solid #dce8cc;
+            border: 1.5px solid #dce8cc;
             background: #fff;
-            font-size: .82rem;
+            font-size: .76rem;
             font-weight: 700;
             color: #7a9a60;
             text-decoration: none;
-            transition: .15s;
             white-space: nowrap;
+            transition: .15s;
         }
 
             .cat-tab:hover {
@@ -126,55 +147,189 @@
                 color: #fff;
             }
 
-        /* Price Select */
+        /* شريط السعر + البحث في صف واحد */
+        .search-price-row {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .search-wrap {
+            flex: 1;
+            min-width: 0;
+        }
+
         .price-select {
-            padding: 8px 14px;
+            flex-shrink: 0;
+            padding: 8px 10px;
             border-radius: 20px;
-            border: 1px solid #dce8cc;
+            border: 1.5px solid #dce8cc;
             background: #fff;
-            font-size: .82rem;
+            font-size: .76rem;
             font-weight: 700;
             color: #7a9a60;
             cursor: pointer;
             outline: none;
-            transition: .15s;
+            max-width: 90px;
         }
 
             .price-select:focus {
                 border-color: #8ab56b;
             }
 
-        /* Results Info */
-        .results-info {
-            font-size: .8rem;
-            color: #999;
-            font-weight: 700;
-            margin-bottom: 14px;
+        /* ══════════════════════════════════════
+                   PRODUCT GRID — Mobile Bigger Images
+                ══════════════════════════════════════ */
+
+        /* أحجام أكبر للصور على الموبايل */
+        .product-card .product-image-box {
+            height: 200px; /* ← أكبر من قبل */
         }
 
-        /* Product Card Extras */
+        @* Desktop: حجم عادي *@
+        @@media(min-width: 600px) {
+            .product-card .product-image-box
+
+        {
+            height: 220px;
+        }
+
+        }
+
+        /* ══════════════════════════════════════
+                   IMAGE SLIDER
+                ══════════════════════════════════════ */
+        .product-image-box {
+            position: relative;
+            overflow: hidden;
+            background: #f0f5e8;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .slide-img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity .35s ease;
+        }
+
+            .slide-img.active {
+                opacity: 1;
+                position: relative;
+            }
+
+        .slider-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,.38);
+            color: #fff;
+            border: none;
+            width: 26px;
+            height: 34px;
+            border-radius: 6px;
+            font-size: .9rem;
+            cursor: pointer;
+            z-index: 3;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            transition: .2s;
+        }
+
+        .product-image-box:hover .slider-btn {
+            opacity: 1;
+        }
+
+        .slider-btn.prev {
+            left: 4px;
+        }
+
+        .slider-btn.next {
+            right: 4px;
+        }
+        /* على الموبايل: الأزرار دائماً ظاهرة */
+        @@media(max-width: 600px) {
+            .slider-btn {
+                opacity: .75 !important;
+            }
+        }
+
+        .slider-dots {
+            position: absolute;
+            bottom: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 4px;
+            z-index: 3;
+        }
+
+        .dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.5);
+            cursor: pointer;
+            transition: .2s;
+        }
+
+            .dot.active {
+                background: #fff;
+                transform: scale(1.3);
+            }
+
+        .slide-counter {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            background: rgba(0,0,0,.42);
+            color: #fff;
+            font-size: .62rem;
+            font-weight: 800;
+            padding: 2px 6px;
+            border-radius: 10px;
+            z-index: 3;
+        }
+
+        .no-img-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            font-size: 3rem;
+            color: #ccc;
+        }
+
+        /* ══════════════════════════════════════
+                   BADGES & PRICE
+                ══════════════════════════════════════ */
         .badge-row {
-            margin-bottom: 6px;
-            min-height: 22px;
+            margin-bottom: 5px;
+            min-height: 20px;
         }
 
         .badge-oos {
             display: inline-block;
-            padding: 2px 10px;
-            border-radius: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
             background: #fdecea;
             color: #c0392b;
-            font-size: .72rem;
+            font-size: .68rem;
             font-weight: 800;
         }
 
         .badge-sale {
             display: inline-block;
-            padding: 2px 10px;
-            border-radius: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
             background: #fff3e0;
             color: #e65100;
-            font-size: .72rem;
+            font-size: .68rem;
             font-weight: 800;
         }
 
@@ -185,7 +340,7 @@
         }
 
         .price-original {
-            font-size: .8rem;
+            font-size: .78rem;
             color: #bbb;
             text-decoration: line-through;
         }
@@ -194,23 +349,25 @@
             color: #e65100 !important;
         }
 
-        /* Empty State */
+        /* ══════════════════════════════════════
+                   EMPTY STATE
+                ══════════════════════════════════════ */
         .empty-products {
             text-align: center;
-            padding: 60px 20px;
+            padding: 50px 20px;
             color: #aaa;
             grid-column: 1/-1;
         }
 
             .empty-products i {
-                font-size: 3rem;
+                font-size: 2.5rem;
                 display: block;
-                margin-bottom: 12px;
+                margin-bottom: 10px;
             }
 
             .empty-products h3 {
-                font-size: 1.1rem;
-                margin: 0 0 8px;
+                font-size: 1rem;
+                margin: 0 0 6px;
                 color: #888;
             }
 
@@ -218,6 +375,88 @@
                 color: #8ab56b;
                 font-weight: 700;
             }
+
+        /* ══════════════════════════════════════
+                   LIGHTBOX
+                ══════════════════════════════════════ */
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.9);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+            .lightbox.open {
+                display: flex;
+            }
+
+            .lightbox img {
+                max-width: 90vw;
+                max-height: 80vh;
+                border-radius: 12px;
+                object-fit: contain;
+            }
+
+        .lightbox-close {
+            position: absolute;
+            top: 16px;
+            right: 20px;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            border: none;
+            background: none;
+        }
+
+        .lightbox-prev, .lightbox-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,.15);
+            color: #fff;
+            border: none;
+            width: 42px;
+            height: 60px;
+            font-size: 1.4rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .lightbox-prev {
+            left: 10px;
+        }
+
+        .lightbox-next {
+            right: 10px;
+        }
+
+        .lightbox-counter {
+            color: rgba(255,255,255,.7);
+            font-size: .82rem;
+            font-weight: 700;
+        }
+
+        /* ══════════════════════════════════════
+                   MOBILE TWEAKS
+                ══════════════════════════════════════ */
+        @@media(max-width: 480px) {
+            .store-header-info h2 {
+                font-size: 1rem;
+            }
+
+            .back-link span {
+                display: none;
+            }
+            /* إخفاء النص، أبقِ السهم فقط */
+            .back-link::before {
+                content: '←';
+            }
+        }
     </style>
 </head>
 <body>
@@ -228,7 +467,6 @@
             <header class="topbar">
                 <div class="header-shell">
                     <nav class="navbar">
-
                         <div class="left-nav desktop-nav desktop-links">
                             <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
                             <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
@@ -236,17 +474,11 @@
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                             <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                         </div>
-
-                        <div class="logo-center">
-                            <img src="../Images/logo.png" alt="Waffy" class="main-logo">
-                        </div>
-
+                        <div class="logo-center"><img src="../Images/logo.png" alt="Waffy" class="main-logo"></div>
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
                                 <div class="services-dropdown" id="servicesDropdown">
-                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services <span class="dropdown-arrow">▼</span>
-                                    </button>
+                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">Services <span class="dropdown-arrow">▼</span></button>
                                     <div class="dropdown-menu" id="servicesMenu">
                                         <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
                                         <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
@@ -262,14 +494,12 @@
                                 </div>
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                             </div>
-
                             <div class="nav-actions">
                                 <a asp-controller="Payment" asp-action="Cart" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
                                 <a asp-controller="Home" asp-action="Notifications" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
                                 <a asp-controller="Account" asp-action="Profile" class="profile-btn"><img src="../Images/user.jpg" alt="Profile"></a>
                                 <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
-
                             <div class="mobile-nav-wrap">
                                 <button class="menu-btn" id="menuBtn" type="button">☰</button>
                                 <div class="nav-links" id="navLinks">
@@ -297,7 +527,6 @@
                                 </div>
                             </div>
                         </div>
-
                     </nav>
                 </div>
             </header>
@@ -310,7 +539,7 @@
         <!-- Hero -->
         <section class="hero-section fade-up">
             <h1>Pet Products 🐾</h1>
-            <p>Find everything your furry friend needs, all in one adorable place.</p>
+            <p>Find everything your furry friend needs.</p>
         </section>
 
         <!-- Store Strip -->
@@ -321,8 +550,10 @@
             }
             else
             {
+
                 <div class="store-logo-placeholder">🏪</div>
             }
+
             <div class="store-header-info">
                 <h2>@Model.Store.Name</h2>
                 <div class="store-meta">
@@ -330,79 +561,50 @@
                     {
                         <span><i class="fa-solid fa-location-dot"></i> @Model.Store.City</span>
                     }
-                    @if (!string.IsNullOrEmpty(Model.Store.StoreType))
-                    {
-                        <span><i class="fa-solid fa-tag"></i> @Model.Store.StoreType</span>
-                    }
-                    <span><i class="fa-solid fa-box"></i> @Model.TotalCount product@(Model.TotalCount != 1 ? "s" : "")</span>
+                    <span><i class="fa-solid fa-box"></i> @Model.TotalCount item@(Model.TotalCount != 1 ? "s" : "")</span>
                 </div>
             </div>
             <a asp-controller="Product" asp-action="Stores" class="back-link">
-                ← Back to Stores
+                ← <span>Stores</span>
             </a>
         </div>
 
-        <!-- ════════ FILTERS (GET → server) ════════ -->
-        <section class="controls-area fade-up">
-            <form method="get"
-                  asp-controller="Product"
-                  asp-action="Products"
-                  id="filterForm">
-
+        <!-- ════════ FILTERS ════════ -->
+        <div class="filters-wrap fade-up">
+            <form method="get" asp-controller="Product" asp-action="Products" id="filterForm">
                 <input type="hidden" name="storeId" value="@Model.Store.IdStore">
-                <input type="hidden" name="categoryId" id="hiddenCategoryId" value="@Model.CategoryId">
-                <input type="hidden" name="maxPrice" id="hiddenMaxPrice" value="@Model.MaxPrice">
+               
 
-                <!-- Search -->
-                <div class="search-wrap">
-                    <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-                    <input type="text"
-                           name="search"
-                           id="searchInput"
-                           value="@Model.Search"
-                           placeholder="Search products..."
-                           autocomplete="off">
+                <!-- البحث + السعر في صف واحد -->
+                <div class="search-price-row" style="margin-bottom:10px">
+                    <div class="search-wrap">
+                        <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" name="search" id="searchInput"
+                               value="@Model.Search" placeholder="Search products..." autocomplete="off">
+                    </div>
+                    <select id="priceSelect" name="maxPrice" class="price-select" onchange="this.form.submit()">
+                        @foreach (var r in priceRanges)
+                        {
+                            <option value="@r.Value" selected="@(Model.MaxPrice == r.Value ? "selected" : null)">
+                                @r.Label
+                            </option>
+                        }
+                    </select>
                 </div>
 
-                <div class="filters-row">
-                    <!-- Category Tabs -->
-                    <div class="cat-tabs">
-                        <a class="cat-tab @(!Model.CategoryId.HasValue ? "active" : "")"
-                           href="@Url.Action("Products", "Product", new { storeId = Model.Store.IdStore, search = Model.Search, maxPrice = Model.MaxPrice })">
-                            All
-                        </a>
-                        @foreach (var cat in Waffy.Models.ViewModels.ProductListViewModel.CategoryMap)
-                        {
-                            <a class="cat-tab @(Model.CategoryId == cat.Id ? "active" : "")"
-                               href="@Url.Action("Products", "Product", new { storeId = Model.Store.IdStore, search = Model.Search, categoryId = cat.Id, maxPrice = Model.MaxPrice })">
-                                @cat.Icon @cat.Name
-                            </a>
-                        }
-                    </div>
-
-                    <!-- Price Filter -->
-                    <div class="price-filter-box">
-                        <label for="priceSelect">Price:</label>
-                        <select id="priceSelect"
-                                name="maxPrice"
-                                class="price-select"
-                                onchange="this.form.submit()">
-                            @foreach (var r in priceRanges)
-                            {
-                                <option value="@r.Value"
-                                        selected="@(Model.MaxPrice == r.Value ? "selected" : null)">
-                                    @r.Label
-                                </option>
-                            }
-                        </select>
-                    </div>
+                <!-- الفئات — scroll أفقي بدون emoji مشوّه -->
+                <div class="cat-scroll" id="catTabsContainer">
+                    <a class="cat-tab @(!Model.CategoryId.HasValue ? "active" : "")"
+                       href="@Url.Action("Products", "Product", new { storeId = Model.Store.IdStore, search = Model.Search, maxPrice = Model.MaxPrice })">
+                        All
+                    </a>
+                    <!-- تُضاف الفئات بـ JS — بدون emoji -->
                 </div>
             </form>
-        </section>
+        </div>
 
         <!-- ════════ PRODUCTS GRID ════════ -->
         <section id="productsGrid" class="products-grid fade-up">
-
             @if (!Model.Products.Any())
             {
                 <div class="empty-products">
@@ -413,9 +615,7 @@
                         {
                             <span>No results for "<strong>@Model.Search</strong>". </span>
                         }
-                        <a href="@Url.Action("Products", "Product", new { storeId = Model.Store.IdStore })">
-                            View all products
-                        </a>
+                        <a href="@Url.Action("Products", "Product", new { storeId = Model.Store.IdStore })">View all</a>
                     </p>
                 </div>
             }
@@ -425,33 +625,22 @@
                 {
                     var displayPrice = p.SalePrice ?? p.Price;
                     var isOnSale = p.SalePrice.HasValue && p.SalePrice < p.Price;
-                    var isOutOfStock = p.StockQuantity <= 0;
+                    var isOOS = p.StockQuantity <= 0;
 
                     <article class="product-card"
                              data-id="@p.Id"
-                             data-name="@System.Text.Json.JsonEncodedText.Encode(p.Name)"
+                             data-name="@p.Name"
                              data-price="@displayPrice.ToString("F2")"
                              data-image="@(p.ImageUrl ?? "")">
 
-                        <!-- صورة المنتج -->
-                        <div class="product-image-box">
-                            @if (!string.IsNullOrEmpty(p.ImageUrl))
-                            {
-                                <img src="@p.ImageUrl" alt="@p.Name" loading="lazy">
-                            }
-                            else
-                            {
-                                <div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:3rem;color:#ccc">
-                                    🐾
-                                </div>
-                            }
+                        <!-- الصورة — تُبنى بـ JS -->
+                        <div class="product-image-box" id="imgBox-@p.Id">
+                            <div class="no-img-box">🐾</div>
                         </div>
 
-                        <!-- بيانات المنتج -->
                         <div class="product-content">
-
                             <div class="badge-row">
-                                @if (isOutOfStock)
+                                @if (isOOS)
                                 {
                                     <span class="badge-oos">Out of Stock</span>
                                 }
@@ -461,9 +650,7 @@
                                     <span class="badge-sale">🔥 Sale</span>
                                 }
                             </div>
-
                             <h3 class="product-title">@p.Name</h3>
-
                             <div class="price-row">
                                 <p class="product-price @(isOnSale ? "price-sale" : "")">
                                     @displayPrice.ToString("F2") JD
@@ -473,18 +660,14 @@
                                     <span class="price-original">@p.Price.ToString("F2") JD</span>
                                 }
                             </div>
-
                             @if (!string.IsNullOrEmpty(p.Description))
                             {
                                 <p class="product-meta">
-                                    @(p.Description.Length > 80
-                                                            ? p.Description[..80] + "…"
-                                                            : p.Description)
-                    </p>
-                                        }
-
+                                    @(p.Description.Length > 70 ? p.Description[..70] + "…" : p.Description)
+                                </p>
+                            }
                             <div class="product-bottom">
-                                @if (!isOutOfStock)
+                                @if (!isOOS)
                                 {
                                     <div class="qty-control">
                                         <button class="qty-btn" data-action="decrease" type="button">−</button>
@@ -497,36 +680,262 @@
                                 }
                                 else
                                 {
-                                    <span style="font-size:.8rem;color:#c0392b;font-weight:700">
-                                        Currently unavailable
-                                    </span>
+
+                                    <span style="font-size:.78rem;color:#c0392b;font-weight:700">Unavailable</span>
                                 }
                             </div>
-
                         </div>
                     </article>
                 }
             }
-
         </section>
-
     </main>
+
+    <!-- ════════ LIGHTBOX ════════ -->
+    <div class="lightbox" id="lightbox">
+        <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+        <button class="lightbox-prev" onclick="lightboxGo(-1)">‹</button>
+        <img id="lightboxImg" src="" alt="">
+        <span class="lightbox-counter" id="lightboxCounter"></span>
+        <button class="lightbox-next" onclick="lightboxGo(1)">›</button>
+    </div>
 
     <!-- ════════ FOOTER ════════ -->
     <footer class="footer">
         <div class="footer-links">
-            <a asp-controller="Home" asp-action="About">About Us</a>
-            <span>|</span>
-            <a asp-controller="Home" asp-action="About">Contact</a>
-            <span>|</span>
-            <a asp-controller="Home" asp-action="Faq">FAQ</a>
-            <span>|</span>
+            <a asp-controller="Home" asp-action="About">About Us</a><span>|</span>
+            <a asp-controller="Home" asp-action="About">Contact</a><span>|</span>
+            <a asp-controller="Home" asp-action="Faq">FAQ</a><span>|</span>
             <div class="social-inline"><span>f</span><span>🐦</span><span>◎</span></div>
         </div>
         <div>© 2026 Waffy, all rights reserved.</div>
     </footer>
-
     <div id="toast" class="toast"></div>
+
+    <!-- ════════ DATA ════════ -->
+    <script>
+        window.serverProducts   = @Html.Raw(ViewBag.ProductsJson ?? "[]");
+        window.serverCategories = @Html.Raw(ViewBag.CategoriesJson ?? "[]");
+        window.currentStoreId   = @Model.Store.IdStore;
+        window.currentSearch    = "@Html.Raw(Model.Search ?? "")";
+        window.currentCatId     = @(Model.CategoryId?.ToString() ?? "null");
+        window.currentMaxPrice  = @(Model.MaxPrice?.ToString() ?? "null");
+    </script>
+
+    <!-- ════════ SLIDER + LIGHTBOX + CATEGORIES ════════ -->
+    <script>
+        (function(){
+        'use strict';
+
+        const productsData = window.serverProducts || [];
+        const imgMap = {};
+        productsData.forEach(p => { imgMap[p.id] = p.images || []; });
+
+        const sliderState = {};
+
+        // ── Slider ───────────────────────────────────────────────────────
+        function buildSlider(productId) {
+            const box    = document.getElementById('imgBox-' + productId);
+            if (!box) return;
+            const images = imgMap[productId] || [];
+            if (!images.length) return;
+
+            box.innerHTML = '';
+
+            if (images.length === 1) {
+                const img = document.createElement('img');
+                img.src = images[0]; img.alt = '';
+                img.className = 'slide-img active';
+                img.style.cssText = 'position:relative;width:100%;height:100%;object-fit:cover;cursor:zoom-in';
+                img.onclick = () => openLightbox(productId, 0);
+                box.appendChild(img);
+                return;
+            }
+
+            sliderState[productId] = 0;
+
+            images.forEach((url, i) => {
+                const img = document.createElement('img');
+                img.src = url; img.alt = '';
+                img.className = 'slide-img' + (i === 0 ? ' active' : '');
+                img.style.cssText = i === 0
+                    ? 'position:relative;width:100%;height:100%;object-fit:cover;cursor:zoom-in'
+                    : 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s;cursor:zoom-in';
+                img.onclick = () => openLightbox(productId, sliderState[productId]);
+                box.appendChild(img);
+            });
+
+            const prev = document.createElement('button');
+            prev.className = 'slider-btn prev'; prev.innerHTML = '‹';
+            prev.onclick = e => { e.stopPropagation(); slideGo(productId, -1); };
+            box.appendChild(prev);
+
+            const next = document.createElement('button');
+            next.className = 'slider-btn next'; next.innerHTML = '›';
+            next.onclick = e => { e.stopPropagation(); slideGo(productId, 1); };
+            box.appendChild(next);
+
+            const dotsWrap = document.createElement('div');
+            dotsWrap.className = 'slider-dots';
+            images.forEach((_, i) => {
+                const d = document.createElement('span');
+                d.className = 'dot' + (i === 0 ? ' active' : '');
+                d.onclick = e => { e.stopPropagation(); slideTo(productId, i); };
+                dotsWrap.appendChild(d);
+            });
+            box.appendChild(dotsWrap);
+
+            const ctr = document.createElement('span');
+            ctr.className = 'slide-counter'; ctr.id = 'sc-' + productId;
+            ctr.textContent = '1/' + images.length;
+            box.appendChild(ctr);
+        }
+
+        function slideGo(id, dir) {
+            const imgs = imgMap[id] || [];
+            if (!imgs.length) return;
+            slideTo(id, (sliderState[id] + dir + imgs.length) % imgs.length);
+        }
+
+        function slideTo(id, idx) {
+            const box = document.getElementById('imgBox-' + id);
+            if (!box) return;
+            const slides = box.querySelectorAll('.slide-img');
+            const dots   = box.querySelectorAll('.dot');
+            const ctr    = document.getElementById('sc-' + id);
+            const cur    = sliderState[id] || 0;
+
+            if (slides[cur]) {
+                slides[cur].classList.remove('active');
+                slides[cur].style.cssText = 'position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s;cursor:zoom-in';
+            }
+            if (dots[cur]) dots[cur].classList.remove('active');
+
+            sliderState[id] = idx;
+            if (slides[idx]) {
+                slides[idx].classList.add('active');
+                slides[idx].style.cssText = 'position:relative;width:100%;height:100%;object-fit:cover;cursor:zoom-in';
+            }
+            if (dots[idx]) dots[idx].classList.add('active');
+            if (ctr) ctr.textContent = (idx+1) + '/' + slides.length;
+        }
+
+        // ── Lightbox ─────────────────────────────────────────────────────
+        let lbImages = [], lbIndex = 0;
+
+        function openLightbox(productId, startIdx) {
+            lbImages = imgMap[productId] || [];
+            if (!lbImages.length) return;
+            lbIndex = startIdx;
+            updateLb();
+            document.getElementById('lightbox').classList.add('open');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+        function lightboxGo(dir) {
+            lbIndex = (lbIndex + dir + lbImages.length) % lbImages.length;
+            updateLb();
+        }
+        function updateLb() {
+            document.getElementById('lightboxImg').src = lbImages[lbIndex];
+            document.getElementById('lightboxCounter').textContent = (lbIndex+1) + ' / ' + lbImages.length;
+        }
+        window.closeLightbox = closeLightbox;
+        window.lightboxGo    = lightboxGo;
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeLightbox(); });
+        document.getElementById('lightbox').addEventListener('click', e => {
+            if (e.target === document.getElementById('lightbox')) closeLightbox();
+        });
+
+        // ── Category Tabs — بدون emoji مشوّه ─────────────────────────────
+        function buildCategoryTabs() {
+            const cats      = window.serverCategories || [];
+            const container = document.getElementById('catTabsContainer');
+            if (!container || !cats.length) return;
+
+            const storeId   = window.currentStoreId;
+            const search    = window.currentSearch    || '';
+            const maxPrice  = window.currentMaxPrice  || '';
+            const activeCat = window.currentCatId;
+
+            cats.forEach(c => {
+                const a = document.createElement('a');
+                a.className = 'cat-tab' + (String(activeCat) === String(c.id) ? ' active' : '');
+
+                // نعرض الاسم فقط بدون emoji لتجنب علامة ??
+                a.textContent = c.name;
+
+                const params = new URLSearchParams();
+                params.set('storeId',    storeId);
+                params.set('categoryId', c.id);
+                if (search)   params.set('search',   search);
+                if (maxPrice) params.set('maxPrice', maxPrice);
+                a.href = '/Product/Products?' + params.toString();
+                container.appendChild(a);
+            });
+        }
+
+        // ── Init ──────────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            productsData.forEach(p => buildSlider(p.id));
+            buildCategoryTabs();
+        });
+
+        })();
+
+                // ── Add to Cart ──────────────────────────────────────────────────
+        document.querySelectorAll('[data-action="add-cart"]').forEach(btn => {
+            btn.addEventListener('click', async function() {
+                const card    = this.closest('.product-card');
+                const id      = card?.dataset.id;
+                const storeId = window.currentStoreId;
+                const qty     = card?.querySelector('.qty-value')?.textContent || '1';
+
+                if (!id || !storeId) return;
+
+                // تغيير الزر أثناء الإرسال
+                const origText = this.textContent;
+                this.disabled  = true;
+                this.textContent = '⏳';
+
+                const fd = new FormData();
+                fd.append('productId', id);
+                fd.append('storeId',   storeId);
+                fd.append('quantity',  qty);
+
+                try {
+                    const res  = await fetch('/Payment/AddToCart', { method:'POST', body:fd });
+                    const data = await res.json();
+
+                    if (data.success) {
+                        this.textContent = '✅ Added!';
+                        // تحديث badge العربة في الـ navbar
+                        document.querySelectorAll('.cart-badge, #cartCount').forEach(el => {
+                            el.textContent = data.cartCount;
+                            el.style.display = data.cartCount > 0 ? 'flex' : 'none';
+                        });
+                        setTimeout(() => {
+                            this.textContent = origText;
+                            this.disabled    = false;
+                        }, 1500);
+                    } else {
+                        alert(data.message || 'Could not add to cart');
+                        this.textContent = origText;
+                        this.disabled    = false;
+                    }
+                } catch(e) {
+                    alert('Network error');
+                    this.textContent = origText;
+                    this.disabled    = false;
+                }
+            });
+        });
+    </script>
+
     <script src="~/js/prodjs.js?v=2"></script>
 </body>
 </html>

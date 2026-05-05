@@ -1,5 +1,13 @@
 ﻿@{
     Layout = null;
+    var lawsJson = ViewBag.LawsJson as string ?? "[]";
+    var toastMsg = ViewBag.Toast as string ?? "";
+    var totalLaws = ViewBag.TotalLaws ?? 0;
+    var updatedYear = ViewBag.UpdatedThisYear ?? 0;
+    var totalCats = ViewBag.TotalCategories ?? 0;
+    var latestUpd = ViewBag.LatestUpdate as string ?? "—";
+    var adminName = ViewBag.AdminName as string ?? "Admin";
+    var adminInits = ViewBag.AdminInitials as string ?? "AD";
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -18,7 +26,7 @@
             padding: 18px 20px;
             margin-bottom: 12px;
             transition: .2s ease;
-            cursor: pointer;
+            cursor: default;
         }
 
             .law-card:hover {
@@ -64,24 +72,42 @@
     <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
     <div class="wa-shell" id="waShell">
 
+        <!-- ── Sidebar ── -->
         <aside class="wa-sb" id="waSb">
-            <div class="sb-logo"><div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div><div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div></div>
+            <div class="sb-logo">
+                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
+                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
+            </div>
             <nav class="sb-nav">
-                <div class="sb-group sb-group-flat"><a class="sb-row" href="@Url.Action("Dashboard", "SuperAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span><span class="sb-lbl">Dashboard</span></a></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" href="@Url.Action("Dashboard", "SuperAdmin")">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
+                        <span class="sb-lbl">Dashboard</span>
+                    </a>
+                </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Management</div>
+
                     <div><button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span><span class="sb-lbl">Users</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-users"><div class="sb-sub-inner"><a class="sb-child" href="@Url.Action("Users", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a></div></div></div>
-                    <div><button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span><span class="sb-lbl">Clinics</span><span class="sb-bdg bd-y">4</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-clinics"><div class="sb-sub-inner"><a class="sb-child" href="@Url.Action("Clinics", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a><a class="sb-child" href="@Url.Action("Reviews_Complaints_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a><a class="sb-child" href="@Url.Action("Analytics_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a></div></div></div>
-                    <div><button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span><span class="sb-lbl">Shop</span><span class="sb-bdg bd-r">3</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-shop"><div class="sb-sub-inner"><a class="sb-child" href="@Url.Action("Stores", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a><a class="sb-child" href="@Url.Action("Reviews_Complaints_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a><a class="sb-child" href="@Url.Action("Analytics_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a></div></div></div>
-                    <div><button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span><span class="sb-lbl">Adoption</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-adopt"><div class="sb-sub-inner"><a class="sb-child" href="@Url.Action("Listings", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span></a><a class="sb-child" href="@Url.Action("Flagged", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span><span class="sb-bdg bd-r sb-child-bdg">3</span></a><a class="sb-child" href="@Url.Action("Adopted_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a><a class="sb-child" href="@Url.Action("Analytics_A", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a></div></div></div>
+
+                    <div><button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span><span class="sb-lbl">Clinics</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-clinics"><div class="sb-sub-inner"><a class="sb-child" href="@Url.Action("Clinics", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a><a class="sb-child" href="@Url.Action("Reviews_Complaints_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a><a class="sb-child" href="@Url.Action("Analytics_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a></div></div></div>
+
+                    <div><button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span><span class="sb-lbl">Shop</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-shop"><div class="sb-sub-inner"><a class="sb-child" href="@Url.Action("Stores", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a><a class="sb-child" href="@Url.Action("Reviews_Complaints_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a><a class="sb-child" href="@Url.Action("Analytics_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a></div></div></div>
+
+                    <div><button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span><span class="sb-lbl">Adoption</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-adopt"><div class="sb-sub-inner"><a class="sb-child" href="@Url.Action("Listings", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span></a><a class="sb-child" href="@Url.Action("Flagged", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span></a><a class="sb-child" href="@Url.Action("Adopted_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a><a class="sb-child" href="@Url.Action("Analytics_A", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a></div></div></div>
+
                     <div>
-                        <button class="sb-row open active" id="t-rep" onclick="acc('g-rep','t-rep')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span><span class="sb-lbl">Reports</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button>
+                        <button class="sb-row open active" id="t-rep" onclick="acc('g-rep','t-rep')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
+                            <span class="sb-lbl">Reports</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
                         <div class="sb-sub open" id="g-rep" style="height:auto;">
                             <div class="sb-sub-inner">
-                                <a class="sb-child" href="@Url.Action("Lost_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span><span class="sb-bdg bd-y sb-child-bdg">8</span></a>
-                                <a class="sb-child" href="@Url.Action("Found_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span><span class="sb-bdg bd-g sb-child-bdg">5</span></a>
-                                <a class="sb-child" href="@Url.Action("Dangerous_Animals", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span><span class="sb-bdg bd-r sb-child-bdg">4</span></a>
+                                <a class="sb-child" href="@Url.Action("Lost_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span></a>
+                                <a class="sb-child" href="@Url.Action("Found_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span></a>
+                                <a class="sb-child" href="@Url.Action("Dangerous_Animals", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span></a>
                                 <a class="sb-child" href="@Url.Action("Donations", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
                                 <a class="sb-child active" href="@Url.Action("Laws_Regulations", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
                             </div>
@@ -92,36 +118,68 @@
                 <div class="sb-group">
                     <div class="sb-grp-hd">Tools</div>
                     <a class="sb-row" href="@Url.Action("Map", "SuperAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span><span class="sb-lbl">Map</span></a>
-                    <a class="sb-row" href="@Url.Action("Notifications", "SuperAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span><span class="sb-lbl">Notifications</span><span class="sb-bdg bd-r">12</span></a>
+                    <a class="sb-row" href="@Url.Action("Notifications", "SuperAdmin")"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span><span class="sb-lbl">Notifications</span></a>
                 </div>
             </nav>
-            <div class="sb-foot"><div class="sb-user-row"><div class="sb-av">DC</div><div class="sb-user-info"><div class="sb-user-name">Daniel Carter</div><div class="sb-user-role">Operations Director</div></div></div><button class="sb-logout" onclick="alert('Sign out')" type="button"><svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg><span class="sb-logout-lbl">Sign Out</span></button></div>
+            <div class="sb-foot">
+                <div class="sb-user-row">
+                    <div class="sb-av">@adminInits</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">@adminName</div>
+                        <div class="sb-user-role">Super Admin</div>
+                    </div>
+                </div>
+                <a class="sb-logout" href="@Url.Action("Logout", "Account")">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                    <span class="sb-logout-lbl">Sign Out</span>
+                </a>
+            </div>
         </aside>
+
+        <!-- ── Topbar ── -->
         <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button"><svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg></button>
+            <button class="tn-toggle" onclick="toggleSb()" type="button">
+                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+            </button>
             <nav class="tn-bread"><span>Reports</span><span>/</span><b>Laws &amp; Regulations</b></nav>
             <div class="tn-center"><div class="tn-center-main">Laws &amp; Regulations</div><div class="tn-center-sub">Super Admin Panel</div></div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-                <a class="tn-btn" href="@Url.Action("Notifications", "SuperAdmin")"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg><span class="tn-count">9</span></a>
+                <a class="tn-btn" href="@Url.Action("Notifications", "SuperAdmin")">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+                </a>
                 <div class="tn-sep"></div>
-                <div class="tn-profile" onclick="alert('Profile')"><div class="tn-av">DC</div><div><div class="tn-pname">Daniel Carter</div><div class="tn-prole">Operations Director</div></div></div>
+                <div class="tn-profile">
+                    <div class="tn-av">@adminInits</div>
+                    <div><div class="tn-pname">@adminName</div><div class="tn-prole">Super Admin</div></div>
+                </div>
             </div>
         </header>
+
+        <!-- ── Main ── -->
         <main class="wa-main" id="waMain">
             <section class="page-hero">
-                <div><h1>&#x2696;&#xFE0F; Laws &amp; Regulations</h1><p>Jordanian animal-related laws visible to all platform users. Add, edit, or delete entries.</p></div>
-                <div class="page-hero-actions"><button class="btn btn-primary btn-sm" onclick="openAdd()">&#xFF0B; Add Law</button></div>
-            </section>
-            <div class="page-body">
-                <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
-                    <div class="kpi-card c2"><div class="kpi-ico blue">&#x2696;&#xFE0F;</div><div class="kpi-val" id="kpiTotal">7</div><div class="kpi-label">Total Laws</div></div>
-                    <div class="kpi-card c1"><div class="kpi-ico green">&#x1F504;</div><div class="kpi-val">3</div><div class="kpi-label">Updated This Year</div></div>
-                    <div class="kpi-card c2"><div class="kpi-ico blue">&#x1F4C2;</div><div class="kpi-val">6</div><div class="kpi-label">Categories</div></div>
-                    <div class="kpi-card c3"><div class="kpi-ico yellow">&#x1F4C5;</div><div class="kpi-val">Apr 2024</div><div class="kpi-label">Latest Update</div></div>
+                <div>
+                    <h1>&#x2696;&#xFE0F; Laws &amp; Regulations</h1>
+                    <p>Jordanian animal-related laws visible to all platform users. Add, edit, or delete entries.</p>
                 </div>
+                <div class="page-hero-actions">
+                    <button class="btn btn-primary btn-sm" onclick="openAdd()">&#xFF0B; Add Law</button>
+                </div>
+            </section>
+
+            <div class="page-body">
+                <!-- KPI Cards -->
+                <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
+                    <div class="kpi-card c2"><div class="kpi-ico blue">&#x2696;&#xFE0F;</div><div class="kpi-val" id="kpiTotal">@totalLaws</div><div class="kpi-label">Total Laws</div></div>
+                    <div class="kpi-card c1"><div class="kpi-ico green">&#x1F504;</div><div class="kpi-val">@updatedYear</div><div class="kpi-label">Updated This Year</div></div>
+                    <div class="kpi-card c2"><div class="kpi-ico blue">&#x1F4C2;</div><div class="kpi-val">@totalCats</div><div class="kpi-label">Categories</div></div>
+                    <div class="kpi-card c3"><div class="kpi-ico yellow">&#x1F4C5;</div><div class="kpi-val">@latestUpd</div><div class="kpi-label">Latest Update</div></div>
+                </div>
+
+                <!-- Category Tabs -->
                 <div class="tabs-bar" style="flex-wrap:wrap;margin-bottom:16px;">
-                    <button class="tab-btn active" onclick="setCategory('all',this)">All <span class="tab-count" id="tabAll">7</span></button>
+                    <button class="tab-btn active" onclick="setCategory('all',this)">All <span class="tab-count" id="tabAll">@totalLaws</span></button>
                     <button class="tab-btn" onclick="setCategory('travel',this)">&#x2708;&#xFE0F; Pet Travel</button>
                     <button class="tab-btn" onclick="setCategory('adoption',this)">&#x1F43E; Adoption</button>
                     <button class="tab-btn" onclick="setCategory('protection',this)">&#x1F6E1; Animal Protection</button>
@@ -129,99 +187,201 @@
                     <button class="tab-btn" onclick="setCategory('breeding',this)">&#x1F9EC; Breeding &amp; Import</button>
                     <button class="tab-btn" onclick="setCategory('stray',this)">&#x1F3DA; Stray Animals</button>
                 </div>
+
+                <!-- Search + Count -->
                 <div class="toolbar" style="grid-template-columns:1fr auto;margin-bottom:14px;">
-                    <div class="search-wrap"><span style="color:var(--text-muted);font-size:1rem;flex-shrink:0;">&#x1F50D;</span><input id="searchInput" placeholder="Search laws..." oninput="render()" /></div>
+                    <div class="search-wrap">
+                        <span style="color:var(--text-muted);font-size:1rem;flex-shrink:0;">&#x1F50D;</span>
+                        <input id="searchInput" placeholder="Search laws..." oninput="render()" />
+                    </div>
                     <span class="table-count" id="lawCount" style="align-self:center;">— laws</span>
                 </div>
+
                 <div id="lawsContainer"></div>
             </div>
         </main>
     </div>
 
+    <!-- ══ Add / Edit Modal ══ -->
     <div class="modal-overlay" id="lawModal" onclick="if(event.target===this)closeModal('lawModal')">
         <div class="modal-box" style="max-width:600px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:0 24px 60px rgba(38,31,23,.25);overflow:hidden;display:flex;flex-direction:column;max-height:92vh;">
             <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.5);flex-shrink:0;">
                 <div style="font-family:'Fredoka',sans-serif;font-size:1.1rem;font-weight:700;color:var(--brand-dark);" id="modalTitle">&#xFF0B; Add Law</div>
                 <button class="dp-close" onclick="closeModal('lawModal')">&#x2715;</button>
             </div>
-            <div style="padding:20px;overflow-y:auto;">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
-                    <div class="field" style="grid-column:1/-1;margin-bottom:0;"><label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Law Title *</label><input id="fTitle" placeholder="e.g. Animal Protection Law 2008" style="width:100%;min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;"></div>
-                    <div class="field" style="margin-bottom:0;">
-                        <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Category *</label>
-                        <select id="fCategory" style="width:100%;min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;"><option value="">Select category</option><option value="travel">&#x2708;&#xFE0F; Pet Travel</option><option value="adoption">&#x1F43E; Adoption</option><option value="protection">&#x1F6E1; Animal Protection</option><option value="vaccination">&#x1F489; Vaccinations</option><option value="breeding">&#x1F9EC; Breeding &amp; Import</option><option value="stray">&#x1F3DA; Stray Animals</option></select>
+
+            <!-- Single form — action switches between AddLaw / EditLaw via JS -->
+            <form id="lawForm" method="post" style="display:flex;flex-direction:column;overflow:hidden;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" id="fId" name="id" value="0" />
+
+                <div style="padding:20px;overflow-y:auto;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                        <div class="field" style="grid-column:1/-1;margin-bottom:0;">
+                            <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Law Title *</label>
+                            <input id="fTitle" name="title" placeholder="e.g. Animal Protection Law 2008"
+                                   style="width:100%;min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;" />
+                        </div>
+                        <div class="field" style="margin-bottom:0;">
+                            <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Category *</label>
+                            <select id="fCategory" name="category"
+                                    style="width:100%;min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;">
+                                <option value="">Select category</option>
+                                <option value="travel">&#x2708;&#xFE0F; Pet Travel</option>
+                                <option value="adoption">&#x1F43E; Adoption</option>
+                                <option value="protection">&#x1F6E1; Animal Protection</option>
+                                <option value="vaccination">&#x1F489; Vaccinations</option>
+                                <option value="breeding">&#x1F9EC; Breeding &amp; Import</option>
+                                <option value="stray">&#x1F3DA; Stray Animals</option>
+                            </select>
+                        </div>
+                        <div class="field" style="margin-bottom:0;">
+                            <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Source / Reference</label>
+                            <input id="fSource" name="source" placeholder="e.g. Ministry of Agriculture"
+                                   style="width:100%;min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;" />
+                        </div>
+                        <div class="field" style="margin-bottom:0;">
+                            <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Last Updated</label>
+                            <input type="date" id="fUpdated" name="lastUpdated"
+                                   style="width:100%;min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;" />
+                        </div>
+                        <div class="field" style="grid-column:1/-1;margin-bottom:0;">
+                            <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Law Summary *</label>
+                            <textarea id="fBody" name="summary" placeholder="Write the law summary..."
+                                      style="width:100%;min-height:110px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:12px 14px;font-weight:700;font-size:.86rem;outline:none;font-family:'Nunito',sans-serif;resize:vertical;"></textarea>
+                        </div>
                     </div>
-                    <div class="field" style="margin-bottom:0;"><label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Source / Reference</label><input id="fSource" placeholder="e.g. Ministry of Agriculture" style="width:100%;min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;"></div>
-                    <div class="field" style="margin-bottom:0;"><label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Last Updated</label><input type="date" id="fUpdated" style="width:100%;min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;"></div>
-                    <div class="field" style="grid-column:1/-1;margin-bottom:0;"><label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Law Summary *</label><textarea id="fBody" placeholder="Write the law summary..." style="width:100%;min-height:110px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:12px 14px;font-weight:700;font-size:.86rem;outline:none;font-family:'Nunito',sans-serif;resize:vertical;"></textarea></div>
                 </div>
-            </div>
-            <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;background:rgba(255,255,255,.5);flex-shrink:0;">
-                <button class="btn btn-primary" onclick="saveLaw()">&#x1F4BE; Save Law</button>
-                <button class="btn btn-outline" onclick="closeModal('lawModal')">Cancel</button>
-            </div>
+
+                <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;background:rgba(255,255,255,.5);flex-shrink:0;">
+                    <button type="submit" class="btn btn-primary">&#x1F4BE; Save Law</button>
+                    <button type="button" class="btn btn-outline" onclick="closeModal('lawModal')">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 
+    <!-- ══ Delete Form (hidden) ══ -->
+    <form id="deleteForm" method="post" action="@Url.Action("DeleteLaw","SuperAdmin")" style="display:none;">
+        @Html.AntiForgeryToken()
+        <input type="hidden" id="deleteId" name="id" value="0" />
+    </form>
+
+    <!-- ══ Toast ══ -->
     <div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;padding:11px 22px;border-radius:var(--pill);font-weight:800;font-size:.85rem;z-index:1999;display:none;align-items:center;gap:6px;box-shadow:0 8px 22px rgba(89,101,42,.3);white-space:nowrap;"></div>
 
     <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
     <script>
-        setPageInfo('Laws & Regulations','Super Admin Panel','Reports','Laws');
-        let laws=[
-          {id:1,cat:'travel',catLabel:'✈️ Pet Travel',title:'Pet Travel Requirements To and From Jordan',body:'Traveling with pets requires a health certificate from a licensed vet, a pet passport, and a valid rabies vaccination (30 days–1 year before travel). An ISO microchip is required by many countries.',source:'Natural Resources Department',updated:'2024-01-15'},
-          {id:2,cat:'travel',catLabel:'✈️ Pet Travel',title:'Animals Restricted From Import Into Jordan',body:'Importing dangerous dog breeds may require prior approval. Importing wild or endangered animals is prohibited under CITES.',source:'Jordanian Ministry of Agriculture',updated:'2023-08-20'},
-          {id:3,cat:'adoption',catLabel:'🐾 Adoption',title:'Pet Adoption Conditions in Jordan',body:'No dedicated adoption law yet, but organizations regulate adoption through internal rules including adopter screening, signed agreements, and follow-up checks.',source:'JAWS Jordan',updated:'2024-03-01'},
-          {id:4,cat:'protection',catLabel:'🛡 Animal Protection',title:'Animal Welfare Law — Article 24',body:'Jordanian law criminalizes animal abuse and harm without legal justification. Penalties range from fines to imprisonment depending on severity.',source:'Jordanian Legislation Bureau',updated:'2023-11-10'},
-          {id:5,cat:'vaccination',catLabel:'💉 Vaccinations',title:'Mandatory Vaccinations for Dogs and Cats',body:'Dogs must be vaccinated against rabies annually. Additional vaccinations recommended. Non-compliance may result in administrative penalties.',source:'Ministry of Agriculture — Livestock',updated:'2024-02-28'},
-          {id:6,cat:'breeding',catLabel:'🧬 Breeding & Import',title:'Licensing Pet Shops and Breeding Facilities',body:'A license from the municipality and Ministry of Agriculture is required to open a pet shop or breeding facility. Health and veterinary standards apply.',source:'Jordanian Ministry of Agriculture',updated:'2023-06-15'},
-          {id:7,cat:'stray',catLabel:'🏚 Stray Animals',title:'Policy for Handling Stray Animals in Jordan',body:'Municipalities manage stray animals. Many follow a catch-treat-neuter-vaccinate-release approach. A national regulation is still under development.',source:'Greater Amman Municipality',updated:'2024-04-01'},
-        ];
-        let nextId=8,editingId=null,currentCategory='all';
-        const catLabels={travel:'✈️ Pet Travel',adoption:'🐾 Adoption',protection:'🛡 Animal Protection',vaccination:'💉 Vaccinations',breeding:'🧬 Breeding & Import',stray:'🏚 Stray Animals'};
-        function render(){
-          const q=(document.getElementById('searchInput')?.value||'').toLowerCase();
-          const filtered=laws.filter(l=>{
-            const mCat=currentCategory==='all'||l.cat===currentCategory;
-            const mQ=!q||l.title.toLowerCase().includes(q)||l.body.toLowerCase().includes(q);
-            return mCat&&mQ;
-          });
-          document.getElementById('lawCount').textContent=filtered.length+' laws';
-          document.getElementById('kpiTotal').textContent=laws.length;
-          document.getElementById('tabAll').textContent=laws.length;
-          const container=document.getElementById('lawsContainer');
-          container.innerHTML=filtered.length?filtered.map(l=>`
-            <div class="law-card">
-              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px;">
-                <div><div class="law-title">${l.title}</div><span class="badge badge-info" style="font-size:.72rem;">${l.catLabel}</span></div>
-                <div class="action-group" style="flex-shrink:0;">
-                  <button class="btn btn-outline btn-xs" onclick="openEdit(${l.id})">✏️ Edit</button>
-                  <button class="btn btn-danger btn-xs" onclick="deleteLaw(${l.id})">🗑 Delete</button>
-                </div>
-              </div>
-              <div class="law-body">${l.body}</div>
-              <div class="law-meta"><span>🔄 Updated: <strong>${l.updated}</strong></span><span>📚 ${l.source}</span></div>
-            </div>`).join(''):`<div style="text-align:center;padding:40px;color:var(--text-muted);">No laws found in this category.</div>`;
+        setPageInfo('Laws & Regulations', 'Super Admin Panel', 'Reports', 'Laws');
+
+        // ── Data from server ──────────────────────────────────────────
+        let laws = @Html.Raw(lawsJson);
+        let currentCategory = 'all';
+
+        // ── Render ────────────────────────────────────────────────────
+        function render() {
+            const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
+            const filtered = laws.filter(l => {
+                const mCat = currentCategory === 'all' || l.cat === currentCategory;
+                const mQ   = !q || l.title.toLowerCase().includes(q) || l.body.toLowerCase().includes(q);
+                return mCat && mQ;
+            });
+
+            document.getElementById('lawCount').textContent = filtered.length + ' laws';
+            document.getElementById('kpiTotal').textContent  = laws.length;
+            document.getElementById('tabAll').textContent    = laws.length;
+
+            const c = document.getElementById('lawsContainer');
+            c.innerHTML = filtered.length
+                ? filtered.map(l => `
+                    <div class="law-card">
+                        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px;">
+                            <div>
+                                <div class="law-title">${escHtml(l.title)}</div>
+                                <span class="badge badge-info" style="font-size:.72rem;">${escHtml(l.catLabel)}</span>
+                            </div>
+                            <div class="action-group" style="flex-shrink:0;">
+                                <button class="btn btn-outline btn-xs" onclick="openEdit(${l.id})">✏️ Edit</button>
+                                <button class="btn btn-danger btn-xs"  onclick="confirmDelete(${l.id}, '${escJs(l.title)}')">🗑 Delete</button>
+                            </div>
+                        </div>
+                        <div class="law-body">${escHtml(l.body)}</div>
+                        <div class="law-meta">
+                            <span>🔄 Updated: <strong>${l.updated}</strong></span>
+                            <span>📚 ${escHtml(l.source)}</span>
+                        </div>
+                    </div>`).join('')
+                : `<div style="text-align:center;padding:40px;color:var(--text-muted);">No laws found in this category.</div>`;
         }
-        function setCategory(cat,btn){document.querySelectorAll('.tabs-bar .tab-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');currentCategory=cat;render();}
-        function openAdd(){editingId=null;document.getElementById('modalTitle').textContent='＋ Add Law';['fTitle','fSource','fBody'].forEach(id=>document.getElementById(id).value='');document.getElementById('fCategory').value='';document.getElementById('fUpdated').value=new Date().toISOString().split('T')[0];openModal('lawModal');}
-        function openEdit(id){const l=laws.find(x=>x.id===id);if(!l)return;editingId=id;document.getElementById('modalTitle').textContent='✏️ Edit Law';document.getElementById('fTitle').value=l.title;document.getElementById('fCategory').value=l.cat;document.getElementById('fSource').value=l.source;document.getElementById('fUpdated').value=l.updated;document.getElementById('fBody').value=l.body;openModal('lawModal');}
-        function saveLaw(){
-          const title=document.getElementById('fTitle').value.trim();
-          const cat=document.getElementById('fCategory').value;
-          const body=document.getElementById('fBody').value.trim();
-          if(!title){showToast('⚠️ Title is required');return;}
-          if(!cat){showToast('⚠️ Category is required');return;}
-          if(!body){showToast('⚠️ Summary is required');return;}
-          const obj={title,cat,catLabel:catLabels[cat]||cat,body,source:document.getElementById('fSource').value.trim()||'—',updated:document.getElementById('fUpdated').value||new Date().toISOString().split('T')[0]};
-          if(editingId){Object.assign(laws.find(x=>x.id===editingId),obj);showToast('✅ Law updated!');}
-          else{laws.push({id:nextId++,...obj});showToast('✅ Law added!');}
-          closeModal('lawModal');render();
+
+        // ── Category Tabs ─────────────────────────────────────────────
+        function setCategory(cat, btn) {
+            document.querySelectorAll('.tabs-bar .tab-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCategory = cat;
+            render();
         }
-        function deleteLaw(id){const l=laws.find(x=>x.id===id);if(!l||!confirm(`Delete "${l.title}"?`))return;laws=laws.filter(x=>x.id!==id);render();showToast('🗑 Law deleted.');}
-        function openModal(id){document.getElementById(id).classList.add('open');}
-        function closeModal(id){document.getElementById(id).classList.remove('open');}
-        function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='flex';setTimeout(()=>t.style.display='none',3000);}
+
+        // ── Add modal ─────────────────────────────────────────────────
+        function openAdd() {
+            document.getElementById('modalTitle').textContent = '＋ Add Law';
+            document.getElementById('lawForm').action = '@Url.Action("AddLaw", "SuperAdmin")';
+            document.getElementById('fId').value      = '0';
+            document.getElementById('fTitle').value   = '';
+            document.getElementById('fCategory').value= '';
+            document.getElementById('fSource').value  = '';
+            document.getElementById('fBody').value    = '';
+            document.getElementById('fUpdated').value = new Date().toISOString().split('T')[0];
+            openModal('lawModal');
+        }
+
+        // ── Edit modal ────────────────────────────────────────────────
+        function openEdit(id) {
+            const l = laws.find(x => x.id === id);
+            if (!l) return;
+            document.getElementById('modalTitle').textContent = '✏️ Edit Law';
+            document.getElementById('lawForm').action = '@Url.Action("EditLaw", "SuperAdmin")';
+            document.getElementById('fId').value       = l.id;
+            document.getElementById('fTitle').value    = l.title;
+            document.getElementById('fCategory').value = l.cat;
+            document.getElementById('fSource').value   = l.source;
+            document.getElementById('fBody').value     = l.body;
+            document.getElementById('fUpdated').value  = l.updated;
+            openModal('lawModal');
+        }
+
+        // ── Delete ────────────────────────────────────────────────────
+        function confirmDelete(id, title) {
+            if (!confirm(`Delete "${title}"?`)) return;
+            document.getElementById('deleteId').value = id;
+            document.getElementById('deleteForm').submit();
+        }
+
+        // ── Modal helpers ─────────────────────────────────────────────
+        function openModal(id)  { document.getElementById(id).classList.add('open');    }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        // ── XSS helpers ───────────────────────────────────────────────
+        function escHtml(s) {
+            return String(s ?? '')
+                .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        }
+        function escJs(s) { return String(s ?? '').replace(/'/g,"\\'"); }
+
+        // ── Toast (from TempData) ─────────────────────────────────────
+        @if (!string.IsNullOrEmpty(toastMsg))
+        {
+                <text>
+                (function(){
+                    const t = document.getElementById('toast');
+                    t.textContent = '@Html.Raw(toastMsg.Replace("'", "\\'"))';
+                    t.style.display = 'flex';
+                    setTimeout(() => t.style.display = 'none', 3500);
+                })();
+                </text>
+        }
+
         render();
     </script>
 </body>

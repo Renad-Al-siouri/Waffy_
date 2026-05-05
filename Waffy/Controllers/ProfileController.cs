@@ -20,10 +20,13 @@ namespace Waffy.Controllers
         private readonly IComplaintRepository _complaintRepo;
         private readonly IClinicRepository _clinicRepo;
         private readonly IStoreRepository _storeRepo;
+        private readonly IOrderRepository _orderRepo;
+        private readonly IOrderItemRepository _orderItemRepo;
+
         public ProfileController(
             IUserRepository userRepository,
             IPetRepository petRepo,
-            IAdoptionRepository adoptionRepo,  
+            IAdoptionRepository adoptionRepo,
             ILostPetRepository lostPetRepo,
             IReservationRepository reservationRepo,
             IFoundPetClaimRepository claimRepo,
@@ -32,7 +35,9 @@ namespace Waffy.Controllers
             IComplaintRepository complaintRepo,
             IClinicRepository clinicRepo,
             IStoreRepository storeRepo,
-            IWalletRepository walletRepo)
+            IWalletRepository walletRepo,
+            IOrderRepository orderRepo,
+            IOrderItemRepository orderItemRepo)
         {
             _userRepository = userRepository;
             _petRepo = petRepo;
@@ -46,6 +51,8 @@ namespace Waffy.Controllers
             _complaintRepo = complaintRepo;
             _clinicRepo = clinicRepo;
             _storeRepo = storeRepo;
+            _orderRepo = orderRepo;
+            _orderItemRepo = orderItemRepo;
         }
 
         // ── helper: تجلب المستخدم من Session أو ترجع null ──
@@ -267,7 +274,60 @@ namespace Waffy.Controllers
             });
         }
         public IActionResult Appointments() => View();
-        public IActionResult Orders() => View();
+        [HttpGet]
+        public async Task<IActionResult> Orders()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            // جلب طلبات هذا اليوزر
+            var orders = (await _orderRepo.GetByUserIdAsync(userId.Value))
+                         .OrderByDescending(o => o.CreatedAt)
+                         .ToList();
+
+            // جلب أسماء المتاجر
+            var storeIds = orders.Select(o => o.IdStore).Distinct().ToList();
+            var stores = new Dictionary<int, string>();
+            foreach (var id in storeIds)
+            {
+                var s = await _storeRepo.GetByIdAsync(id);
+                stores[id] = s?.Name ?? "Store";
+            }
+
+            ViewBag.StoreNames = stores;
+            ViewBag.FullName = HttpContext.Session.GetString("FullName");
+            ViewBag.Email = HttpContext.Session.GetString("Email");
+
+            return View(orders);
+        }
+
+        // AJAX endpoint لجلب عناصر الطلب داخل الـ modal
+        [HttpGet]
+        public async Task<IActionResult> OrderItems(int orderId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return Json(new { items = new List<object>(), total = "0.000" });
+
+            // تأكد أن الطلب ينتمي لهذا اليوزر
+            var order = await _orderRepo.GetByIdAsync(orderId);
+            if (order == null || order.IdUser != userId.Value)
+                return Json(new { items = new List<object>(), total = "0.000" });
+
+            var items = (await _orderItemRepo.GetByOrderIdAsync(orderId)).ToList();
+            var total = items.Sum(i => i.Quantity * (i.SalePrice ?? i.UnitPrice));
+
+            return Json(new
+            {
+                items = items.Select(i => new
+                {
+                    name = i.ProductNameSnapshot,
+                    qty = i.Quantity,
+                    subtotal = (i.Quantity * (i.SalePrice ?? i.UnitPrice)).ToString("F3")
+                }),
+                total = total.ToString("F3")
+            });
+        }
+
         // ════════════════════════════════════════════════════
         // ADOPTION ADS — GET
         // ════════════════════════════════════════════════════

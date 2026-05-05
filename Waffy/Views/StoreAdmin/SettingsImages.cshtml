@@ -5,7 +5,9 @@
     ViewData["ActiveNav"] = "Settings";
     ViewData["ActiveSettings"] = "Images";
     ViewData["BreadSection"] = "Settings";
-    ViewData["BreadPage"] = "Images & Logo";
+    ViewData["BreadPage"] = "Images & Gallery";
+
+    var galleryImages = ViewBag.GalleryImages as List<Waffy.Models.StoreImage> ?? new();
 }
 
 @section Styles {
@@ -14,7 +16,7 @@
             display: grid;
             grid-template-columns: 220px 1fr;
             gap: 16px;
-            align-items: start
+            align-items: start;
         }
 
         .settings-nav {
@@ -22,7 +24,7 @@
             border: 1px solid var(--border);
             border-radius: var(--r-lg);
             overflow: hidden;
-            box-shadow: var(--shadow-sm)
+            box-shadow: var(--shadow-sm);
         }
 
         .settings-nav-item {
@@ -36,29 +38,29 @@
             border-bottom: 1px solid var(--border);
             border-left: 3px solid transparent;
             text-decoration: none;
-            transition: .18s
+            transition: .18s;
         }
 
             .settings-nav-item:hover {
                 background: var(--brand-ghost);
-                color: var(--brand-dark)
+                color: var(--brand-dark);
             }
 
             .settings-nav-item.on {
                 background: var(--brand-xlight);
                 color: var(--brand-dark);
                 font-weight: 900;
-                border-left-color: var(--brand)
+                border-left-color: var(--brand);
             }
 
             .settings-nav-item:last-child {
-                border-bottom: none
+                border-bottom: none;
             }
 
         .settings-nav-ico {
             font-size: 1rem;
             width: 20px;
-            text-align: center
+            text-align: center;
         }
 
         .settings-content {
@@ -66,7 +68,7 @@
             border: 1px solid var(--border);
             border-radius: var(--r-lg);
             padding: 24px;
-            box-shadow: var(--shadow-sm)
+            box-shadow: var(--shadow-sm);
         }
 
         .settings-section-title {
@@ -79,17 +81,88 @@
             border-bottom: 1px solid var(--border);
             display: flex;
             align-items: center;
-            gap: 8px
+            gap: 8px;
+        }
+
+        /* Gallery grid */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .gallery-thumb {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            background: var(--brand-ghost);
+        }
+
+            .gallery-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .gallery-thumb .thumb-del {
+                position: absolute;
+                top: 4px;
+                right: 4px;
+                width: 22px;
+                height: 22px;
+                background: rgba(231,76,60,.85);
+                color: #fff;
+                border: none;
+                border-radius: 50%;
+                font-size: .7rem;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 900;
+            }
+
+        .gallery-add-slot {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            border: 2px dashed var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: var(--brand-ghost);
+            transition: .2s;
+            font-size: .72rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            gap: 4px;
+        }
+
+            .gallery-add-slot:hover {
+                border-color: var(--brand);
+                background: var(--brand-xlight);
+                color: var(--brand-dark);
+            }
+
+        .gallery-counter {
+            font-size: .76rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-top: 8px;
         }
 
         @@media(max-width:900px) {
             .settings-layout {
-                grid-template-columns: 1fr
+                grid-template-columns: 1fr;
             }
 
             .settings-nav {
                 display: grid;
-                grid-template-columns: repeat(3,1fr)
+                grid-template-columns: repeat(3,1fr);
             }
 
             .settings-nav-item {
@@ -98,18 +171,26 @@
                 justify-content: center;
                 text-align: center;
                 padding: 10px 8px;
-                font-size: .78rem
+                font-size: .78rem;
             }
 
                 .settings-nav-item.on {
                     border-left: none;
-                    border-bottom: 2px solid var(--brand)
+                    border-bottom: 2px solid var(--brand);
                 }
+
+            .gallery-grid {
+                grid-template-columns: repeat(3,1fr);
+            }
         }
 
         @@media(max-width:500px) {
             .settings-nav {
-                grid-template-columns: repeat(2,1fr)
+                grid-template-columns: repeat(2,1fr);
+            }
+
+            .gallery-grid {
+                grid-template-columns: repeat(2,1fr);
             }
         }
     </style>
@@ -118,10 +199,7 @@
 <section class="page-hero">
     <div class="page-hero-text">
         <h1>Store Settings ⚙️</h1>
-        <p>Update your store logo and banner image.</p>
-    </div>
-    <div class="page-hero-actions">
-        <button class="btn btn-primary" form="settingsForm" type="submit">💾 Save Changes</button>
+        <p>Update your store logo, banner, and gallery images.</p>
     </div>
 </section>
 
@@ -133,87 +211,291 @@
             @TempData["Success"]
         </div>
     }
+    @if (TempData["Error"] != null)
+    {
+        <div class="info-box" style="margin-bottom:16px;background:#fff0f0;border-color:#e74c3c;color:#c0392b">
+            @TempData["Error"]
+        </div>
+    }
 
     <div class="settings-layout">
 
         @await Html.PartialAsync("_SettingsNav")
 
         <div class="settings-content">
-            <form id="settingsForm"
-                  method="post"
-                  asp-action="SettingsImages"
-                  asp-controller="StoreAdmin"
-                  enctype="multipart/form-data">
-                @Html.AntiForgeryToken()
 
-                <div class="settings-section-title">🖼 Images & Logo</div>
-
-                <div class="form-group">
-
-                    <!-- Logo -->
-                    @if (!string.IsNullOrEmpty(Model.LogoUrl))
-                    {
-                        <div class="form-field full" style="margin-bottom:8px">
-                            <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:4px">Current Logo:</div>
-                            <img src="@Model.LogoUrl" alt="Logo"
-                                 style="width:80px;height:80px;object-fit:contain;border-radius:12px;border:1px solid var(--border)">
-                        </div>
-                    }
-
-                    <div class="form-field full">
-                        <label class="form-label">Store Logo</label>
-                        <label class="upload-zone" for="logoInput">
-                            <span class="upload-zone-ico">🖼️</span>
-                            <span class="upload-zone-label">Upload new Logo</span>
-                            <span class="upload-zone-hint">PNG or SVG — 512×512px recommended</span>
-                        </label>
-                        <input id="logoInput" type="file" name="logoFile" accept="image/*" hidden
-                               onchange="previewImage(this,'logoPreview')">
-                        <img id="logoPreview" src="" alt="" style="display:none;margin-top:8px;width:80px;height:80px;object-fit:contain;border-radius:10px;border:1px solid var(--border)">
-                    </div>
-
-                    <!-- Banner -->
-                    @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
-                    {
-                        <div class="form-field full" style="margin-bottom:8px">
-                            <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:4px">Current Banner:</div>
-                            <img src="@Model.CoverImageUrl" alt="Banner"
-                                 style="width:100%;max-height:100px;object-fit:cover;border-radius:12px;border:1px solid var(--border)">
-                        </div>
-                    }
-
-                    <div class="form-field full">
-                        <label class="form-label">Store Banner</label>
-                        <label class="upload-zone" for="bannerInput">
-                            <span class="upload-zone-ico">🏞</span>
-                            <span class="upload-zone-label">Upload new Banner</span>
-                            <span class="upload-zone-hint">PNG or JPG — 1200×400px recommended</span>
-                        </label>
-                        <input id="bannerInput" type="file" name="coverFile" accept="image/*" hidden
-                               onchange="previewImage(this,'bannerPreview')">
-                        <img id="bannerPreview" src="" alt=""
-                             style="display:none;margin-top:8px;width:100%;max-height:100px;object-fit:cover;border-radius:10px;border:1px solid var(--border)">
-                    </div>
+            <!-- ══ Logo ══ -->
+            <div class="settings-section-title">🏷 Store Logo</div>
+            @if (!string.IsNullOrEmpty(Model.LogoUrl))
+            {
+                <div style="margin-bottom:12px">
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:6px">Current Logo:</div>
+                    <img src="@Model.LogoUrl" alt="Logo"
+                         style="width:80px;height:80px;object-fit:contain;border-radius:12px;border:1px solid var(--border)">
                 </div>
-
-                <div style="text-align:right;margin-top:20px">
-                    <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+            }
+            <div id="logoUploadArea">
+                <label class="upload-zone" for="logoInput" style="cursor:pointer">
+                    <span class="upload-zone-ico">🖼️</span>
+                    <span class="upload-zone-label">Click to upload Logo</span>
+                    <span class="upload-zone-hint">PNG or SVG — 512×512px recommended</span>
+                </label>
+                <input id="logoInput" type="file" accept="image/*" hidden>
+                <img id="logoPreview" src="" alt=""
+                     style="display:none;margin-top:8px;width:80px;height:80px;object-fit:contain;border-radius:10px;border:1px solid var(--border)">
+                <div id="logoActions" style="display:none;margin-top:10px;display:flex;gap:8px">
+                    <button class="btn btn-primary btn-sm" onclick="uploadStoreImage('Logo')">💾 Save Logo</button>
+                    <button class="btn btn-outline btn-sm" onclick="cancelLogoUpload()">Cancel</button>
                 </div>
-            </form>
+            </div>
+
+            <hr style="border:none;border-top:1px solid var(--border);margin:24px 0">
+
+            <!-- ══ Cover/Banner ══ -->
+            <div class="settings-section-title">🏞 Store Banner</div>
+            @if (!string.IsNullOrEmpty(Model.CoverImageUrl))
+            {
+                <div style="margin-bottom:12px">
+                    <div style="font-size:.78rem;color:var(--text-muted);margin-bottom:6px">Current Banner:</div>
+                    <img src="@Model.CoverImageUrl" alt="Banner"
+                         style="width:100%;max-height:110px;object-fit:cover;border-radius:12px;border:1px solid var(--border)">
+                </div>
+            }
+            <label class="upload-zone" for="bannerInput" style="cursor:pointer">
+                <span class="upload-zone-ico">🏞</span>
+                <span class="upload-zone-label">Click to upload Banner</span>
+                <span class="upload-zone-hint">PNG or JPG — 1200×400px recommended</span>
+            </label>
+            <input id="bannerInput" type="file" accept="image/*" hidden>
+            <img id="bannerPreview" src="" alt=""
+                 style="display:none;margin-top:8px;width:100%;max-height:110px;object-fit:cover;border-radius:10px;border:1px solid var(--border)">
+            <div id="bannerActions" style="display:none;margin-top:10px;gap:8px">
+                <button class="btn btn-primary btn-sm" onclick="uploadStoreImage('Cover')">💾 Save Banner</button>
+                <button class="btn btn-outline btn-sm" onclick="cancelBannerUpload()">Cancel</button>
+            </div>
+
+            <hr style="border:none;border-top:1px solid var(--border);margin:24px 0">
+
+            <!-- ══ Gallery ══ -->
+            <div class="settings-section-title">
+                🖼 Store Gallery
+                <span style="font-size:.76rem;font-weight:600;color:var(--text-muted);margin-left:6px">Up to 8 photos</span>
+            </div>
+            <div class="info-box" style="margin-bottom:14px;font-size:.8rem">
+                📸 Gallery images appear on your store page. Customers can browse them to learn more about your store.
+            </div>
+
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- الصور الموجودة من الـ DB -->
+                @foreach (var img in galleryImages)
+                {
+                    <div class="gallery-thumb" id="gthumb-@img.Id">
+                        <img src="@img.ImageUrl" alt="Gallery">
+                        <button class="thumb-del" onclick="deleteGalleryImage(@img.Id)">✕</button>
+                    </div>
+                }
+                <!-- slot الإضافة -->
+                @if (galleryImages.Count < 8)
+                {
+                    <label class="gallery-add-slot" for="galleryInput" id="galleryAddSlot">
+                        <span style="font-size:1.5rem">📷</span>
+                        <span>Add Photos</span>
+                    </label>
+                }
+            </div>
+            <div class="gallery-counter" id="galleryCounter">@galleryImages.Count / 8 photos</div>
+
+            <input id="galleryInput" type="file" accept="image/*" multiple hidden>
+
+            <div id="galleryUploadActions" style="display:none;margin-top:12px;gap:8px">
+                <button class="btn btn-primary btn-sm" onclick="uploadGalleryImages()">💾 Save Gallery Photos</button>
+                <button class="btn btn-outline btn-sm" onclick="cancelGalleryUpload()">Cancel</button>
+            </div>
+
         </div>
-
     </div>
 </div>
 
 @section Scripts {
     <script>
-        function previewImage(input, previewId) {
-            const file = input.files?.[0];
-            if (!file) return;
-            const img = document.getElementById(previewId);
+        // ════════════════════════════
+        // Logo Upload
+        // ════════════════════════════
+        let logoFile = null;
+
+        document.getElementById('logoInput').addEventListener('change', function() {
+            logoFile = this.files[0];
+            if (!logoFile) return;
             const reader = new FileReader();
-            reader.onload = e => { img.src = e.target.result; img.style.display = 'block'; };
-            reader.readAsDataURL(file);
+            reader.onload = e => {
+                document.getElementById('logoPreview').src = e.target.result;
+                document.getElementById('logoPreview').style.display = 'block';
+                document.getElementById('logoActions').style.display = 'flex';
+            };
+            reader.readAsDataURL(logoFile);
+        });
+
+        function cancelLogoUpload() {
+            logoFile = null;
+            document.getElementById('logoPreview').style.display = 'none';
+            document.getElementById('logoActions').style.display = 'none';
+            document.getElementById('logoInput').value = '';
+        }
+
+        // ════════════════════════════
+        // Banner Upload
+        // ════════════════════════════
+        let bannerFile = null;
+
+        document.getElementById('bannerInput').addEventListener('change', function() {
+            bannerFile = this.files[0];
+            if (!bannerFile) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('bannerPreview').src = e.target.result;
+                document.getElementById('bannerPreview').style.display = 'block';
+                document.getElementById('bannerActions').style.display = 'flex';
+            };
+            reader.readAsDataURL(bannerFile);
+        });
+
+        function cancelBannerUpload() {
+            bannerFile = null;
+            document.getElementById('bannerPreview').style.display = 'none';
+            document.getElementById('bannerActions').style.display = 'none';
+            document.getElementById('bannerInput').value = '';
+        }
+
+        // ════════════════════════════
+        // Gallery Upload
+        // ════════════════════════════
+        let galleryNewFiles = [];
+        let galleryCurrentCount = @galleryImages.Count;
+
+        document.getElementById('galleryInput').addEventListener('change', function() {
+            const remaining = 8 - galleryCurrentCount - galleryNewFiles.length;
+            const toAdd = Array.from(this.files).slice(0, remaining);
+            galleryNewFiles = [...galleryNewFiles, ...toAdd];
+            renderGalleryPreviews();
+            this.value = '';
+            if (galleryNewFiles.length > 0)
+                document.getElementById('galleryUploadActions').style.display = 'flex';
+        });
+
+        function renderGalleryPreviews() {
+            // احذف الـ previews القديمة
+            document.querySelectorAll('.gallery-thumb.preview').forEach(el => el.remove());
+            const addSlot = document.getElementById('galleryAddSlot');
+
+            galleryNewFiles.forEach((file, idx) => {
+                const url = URL.createObjectURL(file);
+                const div = document.createElement('div');
+                div.className = 'gallery-thumb preview';
+                div.innerHTML = `
+                    <img src="${url}">
+                    <button class="thumb-del" onclick="removeGalleryPreview(${idx})">✕</button>
+                    <span style="position:absolute;bottom:4px;left:4px;background:var(--warning);color:#fff;font-size:.6rem;padding:2px 6px;border-radius:6px;font-weight:900">New</span>`;
+                if (addSlot) addSlot.before(div);
+                else document.getElementById('galleryGrid').appendChild(div);
+            });
+
+            const total = galleryCurrentCount + galleryNewFiles.length;
+            document.getElementById('galleryCounter').textContent = `${total} / 8 photos`;
+
+            // hide add slot if full
+            if (addSlot) addSlot.style.display = total >= 8 ? 'none' : '';
+        }
+
+        function removeGalleryPreview(idx) {
+            galleryNewFiles.splice(idx, 1);
+            renderGalleryPreviews();
+            if (galleryNewFiles.length === 0)
+                document.getElementById('galleryUploadActions').style.display = 'none';
+        }
+
+        function cancelGalleryUpload() {
+            galleryNewFiles = [];
+            document.querySelectorAll('.gallery-thumb.preview').forEach(el => el.remove());
+            document.getElementById('galleryUploadActions').style.display = 'none';
+            const total = galleryCurrentCount;
+            document.getElementById('galleryCounter').textContent = `${total} / 8 photos`;
+            const addSlot = document.getElementById('galleryAddSlot');
+            if (addSlot) addSlot.style.display = '';
+        }
+
+        // ════════════════════════════
+        // Upload to Server
+        // ════════════════════════════
+        async function uploadStoreImage(type) {
+            const file = type === 'Logo' ? logoFile : bannerFile;
+            if (!file) return;
+
+            const fd = new FormData();
+            fd.append('imageType', type);
+            fd.append('imageFiles', file);
+
+            showUploadBtn(type, true);
+            const res  = await fetch('/StoreAdmin/UploadStoreImages', { method:'POST', body:fd });
+            const data = await res.json();
+            showUploadBtn(type, false);
+
+            if (data.success) {
+                showToast(`✅ ${type} saved!`);
+                if (type === 'Logo')   { cancelLogoUpload();   }
+                else                   { cancelBannerUpload(); }
+                // refresh page to show new image
+                setTimeout(() => location.reload(), 800);
+            } else {
+                showToast('❌ Upload failed');
+            }
+        }
+
+        async function uploadGalleryImages() {
+            if (!galleryNewFiles.length) return;
+
+            const fd = new FormData();
+            fd.append('imageType', 'Gallery');
+            galleryNewFiles.forEach(f => fd.append('imageFiles', f));
+
+            const res  = await fetch('/StoreAdmin/UploadStoreImages', { method:'POST', body:fd });
+            const data = await res.json();
+
+            if (data.success) {
+                showToast(`✅ ${galleryNewFiles.length} photo(s) saved!`);
+                galleryNewFiles = [];
+                setTimeout(() => location.reload(), 800);
+            } else {
+                showToast('❌ Upload failed');
+            }
+        }
+
+        async function deleteGalleryImage(imgId) {
+            if (!confirm('Remove this photo?')) return;
+
+            const fd = new FormData(); fd.append('imageId', imgId);
+            const res  = await fetch('/StoreAdmin/DeleteStoreImage', { method:'POST', body:fd });
+            const data = await res.json();
+
+            if (data.success) {
+                document.getElementById(`gthumb-${imgId}`)?.remove();
+                galleryCurrentCount--;
+                document.getElementById('galleryCounter').textContent = `${galleryCurrentCount} / 8 photos`;
+                const addSlot = document.getElementById('galleryAddSlot');
+                if (addSlot) addSlot.style.display = '';
+                showToast('🗑 Photo removed');
+            }
+        }
+
+        function showUploadBtn(type, loading) {
+            // يمكن تحسينه لاحقاً
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            if (!t) return;
+            t.textContent = msg;
+            t.style.display = 'flex';
+            setTimeout(() => t.style.display = 'none', 2200);
         }
     </script>
 }

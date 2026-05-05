@@ -11,5 +11,7 @@ namespace Waffy.Interfaces
         Task DeleteAsync(int id);
         Task UpdateVisibilityAsync(int id, bool isVisible);
         Task UpdateStockAsync(int id, int newQuantity);
+
+        Task DeductStockAsync(int productId, int quantity);
     }
 }

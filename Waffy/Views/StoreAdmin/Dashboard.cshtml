@@ -6,7 +6,7 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -50,9 +50,87 @@
             font-weight: 800;
             color: var(--brand-dark)
         }
+        /* multi-image uploader */
+        .img-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            gap: 10px;
+            margin-top: 12px
+        }
 
-        .card-body-pad {
-            padding: 16px 18px
+        .img-thumb {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            background: var(--brand-ghost)
+        }
+
+            .img-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover
+            }
+
+            .img-thumb .img-del {
+                position: absolute;
+                top: 4px;
+                right: 4px;
+                width: 22px;
+                height: 22px;
+                background: rgba(231,76,60,.85);
+                color: #fff;
+                border: none;
+                border-radius: 50%;
+                font-size: .7rem;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 900
+            }
+
+            .img-thumb .img-main-badge {
+                position: absolute;
+                bottom: 4px;
+                left: 4px;
+                background: var(--brand);
+                color: #fff;
+                font-size: .6rem;
+                font-weight: 900;
+                padding: 2px 6px;
+                border-radius: 6px
+            }
+
+        .img-add-slot {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            border: 2px dashed var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: var(--brand-ghost);
+            transition: .2s;
+            font-size: .72rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            gap: 4px
+        }
+
+            .img-add-slot:hover {
+                border-color: var(--brand);
+                background: var(--brand-xlight);
+                color: var(--brand-dark)
+            }
+
+        .img-counter {
+            font-size: .76rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-top: 8px
         }
 
         @@media(max-width:900px) {
@@ -66,101 +144,64 @@
     <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
     <div class="wa-shell" id="waShell">
 
-        <!-- ===== SIDEBAR ===== -->
+        <!-- ══ SIDEBAR ══ -->
         <aside class="wa-sb" id="waSb">
             <div class="sb-logo">
-                <div class="sb-mark">
-                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img">
-                </div>
-                <div class="sb-wordmark">
-                    <div class="sb-wm-name">Waffy</div>
-                    <div class="sb-wm-tag">Store Admin</div>
-                </div>
+                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
+                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Store Admin</div></div>
             </div>
             <nav class="sb-nav">
-
-                <!-- Dashboard -->
                 <div class="sb-group sb-group-flat">
                     <a class="sb-row active" href="@Url.Action("Dashboard", "StoreAdmin")" data-tip="Dashboard">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg>
-                        </span>
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
                         <span class="sb-lbl">Dashboard</span>
                     </a>
                 </div>
-
                 <div class="sb-hr"></div>
-
-                <!-- Store Group -->
                 <div class="sb-group">
                     <div class="sb-grp-hd">Store</div>
                     <a class="sb-row" href="@Url.Action("Products", "StoreAdmin")" data-tip="Products">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg>
-                        </span>
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
                         <span class="sb-lbl">Products</span>
                         <span class="sb-bdg bd-g" id="productsCountBadge">@(ViewBag.ProductsCount ?? 0)</span>
                     </a>
                     <a class="sb-row" href="@Url.Action("Orders", "StoreAdmin")" data-tip="Orders">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /></svg>
-                        </span>
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /></svg></span>
                         <span class="sb-lbl">Orders</span>
                         <span class="sb-bdg bd-y" id="ordersCountBadge">@(ViewBag.PendingOrders ?? 0)</span>
                     </a>
                     <a class="sb-row" href="@Url.Action("Customers", "StoreAdmin")" data-tip="Customers">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg>
-                        </span>
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
                         <span class="sb-lbl">Customers</span>
                     </a>
                     <a class="sb-row" href="@Url.Action("Reviews", "StoreAdmin")" data-tip="Reviews">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-                        </span>
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></span>
                         <span class="sb-lbl">Reviews</span>
-                        <span class="sb-bdg bd-r" id="reviewsCountBadge">0</span>
                     </a>
                 </div>
-
                 <div class="sb-hr"></div>
-
-                <!-- Adoption -->
                 <div class="sb-group sb-group-flat">
                     <a class="sb-row" href="@Url.Action("Adoption", "StoreAdmin")" data-tip="Adoption">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg>
-                        </span>
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
                         <span class="sb-lbl">Adoption</span>
                     </a>
                 </div>
-
                 <div class="sb-hr"></div>
-
-                <!-- Management Group -->
                 <div class="sb-group">
                     <div class="sb-grp-hd">Management</div>
                     <a class="sb-row" href="@Url.Action("Notifications", "StoreAdmin")" data-tip="Notifications">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-                        </span>
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
                         <span class="sb-lbl">Notifications</span>
-                        <span class="sb-bdg bd-r" id="notifCountBadge">0</span>
                     </a>
-                    <a class="sb-row" href="@Url.Action("Settings", "StoreAdmin")" data-tip="Settings">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
-                        </span>
+                    <a class="sb-row" href="@Url.Action("SettingsInfo", "StoreAdmin")" data-tip="Settings">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg></span>
                         <span class="sb-lbl">Store Settings</span>
                     </a>
                     <a class="sb-row" href="@Url.Action("Subscription", "StoreAdmin")" data-tip="Subscription">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>
-                        </span>
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg></span>
                         <span class="sb-lbl">Subscription</span>
                     </a>
                 </div>
-
             </nav>
             <div class="sb-foot">
                 <div class="sb-user-row">
@@ -177,25 +218,16 @@
             </div>
         </aside>
 
-        <!-- ===== TOPNAV ===== -->
+        <!-- ══ TOPNAV ══ -->
         <header class="wa-tn" id="waTn">
             <button class="tn-toggle" onclick="toggleSb()" type="button">
-                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24">
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <line x1="3" y1="12" x2="21" y2="12" />
-                    <line x1="3" y1="18" x2="21" y2="18" />
-                </svg>
+                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
             </button>
             <nav class="tn-bread"><span>Store</span><span>/</span><b>Dashboard</b></nav>
-            <div class="tn-center">
-                <div class="tn-center-main">Dashboard</div>
-                <div class="tn-center-sub">Store Admin Panel</div>
-            </div>
+            <div class="tn-center"><div class="tn-center-main">Dashboard</div><div class="tn-center-sub">Store Admin Panel</div></div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-                <button class="tn-btn" type="button">
-                    <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-                </button>
+                <button class="tn-btn" type="button"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg></button>
                 <a class="tn-btn" href="@Url.Action("Notifications", "StoreAdmin")">
                     <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
                     <span class="tn-count" id="tnNotifCount">0</span>
@@ -203,205 +235,210 @@
                 <div class="tn-sep"></div>
                 <div class="tn-profile">
                     <div class="tn-av">@ViewBag.OwnerInitial</div>
-                    <div>
-                        <div class="tn-pname">@ViewBag.OwnerName</div>
-                        <div class="tn-prole">@ViewBag.StoreName</div>
-                    </div>
+                    <div><div class="tn-pname">@ViewBag.OwnerName</div><div class="tn-prole">@ViewBag.StoreName</div></div>
                 </div>
             </div>
         </header>
 
-        <!-- ===== MAIN CONTENT ===== -->
+        <!-- ══ MAIN ══ -->
         <main class="wa-main" id="waMain">
             <section class="page-hero">
                 <div class="page-hero-text">
                     <h1>Dashboard 📊</h1>
-                    <p>Welcome back, @ViewBag.OwnerName! Here's a snapshot of your store today.</p>
+                    <p>Welcome back, @ViewBag.OwnerName! Here's your store overview.</p>
                 </div>
                 <div class="page-hero-actions">
-                    <select class="sel-wrap" style="height:40px;width:60px">
-                        <option>This month</option>
-                        <option>This week</option>
-                        <option>Last 30 days</option>
-                    </select>
                     <button class="btn btn-primary" onclick="openModal('addProductModal')">+ Add Product</button>
                 </div>
             </section>
 
             <div class="page-body">
 
-                <!-- KPI Cards -->
+                <!-- ══ KPI Cards ══ -->
                 <div class="kpi-grid kpi-grid-5">
-                    <div class="kpi-card c1"><div class="kpi-ico green">💰</div><div class="kpi-val" id="salesKpi">@(ViewBag.TotalRevenue ?? 0)</div><div class="kpi-label">Total Sales (JOD)</div><div class="kpi-chip chip-green">▲ 12%</div></div>
-                    <div class="kpi-card c2"><div class="kpi-ico blue">🧾</div><div class="kpi-val" id="ordersKpi">0</div><div class="kpi-label">Total Orders</div><div class="kpi-chip chip-blue">▲ 8%</div></div>
-                    <div class="kpi-card c3"><div class="kpi-ico yellow">⏳</div><div class="kpi-val" id="newOrdersKpi">@(ViewBag.PendingOrders ?? 0)</div><div class="kpi-label">New Orders</div><div class="kpi-chip chip-yellow">Needs attention</div></div>
-                    <div class="kpi-card c1"><div class="kpi-ico green">✅</div><div class="kpi-val" id="completedOrdersKpi">@(ViewBag.CompletedOrders ?? 0)</div><div class="kpi-label">Completed</div><div class="kpi-chip chip-green">▲ 5%</div></div>
-                    <div class="kpi-card c5"><div class="kpi-ico purple">📦</div><div class="kpi-val" id="productsKpi">@(ViewBag.ProductsCount ?? 0)</div><div class="kpi-label">Products</div><div class="kpi-chip chip-red" id="stockTrendText">@(ViewBag.LowStockCount ?? 0) low stock</div></div>
+                    <div class="kpi-card c1">
+                        <div class="kpi-ico green">💰</div>
+                        <div class="kpi-val" id="salesKpi">@(ViewBag.TotalRevenue != null ? ((decimal)ViewBag.TotalRevenue).ToString("F2") : "0.00")</div>
+                        <div class="kpi-label">Total Revenue (JOD)</div>
+                    </div>
+                    <div class="kpi-card c2">
+                        <div class="kpi-ico blue">🧾</div>
+                        <div class="kpi-val" id="ordersKpi">@(ViewBag.TotalOrders ?? 0)</div>
+                        <div class="kpi-label">Total Orders</div>
+                    </div>
+                    <div class="kpi-card c3">
+                        <div class="kpi-ico yellow">⏳</div>
+                        <div class="kpi-val" id="newOrdersKpi">@(ViewBag.PendingOrders ?? 0)</div>
+                        <div class="kpi-label">Pending Orders</div>
+                        <div class="kpi-chip chip-yellow">Needs attention</div>
+                    </div>
+                    <div class="kpi-card c1">
+                        <div class="kpi-ico green">✅</div>
+                        <div class="kpi-val" id="completedKpi">@(ViewBag.CompletedOrders ?? 0)</div>
+                        <div class="kpi-label">Completed Orders</div>
+                    </div>
+                    <div class="kpi-card c5">
+                        <div class="kpi-ico purple">📦</div>
+                        <div class="kpi-val" id="productsKpi">@(ViewBag.ProductsCount ?? 0)</div>
+                        <div class="kpi-label">Products</div>
+                        <div class="kpi-chip chip-red" id="lowStockChip">@(ViewBag.LowStockCount ?? 0) low stock</div>
+                    </div>
                 </div>
 
-                <!-- Quick Actions -->
+                <!-- ══ Quick Actions ══ -->
                 <div class="qa-grid">
                     <div class="qa-btn" onclick="openModal('addProductModal')"><span class="qa-ico">➕</span><span class="qa-lbl">Add Product</span></div>
-                    <div class="qa-btn" onclick="window.location.href='@Url.Action("Orders", "StoreAdmin")'"><span class="qa-ico">🧾</span><span class="qa-lbl">Review Orders</span></div>
-                    <div class="qa-btn" onclick="window.location.href='@Url.Action("Reviews", "StoreAdmin")'"><span class="qa-ico">⭐</span><span class="qa-lbl">New Reviews</span></div>
-                    <div class="qa-btn" onclick="window.location.href='@Url.Action("Settings", "StoreAdmin")'"><span class="qa-ico">⚙️</span><span class="qa-lbl">Store Settings</span></div>
+                    <div class="qa-btn" onclick="location.href='@Url.Action("Orders", "StoreAdmin")'"><span class="qa-ico">🧾</span><span class="qa-lbl">View Orders</span></div>
+                    <div class="qa-btn" onclick="location.href='@Url.Action("Customers", "StoreAdmin")'"><span class="qa-ico">👥</span><span class="qa-lbl">Customers</span></div>
+                    <div class="qa-btn" onclick="location.href='@Url.Action("SettingsInfo", "StoreAdmin")'"><span class="qa-ico">⚙️</span><span class="qa-lbl">Store Settings</span></div>
                 </div>
 
-                <!-- Charts Row -->
+                <!-- ══ Charts + Best Sellers ══ -->
                 <div style="display:grid;grid-template-columns:1.8fr 1fr;gap:14px;margin-bottom:14px">
                     <div class="table-card">
-                        <div class="table-head-bar">
-                            <span class="table-head-title">📈 Monthly Sales</span>
-                            <select class="sel-wrap" style="height:36px;font-size:.76rem;padding:0 28px 0 10px;min-width:auto;width:auto">
-                                <option>2026</option>
-                                <option>2025</option>
-                            </select>
-                        </div>
-                        <div style="padding:14px;min-height:220px"><canvas id="salesChart"></canvas></div>
+                        <div class="table-head-bar"><span class="table-head-title">📈 Revenue Overview</span></div>
+                        <div style="padding:14px;min-height:200px"><canvas id="salesChart"></canvas></div>
                     </div>
                     <div class="table-card">
                         <div class="table-head-bar"><span class="table-head-title">🏆 Best Sellers</span></div>
-                        <div class="card-body-pad" id="bestSellersList"></div>
+                        <div style="padding:16px" id="bestSellersList"></div>
                     </div>
                 </div>
 
-                <!-- Today's Orders Table -->
+                <!-- ══ Recent Orders ══ -->
                 <div class="table-card">
                     <div class="table-head-bar">
-                        <span class="table-head-title">📋 Today's Orders</span>
+                        <span class="table-head-title">📋 Recent Orders</span>
                         <a href="@Url.Action("Orders", "StoreAdmin")" class="btn btn-outline btn-sm">View all →</a>
                     </div>
                     <div class="table-wrap">
                         <table>
-                            <thead>
-                                <tr>
-                                    <th>Order ID</th>
-                                    <th>Customer</th>
-                                    <th>Products</th>
-                                    <th>Amount</th>
-                                    <th>Status</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="todayOrdersBody"></tbody>
+                            <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Action</th></tr></thead>
+                            <tbody id="recentOrdersBody"></tbody>
                         </table>
                     </div>
                 </div>
 
-                <!-- ===== Add Product Modal ===== -->
-                <div class="overlay" id="addProductModal">
-                    <div class="modal wide">
-                        <div class="modal-hd">
-                            <div class="modal-title">📦 Add New Product</div>
-                            <button class="modal-close" onclick="closeModal('addProductModal')">✕</button>
-                        </div>
-                        <div class="modal-body" style="padding:0">
-
-                            <!-- Section 1: Basic Info -->
-                            <div class="modal-section">
-                                <div class="modal-section-title">Basic Information</div>
-                                <div class="form-group">
-                                    <div class="form-field full">
-                                        <label class="form-label">Product Name <span class="req">*</span></label>
-                                        <input id="newProductName" class="form-input" placeholder="e.g. Royal Canin Adult Cat 2kg">
-                                    </div>
-                                    <div class="form-field">
-                                        <label class="form-label">Category <span class="req">*</span></label>
-                                        <select id="newProductCategory" class="form-select">
-                                            <option value="">Select category</option>
-                                            <option value="1">Food</option>
-                                            <option value="2">Accessories</option>
-                                            <option value="3">Health Care</option>
-                                            <option value="4">Toys</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-field">
-                                        <label class="form-label">Status</label>
-                                        <select id="newProductStatus" class="form-select">
-                                            <option value="active">✅ Active</option>
-                                            <option value="hidden">🔒 Hidden</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-field full">
-                                        <label class="form-label">Description</label>
-                                        <textarea id="newProductDescription" class="form-textarea" placeholder="Describe the product, contents, usage instructions..."></textarea>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Section 2: Pricing & Stock -->
-                            <div class="modal-section">
-                                <div class="modal-section-title">Pricing & Stock</div>
-                                <div class="form-group">
-                                    <div class="form-field">
-                                        <label class="form-label">Price (JOD) <span class="req">*</span></label>
-                                        <input id="newProductPrice" class="form-input" type="number" placeholder="0.000" step="0.001" min="0">
-                                    </div>
-                                    <div class="form-field">
-                                        <label class="form-label">Sale Price (JOD)</label>
-                                        <input id="newProductSalePrice" class="form-input" type="number" placeholder="0.000" step="0.001" min="0">
-                                    </div>
-                                    <div class="form-field">
-                                        <label class="form-label">Stock Quantity <span class="req">*</span></label>
-                                        <input id="newProductStock" class="form-input" type="number" placeholder="0" min="0">
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Section 3: Image -->
-                            <div class="modal-section">
-                                <div class="modal-section-title">Product Image</div>
-                                <label class="upload-zone" for="newProductImage">
-                                    <span class="upload-zone-ico">🖼️</span>
-                                    <span class="upload-zone-label">Click to upload product image</span>
-                                    <span class="upload-zone-hint">PNG, JPG, WEBP — max 5MB</span>
-                                </label>
-                                <input id="newProductImage" type="file" accept="image/*" hidden>
-                                <div id="newProductPreviewWrap" style="display:none;margin-top:12px">
-                                    <div class="upload-preview">
-                                        <img id="newProductPreview" alt="Product preview">
-                                        <div>
-                                            <div style="font-size:.8rem;font-weight:800;color:var(--brand-dark)">Image uploaded</div>
-                                            <button type="button" onclick="document.getElementById('newProductImage').click()" style="font-size:.74rem;color:var(--text-muted);font-weight:700;background:none;border:none;cursor:pointer;padding:0;margin-top:2px">Change image</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                        </div>
-                        <div class="modal-ft">
-                            <button class="btn btn-outline" onclick="closeModal('addProductModal')">Cancel</button>
-                            <button class="btn btn-primary" onclick="addProduct()">💾 Save Product</button>
-                        </div>
+                <!-- ══ Low Stock Alert ══ -->
+                <div class="table-card" id="lowStockCard" style="display:none">
+                    <div class="table-head-bar">
+                        <span class="table-head-title">⚠️ Low Stock Alert</span>
+                        <a href="@Url.Action("Products", "StoreAdmin")" class="btn btn-outline btn-sm">Manage →</a>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead><tr><th>Product</th><th>Stock</th><th>Status</th></tr></thead>
+                            <tbody id="lowStockBody"></tbody>
+                        </table>
                     </div>
                 </div>
 
-                <!-- ===== Order Detail Modal ===== -->
-                <div class="overlay" id="orderModal">
-                    <div class="modal wide">
-                        <div class="modal-hd">
-                            <div class="modal-title">🧾 Order Details</div>
-                            <button class="modal-close" onclick="closeModal('orderModal')">✕</button>
+            </div><!-- page-body -->
+            <!-- ══════════════════════════════════════
+                 ADD PRODUCT MODAL — dynamic categories
+            ══════════════════════════════════════ -->
+            <div class="overlay" id="addProductModal">
+                <div class="modal wide">
+                    <div class="modal-hd">
+                        <div class="modal-title">📦 Add New Product</div>
+                        <button class="modal-close" onclick="closeModal('addProductModal')">✕</button>
+                    </div>
+                    <div class="modal-body" style="padding:0">
+
+                        <!-- Basic Info -->
+                        <div class="modal-section">
+                            <div class="modal-section-title">Basic Information</div>
+                            <div class="form-group">
+                                <div class="form-field full">
+                                    <label class="form-label">Product Name <span class="req">*</span></label>
+                                    <input id="newProductName" class="form-input" placeholder="e.g. Royal Canin Adult Cat 2kg">
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-label">Category <span class="req">*</span></label>
+                                    <!-- ← ديناميكي من serverCategories -->
+                                    <select id="newProductCategory" class="form-select">
+                                        <option value="">Select category</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-label">Pet Type</label>
+                                    <select id="newProductPetType" class="form-select">
+                                        <option value="">All Pets</option>
+                                        <option value="Dog">🐕 Dog</option>
+                                        <option value="Cat">🐈 Cat</option>
+                                        <option value="Bird">🦜 Bird</option>
+                                        <option value="Rabbit">🐇 Rabbit</option>
+                                        <option value="Fish">🐟 Fish</option>
+                                    </select>
+                                </div>
+                                <div class="form-field full">
+                                    <label class="form-label">Description</label>
+                                    <textarea id="newProductDescription" class="form-textarea" placeholder="Describe the product..."></textarea>
+                                </div>
+                            </div>
                         </div>
-                        <div class="modal-body" id="orderModalBody"></div>
-                        <div class="modal-ft">
-                            <button class="btn btn-primary" onclick="closeModal('orderModal')">Close</button>
+
+                        <!-- Pricing & Stock -->
+                        <div class="modal-section">
+                            <div class="modal-section-title">Pricing & Stock</div>
+                            <div class="form-group">
+                                <div class="form-field">
+                                    <label class="form-label">Price (JOD) <span class="req">*</span></label>
+                                    <input id="newProductPrice" class="form-input" type="number" placeholder="0.000" step="0.001" min="0">
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-label">Sale Price (JOD)</label>
+                                    <input id="newProductSalePrice" class="form-input" type="number" placeholder="0.000" step="0.001" min="0">
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-label">Stock Quantity <span class="req">*</span></label>
+                                    <input id="newProductStock" class="form-input" type="number" placeholder="0" min="0">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Images (up to 8) -->
+                        <div class="modal-section">
+                            <div class="modal-section-title">
+                                Product Images
+                                <span style="font-size:.75rem;font-weight:600;color:var(--text-muted);margin-left:8px">Up to 8 — first = main</span>
+                            </div>
+                            <div class="img-upload-grid" id="dashNewImgsGrid"></div>
+                            <div class="img-counter" id="dashNewImgCounter">0 / 8 images</div>
+                            <input id="dashNewImgsInput" type="file" accept="image/*" multiple hidden>
                         </div>
                     </div>
+                    <div class="modal-ft">
+                        <button class="btn btn-outline" onclick="closeModal('addProductModal')">Cancel</button>
+                        <button class="btn btn-primary" id="saveProductBtn" onclick="dashAddProduct()">💾 Save Product</button>
+                    </div>
                 </div>
-
             </div>
+
+            <!-- Order Detail Modal -->
+            <div class="overlay" id="orderModal">
+                <div class="modal wide">
+                    <div class="modal-hd"><div class="modal-title">🧾 Order Details</div><button class="modal-close" onclick="closeModal('orderModal')">✕</button></div>
+                    <div class="modal-body" id="orderModalBody"></div>
+                    <div class="modal-ft"><button class="btn btn-primary" onclick="closeModal('orderModal')">Close</button></div>
+                </div>
+            </div>
+
         </main>
-    </div>
+    </div><!-- wa-shell -->
 
     <div id="toast">✅ Done!</div>
 
+    <!-- ═══════════════════════════════════════════
+         DATA FROM SERVER
+    ════════════════════════════════════════════ -->
     <script>
-        // ── حقن البيانات من السيرفر ─────────────────────────────────
-        window.serverProducts = @Html.Raw(ViewBag.ProductsJson ?? "[]");
-        window.serverOrders   = @Html.Raw(ViewBag.OrdersJson ?? "[]");
-        window.serverStats    = {
+        window.serverProducts   = @Html.Raw(ViewBag.ProductsJson ?? "[]");
+        window.serverOrders     = @Html.Raw(ViewBag.OrdersJson ?? "[]");
+        window.serverCategories = @Html.Raw(ViewBag.CategoriesJson ?? "[]");
+        window.serverStats = {
             revenue:   @(ViewBag.TotalRevenue ?? 0),
+            total:     @(ViewBag.TotalOrders ?? 0),
             pending:   @(ViewBag.PendingOrders ?? 0),
             completed: @(ViewBag.CompletedOrders ?? 0),
             lowStock:  @(ViewBag.LowStockCount ?? 0),
@@ -409,28 +446,287 @@
         };
     </script>
 
+    <!-- ═══════════════════════════════════════════
+         JAVASCRIPT
+    ════════════════════════════════════════════ -->
     <script>
+        // ── Sidebar ──────────────────────────────────────────────────────
         const shell=document.getElementById('waShell'),sb=document.getElementById('waSb'),ovl=document.getElementById('waOvl');
-        const mob=()=>window.innerWidth<=992;let mini=false;
+        const mob=()=>window.innerWidth<=992; let mini=false;
         function save(v){localStorage.setItem('wa_mini',v);}
-        function miniOn(){mini=true;shell.classList.add('mini');save('1');document.querySelectorAll('.sb-sub').forEach(s=>s.style.height='0px');}
-        function miniOff(){mini=false;shell.classList.remove('mini');save('0');document.querySelectorAll('.sb-sub.open').forEach(s=>{const i=s.querySelector('.sb-sub-inner');s.style.height=(i?i.scrollHeight:0)+'px';});}
+        function miniOn(){mini=true;shell.classList.add('mini');save('1');}
+        function miniOff(){mini=false;shell.classList.remove('mini');save('0');}
         function openMob(){sb.classList.add('mob-open');ovl.classList.add('show');document.body.style.overflow='hidden';}
         function closeMob(){sb.classList.remove('mob-open');ovl.classList.remove('show');document.body.style.overflow='';}
         function toggleSb(){if(mob()){sb.classList.contains('mob-open')?closeMob():openMob();}else{mini?miniOff():miniOn();}}
-        function toggleSidebar(){toggleSb();}
-        function closeSidebar(){closeMob();}
-        function markActive(){const p=location.pathname.split('/').pop();document.querySelectorAll('.sb-row[href]').forEach(el=>{if(el.getAttribute('href')===p)el.classList.add('active');});}
         let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!mob()){closeMob();localStorage.getItem('wa_mini')==='1'?miniOn():miniOff();}else{shell.classList.remove('mini');mini=false;}},90);});
         document.addEventListener('keydown',e=>{if(e.key==='['&&!e.ctrlKey&&!e.metaKey)toggleSb();if(e.key==='Escape')closeMob();});
         let tx=0;
         document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
         document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(!mob())return;if(dx>55&&tx<28)openMob();if(dx<-55)closeMob();},{passive:true});
+
+        // ── Helpers ───────────────────────────────────────────────────────
+        function openModal(id){document.getElementById(id)?.classList.add('on');}
+        function closeModal(id){document.getElementById(id)?.classList.remove('on');}
+        function showToast(msg='✅ Done!'){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.style.display='flex';setTimeout(()=>{t.style.display='none';},2400);}
+
+        const STATUS_COLORS = {
+            pending:'#f39c12', confirmed:'#3498db', preparing:'#9b59b6',
+            shipped:'#2ecc71', delivered:'#27ae60', cancelled:'#e74c3c'
+        };
+        function statusBadge(s){
+            const colors={pending:'#f39c12',confirmed:'#3498db',preparing:'#9b59b6',shipped:'#1abc9c',delivered:'#27ae60',cancelled:'#e74c3c'};
+            const c=colors[s]||'#999';
+            return `<span style="background:${c}20;color:${c};border:1px solid ${c}40;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:800;text-transform:capitalize">${s}</span>`;
+        }
+
+        // ── Categories ───────────────────────────────────────────────────
+        const cats = window.serverCategories || [];
+        function catName(id){
+            const c=cats.find(c=>String(c.id)===String(id));
+            if(!c) return '—';
+            const icon=(c.icon&&c.icon!=='??'&&c.icon!=='?')?c.icon+' ':'';
+            return icon+c.name;
+        }
+        function populateCategoryDropdown(){
+            const el=document.getElementById('newProductCategory');
+            if(!el) return;
+            el.innerHTML='<option value="">Select category</option>'+
+                cats.map(c=>{
+                    const icon=(c.icon&&c.icon!=='??')?c.icon+' ':'';
+                    return `<option value="${c.id}">${icon}${c.name}</option>`;
+                }).join('');
+        }
+
+        // ── Render Recent Orders ─────────────────────────────────────────
+        function renderRecentOrders(){
+            const tbody=document.getElementById('recentOrdersBody');
+            const orders=(window.serverOrders||[]).slice(0,8);
+            if(!orders.length){
+                tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px">No orders yet</td></tr>';
+                return;
+            }
+            tbody.innerHTML=orders.map(o=>`
+                <tr>
+                    <td><span style="font-weight:800;font-family:monospace">#${o.id||o.idOrder}</span></td>
+                    <td>${o.cust||'—'}</td>
+                    <td><span style="font-size:.8rem">${o.prods||0} item(s)</span></td>
+                    <td><strong>${parseFloat(o.total||0).toFixed(3)} JD</strong></td>
+                    <td>${statusBadge(o.status||'pending')}</td>
+                    <td>
+                        <button class="btn btn-outline btn-sm" onclick="showOrderDetail(${JSON.stringify(o).replace(/"/g,'&quot;')})">View</button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        // ── Order Detail Modal ────────────────────────────────────────────
+        function showOrderDetail(o){
+            const body=document.getElementById('orderModalBody');
+            body.innerHTML=`
+                <div style="padding:20px">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+                        <div><div style="font-size:.72rem;color:var(--text-muted);font-weight:700">Order ID</div><div style="font-weight:900">#${o.id||o.idOrder}</div></div>
+                        <div><div style="font-size:.72rem;color:var(--text-muted);font-weight:700">Date</div><div>${o.date||'—'}</div></div>
+                        <div><div style="font-size:.72rem;color:var(--text-muted);font-weight:700">Customer</div><div>${o.cust||'—'}</div></div>
+                        <div><div style="font-size:.72rem;color:var(--text-muted);font-weight:700">Phone</div><div>${o.phone||'—'}</div></div>
+                        <div class="full" style="grid-column:1/-1"><div style="font-size:.72rem;color:var(--text-muted);font-weight:700">Address</div><div>${o.address||'—'}</div></div>
+                    </div>
+                    <div style="font-size:.78rem;font-weight:800;color:var(--brand-dark);margin-bottom:8px">Items:</div>
+                    <ul style="margin:0;padding-left:18px">
+                        ${(o.items||[]).map(i=>`<li style="font-size:.84rem;margin-bottom:4px">${i}</li>`).join('') || '<li style="color:var(--text-muted)">—</li>'}
+                    </ul>
+                    <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+                        <span style="font-weight:700">Total:</span>
+                        <span style="font-size:1.1rem;font-weight:900;color:var(--brand-dark)">${parseFloat(o.total||0).toFixed(3)} JD</span>
+                    </div>
+                    <div style="margin-top:12px">${statusBadge(o.status||'pending')}</div>
+                </div>`;
+            openModal('orderModal');
+        }
+
+        // ── Render Low Stock ─────────────────────────────────────────────
+        function renderLowStock(){
+            const products=(window.serverProducts||[]).filter(p=>p.stock<=2);
+            const card=document.getElementById('lowStockCard');
+            if(!products.length){if(card) card.style.display='none'; return;}
+            if(card) card.style.display='';
+            const tbody=document.getElementById('lowStockBody');
+            tbody.innerHTML=products.map(p=>`
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            ${p.image?`<img src="${p.image}" style="width:36px;height:36px;object-fit:cover;border-radius:6px">`:
+                                       `<div style="width:36px;height:36px;border-radius:6px;background:var(--brand-ghost);display:flex;align-items:center;justify-content:center">📦</div>`}
+                            <span style="font-weight:700">${p.name}</span>
+                        </div>
+                    </td>
+                    <td><span style="color:var(--danger);font-weight:900">${p.stock}</span></td>
+                    <td>${p.stock===0
+                        ?'<span style="color:#e74c3c;font-weight:700;font-size:.78rem">Out of Stock</span>'
+                        :'<span style="color:#f39c12;font-weight:700;font-size:.78rem">Low Stock</span>'}</td>
+                </tr>`).join('');
+        }
+
+        // ── Best Sellers ─────────────────────────────────────────────────
+        function renderBestSellers(){
+            const el=document.getElementById('bestSellersList');
+            const products=(window.serverProducts||[]).slice(0,5);
+            if(!products.length){el.innerHTML='<p style="color:var(--text-muted);font-size:.84rem;text-align:center;padding:20px">No products yet</p>';return;}
+            el.innerHTML=products.map((p,i)=>`
+                <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+                    <span style="font-size:1.1rem;font-weight:900;color:var(--brand);min-width:24px">#${i+1}</span>
+                    ${p.image?`<img src="${p.image}" style="width:36px;height:36px;object-fit:cover;border-radius:7px">`:
+                              `<div style="width:36px;height:36px;border-radius:7px;background:var(--brand-ghost);display:flex;align-items:center;justify-content:center;font-size:.9rem">📦</div>`}
+                    <div style="flex:1;min-width:0">
+                        <div style="font-weight:800;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
+                        <div style="font-size:.72rem;color:var(--text-muted)">${p.price?.toFixed ? p.price.toFixed(3) : p.price} JD</div>
+                    </div>
+                    <span style="font-size:.7rem;padding:2px 8px;border-radius:10px;${p.status==='out'?'background:#ffe0e0;color:#c0392b':'background:var(--gp);color:var(--brand-dark)'}">
+                        ${p.status==='out'?'Out of Stock':'In Stock'}
+                    </span>
+                </div>`).join('');
+        }
+
+        // ── Chart ────────────────────────────────────────────────────────
+        function renderChart(){
+            const ctx=document.getElementById('salesChart');
+            if(!ctx) return;
+            const orders=window.serverOrders||[];
+            // نجمع الإيرادات حسب الشهر (من بيانات الطلبات الموجودة)
+            const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const data=new Array(12).fill(0);
+            orders.forEach(o=>{
+                if(o.date){
+                    const d=new Date(o.date);
+                    if(!isNaN(d)) data[d.getMonth()]+=parseFloat(o.total||0);
+                }
+            });
+            new Chart(ctx,{
+                type:'bar',
+                data:{
+                    labels:months,
+                    datasets:[{
+                        label:'Revenue (JOD)',
+                        data,
+                        backgroundColor:'rgba(139,169,74,.25)',
+                        borderColor:'rgb(139,169,74)',
+                        borderWidth:2,
+                        borderRadius:6
+                    }]
+                },
+                options:{
+                    responsive:true,
+                    plugins:{legend:{display:false}},
+                    scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'}},x:{grid:{display:false}}}
+                }
+            });
+        }
+
+        // ═══════════════════════════════════
+        // ADD PRODUCT — Dashboard Modal
+        // ═══════════════════════════════════
+        let dashNewFiles = [];
+
+        function rebuildDashGrid(){
+            const grid=document.getElementById('dashNewImgsGrid');
+            const counter=document.getElementById('dashNewImgCounter');
+            if(!grid) return;
+            grid.innerHTML='';
+            dashNewFiles.forEach((file,idx)=>{
+                const url=URL.createObjectURL(file);
+                const slot=document.createElement('div');
+                slot.className='img-thumb';
+                slot.innerHTML=`<img src="${url}">${idx===0?'<span class="img-main-badge">⭐ Main</span>':''}<button class="img-del" onclick="removeDashImg(${idx})">✕</button>`;
+                grid.appendChild(slot);
+            });
+            if(dashNewFiles.length<8){
+                const add=document.createElement('div');
+                add.className='img-add-slot';
+                add.innerHTML='<span style="font-size:1.4rem">📷</span><span>Add Image</span>';
+                add.onclick=()=>document.getElementById('dashNewImgsInput').click();
+                grid.appendChild(add);
+            }
+            counter.textContent=`${dashNewFiles.length} / 8 images`;
+        }
+
+        function removeDashImg(idx){dashNewFiles.splice(idx,1);rebuildDashGrid();}
+
+        async function dashAddProduct(){
+            const name  = document.getElementById('newProductName').value.trim();
+            const price = document.getElementById('newProductPrice').value;
+            const stock = document.getElementById('newProductStock').value;
+            const cat   = document.getElementById('newProductCategory').value;
+
+            if(!name || !price || stock==='' || !cat){showToast('⚠️ Please fill all required fields');return;}
+
+            const btn=document.getElementById('saveProductBtn');
+            btn.disabled=true; btn.textContent='⏳ Saving...';
+
+            const fd=new FormData();
+            fd.append('name',        name);
+            fd.append('description', document.getElementById('newProductDescription').value);
+            fd.append('price',       price);
+            fd.append('salePrice',   document.getElementById('newProductSalePrice').value||'');
+            fd.append('stockQuantity',stock);
+            fd.append('idCategory',  cat);
+            fd.append('petType',     document.getElementById('newProductPetType').value);
+            dashNewFiles.forEach(f=>fd.append('imageFiles',f));
+
+            try{
+                const res  = await fetch('/StoreAdmin/AddProduct',{method:'POST',body:fd});
+                const data = await res.json();
+                if(data.success){
+                    showToast('✅ Product added successfully!');
+                    closeModal('addProductModal');
+                    // تحديث العداد
+                    const newCount=(window.serverStats.products||0)+1;
+                    window.serverStats.products=newCount;
+                    document.getElementById('productsKpi').textContent=newCount;
+                    document.getElementById('productsCountBadge').textContent=newCount;
+                    // reset form
+                    dashNewFiles=[];rebuildDashGrid();
+                    ['newProductName','newProductDescription','newProductPrice','newProductSalePrice','newProductStock']
+                        .forEach(id=>document.getElementById(id).value='');
+                    document.getElementById('newProductCategory').value='';
+                } else {
+                    showToast('❌ '+(data.message||'Error saving product'));
+                }
+            } catch(err){
+                showToast('❌ Network error');
+                console.error(err);
+            } finally {
+                btn.disabled=false; btn.textContent='💾 Save Product';
+            }
+        }
+
+        // ═══════════════════════════════════
+        // DOMContentLoaded
+        // ═══════════════════════════════════
         document.addEventListener('DOMContentLoaded',()=>{
-          if(!mob()&&localStorage.getItem('wa_mini')==='1')miniOn();
-          markActive();
-          const el=document.getElementById('tnNotifCount'),b=document.getElementById('notifCountBadge');
-          if(el&&b)el.textContent=b.textContent;
+            if(!mob()&&localStorage.getItem('wa_mini')==='1') miniOn();
+
+            // ── populate categories dropdown ──
+            populateCategoryDropdown();
+
+            // ── render dashboard sections ──
+            renderRecentOrders();
+            renderBestSellers();
+            renderLowStock();
+            renderChart();
+            rebuildDashGrid();
+
+            // ── file input for new images ──
+            document.getElementById('dashNewImgsInput').addEventListener('change',function(){
+                const remaining=8-dashNewFiles.length;
+                const toAdd=Array.from(this.files).slice(0,remaining);
+                dashNewFiles=[...dashNewFiles,...toAdd];
+                rebuildDashGrid();
+                this.value='';
+            });
+
+            // ── hide low stock chip if 0 ──
+            const lsc=document.getElementById('lowStockChip');
+            if(lsc && (window.serverStats.lowStock||0)===0) lsc.style.display='none';
         });
     </script>
     <script src="~/js/AdminStore.js"></script>

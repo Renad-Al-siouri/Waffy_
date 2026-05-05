@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Waffy.Interfaces;
 using Waffy.Models;
+using Waffy.Models.ViewModels;
 
 namespace Waffy.Controllers
 {
@@ -9,20 +10,243 @@ namespace Waffy.Controllers
         private readonly IWalletRepository _walletRepo;
         private readonly IDonationRepository _donationRepo;
         private readonly IDonationAnimalRepository _donationAnimalRepo;
-
+        private readonly ICartRepository _cartRepo;          // ← أضف
+        private readonly IProductRepository _productRepo;    // ← أضف
+        private readonly IOrderRepository _orderRepo;
         public PaymentController(
-            IWalletRepository walletRepo,
-            IDonationRepository donationRepo,
-            IDonationAnimalRepository donationAnimalRepo)   
+     IWalletRepository walletRepo,
+     IDonationRepository donationRepo,
+     IDonationAnimalRepository donationAnimalRepo,
+     ICartRepository cartRepo,
+     IProductRepository productRepo,
+     IOrderRepository orderRepo)   // ← أضف
         {
             _walletRepo = walletRepo;
             _donationRepo = donationRepo;
             _donationAnimalRepo = donationAnimalRepo;
+            _cartRepo = cartRepo;
+            _productRepo = productRepo;
+            _orderRepo = orderRepo; // ← أضف
+        }
+        [HttpGet]
+        public async Task<IActionResult> Cart()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            var cart = await _cartRepo.GetOrCreateCartAsync(userId.Value);
+
+            // ✅ احذف أي منتج خلص مخزونه تلقائياً
+            await _cartRepo.RemoveOutOfStockItemsAsync(cart.IdCart);
+
+            var items = (await _cartRepo.GetCartItemsAsync(cart.IdCart)).ToList();
+            var subtotal = items.Sum(i => i.Quantity * i.EffectivePrice);
+
+            ViewBag.CartId = cart.IdCart;
+            ViewBag.Subtotal = subtotal;
+            return View(items);
+        }
+        // ══ Add to Cart (AJAX) ════════════════════════════════════════
+        [HttpPost]
+        public async Task<IActionResult> AddToCart(int productId, int storeId, int quantity = 1)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+                return Json(new { success = false, message = "Please login first." });
+
+            var product = await _productRepo.GetByIdAsync(productId);
+            if (product == null || product.StockQuantity <= 0)
+                return Json(new { success = false, message = "Out of stock." });
+
+            var cart = await _cartRepo.GetOrCreateCartAsync(userId.Value);
+            await _cartRepo.AddOrUpdateItemAsync(cart.IdCart, productId, storeId, quantity);
+            var count = await _cartRepo.GetCartCountAsync(cart.IdCart);
+
+            return Json(new { success = true, cartCount = count });
         }
 
-        public IActionResult Cart() => View();
-        public IActionResult Check() => View();
+        // ══ Update Quantity (AJAX) ════════════════════════════════════
+        [HttpPost]
+        public async Task<IActionResult> UpdateQuantity(int itemId, int quantity)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return Json(new { success = false });
 
+            if (quantity <= 0)
+                await _cartRepo.RemoveItemAsync(itemId);
+            else
+                await _cartRepo.UpdateQuantityAsync(itemId, quantity);
+
+            var cart = await _cartRepo.GetOrCreateCartAsync(userId.Value);
+            var items = (await _cartRepo.GetCartItemsAsync(cart.IdCart)).ToList();
+            var subtotal = items.Sum(i => i.Quantity * (i.SalePrice ?? i.UnitPrice));
+
+            return Json(new
+            {
+                success = true,
+                subtotal = subtotal.ToString("F3"),
+                cartCount = items.Sum(i => i.Quantity),
+                empty = !items.Any()
+            });
+        }
+
+        // ══ Remove Item (AJAX) ════════════════════════════════════════
+        [HttpPost]
+        public async Task<IActionResult> RemoveItem(int itemId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return Json(new { success = false });
+
+            await _cartRepo.RemoveItemAsync(itemId);
+
+            var cart = await _cartRepo.GetOrCreateCartAsync(userId.Value);
+            var items = (await _cartRepo.GetCartItemsAsync(cart.IdCart)).ToList();
+            var subtotal = items.Sum(i => i.Quantity * (i.SalePrice ?? i.UnitPrice));
+
+            return Json(new
+            {
+                success = true,
+                subtotal = subtotal.ToString("F3"),
+                cartCount = items.Sum(i => i.Quantity),
+                empty = !items.Any()
+            });
+        }
+        [HttpGet]
+        public async Task<IActionResult> Check(int storeId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            var cart = await _cartRepo.GetOrCreateCartAsync(userId.Value);
+            var allItems = (await _cartRepo.GetCartItemsAsync(cart.IdCart)).ToList();
+            var storeItems = allItems.Where(i => i.IdStore == storeId).ToList();
+
+            if (!storeItems.Any())
+                return RedirectToAction("Cart");
+
+            var vm = new CheckoutViewModel
+            {
+                IdStore = storeId,
+                StoreName = storeItems.First().StoreName,
+                Items = storeItems,
+                DeliveryFee = 2m,
+                // Pre-fill من Session لو موجود
+                RecipientName = HttpContext.Session.GetString("FullName") ?? "",
+                RecipientPhone = HttpContext.Session.GetString("Phone") ?? "",
+                DeliveryAddress = HttpContext.Session.GetString("Address") ?? "",
+            };
+
+            if (TempData["CheckoutError"] is string err)
+                ViewBag.Error = err;
+
+            return View(vm);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitOrder(
+    int idStore,
+    string recipientName,
+    string recipientPhone,
+    string deliveryAddress,
+    string? notes,
+    string paymentMethod)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            if (string.IsNullOrWhiteSpace(recipientName) ||
+                string.IsNullOrWhiteSpace(recipientPhone) ||
+                string.IsNullOrWhiteSpace(deliveryAddress))
+            {
+                TempData["CheckoutError"] = "Please fill in all required fields.";
+                return RedirectToAction("Check", new { storeId = idStore });
+            }
+
+            var cart = await _cartRepo.GetOrCreateCartAsync(userId.Value);
+            var allItems = (await _cartRepo.GetCartItemsAsync(cart.IdCart)).ToList();
+            var storeItems = allItems.Where(i => i.IdStore == idStore).ToList();
+
+            if (!storeItems.Any())
+                return RedirectToAction("Cart");
+
+            // ✅ تحقق من الـ Stock قبل الحفظ
+            var outOfStock = new List<string>();
+            foreach (var item in storeItems)
+            {
+                var product = await _productRepo.GetByIdAsync(item.IdProduct);
+                if (product == null || product.StockQuantity < item.Quantity)
+                    outOfStock.Add(item.ProductName);
+            }
+
+            if (outOfStock.Any())
+            {
+                TempData["CheckoutError"] =
+                    $"Sorry, these items are out of stock: {string.Join(", ", outOfStock)}. " +
+                    "They have been removed from your cart.";
+                // احذفهم من الكارت
+                await _cartRepo.RemoveOutOfStockItemsAsync(cart.IdCart);
+                return RedirectToAction("Check", new { storeId = idStore });
+            }
+
+            // ── إنشاء الطلب ──────────────────────────────────────────
+            var orderCode = $"WAF-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..6].ToUpper()}";
+            var deliveryFee = 2m;
+
+            var orderId = await _orderRepo.CreateAsync(new Order
+            {
+                IdUser = userId.Value,
+                IdStore = idStore,
+                OrderCode = orderCode,
+                Status = "Pending",
+                PaymentMethod = paymentMethod,
+                PaymentStatus = "Pending",
+                RecipientName = recipientName.Trim(),
+                RecipientPhone = recipientPhone.Trim(),
+                DeliveryAddress = deliveryAddress.Trim(),
+                DeliveryFee = deliveryFee,
+                Notes = notes?.Trim(),
+                CreatedAt = DateTime.UtcNow
+            });
+
+            // ── إضافة العناصر وخصم الـ Stock ─────────────────────────
+            foreach (var item in storeItems)
+            {
+                await _orderRepo.AddItemAsync(new OrderItem
+                {
+                    IdOrder = orderId,
+                    IdProduct = item.IdProduct,
+                    ProductNameSnapshot = item.ProductName,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.UnitPrice,
+                    SalePrice = item.SalePrice
+                });
+
+                // ✅ خصم الكمية من المنتج
+                await _productRepo.DeductStockAsync(item.IdProduct, item.Quantity);
+            }
+
+            // ── تفريغ عناصر هذا المتجر من الكارت ────────────────────
+            await _cartRepo.ClearCartByStoreAsync(cart.IdCart, idStore);
+
+            TempData["OrderCode"] = orderCode;
+            TempData["StoreName"] = storeItems.First().StoreName;
+            TempData["OrderTotal"] =
+                (storeItems.Sum(i => i.EffectivePrice * i.Quantity) + deliveryFee).ToString("F3");
+
+            return RedirectToAction("OrderSuccess");
+        }
+
+        [HttpGet]
+        public IActionResult OrderSuccess()
+        {
+            if (TempData["OrderCode"] is not string code)
+                return RedirectToAction("Cart");
+
+            ViewBag.OrderCode = code;
+            ViewBag.StoreName = TempData["StoreName"];
+            ViewBag.OrderTotal = TempData["OrderTotal"];
+            return View();
+        }
         // ════════════════════════════════════════════════════
         // DONATE — GET: جلب رصيد الـ Wallet الحقيقي
         // ════════════════════════════════════════════════════
@@ -160,5 +384,7 @@ namespace Waffy.Controllers
 
             return RedirectToAction("Donate");
         }
+
+
     }
 }

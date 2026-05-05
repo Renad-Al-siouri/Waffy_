@@ -2,6 +2,7 @@
 using Waffy.Interfaces;
 using Waffy.Models;
 using Waffy.Repositories;
+using Waffy.Repositories.Interfaces;
 using Waffy.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,7 +28,15 @@ builder.Services.AddScoped<IDonationRepository, DonationRepository>();
 builder.Services.AddScoped<IDangerousAnimalReportRepository, DangerousAnimalReportRepository>();
 builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();
 builder.Services.AddScoped<IDonationAnimalRepository, DonationAnimalRepository>();
-
+builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<IPetLawRepository, PetLawRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
+builder.Services.AddScoped<IStoreImageRepository, StoreImageRepository>();
+builder.Services.AddScoped<ICartRepository, CartRepository>();
+// أضف هذا السطر مع باقي الـ registrations
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {

@@ -1,8 +1,7 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Waffy.Models.ViewModels.CheckoutViewModel
 @{
     Layout = null;
+    ViewData["Title"] = "Checkout - Waffy";
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -10,43 +9,34 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Checkout - Waffy</title>
-
-    <link rel="stylesheet" href="~/css/check.css" />
+    <link rel="stylesheet" href="~/css/check.css?v=2" />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
 </head>
 <body>
 
+    <!-- ════════ NAVBAR ════════ -->
     <div class="top-hero-area">
         <div class="top-hero-shell">
             <header class="topbar">
                 <div class="header-shell">
                     <nav class="navbar">
-
                         <div class="left-nav desktop-nav desktop-links">
-                            <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
+                            <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
                             <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                             <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                             <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-
                         </div>
-
                         <div class="logo-center">
                             <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
                         </div>
-
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
-
-
-
                                 <div class="services-dropdown" id="servicesDropdown">
                                     <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services
-                                        <span class="dropdown-arrow">▼</span>
+                                        Services <span class="dropdown-arrow">▼</span>
                                     </button>
-
                                     <div class="dropdown-menu" id="servicesMenu">
                                         <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
                                         <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
@@ -60,298 +50,304 @@
                                         <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                     </div>
                                 </div>
-
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
-
                             </div>
-
                             <div class="nav-actions">
-                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
+                                <a asp-controller="Payment" asp-action="Cart"
+                                   class="nav-icon active-cart-icon" aria-label="Cart">
                                     <i class="fa-solid fa-cart-shopping"></i>
+                                    <span id="cartCount" class="cart-badge">@Model.Items.Sum(i => i.Quantity)</span>
                                 </a>
-
                                 <a asp-controller="Home" asp-action="Notifications" class="nav-icon" aria-label="Notifications">
                                     <i class="fa-solid fa-bell"></i>
                                 </a>
-
                                 <a asp-controller="Account" asp-action="Profile" class="profile-btn" aria-label="Profile">
                                     <img src="../Images/user.jpg" alt="Profile">
                                 </a>
                                 <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
-
                             <div class="mobile-nav-wrap">
                                 <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
                                 <div class="nav-links" id="navLinks">
                                     <div class="mobile-menu-logo">
                                         <img src="../Images/logo.png" alt="Waffy Logo">
                                     </div>
-
-                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
+                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                                     <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                                     <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                                     <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                                     <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
-
                                     <div class="mobile-services-block" id="mobileServicesBlock">
                                         <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
-                                            <span>Services</span>
-                                            <span class="dropdown-arrow">▼</span>
+                                            <span>Services</span><span class="dropdown-arrow">▼</span>
                                         </button>
-
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
-
                                             <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                             <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                             <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
                                             <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
-                                            <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
+                                            <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
+                                    <a asp-controller="Payment" asp-action="Cart" class="nav-link active">Cart</a>
                                     <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
                             </div>
                         </div>
-
-                    </nav>
-                </div>
-            </header>
-                <div class="header-shell">
-                    <nav class="navbar">
-
-                        <div class="left-nav desktop-nav desktop-links">
-                            <a href="home-after.html" class="nav-link">Home</a>
-                            <a href="veterinary.html" class="nav-link">Clinics</a>
-                            <a href="product.html" class="nav-link">Stores</a>
-                            <a href="adapt.html" class="nav-link">Adoption</a>
-                            <a href="lost.html" class="nav-link">Lost Pets</a>
-                        </div>
-
-                        <div class="logo-center">
-                            <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
-                        </div>
-
-                        <div class="right-nav">
-                            <div class="desktop-nav desktop-links desktop-right-links">
-                                <div class="services-dropdown" id="servicesDropdown">
-                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services
-                                        <span class="dropdown-arrow">▼</span>
-                                    </button>
-
-                                    <div class="dropdown-menu" id="servicesMenu">
-                                        <a href="veterinary.html" class="dropdown-link">Clinics</a>
-                                        <a href="product.html" class="dropdown-link">Stores</a>
-                                        <a href="adapt.html" class="dropdown-link">Adoption</a>
-                                        <a href="lost.html" class="dropdown-link">Lost Pets</a>
-                                        <a href="gps.html" class="dropdown-link">Map</a>
-                                        <a href="money.html" class="dropdown-link">Donations</a>
-                                        <a href="law.html" class="dropdown-link">Law</a>
-                                        <a href="dangerousAnimal.html" class="dropdown-link">Dangerous Animal</a>
-                                        <a href="support.html" class="dropdown-link">Technical Support</a>
-                                        <a href="faq.html" class="dropdown-link">FAQ</a>
-                                    </div>
-                                </div>
-
-                                <a href="about.html" class="nav-link">About Us</a>
-                            </div>
-
-                            <div class="nav-actions">
-                                <a href="cart.html" class="nav-icon active-cart-icon" aria-label="Cart">
-                                    <i class="fa-solid fa-cart-shopping"></i>
-                                    <span id="cartCount" class="cart-badge">0</span>
-                                </a>
-
-                                <a href="#" class="nav-icon" aria-label="Notifications">
-                                    <i class="fa-solid fa-bell"></i>
-                                </a>
-
-                                <a href="profile.html" class="profile-btn" aria-label="Profile">
-                                    <img src="../Images/user.jpg" alt="Profile">
-                                </a>
-
-                                <a href="logout.html" class="nav-link login-btn">Log out</a>
-                            </div>
-
-                            <div class="mobile-nav-wrap">
-                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
-                                <div class="nav-links" id="navLinks">
-                                    <div class="mobile-menu-logo">
-                                        <img src="../Images/logo.png" alt="Waffy Logo">
-                                    </div>
-
-                                    <a href="home-after.html" class="nav-link">Home</a>
-                                    <a href="veterinary.html" class="nav-link">Clinics</a>
-                                    <a href="product.html" class="nav-link">Stores</a>
-                                    <a href="adapt.html" class="nav-link">Adoption</a>
-                                    <a href="lost.html" class="nav-link">Lost Pets</a>
-                                    <a href="gps.html" class="nav-link">Map</a>
-
-                                    <div class="mobile-services-block" id="mobileServicesBlock">
-                                        <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
-                                            <span>Services</span>
-                                            <span class="dropdown-arrow">▼</span>
-                                        </button>
-
-                                        <div class="mobile-services-menu" id="mobileServicesMenu">
-                                            <a href="money.html" class="dropdown-link">Donations</a>
-                                            <a href="travel.html" class="dropdown-link">Law</a>
-                                            <a href="dangerousAnimal.html" class="dropdown-link">Dangerous Animal</a>
-                                            <a href="support.html" class="dropdown-link">Technical Support</a>
-                                            <a href="faq.html" class="dropdown-link">FAQ</a>
-                                        </div>
-                                    </div>
-
-                                    <a href="about.html" class="nav-link">About Us</a>
-                                    <a href="cart.html" class="nav-link active">Cart</a>
-                                    <a href="logout.html" class="nav-link login-btn">Log out</a>
-                                </div>
-                            </div>
-                        </div>
-
                     </nav>
                 </div>
             </header>
         </div>
     </div>
 
+    <!-- ════════ MAIN ════════ -->
     <main class="container checkout-page">
         <section class="hero-section fade-up">
-            <h1>Checkout </h1>
+            <h1>Checkout</h1>
             <p>
                 Complete your order details, choose your preferred payment method,
                 and confirm your pet care essentials securely.
             </p>
         </section>
 
-        <section class="checkout-layout">
-            <div class="checkout-left">
-                <div class="checkout-card fade-up">
-                    <h2>Personal Information</h2>
+        @* Error *@
+        @if (TempData["CheckoutError"] is string err || ViewBag.Error is string vErr)
+        {
+            var msg = TempData["CheckoutError"] as string ?? ViewBag.Error as string;
+            <div style="background:#fdecea;border:1px solid #f5c6c2;border-radius:14px;
+                        padding:12px 18px;margin-bottom:16px;color:#c0392b;font-weight:700;
+                        display:flex;align-items:center;gap:10px">
+                ⚠️ @msg
+            </div>
+        }
 
-                    <div class="input-grid one">
-                        <input type="text" id="fullName" placeholder="Your Name" />
-                        <h1></h1>
+        <form asp-controller="Payment" asp-action="SubmitOrder" method="post" id="checkoutForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="idStore" value="@Model.IdStore" />
+
+            <section class="checkout-layout">
+
+                <!-- ════ LEFT ════ -->
+                <div class="checkout-left">
+
+                    <!-- Personal Information -->
+                    <div class="checkout-card fade-up">
+                        <h2>Personal Information</h2>
+                        <div class="input-grid one" style="margin-bottom:12px">
+                            <input type="text"
+                                   name="recipientName"
+                                   id="fullName"
+                                   value="@Model.RecipientName"
+                                   placeholder="Your Name"
+                                   required maxlength="100" />
+                        </div>
+                        <div class="input-grid two">
+                            <input type="tel"
+                                   name="recipientPhone"
+                                   id="phone"
+                                   value="@Model.RecipientPhone"
+                                   placeholder="Phone Number"
+                                   required maxlength="20" />
+                            <div></div>
+                        </div>
                     </div>
 
-                    <div class="input-grid two">
-                        <input type="email" id="email" placeholder="Email" />
-
-                        <input type="text" id="phone" placeholder="Phone Number" />
-                    </div>
-                </div>
-
-                <div class="checkout-card fade-up">
-                    <h2>Shipping Address</h2>
-
-                    <div class="input-grid two">
-                        <input type="text" id="address" placeholder="Address" />
-                        <input type="text" id="postalCode" placeholder="Postal Code" />
-                        <h1></h1>
+                    <!-- Shipping Address -->
+                    <div class="checkout-card fade-up">
+                        <h2>Shipping Address</h2>
+                        <div class="input-grid one">
+                            <input type="text"
+                                   name="deliveryAddress"
+                                   id="address"
+                                   value="@Model.DeliveryAddress"
+                                   placeholder="Address"
+                                   required maxlength="300" />
+                        </div>
                     </div>
 
-                    <div class="input-grid two">
-                        <input type="text" id="city" placeholder="City" />
-                        <input type="text" id="country" placeholder="Country" />
-                    </div>
-                </div>
-
-                <div class="checkout-card note-card fade-up">
-                    <h2>Order Notes</h2>
-                    <textarea id="orderNotes" placeholder="Add a note if needed, or leave this empty..."></textarea>
-                </div>
-
-                <div class="checkout-card fade-up">
-                    <h2>Payment Methods</h2>
-
-                    <div class="payment-methods">
-                        <label class="payment-option">
-                            <input type="radio" name="paymentMethod" value="cash" checked />
-                            <span>Cash On Delivery</span>
-                        </label>
-
-                        <label class="payment-option">
-                            <input type="radio" name="paymentMethod" value="card" />
-                            <span>Credit or Debit Card</span>
-                        </label>
+                    <!-- Order Notes -->
+                    <div class="checkout-card note-card fade-up">
+                        <h2>Order Notes</h2>
+                        <textarea name="notes"
+                                  id="orderNotes"
+                                  placeholder="Add a note if needed, or leave this empty...">@Model.Notes</textarea>
                     </div>
 
-                    <div id="cardFields" class="card-fields hidden">
-                        <input type="text" id="cardholderName" placeholder="Cardholder Name" />
-                        <input type="text" id="cardNumber" placeholder="Card Number" />
-                        <div class="input-grid two small-two">
-                            <input type="text" id="expDate" placeholder="EXP Date" />
-                            <input type="text" id="cvc" placeholder="CVC" />
+                    <!-- Payment Methods -->
+                    <div class="checkout-card fade-up">
+                        <h2>Payment Methods</h2>
+                        <div class="payment-methods">
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="Cash" checked />
+                                <span>Cash On Delivery</span>
+                            </label>
+                            <label class="payment-option">
+                                <input type="radio" name="paymentMethod" value="Card" id="radioCard" />
+                                <span>Credit or Debit Card</span>
+                            </label>
+                        </div>
+
+                        <div id="cardFields" class="card-fields hidden">
+                            <input type="text" id="cardholderName" placeholder="Cardholder Name" />
+                            <input type="text" id="cardNumber" placeholder="Card Number" />
+                            <div class="input-grid two small-two">
+                                <input type="text" id="expDate" placeholder="EXP Date" />
+                                <input type="text" id="cvc" placeholder="CVC" />
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <aside class="checkout-right fade-up">
-                <div class="summary-card">
-                    <h2>Order Summary</h2>
+                <!-- ════ RIGHT — Summary ════ -->
+                <aside class="checkout-right fade-up">
+                    <div class="summary-card">
+                        <h2>Order Summary</h2>
 
-                    <div id="checkoutItems" class="checkout-items"></div>
+                        <!-- Store badge -->
+                        <div style="background:#e8f0d8;border-radius:10px;padding:8px 12px;
+                                margin-bottom:14px;font-weight:800;font-size:.82rem;color:#3a5e1f">
+                            🏪 @Model.StoreName
+                        </div>
 
-                    <div class="summary-line">
-                        <span>Subtotal</span>
-                        <strong id="summarySubtotal">0.00 JD</strong>
+                        <!-- Items — من DB مباشرة -->
+                        <div id="checkoutItems" class="checkout-items">
+                            @foreach (var item in Model.Items)
+                            {
+                                <div class="checkout-item">
+                                    <div class="checkout-item-image">
+                                        @if (!string.IsNullOrEmpty(item.ProductImage))
+                                        {
+                                            <img src="@item.ProductImage" alt="@item.ProductName" />
+                                        }
+                                        else
+                                        {
+                                            <div style="width:100%;height:100%;display:flex;
+                                                            align-items:center;justify-content:center;
+                                                            font-size:2rem">
+                                                🐾
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="checkout-item-info">
+                                        <h4>@item.ProductName</h4>
+                                        <p>Qty: @item.Quantity</p>
+                                        @if (item.SalePrice.HasValue && item.SalePrice > 0)
+                                        {
+                                            <p style="color:#e65100;font-weight:800">
+                                                @item.SalePrice?.ToString("F3") JD
+                                                <del style="color:#bbb;font-size:.75rem;font-weight:400">
+                                                    @item.UnitPrice.ToString("F3")
+                                                </del>
+                                            </p>
+                                        }
+                                        else
+                                        {
+                                            <p>@item.UnitPrice.ToString("F3") JD each</p>
+                                        }
+                                    </div>
+                                    <div class="checkout-item-price">
+                                        @item.LineTotal.ToString("F3") JD
+                                    </div>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Totals -->
+                        <div class="summary-line">
+                            <span>Subtotal</span>
+                            <strong id="summarySubtotal">@Model.Subtotal.ToString("F3") JD</strong>
+                        </div>
+                        <div class="summary-line">
+                            <span>Shipping</span>
+                            <strong id="summaryShipping">@Model.DeliveryFee.ToString("F3") JD</strong>
+                        </div>
+                        <div class="summary-line total-line">
+                            <span>Total</span>
+                            <strong id="summaryTotal">@Model.Total.ToString("F3") JD</strong>
+                        </div>
+
+                        <button id="checkoutBtn" class="checkout-btn" type="submit">
+                            Confirm Checkout
+                        </button>
+
+                        <a asp-controller="Payment" asp-action="Cart"
+                           style="display:block;text-align:center;margin-top:10px;
+                              font-size:.8rem;color:#8ab56b;font-weight:700">
+                            ← Back to Cart
+                        </a>
                     </div>
+                </aside>
 
-                    <div class="summary-line">
-                        <span>Shipping</span>
-                        <strong id="summaryShipping">2.00 JD</strong>
-                    </div>
-
-                    <div class="summary-line total-line">
-                        <span>Total</span>
-                        <strong id="summaryTotal">0.00 JD</strong>
-                    </div>
-
-                    <button id="checkoutBtn" class="checkout-btn" type="button">
-                        Confirm Checkout
-                    </button>
-                </div>
-            </aside>
-        </section>
+            </section>
+        </form>
     </main>
 
+    <!-- ════════ FOOTER ════════ -->
     <footer class="footer">
         <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <span>|</span>
-            <a href="about.html">Contact</a>
-            <span>|</span>
-            <a href="faq.html">FAQ</a>
-            <span>|</span>
-            <div class="social-inline">
-                <span>f</span>
-                <span>🐦</span>
-                <span>◎</span>
-            </div>
+            <a asp-controller="Home" asp-action="About">About Us</a><span>|</span>
+            <a asp-controller="Home" asp-action="About">Contact</a><span>|</span>
+            <a asp-controller="Home" asp-action="Faq">FAQ</a><span>|</span>
+            <div class="social-inline"><span>f</span><span>🐦</span><span>◎</span></div>
         </div>
         <div>© 2026 Waffy, all rights reserved.</div>
     </footer>
 
     <div id="toast" class="toast"></div>
 
+    <!-- Success Modal — نفس تصميمك الأصلي -->
     <div id="successModal" class="success-modal hidden">
         <div class="success-overlay"></div>
         <div class="success-card">
-            <img src="../Images/logo.png" alt="Waffy Logo" class="success-logo" />
+            <img src="~/Images/logo.png" alt="Waffy Logo" class="success-logo" />
             <h3>Payment Completed Successfully!</h3>
             <p>Thank you for your order. Your checkout has been confirmed successfully.</p>
-            <button class="back-cart-btn" id="backCartBtn" type="button">
+            <a asp-controller="Payment" asp-action="Cart" class="back-cart-btn" style="display:block;text-decoration:none;text-align:center">
                 Back to Cart
-            </button>
+            </a>
         </div>
     </div>
 
-    <script src="~/js/checkjs.js"></script>
+    <!-- ════════ JS — الحد الأدنى فقط ════════ -->
+    <script>
+        // Card fields toggle
+        document.querySelectorAll('input[name="paymentMethod"]').forEach(r => {
+            r.addEventListener('change', () => {
+                const cf = document.getElementById('cardFields');
+                if (r.value === 'Card' && r.checked) cf.classList.remove('hidden');
+                else if (r.checked) cf.classList.add('hidden');
+            });
+        });
+
+        // Fade up
+        document.addEventListener('DOMContentLoaded', () => {
+            const obs = new IntersectionObserver(entries => {
+                entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('show'); obs.unobserve(e.target); } });
+            }, { threshold: 0.15 });
+            document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
+
+            // Services dropdown
+            const sd = document.getElementById('servicesDropdown');
+            document.getElementById('servicesToggle')
+                ?.addEventListener('click', e => { e.stopPropagation(); sd?.classList.toggle('open'); });
+            document.addEventListener('click', () => sd?.classList.remove('open'));
+
+            // Mobile menu
+            const mb  = document.getElementById('menuBtn');
+            const nav = document.getElementById('navLinks');
+            mb?.addEventListener('click', e => { e.stopPropagation(); nav?.classList.toggle('open'); });
+            document.addEventListener('click', e => {
+                if (!nav?.contains(e.target) && e.target !== mb) nav?.classList.remove('open');
+            });
+
+            // Mobile services
+            document.getElementById('mobileServicesToggle')
+                ?.addEventListener('click', () =>
+                    document.getElementById('mobileServicesBlock')?.classList.toggle('open'));
+        });
+    </script>
+
 </body>
 </html>

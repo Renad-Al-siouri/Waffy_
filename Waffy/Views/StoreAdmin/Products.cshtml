@@ -6,13 +6,14 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/waffy-theme.css">
     <link rel="stylesheet" href="~/css/waffy-store-compat.css">
     <style>
+        /* ── Tabs ── */
         .products-card .store-tabs-bar {
             border-radius: 0;
             margin: 0
@@ -22,21 +23,220 @@
             padding: 14px 20px
         }
 
-        #categoriesGrid .card {
+        /* ── Image Slider in Table ── */
+        .prod-slider {
+            position: relative;
+            width: 54px;
+            height: 54px;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            flex-shrink: 0
+        }
+
+            .prod-slider img {
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                transition: opacity .25s
+            }
+
+                .prod-slider img.hidden {
+                    opacity: 0
+                }
+
+            .prod-slider .slide-prev, .prod-slider .slide-next {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                background: rgba(0,0,0,.45);
+                color: #fff;
+                border: none;
+                width: 16px;
+                height: 24px;
+                font-size: .55rem;
+                cursor: pointer;
+                z-index: 2;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                border-radius: 3px;
+                opacity: 0;
+                transition: .15s
+            }
+
+            .prod-slider:hover .slide-prev, .prod-slider:hover .slide-next {
+                opacity: 1
+            }
+
+            .prod-slider .slide-prev {
+                left: 0
+            }
+
+            .prod-slider .slide-next {
+                right: 0
+            }
+
+            .prod-slider .slide-count {
+                position: absolute;
+                bottom: 3px;
+                right: 3px;
+                background: rgba(0,0,0,.55);
+                color: #fff;
+                font-size: .5rem;
+                font-weight: 900;
+                padding: 1px 4px;
+                border-radius: 4px;
+                z-index: 2
+            }
+
+        .prod-no-img {
+            width: 54px;
+            height: 54px;
+            border-radius: 10px;
+            background: var(--brand-ghost);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            border: 1px solid var(--border);
+            flex-shrink: 0
+        }
+
+        /* ── Multi-image Uploader ── */
+        .img-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            gap: 10px;
+            margin-top: 12px
+        }
+
+        .img-thumb {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            background: var(--brand-ghost)
+        }
+
+            .img-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover
+            }
+
+            .img-thumb .img-del {
+                position: absolute;
+                top: 4px;
+                right: 4px;
+                width: 22px;
+                height: 22px;
+                background: rgba(231,76,60,.85);
+                color: #fff;
+                border: none;
+                border-radius: 50%;
+                font-size: .7rem;
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-weight: 900
+            }
+
+            .img-thumb .img-main-badge {
+                position: absolute;
+                bottom: 4px;
+                left: 4px;
+                background: var(--brand);
+                color: #fff;
+                font-size: .6rem;
+                font-weight: 900;
+                padding: 2px 6px;
+                border-radius: 6px
+            }
+
+            .img-thumb .img-set-main {
+                position: absolute;
+                bottom: 4px;
+                left: 4px;
+                background: rgba(0,0,0,.55);
+                color: #fff;
+                font-size: .6rem;
+                font-weight: 800;
+                padding: 2px 6px;
+                border-radius: 6px;
+                cursor: pointer;
+                border: none;
+                display: none
+            }
+
+            .img-thumb:hover .img-set-main {
+                display: block
+            }
+
+        .img-add-slot {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            border: 2px dashed var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: var(--brand-ghost);
+            transition: .2s;
+            font-size: .72rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            gap: 4px
+        }
+
+            .img-add-slot:hover {
+                border-color: var(--brand);
+                background: var(--brand-xlight);
+                color: var(--brand-dark)
+            }
+
+        .img-counter {
+            font-size: .76rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-top: 8px
+        }
+
+        /* ── Category Cards ── */
+        #categoriesGrid .cat-card {
+            background: #fff;
+            border: 1px solid var(--border);
             border-radius: var(--r);
+            padding: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             transition: .2s
         }
 
-            #categoriesGrid .card:hover {
+            #categoriesGrid .cat-card:hover {
                 transform: translateY(-2px);
                 box-shadow: var(--shadow)
             }
+
+        @@media(max-width:600px) {
+            .img-upload-grid {
+                grid-template-columns: repeat(3,1fr)
+            }
+        }
     </style>
 </head>
 <body>
     <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
     <div class="wa-shell" id="waShell">
 
+        <!-- ══ SIDEBAR ══ -->
         <aside class="wa-sb" id="waSb">
             <div class="sb-logo">
                 <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
@@ -69,7 +269,6 @@
                     <a class="sb-row" href="@Url.Action("Reviews", "StoreAdmin")" data-tip="Reviews">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></span>
                         <span class="sb-lbl">Reviews</span>
-                        <span class="sb-bdg bd-r" id="reviewsCountBadge">0</span>
                     </a>
                 </div>
                 <div class="sb-hr"></div>
@@ -87,7 +286,7 @@
                         <span class="sb-lbl">Notifications</span>
                         <span class="sb-bdg bd-r" id="notifCountBadge">0</span>
                     </a>
-                    <a class="sb-row" href="@Url.Action("Settings", "StoreAdmin")" data-tip="Settings">
+                    <a class="sb-row" href="@Url.Action("SettingsInfo", "StoreAdmin")" data-tip="Settings">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg></span>
                         <span class="sb-lbl">Store Settings</span>
                     </a>
@@ -112,15 +311,13 @@
             </div>
         </aside>
 
+        <!-- ══ TOPNAV ══ -->
         <header class="wa-tn" id="waTn">
             <button class="tn-toggle" onclick="toggleSb()" type="button">
                 <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
             </button>
             <nav class="tn-bread"><span>Store</span><span>/</span><b>Products</b></nav>
-            <div class="tn-center">
-                <div class="tn-center-main">Products</div>
-                <div class="tn-center-sub">Store Admin Panel</div>
-            </div>
+            <div class="tn-center"><div class="tn-center-main">Products</div><div class="tn-center-sub">Store Admin Panel</div></div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
                 <button class="tn-btn" type="button"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg></button>
@@ -136,6 +333,7 @@
             </div>
         </header>
 
+        <!-- ══ MAIN ══ -->
         <main class="wa-main" id="waMain">
             <section class="page-hero">
                 <div class="page-hero-text">
@@ -147,9 +345,10 @@
                     <button class="btn btn-primary" onclick="openModal('addProductModal')">+ Add Product</button>
                 </div>
             </section>
-            <div class="page-body">
 
+            <div class="page-body">
                 <div class="table-card products-card">
+                    <!-- Tabs -->
                     <div class="store-tabs-bar">
                         <button class="tab on" onclick="switchTab(this,'tab-products')" type="button">
                             📦 Products
@@ -158,6 +357,7 @@
                         <button class="tab" onclick="switchTab(this,'tab-categories')" type="button">🗂 Categories</button>
                     </div>
 
+                    <!-- ── Products Tab ── -->
                     <div class="tab-pane on" id="tab-products">
                         <div class="table-head-bar">
                             <div class="search-wrap" style="flex:1;max-width:300px">
@@ -166,10 +366,6 @@
                             </div>
                             <select class="sel-wrap" id="productCategoryFilter" style="height:40px;width:auto;min-width:150px">
                                 <option value="all">All categories</option>
-                                <option value="1">Food</option>
-                                <option value="2">Accessories</option>
-                                <option value="3">Health Care</option>
-                                <option value="4">Toys</option>
                             </select>
                             <select class="sel-wrap" id="productStatusFilter" style="height:40px;width:auto;min-width:140px">
                                 <option value="all">All statuses</option>
@@ -180,23 +376,36 @@
                         </div>
                         <div class="table-wrap">
                             <table>
-                                <thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Category</th><th>Status</th><th>Visible</th><th>Actions</th></tr></thead>
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Price</th>
+                                        <th>Stock</th>
+                                        <th>Category</th>
+                                        <th>Status</th>
+                                        <th>Visible</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
                                 <tbody id="productsBody"></tbody>
                             </table>
                         </div>
                     </div>
 
+                    <!-- ── Categories Tab ── -->
                     <div class="tab-pane" id="tab-categories">
                         <div style="padding:18px">
                             <div class="info-box" style="margin-bottom:16px">
-                                ℹ️ Categories help customers discover your products faster. Click <strong>+ Category</strong> in the header to add one.
+                                ℹ️ Categories help customers discover your products. Click <strong>+ Category</strong> to add one.
                             </div>
                             <div id="categoriesGrid" class="grid-2"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Add Product Modal -->
+                <!-- ══════════════════════════════════════
+                     ADD PRODUCT MODAL
+                ══════════════════════════════════════ -->
                 <div class="overlay" id="addProductModal">
                     <div class="modal wide">
                         <div class="modal-hd">
@@ -209,28 +418,26 @@
                                 <div class="form-group">
                                     <div class="form-field full">
                                         <label class="form-label">Product Name <span class="req">*</span></label>
-                                        <input id="newProductName" class="form-input" placeholder="e.g. Royal Canin Adult Cat 2kg">
+                                        <input id="addName" class="form-input" placeholder="e.g. Royal Canin Adult Cat 2kg">
                                     </div>
                                     <div class="form-field">
                                         <label class="form-label">Category <span class="req">*</span></label>
-                                        <select id="newProductCategory" class="form-select">
-                                            <option value="">Select category</option>
-                                            <option value="1">Food</option>
-                                            <option value="2">Accessories</option>
-                                            <option value="3">Health Care</option>
-                                            <option value="4">Toys</option>
-                                        </select>
+                                        <select id="addCategory" class="form-select"><option value="">Select category</option></select>
                                     </div>
                                     <div class="form-field">
-                                        <label class="form-label">Status</label>
-                                        <select id="newProductStatus" class="form-select">
-                                            <option value="active">✅ Active</option>
-                                            <option value="hidden">🔒 Hidden</option>
+                                        <label class="form-label">Pet Type</label>
+                                        <select id="addPetType" class="form-select">
+                                            <option value="">All Pets</option>
+                                            <option value="Dog">🐕 Dog</option>
+                                            <option value="Cat">🐈 Cat</option>
+                                            <option value="Bird">🦜 Bird</option>
+                                            <option value="Rabbit">🐇 Rabbit</option>
+                                            <option value="Fish">🐟 Fish</option>
                                         </select>
                                     </div>
                                     <div class="form-field full">
                                         <label class="form-label">Description</label>
-                                        <textarea id="newProductDescription" class="form-textarea" placeholder="Describe the product..."></textarea>
+                                        <textarea id="addDescription" class="form-textarea" placeholder="Describe the product..."></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -239,40 +446,108 @@
                                 <div class="form-group">
                                     <div class="form-field">
                                         <label class="form-label">Price (JOD) <span class="req">*</span></label>
-                                        <input id="newProductPrice" class="form-input" type="number" placeholder="0.000" step="0.001" min="0">
+                                        <input id="addPrice" class="form-input" type="number" placeholder="0.000" step="0.001" min="0">
                                     </div>
                                     <div class="form-field">
                                         <label class="form-label">Sale Price (JOD)</label>
-                                        <input id="newProductSalePrice" class="form-input" type="number" placeholder="0.000" step="0.001" min="0">
+                                        <input id="addSalePrice" class="form-input" type="number" placeholder="0.000" step="0.001" min="0">
                                     </div>
                                     <div class="form-field">
                                         <label class="form-label">Stock Quantity <span class="req">*</span></label>
-                                        <input id="newProductStock" class="form-input" type="number" placeholder="0" min="0">
+                                        <input id="addStock" class="form-input" type="number" placeholder="0" min="0">
                                     </div>
                                 </div>
                             </div>
                             <div class="modal-section">
-                                <div class="modal-section-title">Product Image</div>
-                                <label class="upload-zone" for="newProductImage">
-                                    <span class="upload-zone-ico">🖼️</span>
-                                    <span class="upload-zone-label">Click to upload product image</span>
-                                    <span class="upload-zone-hint">PNG, JPG, WEBP — max 5MB</span>
-                                </label>
-                                <input id="newProductImage" type="file" accept="image/*" hidden>
-                                <div id="newProductPreviewWrap" style="display:none;margin-top:12px">
-                                    <div class="upload-preview">
-                                        <img id="newProductPreview" alt="Product preview">
-                                        <div>
-                                            <div style="font-size:.8rem;font-weight:800;color:var(--brand-dark)">Image uploaded</div>
-                                            <button type="button" onclick="document.getElementById('newProductImage').click()" style="font-size:.74rem;color:var(--text-muted);font-weight:700;background:none;border:none;cursor:pointer;padding:0;margin-top:2px">Change image</button>
-                                        </div>
-                                    </div>
+                                <div class="modal-section-title">
+                                    Product Images
+                                    <span style="font-size:.75rem;font-weight:600;color:var(--text-muted);margin-left:8px">Up to 8 — first = main ⭐</span>
                                 </div>
+                                <div class="img-upload-grid" id="addImgsGrid"></div>
+                                <div class="img-counter" id="addImgCounter">0 / 8 images</div>
+                                <input id="addImgsInput" type="file" accept="image/*" multiple hidden>
                             </div>
                         </div>
                         <div class="modal-ft">
                             <button class="btn btn-outline" onclick="closeModal('addProductModal')">Cancel</button>
-                            <button class="btn btn-primary" onclick="addProduct()">💾 Save Product</button>
+                            <button class="btn btn-primary" id="btnSaveAdd" onclick="submitAddProduct()">💾 Save Product</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ══════════════════════════════════════
+                     EDIT PRODUCT MODAL
+                ══════════════════════════════════════ -->
+                <div class="overlay" id="editProductModal">
+                    <div class="modal wide">
+                        <div class="modal-hd">
+                            <div class="modal-title">✏️ Edit Product</div>
+                            <button class="modal-close" onclick="closeModal('editProductModal')">✕</button>
+                        </div>
+                        <div class="modal-body" style="padding:0">
+                            <input type="hidden" id="editId">
+                            <div class="modal-section">
+                                <div class="modal-section-title">Basic Information</div>
+                                <div class="form-group">
+                                    <div class="form-field full">
+                                        <label class="form-label">Product Name <span class="req">*</span></label>
+                                        <input id="editName" class="form-input">
+                                    </div>
+                                    <div class="form-field">
+                                        <label class="form-label">Category</label>
+                                        <select id="editCategory" class="form-select"><option value="">Select category</option></select>
+                                    </div>
+                                    <div class="form-field">
+                                        <label class="form-label">Pet Type</label>
+                                        <select id="editPetType" class="form-select">
+                                            <option value="">All Pets</option>
+                                            <option value="Dog">🐕 Dog</option>
+                                            <option value="Cat">🐈 Cat</option>
+                                            <option value="Bird">🦜 Bird</option>
+                                            <option value="Rabbit">🐇 Rabbit</option>
+                                            <option value="Fish">🐟 Fish</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-field full">
+                                        <label class="form-label">Description</label>
+                                        <textarea id="editDescription" class="form-textarea"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-section">
+                                <div class="modal-section-title">Pricing & Stock</div>
+                                <div class="form-group">
+                                    <div class="form-field">
+                                        <label class="form-label">Price (JOD)</label>
+                                        <input id="editPrice" class="form-input" type="number" step="0.001" min="0">
+                                    </div>
+                                    <div class="form-field">
+                                        <label class="form-label">Sale Price (JOD)</label>
+                                        <input id="editSalePrice" class="form-input" type="number" step="0.001" min="0">
+                                    </div>
+                                    <div class="form-field">
+                                        <label class="form-label">Stock Quantity</label>
+                                        <input id="editStock" class="form-input" type="number" min="0">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-section">
+                                <div class="modal-section-title">
+                                    Images
+                                    <span style="font-size:.75rem;font-weight:600;color:var(--text-muted);margin-left:8px">✕ to remove — ⭐ to set as main</span>
+                                </div>
+                                <!-- صور موجودة من DB -->
+                                <div class="img-upload-grid" id="editExistingGrid"></div>
+                                <!-- صور جديدة -->
+                                <div class="img-upload-grid" id="editNewGrid" style="margin-top:8px"></div>
+                                <div class="img-counter" id="editImgCounter">0 / 8 images</div>
+                                <input id="editImgsInput" type="file" accept="image/*" multiple hidden>
+                                <input type="hidden" id="editDeleteIds" value="">
+                            </div>
+                        </div>
+                        <div class="modal-ft">
+                            <button class="btn btn-outline" onclick="closeModal('editProductModal')">Cancel</button>
+                            <button class="btn btn-primary" id="btnSaveEdit" onclick="submitEditProduct()">💾 Save Changes</button>
                         </div>
                     </div>
                 </div>
@@ -281,7 +556,7 @@
                 <div class="overlay" id="addCatModal">
                     <div class="modal">
                         <div class="modal-hd">
-                            <div class="modal-title">🗂 Add New Category</div>
+                            <div class="modal-title">🗂 Add Category</div>
                             <button class="modal-close" onclick="closeModal('addCatModal')">✕</button>
                         </div>
                         <div class="modal-body" style="padding:0">
@@ -289,65 +564,575 @@
                                 <div class="modal-section-title">Category Details</div>
                                 <div class="form-group">
                                     <div class="form-field">
-                                        <label class="form-label">Category Name <span class="req">*</span></label>
-                                        <input id="newCategoryName" class="form-input" placeholder="e.g. Food, Accessories...">
+                                        <label class="form-label">Name <span class="req">*</span></label>
+                                        <input id="catName" class="form-input" placeholder="e.g. Food, Accessories...">
                                     </div>
                                     <div class="form-field">
                                         <label class="form-label">Icon (Emoji)</label>
-                                        <input id="newCategoryIcon" class="form-input" placeholder="🐾" style="font-size:1.3rem;text-align:center">
-                                    </div>
-                                    <div class="form-field full">
-                                        <label class="form-label">Description</label>
-                                        <textarea class="form-textarea" style="min-height:70px" placeholder="Short description of this category..."></textarea>
+                                        <input id="catIcon" class="form-input" placeholder="🐾" style="font-size:1.3rem;text-align:center">
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="modal-ft">
                             <button class="btn btn-outline" onclick="closeModal('addCatModal')">Cancel</button>
-                            <button class="btn btn-primary" onclick="addCategory()">💾 Add Category</button>
+                            <button class="btn btn-primary" onclick="submitAddCategory()">💾 Add Category</button>
                         </div>
                     </div>
                 </div>
-
-                <div class="overlay" id="orderModal">
-                    <div class="modal wide">
-                        <div class="modal-hd"><div class="modal-title">🧾 Order Details</div><button class="modal-close" onclick="closeModal('orderModal')">✕</button></div>
-                        <div class="modal-body" id="orderModalBody"></div>
-                        <div class="modal-ft"><button class="btn btn-primary" onclick="closeModal('orderModal')">Close</button></div>
-                    </div>
-                </div>
-
-            </div>
+            </div><!-- page-body -->
         </main>
-    </div>
+    </div><!-- wa-shell -->
     <div id="toast">✅ Done!</div>
 
+    <!-- ═══════════ DATA FROM SERVER ═══════════ -->
     <script>
-        window.serverProducts = @Html.Raw(ViewBag.ProductsJson ?? "[]");
-        window.serverStoreId  = @(ViewBag.StoreId ?? 0);
+        window.serverProducts   = @Html.Raw(ViewBag.ProductsJson ?? "[]");
+        window.serverCategories = @Html.Raw(ViewBag.CategoriesJson ?? "[]");
+        window.serverStoreId    = @(ViewBag.StoreId ?? 0);
     </script>
+
+    <!-- ═══════════ PAGE SCRIPT ═══════════ -->
     <script>
-        const shell=document.getElementById('waShell'),sb=document.getElementById('waSb'),ovl=document.getElementById('waOvl');
-        const mob=()=>window.innerWidth<=992;let mini=false;
-        function save(v){localStorage.setItem('wa_mini',v);}
-        function miniOn(){mini=true;shell.classList.add('mini');save('1');}
-        function miniOff(){mini=false;shell.classList.remove('mini');save('0');}
-        function openMob(){sb.classList.add('mob-open');ovl.classList.add('show');document.body.style.overflow='hidden';}
-        function closeMob(){sb.classList.remove('mob-open');ovl.classList.remove('show');document.body.style.overflow='';}
-        function toggleSb(){if(mob()){sb.classList.contains('mob-open')?closeMob():openMob();}else{mini?miniOff():miniOn();}}
-        function toggleSidebar(){toggleSb();}function closeSidebar(){closeMob();}
-        let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!mob()){closeMob();localStorage.getItem('wa_mini')==='1'?miniOn():miniOff();}else{shell.classList.remove('mini');mini=false;}},90);});
-        document.addEventListener('keydown',e=>{if(e.key==='['&&!e.ctrlKey&&!e.metaKey)toggleSb();if(e.key==='Escape')closeMob();});
-        let tx=0;
-        document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
-        document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(!mob())return;if(dx>55&&tx<28)openMob();if(dx<-55)closeMob();},{passive:true});
+        'use strict';
+
+        // ── Sidebar ──────────────────────────────────────────────────────
+        const shell=document.getElementById('waShell'),_sb=document.getElementById('waSb'),ovl=document.getElementById('waOvl');
+        const mob=()=>window.innerWidth<=992; let mini=false;
+        const _save=v=>localStorage.setItem('wa_mini',v);
+        function miniOn(){mini=true;shell.classList.add('mini');_save('1');}
+        function miniOff(){mini=false;shell.classList.remove('mini');_save('0');}
+        function openMob(){_sb.classList.add('mob-open');ovl.classList.add('show');document.body.style.overflow='hidden';}
+        function closeMob(){_sb.classList.remove('mob-open');ovl.classList.remove('show');document.body.style.overflow='';}
+        function toggleSb(){if(mob()){_sb.classList.contains('mob-open')?closeMob():openMob();}else{mini?miniOff():miniOn();}}
+        let _rt;window.addEventListener('resize',()=>{clearTimeout(_rt);_rt=setTimeout(()=>{if(!mob()){closeMob();localStorage.getItem('wa_mini')==='1'?miniOn():miniOff();}else{shell.classList.remove('mini');mini=false;}},90);});
+        document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMob();});
+        let _tx=0;
+        document.addEventListener('touchstart',e=>{_tx=e.touches[0].clientX;},{passive:true});
+        document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-_tx;if(!mob())return;if(dx>55&&_tx<28)openMob();if(dx<-55)closeMob();},{passive:true});
+
+        // ── Modal / Tab helpers ───────────────────────────────────────────
+        function openModal(id){document.getElementById(id)?.classList.add('on');}
+        function closeModal(id){document.getElementById(id)?.classList.remove('on');}
+        function switchTab(btn,paneId){
+            document.querySelectorAll('.store-tabs-bar .tab').forEach(b=>b.classList.remove('on'));
+            document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('on'));
+            btn.classList.add('on');
+            document.getElementById(paneId)?.classList.add('on');
+        }
+        function showToast(msg='✅ Done!'){
+            const t=document.getElementById('toast');
+            if(!t)return; t.textContent=msg; t.style.display='flex';
+            setTimeout(()=>t.style.display='none',2400);
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // DATA
+        // ════════════════════════════════════════════════════════════════
+        // cats مصفوفة قابلة للتعديل (تُعدَّل عند إضافة/حذف فئة)
+        let cats = (window.serverCategories || []).map(c=>({
+            id:   c.id,
+            name: c.name ?? '',
+            icon: (c.icon && c.icon!=='??' && c.icon!=='?') ? c.icon : '📦'
+        }));
+
+        // products مصفوفة قابلة للتعديل
+        let allProducts = window.serverProducts || [];
+
+        // ── Category lookup ───────────────────────────────────────────────
+        function catById(id){
+            return cats.find(c=>String(c.id)===String(id)) || null;
+        }
+        function catLabel(id){
+            const c=catById(id);
+            if(!c) return '—';
+            return `${c.icon} ${c.name}`;
+        }
+
+        // ── Populate category <select> elements ───────────────────────────
+        function fillCategorySelects(){
+            const opts=cats.map(c=>`<option value="${c.id}">${c.icon} ${c.name}</option>`).join('');
+            // filter dropdown
+            const fil=document.getElementById('productCategoryFilter');
+            if(fil) fil.innerHTML='<option value="all">All categories</option>'+opts;
+            // add modal
+            const add=document.getElementById('addCategory');
+            if(add) add.innerHTML='<option value="">Select category</option>'+opts;
+            // edit modal
+            const edt=document.getElementById('editCategory');
+            if(edt) edt.innerHTML='<option value="">Select category</option>'+opts;
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // IMAGE SLIDER (في صف الجدول)
+        // ════════════════════════════════════════════════════════════════
+        /**
+         * يبني slider صغير بالـ thumbnails المتعددة.
+         * إذا فيه صورة واحدة فقط يعرض صورة عادية.
+         */
+        function buildSlider(p){
+            const imgs=p.images||[];
+            const allUrls=imgs.map(i=>i.imageUrl).filter(Boolean);
+            // fallback: الحقل القديم
+            if(!allUrls.length && p.image) allUrls.push(p.image);
+
+            if(!allUrls.length){
+                return `<div class="prod-no-img">📦</div>`;
+            }
+            if(allUrls.length===1){
+                return `<div class="prod-slider">
+                    <img src="${allUrls[0]}" alt="">
+                </div>`;
+            }
+            // متعدد
+            const sliderId=`sl-${p.id}`;
+            const imgsHtml=allUrls.map((u,i)=>
+                `<img src="${u}" class="${i===0?'':'hidden'}" alt="">`
+            ).join('');
+            return `
+            <div class="prod-slider" id="${sliderId}">
+                ${imgsHtml}
+                <button class="slide-prev" onclick="sliderPrev('${sliderId}',event)">‹</button>
+                <button class="slide-next" onclick="sliderNext('${sliderId}',event)">›</button>
+                <span class="slide-count" id="${sliderId}-cnt">1/${allUrls.length}</span>
+            </div>`;
+        }
+
+        // state للـ sliders
+        const sliderState={};
+        function sliderPrev(id,e){e.stopPropagation();sliderGo(id,-1);}
+        function sliderNext(id,e){e.stopPropagation();sliderGo(id,1);}
+        function sliderGo(id,dir){
+            const wrap=document.getElementById(id);
+            if(!wrap) return;
+            const imgs=[...wrap.querySelectorAll('img')];
+            if(!imgs.length) return;
+            if(!sliderState[id]) sliderState[id]=0;
+            imgs[sliderState[id]].classList.add('hidden');
+            sliderState[id]=(sliderState[id]+dir+imgs.length)%imgs.length;
+            imgs[sliderState[id]].classList.remove('hidden');
+            const cnt=document.getElementById(`${id}-cnt`);
+            if(cnt) cnt.textContent=`${sliderState[id]+1}/${imgs.length}`;
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // RENDER PRODUCTS TABLE
+        // ════════════════════════════════════════════════════════════════
+        function renderProducts(){
+            const tbody=document.getElementById('productsBody');
+            if(!tbody) return;
+
+            const q  =(document.getElementById('productSearch')?.value||'').toLowerCase();
+            const cat= document.getElementById('productCategoryFilter')?.value||'all';
+            const st = document.getElementById('productStatusFilter')?.value||'all';
+
+            let list=allProducts;
+            if(q)         list=list.filter(p=>p.name.toLowerCase().includes(q)||(p.description||'').toLowerCase().includes(q));
+            if(cat!=='all') list=list.filter(p=>String(p.cat)===String(cat));
+            if(st!=='all')  list=list.filter(p=>p.status===st);
+
+            // تحديث العدادات
+            document.getElementById('productsTabCount').textContent=allProducts.length;
+            document.getElementById('productsCountBadge').textContent=allProducts.length;
+
+            if(!list.length){
+                tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:32px">No products found</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML=list.map(p=>{
+                const badge=p.status==='out'
+                    ?`<span class="badge badge-danger">Out of Stock</span>`
+                    :p.status==='hidden'
+                    ?`<span class="badge badge-muted">Hidden</span>`
+                    :`<span class="badge badge-success">Active</span>`;
+
+                const catLbl=catLabel(p.cat);
+                const slider=buildSlider(p);
+
+                return `<tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px">
+                            ${slider}
+                            <div>
+                                <div style="font-weight:800;font-size:.84rem">${p.name}</div>
+                                <div style="font-size:.72rem;color:var(--text-muted);margin-top:2px">${catLbl}</div>
+                                ${p.description?`<div style="font-size:.7rem;color:var(--text-muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.description}</div>`:''}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-weight:800">${parseFloat(p.price).toFixed(3)} JD</div>
+                        ${p.salePrice?`<div style="font-size:.72rem;color:var(--success);font-weight:700">${parseFloat(p.salePrice).toFixed(3)} JD</div>`:''}
+                    </td>
+                    <td>
+                        <span style="font-weight:800;color:${p.stock<=2?'var(--danger)':'inherit'}">${p.stock}</span>
+                        ${p.stock<=2&&p.stock>0?'<span style="font-size:.6rem;color:var(--danger);display:block">low</span>':''}
+                    </td>
+                    <td style="font-size:.82rem">${catLbl}</td>
+                    <td>${badge}</td>
+                    <td>
+                        <div class="toggle ${p.status!=='hidden'?'on':''}" style="width:36px;height:20px"
+                             onclick="doToggleVisibility(${p.id},this)"></div>
+                    </td>
+                    <td>
+                        <div style="display:flex;gap:6px">
+                            <button class="btn btn-outline btn-sm" onclick="openEditModal(${p.id})">✏️</button>
+                            <button class="btn btn-danger btn-sm"  onclick="doDeleteProduct(${p.id})">🗑</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // RENDER CATEGORIES GRID
+        // ════════════════════════════════════════════════════════════════
+        function renderCategories(){
+            const grid=document.getElementById('categoriesGrid');
+            if(!grid) return;
+            if(!cats.length){
+                grid.innerHTML='<p style="color:var(--text-muted);font-size:.84rem">No categories yet.</p>';
+                return;
+            }
+            grid.innerHTML=cats.map(c=>{
+                const count=allProducts.filter(p=>String(p.cat)===String(c.id)).length;
+                return `<div class="cat-card">
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <span style="font-size:1.5rem">${c.icon}</span>
+                        <div>
+                            <div style="font-weight:800;font-size:.88rem">${c.name}</div>
+                            <div style="font-size:.72rem;color:var(--text-muted)">${count} product${count!==1?'s':''}</div>
+                        </div>
+                    </div>
+                    <button class="btn btn-danger btn-sm" onclick="doDeleteCategory(${c.id})">🗑</button>
+                </div>`;
+            }).join('');
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // ADD PRODUCT — صور متعددة
+        // ════════════════════════════════════════════════════════════════
+        let addFiles=[];
+
+        function rebuildAddGrid(){
+            const grid=document.getElementById('addImgsGrid');
+            const ctr =document.getElementById('addImgCounter');
+            if(!grid) return;
+            grid.innerHTML='';
+            addFiles.forEach((f,i)=>{
+                const url=URL.createObjectURL(f);
+                const d=document.createElement('div');
+                d.className='img-thumb';
+                d.innerHTML=`<img src="${url}">${i===0?'<span class="img-main-badge">⭐ Main</span>':''}<button class="img-del" onclick="addRemoveImg(${i})">✕</button>`;
+                grid.appendChild(d);
+            });
+            if(addFiles.length<8){
+                const a=document.createElement('div');
+                a.className='img-add-slot';
+                a.innerHTML='<span style="font-size:1.4rem">📷</span><span>Add Image</span>';
+                a.onclick=()=>document.getElementById('addImgsInput').click();
+                grid.appendChild(a);
+            }
+            if(ctr) ctr.textContent=`${addFiles.length} / 8 images`;
+        }
+        function addRemoveImg(i){addFiles.splice(i,1);rebuildAddGrid();}
+
+        async function submitAddProduct(){
+            const name =document.getElementById('addName').value.trim();
+            const price=document.getElementById('addPrice').value;
+            const stock=document.getElementById('addStock').value;
+            const cat  =document.getElementById('addCategory').value;
+            if(!name||!price||stock===''||!cat){showToast('⚠️ Fill all required fields');return;}
+
+            const btn=document.getElementById('btnSaveAdd');
+            btn.disabled=true; btn.textContent='⏳ Saving...';
+
+            const fd=new FormData();
+            fd.append('name',        name);
+            fd.append('description', document.getElementById('addDescription').value);
+            fd.append('price',       price);
+            fd.append('salePrice',   document.getElementById('addSalePrice').value||'');
+            fd.append('stockQuantity',stock);
+            fd.append('idCategory',  cat);
+            fd.append('petType',     document.getElementById('addPetType').value);
+            addFiles.forEach(f=>fd.append('imageFiles',f));
+
+            try{
+                const res =await fetch('/StoreAdmin/AddProduct',{method:'POST',body:fd});
+                const data=await res.json();
+                if(data.success){
+                    // أضف المنتج للقائمة المحلية
+                    const newP={
+                        id:data.id, name,
+                        description:document.getElementById('addDescription').value,
+                        cat:String(cat), price:parseFloat(price),
+                        salePrice:parseFloat(document.getElementById('addSalePrice').value)||null,
+                        stock:parseInt(stock),
+                        petType:document.getElementById('addPetType').value,
+                        status:parseInt(stock)===0?'out':'active',
+                        image:data.images?.[0]?.url||'',
+                        images:data.images||[]
+                    };
+                    allProducts.unshift(newP);
+                    renderProducts();
+                    closeModal('addProductModal');
+                    showToast('✅ Product added!');
+                    // Reset
+                    addFiles=[];rebuildAddGrid();
+                    ['addName','addDescription','addPrice','addSalePrice','addStock']
+                        .forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+                    document.getElementById('addCategory').value='';
+                }else{
+                    showToast('❌ '+(data.message||'Error'));
+                }
+            }catch(e){showToast('❌ Network error');}
+            finally{btn.disabled=false;btn.textContent='💾 Save Product';}
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // EDIT PRODUCT
+        // ════════════════════════════════════════════════════════════════
+        let editNewFiles=[];
+        let editDelIds=[];
+
+        function openEditModal(productId){
+            const p=allProducts.find(x=>x.id===productId);
+            if(!p) return;
+
+            // ملء الحقول
+            document.getElementById('editId').value          = p.id;
+            document.getElementById('editName').value        = p.name;
+            document.getElementById('editDescription').value = p.description||'';
+            document.getElementById('editPrice').value       = p.price;
+            document.getElementById('editSalePrice').value   = p.salePrice||'';
+            document.getElementById('editStock').value       = p.stock;
+            document.getElementById('editPetType').value     = p.petType||'';
+
+            // ملء الفئة — نعيد بناء الـ select ثم نختار القيمة
+            fillCategorySelects();
+            document.getElementById('editCategory').value = String(p.cat);
+
+            // reset state
+            editNewFiles=[];
+            editDelIds=[];
+            document.getElementById('editDeleteIds').value='';
+
+            // عرض الصور الموجودة
+            const existGrid=document.getElementById('editExistingGrid');
+            const imgs=p.images||(p.image?[{id:0,imageUrl:p.image,isMain:true}]:[]);
+            existGrid.innerHTML=imgs.map(img=>`
+                <div class="img-thumb" id="exi-${img.id}">
+                    <img src="${img.imageUrl}" alt="">
+                    ${img.isMain
+                        ?'<span class="img-main-badge">⭐ Main</span>'
+                        :`<button class="img-set-main" onclick="doSetMain(${img.id},${p.id})">⭐ Main</button>`}
+                    <button class="img-del" onclick="editRemoveExisting(${img.id})">✕</button>
+                </div>`).join('');
+
+            rebuildEditNewGrid();
+            updateEditCounter();
+            openModal('editProductModal');
+        }
+
+        function editRemoveExisting(imgId){
+            const el=document.getElementById(`exi-${imgId}`);
+            if(el){el.style.opacity='.35';el.style.pointerEvents='none';el.classList.add('removed');}
+            if(imgId>0&&!editDelIds.includes(imgId)) editDelIds.push(imgId);
+            document.getElementById('editDeleteIds').value=editDelIds.join(',');
+            updateEditCounter();
+        }
+
+        async function doSetMain(imgId,productId){
+            const fd=new FormData();
+            fd.append('productId',productId);
+            fd.append('imageId',imgId);
+            try{
+                const res =await fetch('/StoreAdmin/SetMainImage',{method:'POST',body:fd});
+                const data=await res.json();
+                if(data.success){
+                    document.querySelectorAll('#editExistingGrid .img-main-badge').forEach(b=>b.remove());
+                    document.querySelectorAll('#editExistingGrid .img-set-main').forEach(b=>b.style.display='');
+                    const slot=document.getElementById(`exi-${imgId}`);
+                    if(slot){slot.querySelector('.img-set-main')?.remove();slot.insertAdjacentHTML('beforeend','<span class="img-main-badge">⭐ Main</span>');}
+                    showToast('✅ Main image updated');
+                }
+            }catch(e){showToast('❌ Network error');}
+        }
+
+        function rebuildEditNewGrid(){
+            const grid=document.getElementById('editNewGrid');
+            if(!grid) return;
+            grid.innerHTML='';
+            editNewFiles.forEach((f,i)=>{
+                const url=URL.createObjectURL(f);
+                const d=document.createElement('div');
+                d.className='img-thumb';
+                d.innerHTML=`<img src="${url}" alt=""><button class="img-del" onclick="editRemoveNew(${i})">✕</button>`;
+                grid.appendChild(d);
+            });
+            const exCount=document.querySelectorAll('#editExistingGrid .img-thumb:not(.removed)').length;
+            if(exCount+editNewFiles.length<8){
+                const a=document.createElement('div');
+                a.className='img-add-slot';
+                a.innerHTML='<span style="font-size:1.4rem">📷</span><span>Add</span>';
+                a.onclick=()=>document.getElementById('editImgsInput').click();
+                grid.appendChild(a);
+            }
+            updateEditCounter();
+        }
+        function editRemoveNew(i){editNewFiles.splice(i,1);rebuildEditNewGrid();}
+        function updateEditCounter(){
+            const ex=document.querySelectorAll('#editExistingGrid .img-thumb:not(.removed)').length;
+            const ctr=document.getElementById('editImgCounter');
+            if(ctr) ctr.textContent=`${ex+editNewFiles.length} / 8 images`;
+        }
+
+        async function submitEditProduct(){
+            const id   =document.getElementById('editId').value;
+            const name =document.getElementById('editName').value.trim();
+            const price=document.getElementById('editPrice').value;
+            const stock=document.getElementById('editStock').value;
+            if(!name||!price||stock===''){showToast('⚠️ Required fields missing');return;}
+
+            const btn=document.getElementById('btnSaveEdit');
+            btn.disabled=true; btn.textContent='⏳ Saving...';
+
+            const fd=new FormData();
+            fd.append('id',             id);
+            fd.append('name',           name);
+            fd.append('description',    document.getElementById('editDescription').value);
+            fd.append('price',          price);
+            fd.append('salePrice',      document.getElementById('editSalePrice').value||'');
+            fd.append('stockQuantity',  stock);
+            fd.append('idCategory',     document.getElementById('editCategory').value);
+            fd.append('petType',        document.getElementById('editPetType').value);
+            fd.append('deleteImageIds', document.getElementById('editDeleteIds').value);
+            editNewFiles.forEach(f=>fd.append('newImageFiles',f));
+
+            try{
+                const res =await fetch('/StoreAdmin/EditProduct',{method:'POST',body:fd});
+                const data=await res.json();
+                if(data.success){
+                    // تحديث محلي
+                    const idx=allProducts.findIndex(p=>String(p.id)===String(id));
+                    if(idx>=0){
+                        allProducts[idx]={
+                            ...allProducts[idx],
+                            name, price:parseFloat(price),
+                            salePrice:parseFloat(document.getElementById('editSalePrice').value)||null,
+                            stock:parseInt(stock),
+                            cat:document.getElementById('editCategory').value,
+                            petType:document.getElementById('editPetType').value,
+                            images:data.images||allProducts[idx].images,
+                            image:data.imageUrl||allProducts[idx].image
+                        };
+                        allProducts[idx].status=parseInt(stock)===0?'out':(allProducts[idx].status==='hidden'?'hidden':'active');
+                    }
+                    renderProducts();
+                    closeModal('editProductModal');
+                    showToast('✅ Product updated!');
+                }else{
+                    showToast('❌ '+(data.message||'Error'));
+                }
+            }catch(e){showToast('❌ Network error');}
+            finally{btn.disabled=false;btn.textContent='💾 Save Changes';}
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // DELETE + TOGGLE VISIBILITY
+        // ════════════════════════════════════════════════════════════════
+        async function doDeleteProduct(id){
+            const p=allProducts.find(x=>x.id===id);
+            if(!p||!confirm(`Delete "${p.name}"?`)) return;
+            const fd=new FormData(); fd.append('id',id);
+            try{
+                const res=await fetch('/StoreAdmin/DeleteProduct',{method:'POST',body:fd});
+                const d=await res.json();
+                if(d.success){allProducts=allProducts.filter(x=>x.id!==id);renderProducts();showToast('🗑 Deleted');}
+                else showToast('❌ '+(d.message||'Error'));
+            }catch(e){showToast('❌ Network error');}
+        }
+
+        async function doToggleVisibility(id,el){
+            const fd=new FormData(); fd.append('id',id);
+            try{
+                const res=await fetch('/StoreAdmin/ToggleVisibility',{method:'POST',body:fd});
+                const d=await res.json();
+                if(d.success){
+                    el.classList.toggle('on',d.isVisible);
+                    const p=allProducts.find(x=>x.id===id);
+                    if(p) p.status=d.isVisible?(p.stock===0?'out':'active'):'hidden';
+                    showToast(d.isVisible?'✅ Visible':'🔒 Hidden');
+                }
+            }catch(e){showToast('❌ Network error');}
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // CATEGORIES — Add / Delete
+        // ════════════════════════════════════════════════════════════════
+        async function submitAddCategory(){
+            const name=document.getElementById('catName').value.trim();
+            const icon=document.getElementById('catIcon').value.trim()||'📦';
+            if(!name){showToast('⚠️ Category name required');return;}
+            const fd=new FormData(); fd.append('name',name); fd.append('icon',icon);
+            try{
+                const res=await fetch('/StoreAdmin/AddCategory',{method:'POST',body:fd});
+                const d=await res.json();
+                if(d.success){
+                    cats.push({id:d.id,name,icon});
+                    fillCategorySelects();renderCategories();closeModal('addCatModal');
+                    showToast('✅ Category added!');
+                    document.getElementById('catName').value='';
+                    document.getElementById('catIcon').value='';
+                }else showToast('❌ '+(d.message||'Error'));
+            }catch(e){showToast('❌ Network error');}
+        }
+
+        async function doDeleteCategory(id){
+            if(!confirm('Delete this category?')) return;
+            const fd=new FormData(); fd.append('id',id);
+            try{
+                const res=await fetch('/StoreAdmin/DeleteCategory',{method:'POST',body:fd});
+                const d=await res.json();
+                if(d.success){
+                    cats=cats.filter(c=>c.id!==id);
+                    fillCategorySelects();renderCategories();showToast('🗑 Category deleted');
+                }else showToast('❌ '+(d.message||'Error'));
+            }catch(e){showToast('❌ Network error');}
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // INIT
+        // ════════════════════════════════════════════════════════════════
         document.addEventListener('DOMContentLoaded',()=>{
-            if(!mob()&&localStorage.getItem('wa_mini')==='1')miniOn();
-            const el=document.getElementById('tnNotifCount'),b=document.getElementById('notifCountBadge');
-            if(el&&b)el.textContent=b.textContent;
+            if(!mob()&&localStorage.getItem('wa_mini')==='1') miniOn();
+
+            fillCategorySelects();
+            renderProducts();
+            renderCategories();
+            rebuildAddGrid();
+
+            // file inputs
+            document.getElementById('addImgsInput').addEventListener('change',function(){
+                const rem=8-addFiles.length;
+                addFiles=[...addFiles,...Array.from(this.files).slice(0,rem)];
+                rebuildAddGrid(); this.value='';
+            });
+            document.getElementById('editImgsInput').addEventListener('change',function(){
+                const ex=document.querySelectorAll('#editExistingGrid .img-thumb:not(.removed)').length;
+                const rem=8-ex-editNewFiles.length;
+                editNewFiles=[...editNewFiles,...Array.from(this.files).slice(0,rem)];
+                rebuildEditNewGrid(); this.value='';
+            });
+
+            // filters
+            document.getElementById('productSearch')?.addEventListener('input',renderProducts);
+            document.getElementById('productCategoryFilter')?.addEventListener('change',renderProducts);
+            document.getElementById('productStatusFilter')?.addEventListener('change',renderProducts);
         });
     </script>
-    <script src="~/js/AdminStore.js"></script>
+
+  
 </body>
 </html>

@@ -163,6 +163,7 @@
                 <div class="tabs-bar" id="tabsBar">
                     <button class="tab-btn active" onclick="showTab('products',this)">📦 Products</button>
                     <button class="tab-btn" onclick="showTab('orders',this)">🛒 Orders</button>
+                    <button class="tab-btn" onclick="showTab('customers',this)">👥 Customers</button>  <!-- ← أضف -->
                     <button class="tab-btn" onclick="showTab('documents',this)">📋 Documents</button>
                     <button class="tab-btn" onclick="showTab('info',this)">ℹ️ Store Info</button>
                 </div>
@@ -223,7 +224,36 @@
                         <div class="pagination-bar"><div class="pag-info" id="orderPagInfo"></div></div>
                     </div>
                 </div>
-
+                <!-- TAB: CUSTOMERS -->
+                <div id="tab-customers" style="display:none;">
+                    <div class="table-card">
+                        <div class="table-head-bar">
+                            <div class="table-head-title">Store Customers</div>
+                            <div class="search-wrap" style="height:36px;min-width:200px;">
+                                <span style="color:var(--text-muted);">🔍</span>
+                                <input type="text" id="custSearch"
+                                       placeholder="Search customer..."
+                                       oninput="renderCustomers()"
+                                       style="font-size:.82rem;" />
+                            </div>
+                        </div>
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Customer</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Orders</th>
+                                        <th>Total Spent</th>
+                                        <th>Last Order</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="customersTBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
                 <!-- TAB: DOCUMENTS -->
                 <div id="tab-documents" style="display:none;">
                     <div class="table-card">
@@ -301,10 +331,12 @@
     <script src="~/js/superAdminClinic.js"></script>
     <script>
         // ══ البيانات الحقيقية من قاعدة البيانات ══
+                // إلى هذا ✅ — أضف customers هنا:
         const storeData = @Html.Raw(ViewBag.StoreDataJson ?? "{}");
         const products  = @Html.Raw(ViewBag.ProductsJson ?? "[]");
         const orders    = @Html.Raw(ViewBag.OrdersJson ?? "[]");
         const docs      = @Html.Raw(ViewBag.DocsJson ?? "[]");
+        const customers = @Html.Raw(ViewBag.CustomersJson ?? "[]");
         const STORE_ID  = @ViewBag.StoreId;
 
         // ══ AntiForgery Token ══
@@ -538,12 +570,14 @@
 
         // ══ TABS ══
         const TABS = ['products', 'orders', 'documents', 'info'];
-        function showTab(id, btn) {
-            TABS.forEach(t => document.getElementById('tab-' + t).style.display = t === id ? 'block' : 'none');
+              function showTab(id, btn) {
+            ['products','orders','customers','documents','info'].forEach(t =>
+                document.getElementById('tab-' + t).style.display = t === id ? 'block' : 'none');
             document.querySelectorAll('#tabsBar .tab-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             if (id === 'orders')    renderOrders();
             if (id === 'documents') renderDocuments();
+            if (id === 'customers') renderCustomers();
         }
 
         // ══ MODAL ══
@@ -563,7 +597,42 @@
             setTimeout(() => t.remove(), 3000);
         }
 
+
+                function renderCustomers() {
+            const q    = (document.getElementById('custSearch')?.value || '').toLowerCase();
+            const data = customers.filter(c =>
+                !q || (c.name + c.email).toLowerCase().includes(q));
+
+            document.getElementById('customersTBody').innerHTML = data.length
+                ? data.map(c => `
+                    <tr>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <div style="width:34px;height:34px;border-radius:50%;
+                                            background:var(--brand-xlight);
+                                            display:grid;place-items:center;
+                                            font-weight:900;color:var(--brand-dark);
+                                            font-size:.88rem;flex-shrink:0;">
+                                    ${(c.name || '?')[0].toUpperCase()}
+                                </div>
+                                <strong>${c.name}</strong>
+                            </div>
+                        </td>
+                        <td style="color:var(--text-muted);font-size:.82rem;">${c.email}</td>
+                        <td style="font-size:.82rem;">${c.phone || '—'}</td>
+                        <td><span class="badge badge-info">${c.orders} orders</span></td>
+                        <td><strong style="color:var(--success);">
+                            ${Number(c.spent).toFixed(3)} JD
+                        </strong></td>
+                        <td style="font-size:.78rem;color:var(--text-muted);">${c.last}</td>
+                    </tr>`).join('')
+                : `<tr><td colspan="6"
+                           style="text-align:center;padding:28px;color:var(--text-muted);">
+                       No customers yet.
+                   </td></tr>`;
+        }
         initPage();
+
     </script>
 </body>
 </html>

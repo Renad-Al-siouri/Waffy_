@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Waffy.Interfaces;
 using Waffy.Models;
+using Waffy.Repositories.Interfaces;
 
 namespace Waffy.Controllers
 {
@@ -11,17 +12,20 @@ namespace Waffy.Controllers
         private readonly IComplaintRepository _complaintRepo;
         private readonly IClinicRepository _clinicRepo;
         private readonly IStoreRepository _storeRepo;
+        private readonly IPetLawRepository _lawRepo;
 
         public HomeController(
             ILogger<HomeController> logger,
             IComplaintRepository complaintRepo,
             IClinicRepository clinicRepo,
-            IStoreRepository storeRepo)
+            IStoreRepository storeRepo,
+            IPetLawRepository lawRepo)
         {
             _logger = logger;
             _complaintRepo = complaintRepo;
             _clinicRepo = clinicRepo;
             _storeRepo = storeRepo;
+            _lawRepo = lawRepo;
         }
 
         public IActionResult Index()
@@ -52,10 +56,26 @@ namespace Waffy.Controllers
             return View();
         }
 
-        public IActionResult Travel()
+        // ── GET: /Home/Travel ──────────────────────────────────────────────
+
+        
+        public async Task<IActionResult> Travel(string? category, string? search)
         {
-            return View();
+            IEnumerable<Waffy.Models.PetLaw> laws;
+
+            if (!string.IsNullOrWhiteSpace(search))
+                laws = await _lawRepo.SearchAsync(search);
+            else if (!string.IsNullOrWhiteSpace(category) && category != "all")
+                laws = await _lawRepo.GetByCategoryAsync(category);
+            else
+                laws = await _lawRepo.GetAllAsync();
+
+            ViewBag.CurrentCategory = category ?? "all";
+            ViewBag.SearchTerm = search ?? string.Empty;
+
+            return View(laws);
         }
+
 
         public async Task<IActionResult> Suport()
         {

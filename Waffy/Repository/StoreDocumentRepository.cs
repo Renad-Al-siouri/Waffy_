@@ -14,9 +14,12 @@ namespace Waffy.Repository
             _connectionString = configuration.GetConnectionString("WaffyConnection")
                 ?? throw new Exception("Connection string not found");
         }
+
         public async Task<IEnumerable<StoreDocument>> GetByStoreIdAsync(int idStore)
         {
-            var sql = "SELECT * FROM StoreDocument WHERE IdStore = @IdStore";
+            var sql = @"SELECT * FROM StoreDocument 
+                        WHERE IdStore = @IdStore 
+                        ORDER BY UploadedAt DESC";
             using var connection = new SqlConnection(_connectionString);
             return await connection.QueryAsync<StoreDocument>(sql, new { IdStore = idStore });
         }
@@ -31,20 +34,33 @@ namespace Waffy.Repository
         public async Task AddAsync(StoreDocument document)
         {
             var sql = @"
-        INSERT INTO StoreDocument
-            (IdStore, DocumentType, FileUrl, Status, ExpiryDate, UploadedAt)
-        VALUES
-            (@IdStore, @DocumentType, @FileUrl, @Status, @ExpiryDate, @UploadedAt)";
-
+                INSERT INTO StoreDocument
+                    (IdStore, DocumentType, FileUrl, Status, ExpiryDate, UploadedAt)
+                VALUES
+                    (@IdStore, @DocumentType, @FileUrl, @Status, @ExpiryDate, @UploadedAt)";
             using var connection = new SqlConnection(_connectionString);
             await connection.ExecuteAsync(sql, document);
         }
 
-        public async Task UpdateStatusAsync(int id, string status)
+        // ← محدّث: يحفظ AdminNote و ReviewedAt و ReviewedByAdminId
+        public async Task UpdateStatusAsync(int id, string status, string? adminNote, int adminId)
         {
-            var sql = "UPDATE StoreDocument SET Status = @Status WHERE Id = @Id";
+            var sql = @"
+                UPDATE StoreDocument SET
+                    Status              = @Status,
+                    AdminNote           = @AdminNote,
+                    ReviewedAt          = @ReviewedAt,
+                    ReviewedByAdminId   = @AdminId
+                WHERE Id = @Id";
             using var connection = new SqlConnection(_connectionString);
-            await connection.ExecuteAsync(sql, new { Id = id, Status = status });
+            await connection.ExecuteAsync(sql, new
+            {
+                Id = id,
+                Status = status,
+                AdminNote = adminNote,
+                ReviewedAt = DateTime.UtcNow,
+                AdminId = adminId
+            });
         }
 
         public async Task DeleteAsync(int id)

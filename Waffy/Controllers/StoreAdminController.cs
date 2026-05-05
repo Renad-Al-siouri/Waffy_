@@ -2,34 +2,42 @@
 using System.Text.Json;
 using Waffy.Interfaces;
 using Waffy.Models;
-
+using Waffy.Repositories.Interfaces;
 namespace Waffy.Controllers
 {
     public class StoreAdminController : Controller
     {
+        // ══ Dependencies ══════════════════════════════════════════
         private readonly IStoreRepository _storeRepo;
         private readonly IProductRepository _productRepo;
         private readonly IOrderRepository _orderRepo;
         private readonly IOrderItemRepository _orderItemRepo;
         private readonly IStoreDocumentRepository _docRepo;
+        private readonly ICategoryRepository _categoryRepo;
+        private readonly IProductImageRepository _productImageRepo;
+        private readonly IStoreImageRepository _storeImageRepo;
 
         public StoreAdminController(
             IStoreRepository storeRepo,
             IProductRepository productRepo,
             IOrderRepository orderRepo,
             IOrderItemRepository orderItemRepo,
-            IStoreDocumentRepository docRepo)
+            IStoreDocumentRepository docRepo,
+            ICategoryRepository categoryRepo,
+            IProductImageRepository productImageRepo,
+            IStoreImageRepository storeImageRepo)
         {
             _storeRepo = storeRepo;
             _productRepo = productRepo;
             _orderRepo = orderRepo;
             _orderItemRepo = orderItemRepo;
             _docRepo = docRepo;
+            _categoryRepo = categoryRepo;
+            _productImageRepo = productImageRepo;
+            _storeImageRepo = storeImageRepo;
         }
 
-        // ══════════════════════════════════════════════════════════
-        // HELPERS
-        // ══════════════════════════════════════════════════════════
+        // ══ HELPERS ═══════════════════════════════════════════════
 
         private bool IsStoreOwner() =>
             HttpContext.Session.GetInt32("UserId") != null &&
@@ -70,19 +78,12 @@ namespace Waffy.Controllers
             _ => docType ?? "Document"
         };
 
-        private static object MapProductToJs(Product p) => new
+        private static bool IsImageFile(string? url)
         {
-            id = p.Id,
-            name = p.Name ?? "",
-            description = p.Description ?? "",
-            cat = p.IdCategory.ToString(),
-            price = p.Price,
-            salePrice = p.SalePrice,
-            stock = p.StockQuantity,
-            maxStock = p.StockQuantity > 0 ? p.StockQuantity * 2 : 20,
-            status = p.StockQuantity == 0 ? "out" : (p.IsVisible ? "active" : "hidden"),
-            image = p.ImageUrl ?? ""
-        };
+            if (string.IsNullOrEmpty(url)) return false;
+            var ext = Path.GetExtension(url).ToLowerInvariant();
+            return ext is ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp";
+        }
 
         private async Task<object> MapOrderToJs(Order o)
         {
@@ -103,37 +104,60 @@ namespace Waffy.Controllers
             };
         }
 
-        // ══════════════════════════════════════════════════════════
-        // INDEX / DASHBOARD
-        // ══════════════════════════════════════════════════════════
+        // ══ INDEX / DASHBOARD ═════════════════════════════════════
 
         public IActionResult Index() => RedirectToAction("Dashboard");
 
         [HttpGet]
-        public async Task<IActionResult> Dashboard()
+public async Task<IActionResult> Dashboard()
+{
+    if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
+    var store = await GetCurrentStore();
+    if (store == null) return RedirectToAction("Login", "Account");
+    SetSidebarData(store);
+ 
+    var products   = (await _productRepo.GetByStoreIdAsync(store.IdStore)).ToList();
+    var categories = (await _categoryRepo.GetByStoreIdAsync(store.IdStore)).ToList();
+    var orders     = (await _orderRepo.GetByStoreIdAsync(store.IdStore)).ToList();
+    var revenue    = await _orderRepo.GetTotalRevenueByStoreAsync(store.IdStore);
+ 
+    var productsJs = new List<object>();
+    foreach (var p in products)
+    {
+        var imgs    = (await _productImageRepo.GetByProductIdAsync(p.Id)).ToList();
+        var mainImg = imgs.FirstOrDefault(i => i.IsMain)?.ImageUrl
+                   ?? imgs.FirstOrDefault()?.ImageUrl
+                   ?? p.ImageUrl ?? "";
+        productsJs.Add(new
         {
-            if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
-            var store = await GetCurrentStore();
-            if (store == null) return RedirectToAction("Login", "Account");
-            SetSidebarData(store);
+            id     = p.Id,
+            name   = p.Name ?? "",
+            cat    = p.IdCategory.ToString(),
+            price  = p.Price,
+            stock  = p.StockQuantity,
+            status = p.StockQuantity == 0 ? "out" : (p.IsVisible ? "active" : "hidden"),
+            image  = mainImg
+        });
+    }
+ 
+    ViewBag.ProductsJson    = JsonSerializer.Serialize(productsJs);
+    ViewBag.CategoriesJson  = JsonSerializer.Serialize(categories.Select(c => new
+    {
+        id   = c.IdCategory,
+        name = c.Name ?? "",
+        icon = (c.Icon != null && c.Icon != "??" && c.Icon != "?") ? c.Icon : "📦"
+    }));
+    ViewBag.OrdersJson      = JsonSerializer.Serialize(await Task.WhenAll(orders.Select(MapOrderToJs)));
+    ViewBag.TotalRevenue    = revenue;
+    ViewBag.PendingOrders   = orders.Count(o => o.Status == "Pending");
+    ViewBag.CompletedOrders = orders.Count(o => o.Status == "Delivered");
+    ViewBag.LowStockCount   = products.Count(p => p.StockQuantity <= 2);
+    ViewBag.ProductsCount   = products.Count;
+    ViewBag.TotalOrders     = orders.Count;
+    return View();
+}
 
-            var products = (await _productRepo.GetByStoreIdAsync(store.IdStore)).ToList();
-            var orders = (await _orderRepo.GetByStoreIdAsync(store.IdStore)).ToList();
-            var revenue = await _orderRepo.GetTotalRevenueByStoreAsync(store.IdStore);
-
-            ViewBag.ProductsJson = JsonSerializer.Serialize(products.Select(MapProductToJs));
-            ViewBag.OrdersJson = JsonSerializer.Serialize(await Task.WhenAll(orders.Select(MapOrderToJs)));
-            ViewBag.TotalRevenue = revenue;
-            ViewBag.PendingOrders = orders.Count(o => o.Status == "Pending");
-            ViewBag.CompletedOrders = orders.Count(o => o.Status == "Delivered");
-            ViewBag.LowStockCount = products.Count(p => p.StockQuantity <= 2);
-            ViewBag.ProductsCount = products.Count;
-            return View();
-        }
-
-        // ══════════════════════════════════════════════════════════
-        // PRODUCTS
-        // ══════════════════════════════════════════════════════════
+        // ══ PRODUCTS ══════════════════════════════════════════════
 
         [HttpGet]
         public async Task<IActionResult> Products()
@@ -144,7 +168,45 @@ namespace Waffy.Controllers
             SetSidebarData(store);
 
             var products = (await _productRepo.GetByStoreIdAsync(store.IdStore)).ToList();
-            ViewBag.ProductsJson = JsonSerializer.Serialize(products.Select(MapProductToJs));
+            var categories = (await _categoryRepo.GetByStoreIdAsync(store.IdStore)).ToList();
+
+            var productsWithImages = new List<object>();
+            foreach (var p in products)
+            {
+                var imgs = (await _productImageRepo.GetByProductIdAsync(p.Id)).ToList();
+                var mainImg = imgs.FirstOrDefault(i => i.IsMain)?.ImageUrl
+                           ?? imgs.FirstOrDefault()?.ImageUrl
+                           ?? p.ImageUrl ?? "";
+
+                productsWithImages.Add(new
+                {
+                    id = p.Id,
+                    name = p.Name ?? "",
+                    description = p.Description ?? "",
+                    cat = p.IdCategory.ToString(),
+                    price = p.Price,
+                    salePrice = p.SalePrice,
+                    stock = p.StockQuantity,
+                    petType = p.PetType ?? "",
+                    status = p.StockQuantity == 0 ? "out" : (p.IsVisible ? "active" : "hidden"),
+                    image = mainImg,
+                    images = imgs.Select(i => new
+                    {
+                        id = i.Id,
+                        imageUrl = i.ImageUrl,
+                        isMain = i.IsMain,
+                        sortOrder = i.SortOrder
+                    }).ToList()
+                });
+            }
+
+            ViewBag.ProductsJson = JsonSerializer.Serialize(productsWithImages);
+            ViewBag.CategoriesJson = JsonSerializer.Serialize(categories.Select(c => new
+            {
+                id = c.IdCategory,
+                name = c.Name ?? "",
+                icon = (c.Icon != null && c.Icon != "??" && c.Icon != "?") ? c.Icon : "📦"
+            }));
             ViewBag.StoreId = store.IdStore;
             ViewBag.ProductCount = products.Count;
             return View();
@@ -153,38 +215,76 @@ namespace Waffy.Controllers
         [HttpPost]
         public async Task<IActionResult> AddProduct(
             string name, string? description, decimal price, decimal? salePrice,
-            int stockQuantity, int idCategory, string? petType, IFormFile? imageFile)
+            int stockQuantity, int idCategory, string? petType,
+            List<IFormFile>? imageFiles)
         {
             if (!IsStoreOwner()) return Json(new { success = false, message = "Not authorized." });
             var store = await GetCurrentStore();
             if (store == null) return Json(new { success = false, message = "Store not found." });
 
-            string? imageUrl = null;
-            if (imageFile != null && imageFile.Length > 0)
-                imageUrl = await SaveFileAsync(imageFile, "products");
+            var validImageFiles = imageFiles?.Where(f => f?.Length > 0).ToList() ?? new();
+            if (validImageFiles.Count > 8)
+                return Json(new { success = false, message = "Maximum 8 images allowed." });
+
+            // إذا لم تُختر فئة، نأخذ أول فئة للمتجر
+            int finalCategoryId = idCategory;
+            if (finalCategoryId <= 0)
+            {
+                var storeCats = (await _categoryRepo.GetByStoreIdAsync(store.IdStore)).ToList();
+                finalCategoryId = storeCats.FirstOrDefault()?.IdCategory ?? 1;
+            }
 
             var product = new Product
             {
                 IdStore = store.IdStore,
-                IdCategory = idCategory > 0 ? idCategory : 1,
-                Name = name,
-                Description = description,
+                IdCategory = finalCategoryId,
+                Name = name?.Trim() ?? "",
+                Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(),
                 Price = price,
-                SalePrice = salePrice,
+                SalePrice = (salePrice.HasValue && salePrice > 0) ? salePrice : null,
                 StockQuantity = stockQuantity,
-                PetType = petType,
-                ImageUrl = imageUrl,
+                PetType = string.IsNullOrWhiteSpace(petType) ? null : petType,
                 IsVisible = true,
                 CreatedAt = DateTime.UtcNow
             };
+
             var newId = await _productRepo.AddAsync(product);
-            return Json(new { success = true, id = newId, imageUrl });
+
+            var savedImages = new List<object>();
+            int sortOrder = 0;
+            foreach (var imgFile in validImageFiles)
+            {
+                var url = await SaveFileAsync(imgFile, "products");
+                bool main = sortOrder == 0;
+
+                var imgId = await _productImageRepo.AddAsync(new ProductImage
+                {
+                    IdProduct = newId,
+                    ImageUrl = url,
+                    SortOrder = sortOrder,
+                    IsMain = main
+                });
+
+                savedImages.Add(new { id = imgId, url, isMain = main });
+
+                if (main)
+                {
+                    product.Id = newId;
+                    product.ImageUrl = url;
+                    await _productRepo.UpdateAsync(product);
+                }
+                sortOrder++;
+            }
+
+            return Json(new { success = true, id = newId, images = savedImages });
         }
 
         [HttpPost]
         public async Task<IActionResult> EditProduct(
             int id, string name, string? description, decimal price, decimal? salePrice,
-            int stockQuantity, int idCategory, string? petType, IFormFile? imageFile)
+            int stockQuantity, int idCategory, string? petType,
+            List<IFormFile>? newImageFiles,
+            string? deleteImageIds)
         {
             if (!IsStoreOwner()) return Json(new { success = false, message = "Not authorized." });
             var store = await GetCurrentStore();
@@ -194,18 +294,66 @@ namespace Waffy.Controllers
             if (product == null || product.IdStore != store.IdStore)
                 return Json(new { success = false, message = "Product not found." });
 
-            if (imageFile != null && imageFile.Length > 0)
-                product.ImageUrl = await SaveFileAsync(imageFile, "products");
+            // حذف الصور المطلوب حذفها
+            if (!string.IsNullOrEmpty(deleteImageIds))
+            {
+                foreach (var imgId in deleteImageIds
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => int.TryParse(x.Trim(), out var v) ? v : 0)
+                    .Where(x => x > 0))
+                {
+                    await _productImageRepo.DeleteAsync(imgId);
+                }
+            }
 
-            product.Name = name;
-            product.Description = description;
+            // إضافة الصور الجديدة
+            var validNewFiles = newImageFiles?.Where(f => f?.Length > 0).ToList() ?? new();
+            if (validNewFiles.Count > 0)
+            {
+                var existing = (await _productImageRepo.GetByProductIdAsync(id)).ToList();
+                if (existing.Count + validNewFiles.Count > 8)
+                    return Json(new { success = false, message = "Maximum 8 images per product." });
+
+                int nextOrder = existing.Any() ? existing.Max(i => i.SortOrder) + 1 : 0;
+                bool hasMain = existing.Any(i => i.IsMain);
+
+                foreach (var imgFile in validNewFiles)
+                {
+                    var url = await SaveFileAsync(imgFile, "products");
+                    bool isMain = !hasMain;
+                    await _productImageRepo.AddAsync(new ProductImage
+                    {
+                        IdProduct = id,
+                        ImageUrl = url,
+                        SortOrder = nextOrder++,
+                        IsMain = isMain
+                    });
+                    if (isMain) { product.ImageUrl = url; hasMain = true; }
+                }
+            }
+
+            product.Name = name?.Trim() ?? "";
+            product.Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim();
             product.Price = price;
-            product.SalePrice = salePrice;
+            product.SalePrice = (salePrice.HasValue && salePrice > 0) ? salePrice : null;
             product.StockQuantity = stockQuantity;
             product.IdCategory = idCategory > 0 ? idCategory : product.IdCategory;
-            product.PetType = petType;
+            product.PetType = string.IsNullOrWhiteSpace(petType) ? null : petType;
             await _productRepo.UpdateAsync(product);
-            return Json(new { success = true, imageUrl = product.ImageUrl });
+
+            var updatedImages = (await _productImageRepo.GetByProductIdAsync(id)).ToList();
+            return Json(new
+            {
+                success = true,
+                imageUrl = product.ImageUrl,
+                images = updatedImages.Select(i => new
+                {
+                    id = i.Id,
+                    imageUrl = i.ImageUrl,
+                    isMain = i.IsMain,
+                    sortOrder = i.SortOrder
+                })
+            });
         }
 
         [HttpPost]
@@ -239,9 +387,66 @@ namespace Waffy.Controllers
             return Json(new { success = true, isVisible = newVisibility });
         }
 
-        // ══════════════════════════════════════════════════════════
-        // ORDERS
-        // ══════════════════════════════════════════════════════════
+        [HttpPost]
+        public async Task<IActionResult> SetMainImage(int productId, int imageId)
+        {
+            if (!IsStoreOwner()) return Json(new { success = false });
+            var store = await GetCurrentStore();
+            if (store == null) return Json(new { success = false });
+
+            var product = await _productRepo.GetByIdAsync(productId);
+            if (product == null || product.IdStore != store.IdStore)
+                return Json(new { success = false, message = "Not authorized." });
+
+            await _productImageRepo.SetMainImageAsync(productId, imageId);
+
+            var img = (await _productImageRepo.GetByProductIdAsync(productId))
+                      .FirstOrDefault(i => i.Id == imageId);
+            if (img != null)
+            {
+                product.ImageUrl = img.ImageUrl;
+                await _productRepo.UpdateAsync(product);
+            }
+            return Json(new { success = true });
+        }
+
+        // ══ CATEGORIES ════════════════════════════════════════════
+
+        [HttpPost]
+        public async Task<IActionResult> AddCategory(string name, string? icon)
+        {
+            if (!IsStoreOwner()) return Json(new { success = false });
+            var store = await GetCurrentStore();
+            if (store == null) return Json(new { success = false });
+
+            if (string.IsNullOrWhiteSpace(name))
+                return Json(new { success = false, message = "Category name required." });
+
+            var newId = await _categoryRepo.AddAsync(new Category
+            {
+                IdStore = store.IdStore,
+                Name = name.Trim(),
+                Icon = string.IsNullOrEmpty(icon) ? "📦" : icon.Trim()
+            });
+            return Json(new { success = true, id = newId });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteCategory(int id)
+        {
+            if (!IsStoreOwner()) return Json(new { success = false });
+            var store = await GetCurrentStore();
+            if (store == null) return Json(new { success = false });
+
+            var cat = await _categoryRepo.GetByIdAsync(id);
+            if (cat == null || cat.IdStore != store.IdStore)
+                return Json(new { success = false, message = "Not authorized." });
+
+            await _categoryRepo.DeleteAsync(id);
+            return Json(new { success = true });
+        }
+
+        // ══ ORDERS ════════════════════════════════════════════════
 
         [HttpGet]
         public async Task<IActionResult> Orders()
@@ -252,7 +457,8 @@ namespace Waffy.Controllers
             SetSidebarData(store);
 
             var orders = (await _orderRepo.GetByStoreIdAsync(store.IdStore)).ToList();
-            ViewBag.OrdersJson = JsonSerializer.Serialize(await Task.WhenAll(orders.Select(MapOrderToJs)));
+            ViewBag.OrdersJson = JsonSerializer.Serialize(
+                await Task.WhenAll(orders.Select(MapOrderToJs)));
             return View();
         }
 
@@ -281,9 +487,7 @@ namespace Waffy.Controllers
             return Json(new { success = true });
         }
 
-        // ══════════════════════════════════════════════════════════
-        // CUSTOMERS
-        // ══════════════════════════════════════════════════════════
+        // ══ CUSTOMERS ═════════════════════════════════════════════
 
         [HttpGet]
         public async Task<IActionResult> Customers()
@@ -294,7 +498,7 @@ namespace Waffy.Controllers
             SetSidebarData(store);
 
             var customers = await _orderRepo.GetCustomersByStoreAsync(store.IdStore);
-            var customersJs = customers.Select(c => new
+            ViewBag.CustomersJson = JsonSerializer.Serialize(customers.Select(c => new
             {
                 name = c.FullName ?? "",
                 email = c.Email ?? "",
@@ -302,20 +506,17 @@ namespace Waffy.Controllers
                 orders = c.OrderCount,
                 spent = c.TotalSpent,
                 last = c.LastOrderDate?.ToString("dd MMM yyyy") ?? "-"
-            });
-            ViewBag.CustomersJson = JsonSerializer.Serialize(customersJs);
+            }));
             return View();
         }
 
-        // ══════════════════════════════════════════════════════════
-        // SETTINGS — الإعدادات المنفصلة
-        // ══════════════════════════════════════════════════════════
+        // ══ SETTINGS ══════════════════════════════════════════════
 
-        // Redirect /Settings → /Settings/Info
         [HttpGet]
         public IActionResult Settings() => RedirectToAction("SettingsInfo");
 
         // ── Info ──────────────────────────────────────────────────
+
         [HttpGet]
         public async Task<IActionResult> SettingsInfo()
         {
@@ -324,7 +525,6 @@ namespace Waffy.Controllers
             if (store == null) return RedirectToAction("Login", "Account");
             SetSidebarData(store);
 
-            // جلب الوثائق
             var docs = (await _docRepo.GetByStoreIdAsync(store.IdStore)).ToList();
             ViewBag.Documents = docs.Select(d => new
             {
@@ -333,10 +533,13 @@ namespace Waffy.Controllers
                 label = MapDocLabel(d.DocumentType),
                 fileUrl = d.FileUrl ?? "",
                 status = (d.Status ?? "pending").ToLower(),
+                adminNote = d.AdminNote ?? "",
                 uploadedAt = d.UploadedAt.ToString("dd MMM yyyy"),
                 isImage = IsImageFile(d.FileUrl)
             }).ToList();
 
+            if (TempData["Success"] != null) ViewBag.Success = TempData["Success"];
+            if (TempData["Error"] != null) ViewBag.Error = TempData["Error"];
             return View(store);
         }
 
@@ -355,7 +558,8 @@ namespace Waffy.Controllers
             return RedirectToAction("SettingsInfo");
         }
 
-        // ── Images ───────────────────────────────────────────────
+        // ── Images ────────────────────────────────────────────────
+
         [HttpGet]
         public async Task<IActionResult> SettingsImages()
         {
@@ -363,25 +567,92 @@ namespace Waffy.Controllers
             var store = await GetCurrentStore();
             if (store == null) return RedirectToAction("Login", "Account");
             SetSidebarData(store);
+
+            var allImages = (await _storeImageRepo.GetByStoreIdAsync(store.IdStore)).ToList();
+            ViewBag.GalleryImages = allImages
+                .Where(i => i.ImageType == "Gallery")
+                .OrderBy(i => i.SortOrder)
+                .ToList();
+
+            if (TempData["Success"] != null) ViewBag.Success = TempData["Success"];
+            if (TempData["Error"] != null) ViewBag.Error = TempData["Error"];
             return View(store);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> SettingsImages(IFormFile? logoFile, IFormFile? coverFile)
+        [HttpPost]
+        public async Task<IActionResult> UploadStoreImages(
+            string imageType,
+            List<IFormFile>? imageFiles)
         {
-            if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
+            if (!IsStoreOwner()) return Json(new { success = false, message = "Not authorized." });
             var store = await GetCurrentStore();
-            if (store == null) return RedirectToAction("Login", "Account");
+            if (store == null) return Json(new { success = false, message = "Store not found." });
 
-            if (logoFile != null && logoFile.Length > 0) store.LogoUrl = await SaveFileAsync(logoFile, "store-logos");
-            if (coverFile != null && coverFile.Length > 0) store.CoverImageUrl = await SaveFileAsync(coverFile, "store-covers");
+            var validFiles = imageFiles?.Where(f => f?.Length > 0).ToList() ?? new();
+            if (!validFiles.Any())
+                return Json(new { success = false, message = "No files received." });
 
-            await _storeRepo.UpdateAsync(store);
-            TempData["Success"] = "✅ Images saved.";
-            return RedirectToAction("SettingsImages");
+            // Logo و Cover: صورة واحدة فقط
+            if (imageType == "Logo" || imageType == "Cover")
+            {
+                await _storeImageRepo.DeleteByStoreIdAndTypeAsync(store.IdStore, imageType);
+                validFiles = validFiles.Take(1).ToList();
+            }
+            else if (imageType == "Gallery")
+            {
+                var existingCount = (await _storeImageRepo.GetByStoreIdAndTypeAsync(store.IdStore, "Gallery")).Count();
+                if (existingCount >= 8)
+                    return Json(new { success = false, message = "Maximum 8 gallery images reached." });
+                validFiles = validFiles.Take(8 - existingCount).ToList();
+            }
+
+            var subFolder = imageType switch
+            {
+                "Logo" => "store-logos",
+                "Cover" => "store-covers",
+                _ => "store-gallery"
+            };
+
+            var savedUrls = new List<string>();
+            int sortOrder = 0;
+            foreach (var file in validFiles)
+            {
+                var url = await SaveFileAsync(file, subFolder);
+                await _storeImageRepo.AddAsync(new StoreImage
+                {
+                    IdStore = store.IdStore,
+                    ImageUrl = url,
+                    ImageType = imageType,
+                    SortOrder = sortOrder++
+                });
+                savedUrls.Add(url);
+
+                // نحدّث الحقول القديمة في Store للتوافق
+                if (imageType == "Logo")
+                {
+                    store.LogoUrl = url;
+                    await _storeRepo.UpdateAsync(store);
+                }
+                else if (imageType == "Cover")
+                {
+                    store.CoverImageUrl = url;
+                    await _storeRepo.UpdateAsync(store);
+                }
+            }
+
+            return Json(new { success = true, urls = savedUrls });
         }
 
-        // ── Contact ──────────────────────────────────────────────
+        [HttpPost]
+        public async Task<IActionResult> DeleteStoreImage(int imageId)
+        {
+            if (!IsStoreOwner()) return Json(new { success = false, message = "Not authorized." });
+            await _storeImageRepo.DeleteAsync(imageId);
+            return Json(new { success = true });
+        }
+
+        // ── Contact ───────────────────────────────────────────────
+
         [HttpGet]
         public async Task<IActionResult> SettingsContact()
         {
@@ -389,23 +660,15 @@ namespace Waffy.Controllers
             var store = await GetCurrentStore();
             if (store == null) return RedirectToAction("Login", "Account");
             SetSidebarData(store);
+            if (TempData["Success"] != null) ViewBag.Success = TempData["Success"];
             return View(store);
         }
 
-        // ══════════════════════════════════════════════════════════
-        // استبدل SettingsContact POST الموجود بهذا الكود
-        // ══════════════════════════════════════════════════════════
-
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> SettingsContact(
-            string? email,
-            string? phone,
-            string? whatsApp,
-            string? city,
-            string? area,
-            string? address,
-            double? latitude,      // ← جديد
-            double? longitude)     // ← جديد
+            string? email, string? phone, string? whatsApp,
+            string? city, string? area, string? address,
+            double? latitude, double? longitude)
         {
             if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
             var store = await GetCurrentStore();
@@ -417,8 +680,6 @@ namespace Waffy.Controllers
             store.City = city;
             store.Area = area;
             store.Address = address;
-
-            // الإحداثيات — نخزّن null إذا أرسل الفورم قيمة فارغة (أُزيل الدبوس)
             store.Latitude = latitude;
             store.Longitude = longitude;
 
@@ -427,7 +688,8 @@ namespace Waffy.Controllers
             return RedirectToAction("SettingsContact");
         }
 
-        // ── Delivery ─────────────────────────────────────────────
+        // ── Delivery ──────────────────────────────────────────────
+
         [HttpGet]
         public async Task<IActionResult> SettingsDelivery()
         {
@@ -435,6 +697,7 @@ namespace Waffy.Controllers
             var store = await GetCurrentStore();
             if (store == null) return RedirectToAction("Login", "Account");
             SetSidebarData(store);
+            if (TempData["Success"] != null) ViewBag.Success = TempData["Success"];
             return View(store);
         }
 
@@ -452,12 +715,14 @@ namespace Waffy.Controllers
             store.WorkingDays = workingDays;
             store.OpenTime = string.IsNullOrEmpty(openTime) ? null : TimeSpan.TryParse(openTime, out var ot) ? ot : null;
             store.CloseTime = string.IsNullOrEmpty(closeTime) ? null : TimeSpan.TryParse(closeTime, out var ct) ? ct : null;
+
             await _storeRepo.UpdateAsync(store);
             TempData["Success"] = "✅ Delivery settings saved.";
             return RedirectToAction("SettingsDelivery");
         }
 
-        // ── Payment ──────────────────────────────────────────────
+        // ── Payment ───────────────────────────────────────────────
+
         [HttpGet]
         public async Task<IActionResult> SettingsPayment()
         {
@@ -465,6 +730,7 @@ namespace Waffy.Controllers
             var store = await GetCurrentStore();
             if (store == null) return RedirectToAction("Login", "Account");
             SetSidebarData(store);
+            if (TempData["Success"] != null) ViewBag.Success = TempData["Success"];
             return View(store);
         }
 
@@ -481,21 +747,8 @@ namespace Waffy.Controllers
             return RedirectToAction("SettingsPayment");
         }
 
-        // ── Helper داخلي للتحقق من الصورة ─────────────────────
-        private static bool IsImageFile(string? url)
-        {
-            if (string.IsNullOrEmpty(url)) return false;
-            var ext = Path.GetExtension(url).ToLowerInvariant();
-            return ext is ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp";
-        }
+        // ── Security ──────────────────────────────────────────────
 
-
-        // ══════════════════════════════════════════════════════════
-        // أضف هذه الـ Actions إلى StoreAdminController.cs
-        // في منطقة SETTINGS — بعد SettingsPayment
-        // ══════════════════════════════════════════════════════════
-
-        // ── Security ─────────────────────────────────────────────
         [HttpGet]
         public async Task<IActionResult> SettingsSecurity()
         {
@@ -503,7 +756,9 @@ namespace Waffy.Controllers
             var store = await GetCurrentStore();
             if (store == null) return RedirectToAction("Login", "Account");
             SetSidebarData(store);
-            return View();   // لا يحتاج model — الفيو لا يعرض بيانات الـ Store
+            if (TempData["Success"] != null) ViewBag.Success = TempData["Success"];
+            if (TempData["Error"] != null) ViewBag.Error = TempData["Error"];
+            return View();
         }
 
         [HttpPost, ValidateAntiForgeryToken]
@@ -514,7 +769,6 @@ namespace Waffy.Controllers
             var store = await GetCurrentStore();
             if (store == null) return RedirectToAction("Login", "Account");
 
-            // ── التحقق الأساسي ──────────────────────────────────
             if (string.IsNullOrWhiteSpace(currentPassword) ||
                 string.IsNullOrWhiteSpace(newPassword) ||
                 string.IsNullOrWhiteSpace(confirmPassword))
@@ -535,39 +789,13 @@ namespace Waffy.Controllers
                 return RedirectToAction("SettingsSecurity");
             }
 
-            // ── جلب المستخدم والتحقق من الـ current password ──
-            var userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null)
-                return RedirectToAction("Login", "Account");
-
-            // استبدل هذا بـ UserRepository أو AuthService الخاص بك
-            // مثال افتراضي:
-            // var user = await _userRepo.GetByIdAsync(userId.Value);
-            // if (user == null || !BCrypt.Net.BCrypt.Verify(currentPassword, user.PasswordHash))
-            // {
-            //     TempData["Error"] = "❌ Current password is incorrect.";
-            //     return RedirectToAction("SettingsSecurity");
-            // }
-            // user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
-            // await _userRepo.UpdateAsync(user);
-
+            // TODO: تحقق من الـ currentPassword مقابل الـ DB وحدّث الـ hash
             TempData["Success"] = "✅ Password updated successfully.";
             return RedirectToAction("SettingsSecurity");
         }
 
-        // ══════════════════════════════════════════════════════════
-        // عدّل الـ Settings() redirect الموجود ليشير إلى SettingsInfo
-        // (هذا موجود بالفعل في الكونترولر — للتأكيد فقط)
-        // ══════════════════════════════════════════════════════════
+        // ══ STUBS ═════════════════════════════════════════════════
 
-        // [HttpGet]
-        // public IActionResult Settings() => RedirectToAction("SettingsInfo");
-        // ← هذا السطر موجود بالفعل، لا داعي لتغييره
-
-
-        // ══════════════════════════════════════════════════════════
-        // STUBS
-        // ══════════════════════════════════════════════════════════
         public IActionResult Reviews() => View();
         public IActionResult Adoption() => View();
         public IActionResult Notifications() => View();
