@@ -9,16 +9,18 @@ namespace Waffy.Controllers
 {
     public class SuperAdminController : Controller
     {
+        // ── Dependencies (merged from both versions) ─────────────
         private readonly IUserRepository _userRepo;
         private readonly IStoreRepository _storeRepo;
         private readonly IProductRepository _productRepo;
         private readonly IOrderRepository _orderRepo;
-        private readonly IOrderItemRepository _orderItemRepo;
+        private readonly IOrderItemRepository _orderItemRepo;       // ← from v2
         private readonly IStoreDocumentRepository _docRepo;
         private readonly IDangerousAnimalReportRepository _dangerRepo;
         private readonly IDonationRepository _donationRepo;
         private readonly IDonationAnimalRepository _donationAnimalRepo;
-        private readonly IPetLawRepository _lawRepo;
+        private readonly IComplaintRepository _complaintRepo;       // ← from v1
+        private readonly IPetLawRepository _lawRepo;                // ← from v2
 
         public SuperAdminController(
             IUserRepository userRepo,
@@ -30,6 +32,7 @@ namespace Waffy.Controllers
             IDangerousAnimalReportRepository dangerRepo,
             IDonationRepository donationRepo,
             IDonationAnimalRepository donationAnimalRepo,
+            IComplaintRepository complaintRepo,
             IPetLawRepository lawRepo)
         {
             _userRepo = userRepo;
@@ -41,6 +44,7 @@ namespace Waffy.Controllers
             _dangerRepo = dangerRepo;
             _donationRepo = donationRepo;
             _donationAnimalRepo = donationAnimalRepo;
+            _complaintRepo = complaintRepo;
             _lawRepo = lawRepo;
         }
 
@@ -51,6 +55,7 @@ namespace Waffy.Controllers
         private IActionResult NotAdmin() =>
             RedirectToAction("Login", "Account");
 
+        // ── Admin Info ───────────────────────────────────────────
         private string AdminName =>
             HttpContext.Session.GetString("FullName") ?? "Admin";
 
@@ -71,7 +76,7 @@ namespace Waffy.Controllers
             ViewBag.AdminInitials = AdminInitials;
         }
 
-        // ── Helpers ──────────────────────────────────────────────
+        // ── Helpers (from v2) ────────────────────────────────────
         private static string MapDocLabel(string? docType) => docType switch
         {
             "CommercialRegister" => "📋 Commercial Registration",
@@ -88,6 +93,17 @@ namespace Waffy.Controllers
             return ext is ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp";
         }
 
+        private static string GetCategoryLabel(string category) => category switch
+        {
+            "travel" => "✈️ Pet Travel",
+            "adoption" => "🐾 Adoption",
+            "protection" => "🛡 Animal Protection",
+            "vaccination" => "💉 Vaccinations",
+            "breeding" => "🧬 Breeding & Import",
+            "stray" => "🏚 Stray Animals",
+            _ => category
+        };
+
         // ════════════════════════════════════════════════════════
         // Dashboard
         // ════════════════════════════════════════════════════════
@@ -99,13 +115,14 @@ namespace Waffy.Controllers
         }
 
         // ════════════════════════════════════════════════════════
-        // Users
+        // Users — GET (from v1: complete with return params)
         // ════════════════════════════════════════════════════════
         public async Task<IActionResult> Users(
             string? search, string? status, string? role,
             string? sort, int page = 1)
         {
             if (!IsAdmin()) return NotAdmin();
+
             const int pageSize = 8;
             sort ??= "newest";
 
@@ -121,26 +138,35 @@ namespace Waffy.Controllers
 
             var users = await _userRepo.GetAllForAdminAsync(search, status, role, sort, page, pageSize);
             vm.Users = users.ToList();
+
             vm.TotalUsers = await _userRepo.CountTotalAsync();
             vm.NewThisMonth = await _userRepo.CountNewThisMonthAsync();
             vm.ActiveUsers = await _userRepo.CountByStatusAsync("Active");
             vm.SuspendedUsers = await _userRepo.CountByStatusAsync("Suspended");
             vm.PendingUsers = await _userRepo.CountByStatusAsync("Pending");
+
             vm.TotalFiltered = await _userRepo.CountFilteredAsync(search, status, role);
             vm.TotalPages = (int)Math.Ceiling((double)vm.TotalFiltered / pageSize);
-            if (vm.CurrentPage > vm.TotalPages && vm.TotalPages > 0) vm.CurrentPage = vm.TotalPages;
+            if (vm.CurrentPage > vm.TotalPages && vm.TotalPages > 0)
+                vm.CurrentPage = vm.TotalPages;
 
             SetAdminViewBag();
             if (TempData["SuccessMessage"] != null) ViewBag.Success = TempData["SuccessMessage"];
             if (TempData["ErrorMessage"] != null) ViewBag.Error = TempData["ErrorMessage"];
+
             return View(vm);
         }
 
+        // ════════════════════════════════════════════════════════
+        // User Details — GET
+        // ════════════════════════════════════════════════════════
         public async Task<IActionResult> Details_U(
-            int id, string? returnSearch, string? returnStatus,
+            int id,
+            string? returnSearch, string? returnStatus,
             string? returnRole, int returnPage = 1)
         {
             if (!IsAdmin()) return NotAdmin();
+
             var user = await _userRepo.GetByIdForAdminAsync(id);
             if (user == null) return NotFound();
 
@@ -156,9 +182,13 @@ namespace Waffy.Controllers
             SetAdminViewBag();
             if (TempData["SuccessMessage"] != null) ViewBag.Success = TempData["SuccessMessage"];
             if (TempData["ErrorMessage"] != null) ViewBag.Error = TempData["ErrorMessage"];
+
             return View(vm);
         }
 
+        // ════════════════════════════════════════════════════════
+        // SuspendUser — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> SuspendUser(
             int userId, string? returnSearch, string? returnStatus,
@@ -172,6 +202,9 @@ namespace Waffy.Controllers
                 : RedirectToAction("Users", new { search = returnSearch, status = returnStatus, role = returnRole, page = returnPage });
         }
 
+        // ════════════════════════════════════════════════════════
+        // ActivateUser — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> ActivateUser(
             int userId, string? returnSearch, string? returnStatus,
@@ -185,6 +218,9 @@ namespace Waffy.Controllers
                 : RedirectToAction("Users", new { search = returnSearch, status = returnStatus, role = returnRole, page = returnPage });
         }
 
+        // ════════════════════════════════════════════════════════
+        // DeleteUser — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteUser(
             int userId, string? returnSearch, string? returnStatus,
@@ -197,7 +233,7 @@ namespace Waffy.Controllers
         }
 
         // ════════════════════════════════════════════════════════
-        // Stores
+        // Stores — GET
         // ════════════════════════════════════════════════════════
         public async Task<IActionResult> Stores()
         {
@@ -205,6 +241,7 @@ namespace Waffy.Controllers
             SetAdminViewBag();
 
             var stores = (await _storeRepo.GetAllAsync()).ToList();
+
             ViewBag.TotalStores = stores.Count;
             ViewBag.ActiveStores = stores.Count(s => s.VerificationStatus == "Approved");
             ViewBag.PendingStores = stores.Count(s => s.VerificationStatus == "Pending");
@@ -243,9 +280,13 @@ namespace Waffy.Controllers
             ViewBag.StoresJson = JsonSerializer.Serialize(storesJs);
             if (TempData["SuccessMessage"] != null) ViewBag.Success = TempData["SuccessMessage"];
             if (TempData["ErrorMessage"] != null) ViewBag.Error = TempData["ErrorMessage"];
+
             return View();
         }
 
+        // ════════════════════════════════════════════════════════
+        // Details_S — GET (merged: real data from v2 + v1 fields)
+        // ════════════════════════════════════════════════════════
         public async Task<IActionResult> Details_S(int id)
         {
             if (!IsAdmin()) return NotAdmin();
@@ -261,7 +302,7 @@ namespace Waffy.Controllers
             var revenue = await _orderRepo.GetTotalRevenueByStoreAsync(id);
             var customers = (await _orderRepo.GetCustomersByStoreAsync(id)).ToList();
 
-            // ── Orders مع الإجمالي الحقيقي من OrderItems ──────────
+            // Orders with real totals from OrderItems (from v2)
             var ordersJs = new List<object>();
             foreach (var o in orders)
             {
@@ -287,11 +328,13 @@ namespace Waffy.Controllers
             {
                 id = store.IdStore,
                 name = store.Name ?? "",
+                emoji = "🏪",
                 owner = owner?.FullName ?? "—",
                 email = store.Email ?? "",
                 phone = store.Phone ?? "",
                 city = store.City ?? "",
                 description = store.Description ?? "",
+                model = "Subscription",
                 status = store.VerificationStatus == "Approved" ? "active"
                                   : store.VerificationStatus == "Pending" ? "pending"
                                   : store.VerificationStatus == "Suspended" ? "suspended"
@@ -308,7 +351,20 @@ namespace Waffy.Controllers
                     license = docs.Any(d => d.DocumentType == "BusinessLicense"),
                     trademark = docs.Any(d => d.DocumentType == "TrademarkCertificate"),
                     tax = docs.Any(d => d.DocumentType == "AdditionalFile")
-                }
+                },
+                recentProducts = products.Take(3).Select(p => new
+                {
+                    name = p.Name ?? "",
+                    price = p.Price.ToString("F2") + " JD",
+                    status = p.StockQuantity == 0 ? "out" : p.IsVisible ? "active" : "hidden"
+                }),
+                recentOrders = orders.Take(3).Select(o => new
+                {
+                    id = o.OrderCode ?? o.IdOrder.ToString(),
+                    user = o.RecipientName ?? "—",
+                    amount = o.DeliveryFee.ToString("F2") + " JD",
+                    status = (o.Status ?? "pending").ToLower()
+                })
             };
 
             ViewBag.StoreId = id;
@@ -327,6 +383,7 @@ namespace Waffy.Controllers
 
             ViewBag.OrdersJson = JsonSerializer.Serialize(ordersJs);
 
+            // Docs with labels and image detection (from v2)
             ViewBag.DocsJson = JsonSerializer.Serialize(docs.Select(d => new
             {
                 id = d.Id,
@@ -339,6 +396,7 @@ namespace Waffy.Controllers
                 isImage = IsImageFile(d.FileUrl)
             }));
 
+            // Customers (from v2)
             ViewBag.CustomersJson = JsonSerializer.Serialize(customers.Select(c => new
             {
                 name = c.FullName ?? "—",
@@ -350,9 +408,13 @@ namespace Waffy.Controllers
             }));
 
             if (TempData["SuccessMessage"] != null) ViewBag.Success = TempData["SuccessMessage"];
+
             return View();
         }
 
+        // ════════════════════════════════════════════════════════
+        // ApproveStore — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> ApproveStore(int storeId, string? from = null)
         {
@@ -360,30 +422,48 @@ namespace Waffy.Controllers
             await _storeRepo.UpdateVerificationAsync(storeId, "Approved");
             var store = await _storeRepo.GetByIdAsync(storeId);
             if (store != null) await _userRepo.UpdateStatusAsync(store.OwnerUserId, "Active");
-            TempData["SuccessMessage"] = "✅ Store approved.";
-            return from == "details" ? RedirectToAction("Details_S", new { id = storeId }) : RedirectToAction("Stores");
+            TempData["SuccessMessage"] = "✅ Store approved. The owner can now log in.";
+            return from == "details"
+                ? RedirectToAction("Details_S", new { id = storeId })
+                : RedirectToAction("Stores");
         }
 
+        // ════════════════════════════════════════════════════════
+        // RejectStore — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> RejectStore(int storeId, string? reason = null, string? message = null, string? from = null)
+        public async Task<IActionResult> RejectStore(
+            int storeId, string? reason = null, string? message = null, string? from = null)
         {
             if (!IsAdmin()) return NotAdmin();
             await _storeRepo.UpdateVerificationAsync(storeId, "Rejected");
-            TempData["SuccessMessage"] = "❌ Store rejected.";
-            return from == "details" ? RedirectToAction("Details_S", new { id = storeId }) : RedirectToAction("Stores");
+            TempData["SuccessMessage"] = "❌ Store registration rejected.";
+            return from == "details"
+                ? RedirectToAction("Details_S", new { id = storeId })
+                : RedirectToAction("Stores");
         }
 
+        // ════════════════════════════════════════════════════════
+        // SuspendStore — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> SuspendStore(int storeId, string? reason = null, string? duration = null, string? message = null, string? from = null)
+        public async Task<IActionResult> SuspendStore(
+            int storeId, string? reason = null, string? duration = null,
+            string? message = null, string? from = null)
         {
             if (!IsAdmin()) return NotAdmin();
             await _storeRepo.UpdateVerificationAsync(storeId, "Suspended");
             var store = await _storeRepo.GetByIdAsync(storeId);
             if (store != null) await _userRepo.UpdateStatusAsync(store.OwnerUserId, "Suspended");
-            TempData["SuccessMessage"] = "🔒 Store suspended.";
-            return from == "details" ? RedirectToAction("Details_S", new { id = storeId }) : RedirectToAction("Stores");
+            TempData["SuccessMessage"] = "🔒 Store has been suspended.";
+            return from == "details"
+                ? RedirectToAction("Details_S", new { id = storeId })
+                : RedirectToAction("Stores");
         }
 
+        // ════════════════════════════════════════════════════════
+        // ReactivateStore — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> ReactivateStore(int storeId, string? from = null)
         {
@@ -391,21 +471,26 @@ namespace Waffy.Controllers
             await _storeRepo.UpdateVerificationAsync(storeId, "Approved");
             var store = await _storeRepo.GetByIdAsync(storeId);
             if (store != null) await _userRepo.UpdateStatusAsync(store.OwnerUserId, "Active");
-            TempData["SuccessMessage"] = "✅ Store reactivated.";
-            return from == "details" ? RedirectToAction("Details_S", new { id = storeId }) : RedirectToAction("Stores");
+            TempData["SuccessMessage"] = "✅ Store reactivated successfully.";
+            return from == "details"
+                ? RedirectToAction("Details_S", new { id = storeId })
+                : RedirectToAction("Stores");
         }
 
+        // ════════════════════════════════════════════════════════
+        // DeleteStore — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteStore(int storeId)
         {
             if (!IsAdmin()) return NotAdmin();
             await _storeRepo.DeleteAsync(storeId);
-            TempData["SuccessMessage"] = "🗑 Store deleted.";
+            TempData["SuccessMessage"] = "🗑 Store deleted successfully.";
             return RedirectToAction("Stores");
         }
 
         // ════════════════════════════════════════════════════════
-        // Analytics_S
+        // Analytics_S — GET (from v2: real data per store)
         // ════════════════════════════════════════════════════════
         public async Task<IActionResult> Analytics_S()
         {
@@ -461,22 +546,29 @@ namespace Waffy.Controllers
         }
 
         // ════════════════════════════════════════════════════════
-        // Dangerous Animals
+        // Dangerous_Animals — GET
         // ════════════════════════════════════════════════════════
         public async Task<IActionResult> Dangerous_Animals()
         {
             if (!IsAdmin()) return NotAdmin();
             SetAdminViewBag();
+
             var reports = (await _dangerRepo.GetAllAsync()).ToList();
+
             ViewBag.TotalReports = reports.Count;
             ViewBag.OpenReports = reports.Count(r => r.Status == "Pending" || r.Status == "Under Review");
             ViewBag.HighRisk = reports.Count(r => r.Severity == "High");
             ViewBag.ResolvedReports = reports.Count(r => r.Status == "Resolved");
+
             if (TempData["DangerSuccess"] != null) ViewBag.Success = TempData["DangerSuccess"];
             if (TempData["DangerError"] != null) ViewBag.Error = TempData["DangerError"];
+
             return View(reports);
         }
 
+        // ════════════════════════════════════════════════════════
+        // UpdateDangerStatus — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateDangerStatus(int reportId, string status)
         {
@@ -487,31 +579,39 @@ namespace Waffy.Controllers
         }
 
         // ════════════════════════════════════════════════════════
-        // Donations
+        // Donations — GET
         // ════════════════════════════════════════════════════════
         public async Task<IActionResult> Donations()
         {
             if (!IsAdmin()) return NotAdmin();
             SetAdminViewBag();
+
             var donations = (await _donationRepo.GetAllWithDonorAsync()).ToList();
             var animals = (await _donationAnimalRepo.GetAllAsync()).ToList();
+
             ViewBag.Donations = donations;
             ViewBag.Animals = animals;
             ViewBag.TotalDonations = donations.Count;
             ViewBag.PendingDonations = donations.Count(d => d.Status == "Pending");
             ViewBag.CompletedDonations = donations.Count(d => d.Status == "Completed");
             ViewBag.ActiveAnimals = animals.Count(a => a.Status == "Active");
+
             if (TempData["DonationSuccess"] != null) ViewBag.Success = TempData["DonationSuccess"];
             if (TempData["DonationError"] != null) ViewBag.Error = TempData["DonationError"];
+
             return View();
         }
 
+        // ════════════════════════════════════════════════════════
+        // AddDonationAnimal — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> AddDonationAnimal(
             string name, string animalType, string condition,
             string? location, string story, decimal? goalAmount)
         {
             if (!IsAdmin()) return NotAdmin();
+
             await _donationAnimalRepo.CreateAsync(new DonationAnimal
             {
                 Name = name,
@@ -523,10 +623,14 @@ namespace Waffy.Controllers
                 Status = "Active",
                 CreatedAt = DateTime.UtcNow
             });
+
             TempData["DonationSuccess"] = $"✅ {name} added successfully.";
             return RedirectToAction("Donations");
         }
 
+        // ════════════════════════════════════════════════════════
+        // UpdateDonationAnimalStatus — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateDonationAnimalStatus(int animalId, string status)
         {
@@ -536,6 +640,9 @@ namespace Waffy.Controllers
             return RedirectToAction("Donations");
         }
 
+        // ════════════════════════════════════════════════════════
+        // DeleteDonationAnimal — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteDonationAnimal(int animalId)
         {
@@ -545,6 +652,9 @@ namespace Waffy.Controllers
             return RedirectToAction("Donations");
         }
 
+        // ════════════════════════════════════════════════════════
+        // UpdateDonationStatus — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateDonationStatus(int donationId, string status)
         {
@@ -555,7 +665,60 @@ namespace Waffy.Controllers
         }
 
         // ════════════════════════════════════════════════════════
-        // Laws & Regulations
+        // Reviews_Complaints_C — GET  (from v1: real data)
+        // ════════════════════════════════════════════════════════
+        public async Task<IActionResult> Reviews_Complaints_C()
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var complaints = (await _complaintRepo.GetAllByTargetTypeAsync("Clinic")).ToList();
+
+            ViewBag.Complaints = complaints;
+            ViewBag.TotalComplaints = complaints.Count;
+            ViewBag.OpenComplaints = complaints.Count(c => c.Status == "Open" || c.Status == "Pending");
+            ViewBag.ResolvedComplaints = complaints.Count(c => c.Status == "Resolved");
+
+            if (TempData["ComplaintSuccess"] != null) ViewBag.Success = TempData["ComplaintSuccess"];
+
+            return View();
+        }
+
+        // ════════════════════════════════════════════════════════
+        // Reviews_Complaints_S — GET  (from v1: real data)
+        // ════════════════════════════════════════════════════════
+        public async Task<IActionResult> Reviews_Complaints_S()
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var complaints = (await _complaintRepo.GetAllByTargetTypeAsync("Store")).ToList();
+
+            ViewBag.Complaints = complaints;
+            ViewBag.TotalComplaints = complaints.Count;
+            ViewBag.OpenComplaints = complaints.Count(c => c.Status == "Open" || c.Status == "Pending");
+            ViewBag.ResolvedComplaints = complaints.Count(c => c.Status == "Resolved");
+
+            if (TempData["ComplaintSuccess"] != null) ViewBag.Success = TempData["ComplaintSuccess"];
+
+            return View();
+        }
+
+        // ════════════════════════════════════════════════════════
+        // UpdateComplaintStatus — POST (shared for both)
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateComplaintStatus(
+            int complaintId, string status, string returnPage = "Reviews_Complaints_S")
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _complaintRepo.UpdateStatusAsync(complaintId, status);
+            TempData["ComplaintSuccess"] = $"✅ Complaint status updated to {status}.";
+            return RedirectToAction(returnPage);
+        }
+
+        // ════════════════════════════════════════════════════════
+        // Laws_Regulations — GET  (from v2)
         // ════════════════════════════════════════════════════════
         public async Task<IActionResult> Laws_Regulations()
         {
@@ -586,6 +749,9 @@ namespace Waffy.Controllers
             return View();
         }
 
+        // ════════════════════════════════════════════════════════
+        // AddLaw — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> AddLaw(
             string title, string category, string summary,
@@ -613,6 +779,9 @@ namespace Waffy.Controllers
             return RedirectToAction(nameof(Laws_Regulations));
         }
 
+        // ════════════════════════════════════════════════════════
+        // EditLaw — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> EditLaw(
             int id, string title, string category, string summary,
@@ -641,6 +810,9 @@ namespace Waffy.Controllers
             return RedirectToAction(nameof(Laws_Regulations));
         }
 
+        // ════════════════════════════════════════════════════════
+        // DeleteLaw — POST
+        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteLaw(int id)
         {
@@ -650,24 +822,12 @@ namespace Waffy.Controllers
             return RedirectToAction(nameof(Laws_Regulations));
         }
 
-        private static string GetCategoryLabel(string category) => category switch
-        {
-            "travel" => "✈️ Pet Travel",
-            "adoption" => "🐾 Adoption",
-            "protection" => "🛡 Animal Protection",
-            "vaccination" => "💉 Vaccinations",
-            "breeding" => "🧬 Breeding & Import",
-            "stray" => "🏚 Stray Animals",
-            _ => category
-        };
-
         // ════════════════════════════════════════════════════════
         // Stubs
         // ════════════════════════════════════════════════════════
         public IActionResult Clinics() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
-        public IActionResult Reviews_Complaints_C() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
+        public IActionResult Details_C() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Analytics_C() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
-        public IActionResult Reviews_Complaints_S() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Listings() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Flagged() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Adopted_Pets() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }

@@ -37,6 +37,7 @@ builder.Services.AddScoped<ICartRepository, CartRepository>();
 // أضف هذا السطر مع باقي الـ registrations
 builder.Services.AddScoped<IOrderRepository, OrderRepository>();
 builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
+builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
