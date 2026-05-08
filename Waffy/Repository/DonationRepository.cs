@@ -19,14 +19,14 @@ namespace Waffy.Repository
         public async Task<int> CreateAsync(Donation donation)
         {
             const string sql = @"
-                DECLARE @NewId INT = (SELECT ISNULL(MAX(Id), 0) + 1 FROM Donation);
-                INSERT INTO Donation 
-                    (Id, IdUser, DonationType, Amount, Quantity, Unit,
-                     Description, TargetType, TargetId, ReferenceCode, Status, CreatedAt)
-                VALUES 
-                    (@NewId, @IdUser, @DonationType, @Amount, @Quantity, @Unit,
-                     @Description, @TargetType, @TargetId, @ReferenceCode, @Status, @CreatedAt);
-                SELECT @NewId;";
+    INSERT INTO Donation 
+        (Id, IdUser, DonationType, Amount, Quantity, Unit,
+         Description, TargetType, TargetId, ReferenceCode, Status, CreatedAt)
+    SELECT ISNULL(MAX(Id), 0) + 1,
+           @IdUser, @DonationType, @Amount, @Quantity, @Unit,
+           @Description, @TargetType, @TargetId, @ReferenceCode, @Status, @CreatedAt
+    FROM Donation;
+    SELECT ISNULL(MAX(Id), 0) FROM Donation;";
 
             using var conn = new SqlConnection(_connectionString);
             return await conn.ExecuteScalarAsync<int>(sql, new
@@ -59,10 +59,19 @@ namespace Waffy.Repository
         public async Task<IEnumerable<Donation>> GetAllWithDonorAsync()
         {
             const string sql = @"
-        SELECT d.*, u.FullName as DonorName
+        SELECT d.*,
+               u.FullName AS DonorName,
+               CASE 
+                   WHEN d.TargetType = 'Animal' THEN da.Name
+                   WHEN d.TargetType = 'General' THEN 'General Support'
+                   ELSE d.TargetType
+               END AS AnimalName
         FROM Donation d
-        LEFT JOIN Users u ON d.IdUser = u.UserId
+        LEFT JOIN Users u          ON d.IdUser   = u.UserId
+        LEFT JOIN DonationAnimal da ON d.TargetId = da.Id
+                                   AND d.TargetType = 'Animal'
         ORDER BY d.CreatedAt DESC";
+
             using var conn = new SqlConnection(_connectionString);
             return await conn.QueryAsync<Donation>(sql);
         }

@@ -822,6 +822,28 @@ namespace Waffy.Controllers
             return RedirectToAction(nameof(Laws_Regulations));
         }
 
+
+        // ════════════════════════════════════════════════════
+        // System_Complaints — GET
+        // ════════════════════════════════════════════════════
+        public async Task<IActionResult> System_Complaints()
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var complaints = (await _complaintRepo.GetAllByTargetTypeAsync("System")).ToList();
+
+            ViewBag.Complaints = complaints;
+            ViewBag.TotalComplaints = complaints.Count;
+            ViewBag.OpenComplaints = complaints.Count(c => c.Status == "Open" || c.Status == "Pending");
+            ViewBag.ResolvedComplaints = complaints.Count(c => c.Status == "Resolved");
+            ViewBag.InvestigatingCount = complaints.Count(c => c.Status == "Investigating");
+
+            if (TempData["ComplaintSuccess"] != null) ViewBag.Success = TempData["ComplaintSuccess"];
+
+            return View();
+        }
+
         // ════════════════════════════════════════════════════════
         // Stubs
         // ════════════════════════════════════════════════════════

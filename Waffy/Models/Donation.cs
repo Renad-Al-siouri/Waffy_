@@ -16,5 +16,6 @@
         public string? Status { get; set; }
         public DateTime? CreatedAt { get; set; }
         public string? DonorName { get; set; } // ← جديد — يُملأ من JOIN
+        public string? AnimalName { get; set; }
     }
 }

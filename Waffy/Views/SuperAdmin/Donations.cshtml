@@ -446,7 +446,7 @@
                                             : $"{d.Quantity} {d.Unit}";
 
                                             <tr data-ref="@d.ReferenceCode?.ToLower()"
-                                                data-donor="@(d.DonorName ?? $"User #{d.IdUser}")" .ToLower()"
+                                                data-donor="@((d.DonorName ?? $"User #{d.IdUser}").ToLower())"
                                                 data-type="@d.DonationType?.ToLower()"
                                                 data-status="@d.Status?.ToLower()">
                                                 <td style="font-size:.78rem;color:var(--text-muted);font-weight:800;">
@@ -472,7 +472,18 @@
                                                     else
                                                     {
                                                         <span style="font-weight:800;font-size:.84rem;">
-                                                            🐾 @d.TargetType
+                                                             @if (d.TargetType == "Animal")
+                                                            {
+                                                                <span>🐾 @(d.AnimalName ?? "Animal")</span>
+                                                            }
+                                                                                                else if (d.TargetType == "General")
+                                                            {
+                                                                <span>🌍 General Support</span>
+                                                            }
+                                                            else
+                                                            {
+                                                                <span>@d.TargetType</span>
+                                                            }
                                                         </span>
                                                     }
                                                 </td>
