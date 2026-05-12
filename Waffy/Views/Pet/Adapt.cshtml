@@ -8,10 +8,90 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Adoption - Waffy</title>
-
     <link rel="stylesheet" href="~/css/adaptstyle.css" />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        /* ── Carousel ── */
+        .pet-thumb {
+            position: relative;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+        .pet-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+            transition: opacity .3s ease;
+        }
+        .pet-thumb img.car-active { display: block; }
+
+        .car-dots {
+            position: absolute;
+            bottom: 7px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            z-index: 2;
+        }
+        .car-dot {
+            width: 7px; height: 7px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.55);
+            cursor: pointer;
+            border: none;
+            padding: 0;
+            transition: background .2s, transform .2s;
+        }
+        .car-dot.active {
+            background: #fff;
+            transform: scale(1.2);
+        }
+        .car-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.85);
+            border: none;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3d7a10;
+            box-shadow: 0 1px 4px rgba(0,0,0,.15);
+            transition: background .2s;
+            line-height: 1;
+        }
+        .car-btn:hover { background: rgba(255,255,255,1); }
+        .car-btn.prev { left:  6px; }
+        .car-btn.next { right: 6px; }
+
+        /* hide arrows when single image */
+        .pet-thumb[data-count="1"] .car-btn,
+        .pet-thumb[data-count="1"] .car-dots { display: none !important; }
+
+        .photo-counter {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            background: rgba(0,0,0,.45);
+            color: #fff;
+            font-size: .68rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 20px;
+            font-family: 'Nunito', sans-serif;
+            z-index: 2;
+        }
+        .pet-thumb[data-count="1"] .photo-counter { display: none; }
+    </style>
 </head>
 <body data-logged-in="@(Context.Session.GetInt32("UserId").HasValue ? "true" : "false")">
     @Html.AntiForgeryToken()
@@ -20,31 +100,22 @@
             <header class="topbar">
                 <div class="header-shell">
                     <nav class="navbar">
-
                         <div class="left-nav desktop-nav desktop-links">
                             <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                             <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                             <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                             <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-
                         </div>
-
                         <div class="logo-center">
                             <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
                         </div>
-
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
-
-
-
                                 <div class="services-dropdown" id="servicesDropdown">
                                     <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services
-                                        <span class="dropdown-arrow">▼</span>
+                                        Services <span class="dropdown-arrow">▼</span>
                                     </button>
-
                                     <div class="dropdown-menu" id="servicesMenu">
                                         <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
                                         <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
@@ -58,49 +129,31 @@
                                         <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                     </div>
                                 </div>
-
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
-
                             </div>
-
                             <div class="nav-actions">
-                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
-                                    <i class="fa-solid fa-cart-shopping"></i>
-                                </a>
-
-                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon" aria-label="Notifications">
-                                    <i class="fa-solid fa-bell"></i>
-                                </a>
-
-                                <a asp-controller="Account" asp-action="Profile" class="profile-btn" aria-label="Profile">
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
+                                <a asp-controller="Account" asp-action="Profile" class="profile-btn">
                                     <img src="../Images/user.jpg" alt="Profile">
                                 </a>
                                 <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
-
                             <div class="mobile-nav-wrap">
-                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
+                                <button class="menu-btn" id="menuBtn" type="button">☰</button>
                                 <div class="nav-links" id="navLinks">
-                                    <div class="mobile-menu-logo">
-                                        <img src="../Images/logo.png" alt="Waffy Logo">
-                                    </div>
-
+                                    <div class="mobile-menu-logo"><img src="../Images/logo.png" alt="Waffy Logo"></div>
                                     <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                                     <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                                     <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                                     <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                                     <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
-
                                     <div class="mobile-services-block" id="mobileServicesBlock">
                                         <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
-                                            <span>Services</span>
-                                            <span class="dropdown-arrow">▼</span>
+                                            <span>Services</span><span class="dropdown-arrow">▼</span>
                                         </button>
-
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
-
                                             <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                             <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                             <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
@@ -108,13 +161,11 @@
                                             <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                                     <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
                             </div>
                         </div>
-
                     </nav>
                 </div>
             </header>
@@ -134,44 +185,29 @@
         <section class="adoption-layout">
             <aside class="sidebar-card fade-up">
                 <h3>Select a Pet</h3>
-
                 <div class="filter-list">
                     <button class="filter-item active" data-filter="all">
-                        <span>🐾</span>
-                        <span>All Animals</span>
+                        <span>🐾</span><span>All Animals</span>
                     </button>
-
                     <button class="filter-item" data-filter="dog">
-                        <img src="../Images/adapt/dog.png" alt="Dog Icon">
-                        <span>Dogs</span>
+                        <img src="../Images/adapt/dog.png" alt="Dog Icon"><span>Dogs</span>
                     </button>
-
                     <button class="filter-item" data-filter="cat">
-                        <img src="../Images/adapt/cat.png" alt="Cat Icon">
-                        <span>Cats</span>
+                        <img src="../Images/adapt/cat.png" alt="Cat Icon"><span>Cats</span>
                     </button>
-
                     <button class="filter-item" data-filter="rabbit">
-                        <img src="../Images/adapt/rubit.png" alt="Rabbit Icon">
-                        <span>Rabbits</span>
+                        <img src="../Images/adapt/rubit.png" alt="Rabbit Icon"><span>Rabbits</span>
                     </button>
-
                     <button class="filter-item" data-filter="bird">
-                        <img src="../Images/adapt/bird.png" alt="Bird Icon">
-                        <span>Birds</span>
+                        <img src="../Images/adapt/bird.png" alt="Bird Icon"><span>Birds</span>
                     </button>
-
                     <button class="filter-item" data-filter="snake">
-                        <img src="../Images/adapt/snake.png" alt="Snake Icon">
-                        <span>Snakes</span>
+                        <img src="../Images/adapt/snake.png" alt="Snake Icon"><span>Snakes</span>
                     </button>
-
                     <button class="filter-item" data-filter="hamster">
-                        <img src="../Images/adapt/hamester.png" alt="Hamster Icon">
-                        <span>Hamsters</span>
+                        <img src="../Images/adapt/hamester.png" alt="Hamster Icon"><span>Hamsters</span>
                     </button>
                 </div>
-
                 <div class="snake-decor">
                     <img src="../Images/adapt/snakrock.png" alt="Snake Decoration">
                 </div>
@@ -207,55 +243,69 @@
                     {
                         <article class="pet-item" data-type="@pet.Type">
 
-                            <div class="pet-thumb">
-                                <img src="@(string.IsNullOrEmpty(pet.Image)
-                                                                 ? "../Images/adapt/golden.png"
-                                                                 : pet.Image)"
-                                 alt="@pet.Name">
-                        </div>
+                            @* ── Carousel ── *@
+                            <div class="pet-thumb"
+                                 data-count="@pet.Images.Count"
+                                 data-current="0">
+
+                                @* صور متعددة *@
+                                @for (int i = 0; i < pet.Images.Count; i++)
+                                {
+                                    <img src="@pet.Images[i]"
+                                         alt="@pet.Name @(i + 1)"
+                                         class="@(i == 0 ? "car-active" : "")" />
+                                }
+
+                                @* عداد الصور *@
+                                @if (pet.Images.Count > 1)
+                                {
+                                    <span class="photo-counter">
+                                        1 / @pet.Images.Count
+                                    </span>
+
+                                    <button class="car-btn prev" type="button"
+                                            onclick="carMove(this,-1)" aria-label="Previous">‹</button>
+                                    <button class="car-btn next" type="button"
+                                            onclick="carMove(this, 1)" aria-label="Next">›</button>
+
+                                    <div class="car-dots">
+                                        @for (int i = 0; i < pet.Images.Count; i++)
+                                        {
+                                            <button class="car-dot @(i == 0 ? "active" : "")"
+                                                    type="button"
+                                                    onclick="carGoTo(this, @i)"
+                                                    aria-label="Photo @(i+1)"></button>
+                                        }
+                                    </div>
+                                }
+                            </div>
 
                             <div class="pet-info">
                                 <h3>@pet.Name</h3>
-
-                            @if (!string.IsNullOrEmpty(pet.Breed))
+                                @if (!string.IsNullOrEmpty(pet.Breed))
                                 {
                                     <p><strong>Breed:</strong> @pet.Breed</p>
                                 }
-
                                 <p><strong>Age:</strong> @pet.Age</p>
                                 <p><strong>Gender:</strong> @pet.Gender</p>
                                 <p><strong>City:</strong> 📍 @pet.City @(!string.IsNullOrEmpty(pet.Area) ? $"- {pet.Area}" : "")</p>
                                 <p><strong>Temperament:</strong> @pet.Temperament</p>
 
                                 <div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem">
-                                    <span style="background:#e8f5e9;color:#2e7d32;
-                                     padding:.2rem .6rem;border-radius:20px;
-                                     font-size:.75rem;font-weight:700">
+                                    <span style="background:#e8f5e9;color:#2e7d32;padding:.2rem .6rem;border-radius:20px;font-size:.75rem;font-weight:700">
                                         @pet.Vaccinations[0]
                                     </span>
                                     @if (pet.IsNeutered)
                                     {
-                                        <span style="background:#e3f2fd;color:#1565c0;
-                                             padding:.2rem .6rem;border-radius:20px;
-                                             font-size:.75rem;font-weight:700">
-                                            ✂️ Neutered
-                                        </span>
+                                        <span style="background:#e3f2fd;color:#1565c0;padding:.2rem .6rem;border-radius:20px;font-size:.75rem;font-weight:700">✂️ Neutered</span>
                                     }
                                     @if (pet.GoodWithChildren)
                                     {
-                                        <span style="background:#fff3e0;color:#e65100;
-                                             padding:.2rem .6rem;border-radius:20px;
-                                             font-size:.75rem;font-weight:700">
-                                            👶 Kid-friendly
-                                        </span>
+                                        <span style="background:#fff3e0;color:#e65100;padding:.2rem .6rem;border-radius:20px;font-size:.75rem;font-weight:700">👶 Kid-friendly</span>
                                     }
                                     @if (pet.GoodWithPets)
                                     {
-                                        <span style="background:#f3e5f5;color:#6a1b9a;
-                                             padding:.2rem .6rem;border-radius:20px;
-                                             font-size:.75rem;font-weight:700">
-                                            🐾 Pet-friendly
-                                        </span>
+                                        <span style="background:#f3e5f5;color:#6a1b9a;padding:.2rem .6rem;border-radius:20px;font-size:.75rem;font-weight:700">🐾 Pet-friendly</span>
                                     }
                                 </div>
                             </div>
@@ -263,9 +313,7 @@
                             <div class="pet-actions">
                                 <div class="like-wrap">
                                     <button class="like-btn @(pet.IsLikedByCurrentUser ? "active" : "")"
-                                            data-like="@pet.Id">
-                                        ❤
-                                    </button>
+                                            data-like="@pet.Id">❤</button>
                                     <span class="likes-count">
                                         <span id="likes-@pet.Id">@pet.Likes</span> likes
                                     </span>
@@ -290,6 +338,7 @@
                                         data-contact="@pet.ContactName"
                                         data-vacc="@pet.Vaccinations[0]"
                                         data-image="@pet.Image"
+                                        data-images="@string.Join("|", pet.Images)"
                                         data-code="@pet.PostCode">
                                     View Details
                                 </button>
@@ -305,24 +354,16 @@
 
     <footer class="footer">
         <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <span>|</span>
-            <a href="about.html">Contact</a>
-            <span>|</span>
-            <a href="faq.html">FAQ</a>
-            <span>|</span>
-            <div class="social-inline">
-                <span>f</span>
-                <span>🐦</span>
-                <span>◎</span>
-            </div>
+            <a href="about.html">About Us</a><span>|</span>
+            <a href="about.html">Contact</a><span>|</span>
+            <a href="faq.html">FAQ</a><span>|</span>
+            <div class="social-inline"><span>f</span><span>🐦</span><span>◎</span></div>
         </div>
         <div>© 2026 Waffy, All rights reserved.</div>
     </footer>
 
     <div id="detailsModal" class="modal hidden">
         <div class="modal-overlay" data-close-modal></div>
-
         <div class="modal-card">
             <button class="modal-close" data-close-modal>&times;</button>
             <div id="modalContent"></div>
@@ -330,7 +371,7 @@
     </div>
 
     <div id="toast" class="toast"></div>
-   
+
     <div id="reserveModal" class="modal hidden">
         <div class="modal-overlay" onclick="closeReserveModal()"></div>
         <div class="modal-card" style="max-width:460px">
@@ -343,21 +384,46 @@
                 <input type="hidden" name="postId" id="reservePostId" />
                 <div class="field" style="margin-bottom:1rem">
                     <label>Message to owner (optional)</label>
-                    <textarea name="message" rows="3"
-                              placeholder="Tell the owner about yourself..."></textarea>
+                    <textarea name="message" rows="3" placeholder="Tell the owner about yourself..."></textarea>
                 </div>
                 <div style="display:flex;gap:.5rem;justify-content:flex-end">
-                    <button type="button" onclick="closeReserveModal()"
-                            class="olive-btn secondary-btn">
-                        Cancel
-                    </button>
+                    <button type="button" onclick="closeReserveModal()" class="olive-btn secondary-btn">Cancel</button>
                     <button type="submit" class="olive-btn">Send Request 🐾</button>
                 </div>
             </form>
         </div>
     </div>
 
-
     <script src="~/js/adaptjs.js"></script>
+    <script>
+        // ════════════════════════════
+        // Carousel logic
+        // ════════════════════════════
+        function carMove(btn, dir) {
+            const thumb = btn.closest('.pet-thumb');
+            carGoToIndex(thumb, parseInt(thumb.dataset.current) + dir);
+        }
+
+        function carGoTo(dot, idx) {
+            const thumb = dot.closest('.pet-thumb');
+            carGoToIndex(thumb, idx);
+        }
+
+        function carGoToIndex(thumb, idx) {
+            const imgs    = thumb.querySelectorAll('img');
+            const dots    = thumb.querySelectorAll('.car-dot');
+            const counter = thumb.querySelector('.photo-counter');
+            const count   = imgs.length;
+            if (count <= 1) return;
+
+            idx = ((idx % count) + count) % count;
+
+            imgs.forEach((img, i) => img.classList.toggle('car-active', i === idx));
+            dots.forEach((d,   i) => d.classList.toggle('active',      i === idx));
+
+            if (counter) counter.textContent = `${idx + 1} / ${count}`;
+            thumb.dataset.current = idx;
+        }
+    </script>
 </body>
 </html>

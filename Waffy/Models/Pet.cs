@@ -23,6 +23,7 @@
         public string? ImageUrl { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+
         // ✅ Display helper — هذا مقبول لأنه حساب وليس UI text
         public string AgeDisplay
         {

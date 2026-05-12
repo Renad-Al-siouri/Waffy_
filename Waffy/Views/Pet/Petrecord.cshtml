@@ -1,7 +1,4 @@
 ﻿@model Waffy.Models.Pet
-@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
 @{
     Layout = null;
 }
@@ -11,12 +8,59 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Waffy | Pet Medical Record</title>
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="~/css/petRecord.css" />
+    <style>
+        /* ── 5-slot photo grid ── */
+        .photo-slots {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: .5rem;
+            margin-top: .6rem;
+        }
+
+        .photo-slot {
+            aspect-ratio: 1;
+            border: 2px dashed #c5d9a0;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: #f9fff3;
+            flex-direction: column;
+            gap: .15rem;
+            transition: border-color .2s, background .2s;
+            padding: .3rem;
+            text-align: center;
+        }
+
+            .photo-slot:hover {
+                border-color: #5a9e2f;
+                background: #f0fae3;
+            }
+
+            .photo-slot .slot-icon {
+                font-size: 1.3rem;
+                line-height: 1;
+            }
+
+            .photo-slot .slot-label {
+                font-size: .58rem;
+                color: #8a9a6a;
+                font-weight: 700;
+                font-family: 'Nunito', sans-serif;
+            }
+
+        @@media (max-width: 480px) {
+            .photo-slots {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
 </head>
 <body>
 
@@ -25,31 +69,22 @@
             <header class="topbar">
                 <div class="header-shell">
                     <nav class="navbar">
-
                         <div class="left-nav desktop-nav desktop-links">
                             <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                             <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                             <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                             <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-
                         </div>
-
                         <div class="logo-center">
                             <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
                         </div>
-
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
-
-
-
                                 <div class="services-dropdown" id="servicesDropdown">
                                     <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services
-                                        <span class="dropdown-arrow">▼</span>
+                                        Services <span class="dropdown-arrow">▼</span>
                                     </button>
-
                                     <div class="dropdown-menu" id="servicesMenu">
                                         <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
                                         <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
@@ -63,49 +98,31 @@
                                         <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                     </div>
                                 </div>
-
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
-
                             </div>
-
                             <div class="nav-actions">
-                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
-                                    <i class="fa-solid fa-cart-shopping"></i>
-                                </a>
-
-                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon" aria-label="Notifications">
-                                    <i class="fa-solid fa-bell"></i>
-                                </a>
-
-                                <a asp-controller="Account" asp-action="Profile" class="profile-btn" aria-label="Profile">
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
+                                <a asp-controller="Account" asp-action="Profile" class="profile-btn">
                                     <img src="../Images/user.jpg" alt="Profile">
                                 </a>
                                 <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
-
                             <div class="mobile-nav-wrap">
-                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
+                                <button class="menu-btn" id="menuBtn" type="button">☰</button>
                                 <div class="nav-links" id="navLinks">
-                                    <div class="mobile-menu-logo">
-                                        <img src="../Images/logo.png" alt="Waffy Logo">
-                                    </div>
-
+                                    <div class="mobile-menu-logo"><img src="../Images/logo.png" alt="Waffy Logo"></div>
                                     <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                                     <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                                     <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                                     <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                                     <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
-
                                     <div class="mobile-services-block" id="mobileServicesBlock">
                                         <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
-                                            <span>Services</span>
-                                            <span class="dropdown-arrow">▼</span>
+                                            <span>Services</span><span class="dropdown-arrow">▼</span>
                                         </button>
-
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
-
                                             <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                             <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                             <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
@@ -113,13 +130,11 @@
                                             <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                                     <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
                             </div>
                         </div>
-
                     </nav>
                 </div>
             </header>
@@ -133,9 +148,7 @@
 
                     <div class="record-hero">
                         <div class="record-hero-left">
-                            <div class="record-logo">
-                                <img src="../Images/logo.png" alt="logo" />
-                            </div>
+                            <div class="record-logo"><img src="../Images/logo.png" alt="logo" /></div>
                             <div class="record-hero-copy">
                                 <span class="page-chip">Waffy Pet Profile</span>
                                 <h1 class="record-title">Complete Pet Medical Record</h1>
@@ -156,23 +169,18 @@
                         </div>
                     </div>
 
-                    @* ── Pet Information ── *@
                     <div class="box pet-main-box">
                         <div class="box-title">🐾 Pet Information</div>
                         <div class="pet-info-grid">
-
                             <div class="pet-photo">
                                 <div class="pet-avatar-wrap">
                                     <div class="pet-avatar">
                                         <img id="petImage"
-                                             src="@(string.IsNullOrEmpty(Model.ImageUrl)
-                                                                                             ? "/Images/Animals/dog1.jpg"
-                                                                                             : Model.ImageUrl)"
+                                             src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/Images/Animals/dog1.jpg" : Model.ImageUrl)"
                                              alt="@Model.Name" />
                                     </div>
                                 </div>
                             </div>
-
                             <div class="pet-main-info">
                                 <div class="pet-name-block">
                                     <h2>@Model.Name</h2>
@@ -184,81 +192,53 @@
                                         }
                                     </span>
                                 </div>
-
                                 <div class="pet-main-grid">
-                                    <div class="info-item">
-                                        <span>Age</span>
-                                        <strong>@Model.AgeDisplay</strong>
-                                    </div>
-                                    <div class="info-item">
-                                        <span>Gender</span>
-                                        <strong>@(Model.Gender ?? "—")</strong>
-                                    </div>
-                                    <div class="info-item">
-                                        <span>Color</span>
-                                        <strong>@(Model.Color ?? "—")</strong>
-                                    </div>
-                                    <div class="info-item">
-                                        <span>Weight</span>
-                                        <strong>
-                                            @(Model.Weight.HasValue
-                                                                                        ? $"{Model.Weight} kg"
-                                                                                        : "—")
-                                        </strong>
-                                    </div>
-                                    <div class="info-item">
-                                        <span>Microchip ID</span>
-                                        <strong>@(Model.MicrochipId ?? "Not registered")</strong>
-                                    </div>
-                                    <div class="info-item">
-                                        <span>Birth Date</span>
-                                        <strong>
-                                            @(Model.BirthDate.HasValue
-                                                                                        ? Model.BirthDate.Value.ToString("dd MMM yyyy")
-                                                                                        : "—")
-                                        </strong>
-                                    </div>
+                                    <div class="info-item"><span>Age</span><strong>@Model.AgeDisplay</strong></div>
+                                    <div class="info-item"><span>Gender</span><strong>@(Model.Gender ?? "—")</strong></div>
+                                    <div class="info-item"><span>Color</span><strong>@(Model.Color ?? "—")</strong></div>
+                                    <div class="info-item"><span>Weight</span><strong>@(Model.Weight.HasValue ? $"{Model.Weight} kg" : "—")</strong></div>
+                                    <div class="info-item"><span>Microchip ID</span><strong>@(Model.MicrochipId ?? "Not registered")</strong></div>
+                                    <div class="info-item"><span>Birth Date</span><strong>@(Model.BirthDate.HasValue? Model.BirthDate.Value.ToString("dd MMM yyyy") : "—")</strong></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    @* ── Health Status ── *@
                     <div class="double-grid">
                         <div class="box">
                             <div class="box-title">❤️ Health Status</div>
                             <div class="mini-content">
                                 <p>
                                     <strong>Vaccination:</strong>
-                                    @* ❌ خطأ *@
                                     @switch (Model.VaccinationStatus)
                                     {
                                         case "UpToDate":
                                             <span style="color:#2d7a2d">✅ Up to date</span>
                                             break;
                                         case "Partial":
+
                                             <span style="color:#e67e22">⚠️ Partial</span>
                                             break;
                                         default:
+
                                             <span style="color:#e05252">❌ Not vaccinated</span>
                                             break;
                                     }
                                 </p>
                                 <p>
                                     <strong>Neutered/Spayed:</strong>
-                                    @* ✅ صح *@
                                     @if (Model.IsNeutered)
                                     {
                                         <span style="color:#2d7a2d">✅ Yes</span>
                                     }
                                     else
                                     {
+
                                         <span style="color:#888">❌ No</span>
                                     }
                                 </p>
                             </div>
                         </div>
-
                         <div class="box">
                             <div class="box-title">🏥 Medical Notes</div>
                             <div class="mini-content">
@@ -268,75 +248,53 @@
                                 }
                                 else
                                 {
-                                    <p style="color:#aaa; font-style:italic" >
-                                        No medical notes recorded.
-                                    </p>
+
+                                    <p style="color:#aaa;font-style:italic">No medical notes recorded.</p>
                                 }
                             </div>
                         </div>
                     </div>
-                    <div class="double-grid">
 
-                        @* ── Behavior & Habits ── *@
+                    <div class="double-grid">
                         <div class="box">
                             <div class="box-title">🧠 Behavior & Habits</div>
                             <div class="pet-main-grid" style="margin-top:.8rem">
-
                                 <div class="info-item">
-                                    <span>Energy Level</span>
-                                    <strong>
+                                    <span>Energy Level</span><strong>
                                         @switch (Model.EnergyLevel)
                                         {
                                             case "High":
                                                 <text>🔥 High</text>
                                                 break;
                                             case "Medium":
+
                                                 <text>⚡ Medium</text>
                                                 break;
                                             default:
+
                                                 <text>😴 Low</text>
                                                 break;
                                         }
                                     </strong>
                                 </div>
-
-                                <div class="info-item">
-                                    <span>Trained</span>
-                                    <strong>@(Model.IsTrained ? "✅ Yes" : "❌ No")</strong>
-                                </div>
-
-                                <div class="info-item">
-                                    <span>Good with Children</span>
-                                    <strong>@(Model.GoodWithChildren ? "✅ Yes" : "❌ No")</strong>
-                                </div>
-
-                                <div class="info-item">
-                                    <span>Good with Pets</span>
-                                    <strong>@(Model.GoodWithPets ? "✅ Yes" : "❌ No")</strong>
-                                </div>
-
+                                <div class="info-item"><span>Trained</span><strong>@(Model.IsTrained ? "✅ Yes" : "❌ No")</strong></div>
+                                <div class="info-item"><span>Good with Children</span><strong>@(Model.GoodWithChildren ? "✅ Yes" : "❌ No")</strong></div>
+                                <div class="info-item"><span>Good with Pets</span><strong>@(Model.GoodWithPets ? "✅ Yes" : "❌ No")</strong></div>
                             </div>
-
                             @if (!string.IsNullOrWhiteSpace(Model.Traits))
                             {
-                                <div style="margin:1rem;padding:.8rem;
-                                            background:#f8fdf2;border-radius:8px;
-                                            border:1px solid #d4e8bc">
+                                <div style="margin:1rem;padding:.8rem;background:#f8fdf2;border-radius:8px;border:1px solid #d4e8bc">
                                     <strong>Traits & Personality:</strong>
                                     <p style="margin:.3rem;color:#444">@Model.Traits</p>
                                 </div>
                             }
                         </div>
-                   
-
-                    @* ── Vaccination Status Box ── *@
-                    <div class="box">
-                        <div class="box-title">💉 Vaccination Status</div>
-                        <div class="mini-content">
-                            <div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+                        <div class="box">
+                            <div class="box-title">💉 Vaccination Status</div>
+                            <div class="mini-content">
                                 <div style="background:@(Model.VaccinationStatus == "UpToDate" ? "#f0fff0" : "#fff8e1");
-                                        border:1px solid @(Model.VaccinationStatus == "UpToDate" ? "#b2dfb2" : "#ffe082");
-                                        border-radius:10px;padding:1rem 1.5rem;flex:1;min-width:200px">
+                                            border:1px solid @(Model.VaccinationStatus == "UpToDate" ? "#b2dfb2" : "#ffe082");
+                                            border-radius:10px;padding:1rem 1.5rem">
                                     <div style="font-size:1.5rem;margin-bottom:.4rem">
                                         @(Model.VaccinationStatus == "UpToDate" ? "✅" : "⚠️")
                                     </div>
@@ -347,9 +305,11 @@
                                                 <text>Fully Vaccinated</text>
                                                 break;
                                             case "Partial":
+
                                                 <text>Partially Vaccinated</text>
                                                 break;
                                             default:
+
                                                 <text>Not Vaccinated</text>
                                                 break;
                                         }
@@ -361,28 +321,17 @@
                             </div>
                         </div>
                     </div>
-                    </div>
 
-                    @* ── Actions ── *@
                     <div class="bottom-actions">
-                        <a asp-controller="Pet"
-                           asp-action="EditPetPage"
-                           asp-route-petId="@Model.IdPet"
-                           class="action-btn adopted-btn" >
+                        <a asp-controller="Pet" asp-action="EditPetPage"
+                           asp-route-petId="@Model.IdPet" class="action-btn adopted-btn">
                             ✏️ Edit Pet Info
-                        </a> 
-                        <button class="action-btn lost-btn" id="openLostFlowBtn">
-                            Pet is Missing 📣
-                        </button>
-                        <button class="action-btn adopted-btn" id="openAdoptionFormBtn">
-                            Put Pet Up for Adoption 🐾
-                        </button>
-                       
+                        </a>
+                        <button class="action-btn lost-btn" id="openLostFlowBtn">Pet is Missing 📣</button>
+                        <button class="action-btn adopted-btn" id="openAdoptionFormBtn">Put Pet Up for Adoption 🐾</button>
                     </div>
 
-                    <a asp-controller="Account" asp-action="Profile" class="back-btn">
-                        ← Back to Profile
-                    </a>
+                    <a asp-controller="Account" asp-action="Profile" class="back-btn">← Back to Profile</a>
 
                 </section>
             </section>
@@ -390,7 +339,9 @@
     </main>
 
 
-    <!-- LOST PET FLOW MODAL -->
+    @* ══════════════════════════════════════════════════════
+       LOST PET FLOW MODAL
+    ══════════════════════════════════════════════════════ *@
     <div class="modal-overlay" id="lostFlowModal">
         <div class="modal adoption-modal lost-modal">
             <button class="close-modal" id="closeLostFlowModal">×</button>
@@ -404,7 +355,6 @@
                 <div class="alert-error">⚠️ @TempData["LostError"]</div>
             }
 
-            @* ✅ form واحد يحتوي كل الـ steps *@
             <form method="post"
                   asp-controller="Pet"
                   asp-action="SubmitLostReport"
@@ -413,22 +363,16 @@
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="petId" value="@Model.IdPet" />
 
-                @* ══ STEP 1: Pet Info & Location ══ *@
+                @* STEP 1 *@
                 <div class="lost-step active" id="lostStep1">
                     <div class="box adoption-step-box">
                         <div class="step-header">
-                            <div>
-                                <h3>Select Your Lost Pet</h3>
-                                <span>Step 1 of 6</span>
-                            </div>
+                            <div><h3>Select Your Lost Pet</h3><span>Step 1 of 6</span></div>
                             <div class="step-icon">🐾</div>
                         </div>
-
-                        @* Pet Info — Read Only *@
                         <div class="selected-pet-card">
                             <div class="selected-pet-image">
-                                <img src="@(Model.ImageUrl ?? "/Images/Animals/dog1.jpg")"
-                                     alt="@Model.Name">
+                                <img src="@(Model.ImageUrl ?? "/Images/Animals/dog1.jpg")" alt="@Model.Name">
                             </div>
                             <div class="selected-pet-text">
                                 <h4>@Model.Name</h4>
@@ -436,13 +380,11 @@
                                 <small>Using the pet from this medical record</small>
                             </div>
                         </div>
-
                         <div class="adoption-grid" style="margin-top:1rem">
                             <div class="form-group">
                                 <label>Date Lost</label>
                                 <input type="date" name="dateLost" />
                             </div>
-
                             <div class="form-group">
                                 <label>City <span style="color:red">*</span></label>
                                 <select name="city" required>
@@ -456,45 +398,33 @@
                                     <option>Jerash</option>
                                 </select>
                             </div>
-
                             <div class="form-group">
                                 <label>Area / Neighborhood</label>
-                                <input type="text" name="area"
-                                       placeholder="Example: Al Rabieh" />
+                                <input type="text" name="area" placeholder="Example: Al Rabieh" />
                             </div>
-
                             <div class="form-group full-width">
-                                <label>Last Seen Location (Address)</label>
-                                <textarea name="lastSeenLocation"
-                                          placeholder="Street, landmark..."></textarea>
+                                <label>Last Seen Location</label>
+                                <textarea name="lastSeenLocation" placeholder="Street, landmark..."></textarea>
                             </div>
                         </div>
-
                         <div class="step-actions">
-                            <button type="button" class="action-btn adopted-btn lost-next-btn"
-                                    onclick="goLostStep(2)">
-                                Next →
-                            </button>
+                            <button type="button" class="action-btn adopted-btn" onclick="goLostStep(2)">Next →</button>
                         </div>
                     </div>
                 </div>
 
-                @* ══ STEP 2: Description & Photos ══ *@
+                @* STEP 2 — Photos + Description *@
                 <div class="lost-step" id="lostStep2">
                     <div class="box adoption-step-box">
                         <div class="step-header">
-                            <div>
-                                <h3>Description & Special Marks</h3>
-                                <span>Step 2 of 6</span>
-                            </div>
+                            <div><h3>Description & Special Marks</h3><span>Step 2 of 6</span></div>
                             <div class="step-icon">📝</div>
                         </div>
 
                         <div class="form-group full-width">
                             <label>Description <span style="color:red">*</span></label>
                             <textarea name="description" rows="3"
-                                      placeholder="Describe how the pet was lost..."
-                                      required></textarea>
+                                      placeholder="Describe how the pet was lost..." required></textarea>
                         </div>
 
                         <div class="form-group full-width" style="margin-top:.8rem">
@@ -503,206 +433,125 @@
                                       placeholder="Blue collar, white spot on chest..."></textarea>
                         </div>
 
+                        @* ✅ 5 slots منفصلة — كل slot = صورة مستقلة *@
                         <div class="form-group full-width" style="margin-top:.8rem">
-                            <label>Upload Photos (up to 5)</label>
-                            <label for="lostPhotos" class="main-upload-area lost-upload-area">
-                                <div class="upload-icon">📷</div>
-                                <strong>Upload lost pet photos</strong>
-                                <p>Up to 5 images — JPG, PNG</p>
-                            </label>
-                            <input type="file" id="lostPhotos" name="photos"
-                                   multiple accept="image/*" hidden />
-                            <div class="photo-preview-grid" id="lostPhotoPreview">
-                                <div class="mini-upload">+</div>
-                                <div class="mini-upload">+</div>
-                                <div class="mini-upload">+</div>
-                                <div class="mini-upload">+</div>
-                                <div class="mini-upload">+</div>
+                            <label>Upload Photos — click each slot to add a photo</label>
+                            <div class="photo-slots">
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    <label class="photo-slot">
+                                        <span class="slot-icon">📷</span>
+                                        <span class="slot-label">Photo @i</span>
+                                        <input type="file" name="photos"
+                                               accept="image/jpeg,image/png,image/webp"
+                                               style="display:none" />
+                                    </label>
+                                }
                             </div>
+                            <p style="font-size:.72rem;color:#aaa;margin-top:.4rem;font-family:'Nunito',sans-serif">
+                                JPG, PNG, WEBP · max 5 MB each · optional
+                            </p>
                         </div>
 
                         <div class="step-actions between-actions">
-                            <button type="button" class="action-btn cancel-adoption-btn"
-                                    onclick="goLostStep(1)">
-                                ← Back
-                            </button>
-                            <button type="button" class="action-btn adopted-btn"
-                                    onclick="goLostStep(3)">
-                                Next →
-                            </button>
+                            <button type="button" class="action-btn cancel-adoption-btn" onclick="goLostStep(1)">← Back</button>
+                            <button type="button" class="action-btn adopted-btn" onclick="goLostStep(3)">Next →</button>
                         </div>
                     </div>
                 </div>
 
-                @* ══ STEP 3: Expiry ══ *@
+                @* STEP 3 *@
                 <div class="lost-step" id="lostStep3">
                     <div class="box adoption-step-box">
                         <div class="step-header">
-                            <div>
-                                <h3>Ad Duration</h3>
-                                <span>Step 3 of 6</span>
-                            </div>
+                            <div><h3>Ad Duration</h3><span>Step 3 of 6</span></div>
                             <div class="step-icon">📡</div>
                         </div>
-
                         <div class="form-group full-width">
                             <label>Ad Expiry</label>
                             <div class="choice-grid three-cols">
-                                <label class="choice-card">
-                                    <input type="radio" name="expiryDays" value="7 Days" />
-                                    <span>7 Days</span>
-                                </label>
-                                <label class="choice-card selected-red">
-                                    <input type="radio" name="expiryDays"
-                                           value="14 Days" checked />
-                                    <span>14 Days</span>
-                                </label>
-                                <label class="choice-card">
-                                    <input type="radio" name="expiryDays" value="30 Days" />
-                                    <span>30 Days</span>
-                                </label>
+                                <label class="choice-card"><input type="radio" name="expiryDays" value="7 Days" /><span>7 Days</span></label>
+                                <label class="choice-card selected-red"><input type="radio" name="expiryDays" value="14 Days" checked /><span>14 Days</span></label>
+                                <label class="choice-card"><input type="radio" name="expiryDays" value="30 Days" /><span>30 Days</span></label>
                             </div>
                         </div>
-
                         <div class="step-actions between-actions">
-                            <button type="button" class="action-btn cancel-adoption-btn"
-                                    onclick="goLostStep(2)">
-                                ← Back
-                            </button>
-                            <button type="button" class="action-btn adopted-btn"
-                                    onclick="goLostStep(4)">
-                                Next →
-                            </button>
+                            <button type="button" class="action-btn cancel-adoption-btn" onclick="goLostStep(2)">← Back</button>
+                            <button type="button" class="action-btn adopted-btn" onclick="goLostStep(4)">Next →</button>
                         </div>
                     </div>
                 </div>
 
-                @* ══ STEP 4: Reward ══ *@
+                @* STEP 4 *@
                 <div class="lost-step" id="lostStep4">
                     <div class="box adoption-step-box reward-box">
                         <div class="step-header">
-                            <div>
-                                <h3>Reward Amount</h3>
-                                <span>Step 4 of 6</span>
-                            </div>
+                            <div><h3>Reward Amount</h3><span>Step 4 of 6</span></div>
                             <div class="step-icon">👛</div>
                         </div>
-
                         <div class="warning-inline">
                             Reward amount will stay reserved in your wallet until the finder is verified.
                         </div>
-
                         <div class="form-group full-width" style="margin-top:1rem">
                             <div class="choice-grid four-cols">
-                                <label class="choice-card">
-                                    <input type="radio" name="rewardAmount" value="50" />
-                                    <span>50 JOD</span>
-                                </label>
-                                <label class="choice-card">
-                                    <input type="radio" name="rewardAmount" value="25" />
-                                    <span>25 JOD</span>
-                                </label>
-                                <label class="choice-card selected-red">
-                                    <input type="radio" name="rewardAmount"
-                                           value="10" checked />
-                                    <span>10 JOD</span>
-                                </label>
-                                <label class="choice-card">
-                                    <input type="radio" name="rewardAmount" value="0" />
-                                    <span>No Reward</span>
-                                </label>
+                                <label class="choice-card"><input type="radio" name="rewardAmount" value="50" /><span>50 JOD</span></label>
+                                <label class="choice-card"><input type="radio" name="rewardAmount" value="25" /><span>25 JOD</span></label>
+                                <label class="choice-card selected-red"><input type="radio" name="rewardAmount" value="10" checked /><span>10 JOD</span></label>
+                                <label class="choice-card"><input type="radio" name="rewardAmount" value="0" /><span>No Reward</span></label>
                             </div>
                         </div>
-
                         <div class="step-actions between-actions">
-                            <button type="button" class="action-btn cancel-adoption-btn"
-                                    onclick="goLostStep(3)">
-                                ← Back
-                            </button>
-                            <button type="button" class="action-btn adopted-btn"
-                                    onclick="goLostStep(5)">
-                                Next →
-                            </button>
+                            <button type="button" class="action-btn cancel-adoption-btn" onclick="goLostStep(3)">← Back</button>
+                            <button type="button" class="action-btn adopted-btn" onclick="goLostStep(5)">Next →</button>
                         </div>
                     </div>
                 </div>
 
-                @* ══ STEP 5: Secret Question ══ *@
+                @* STEP 5 *@
                 <div class="lost-step" id="lostStep5">
                     <div class="box adoption-step-box secret-box">
                         <div class="step-header">
-                            <div>
-                                <h3>Secret Question</h3>
-                                <span>Step 5 of 6</span>
-                            </div>
+                            <div><h3>Secret Question</h3><span>Step 5 of 6</span></div>
                             <div class="step-icon">🔐</div>
                         </div>
-
-                        <div class="info-note-box">
-                            The question and answer will never appear in the public ad.
-                        </div>
-
+                        <div class="info-note-box">The question and answer will never appear in the public ad.</div>
                         <div class="form-group full-width" style="margin-top:1rem">
                             <label>Secret Question <span style="color:red">*</span></label>
                             <input type="text" name="secretQuestion"
-                                   placeholder="Example: Does the pet have a mark on one ear?"
-                                   required />
+                                   placeholder="Example: Does the pet have a mark on one ear?" required />
                         </div>
-
                         <div class="form-group full-width" style="margin-top:.8rem">
                             <label>Correct Answer <span style="color:red">*</span></label>
-                            <input type="text" name="secretAnswer"
-                                   placeholder="Hidden answer" required />
+                            <input type="text" name="secretAnswer" placeholder="Hidden answer" required />
                         </div>
-
                         <div class="step-actions between-actions">
-                            <button type="button" class="action-btn cancel-adoption-btn"
-                                    onclick="goLostStep(4)">
-                                ← Back
-                            </button>
-                            <button type="button" class="action-btn adopted-btn"
-                                    onclick="goLostStep(6)">
-                                Next →
-                            </button>
+                            <button type="button" class="action-btn cancel-adoption-btn" onclick="goLostStep(4)">← Back</button>
+                            <button type="button" class="action-btn adopted-btn" onclick="goLostStep(6)">Next →</button>
                         </div>
                     </div>
                 </div>
 
-                @* ══ STEP 6: Contact & Submit ══ *@
+                @* STEP 6 *@
                 <div class="lost-step" id="lostStep6">
                     <div class="box adoption-step-box">
                         <div class="step-header">
-                            <div>
-                                <h3>Contact Information</h3>
-                                <span>Step 6 of 6</span>
-                            </div>
+                            <div><h3>Contact Information</h3><span>Step 6 of 6</span></div>
                             <div class="step-icon">📞</div>
                         </div>
-
                         <div class="form-group full-width">
                             <label>Contact Phone <span style="color:red">*</span></label>
                             <div class="phone-wrap">
                                 <span class="phone-code">+962</span>
-                                <input type="tel" name="contactPhone"
-                                       placeholder="7X XXX XXXX" required />
+                                <input type="tel" name="contactPhone" placeholder="7X XXX XXXX" required />
                             </div>
                         </div>
-
-                        <label class="agree-check review-agree"
-                               style="margin-top:1.2rem;display:flex;gap:.5rem;align-items:center">
+                        <label class="agree-check review-agree" style="margin-top:1.2rem;display:flex;gap:.5rem;align-items:center">
                             <input type="checkbox" id="agreeLostTerms" />
                             <span>I confirm all information is correct and agree to publish this ad.</span>
                         </label>
-
                         <div class="step-actions between-actions">
-                            <button type="button" class="action-btn cancel-adoption-btn"
-                                    onclick="goLostStep(5)">
-                                ← Back
-                            </button>
-                            <button type="submit" class="action-btn lost-btn"
-                                    onclick="return checkLostAgree()">
-                                Publish Lost Ad 📣
-                            </button>
+                            <button type="button" class="action-btn cancel-adoption-btn" onclick="goLostStep(5)">← Back</button>
+                            <button type="submit" class="action-btn lost-btn" onclick="return checkLostAgree()">Publish Lost Ad 📣</button>
                         </div>
                     </div>
                 </div>
@@ -710,7 +559,11 @@
             </form>
         </div>
     </div>
-    <!-- ADOPTION FLOW -->
+
+
+    @* ══════════════════════════════════════════════════════
+       ADOPTION FLOW MODAL
+    ══════════════════════════════════════════════════════ *@
     <div class="modal-overlay" id="adoptionFlow">
         <div class="modal adoption-modal">
             <button class="close-modal" id="closeAdoptionFlowBtn">×</button>
@@ -724,7 +577,6 @@
                 <div class="alert-error">⚠️ @TempData["AdoptError"]</div>
             }
 
-            @* ✅ form واحد يحتوي كل الـ steps *@
             <form method="post"
                   asp-controller="Pet"
                   asp-action="SubmitAdoption"
@@ -733,17 +585,13 @@
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="petId" value="@Model.IdPet" />
 
-                @* ══ STEP 1: Location & Contact ══ *@
+                @* STEP 1 *@
                 <div class="adoption-step active" id="adoptStep1">
                     <div class="box adoption-step-box">
                         <div class="step-header">
-                            <div>
-                                <h3>Location & Contact</h3>
-                                <span>Step 1 of 4</span>
-                            </div>
+                            <div><h3>Location & Contact</h3><span>Step 1 of 4</span></div>
                             <div class="step-icon">📍</div>
                         </div>
-
                         <div class="adoption-grid">
                             <div class="form-group">
                                 <label>City <span style="color:red">*</span></label>
@@ -758,162 +606,107 @@
                                     <option>Jerash</option>
                                 </select>
                             </div>
-
                             <div class="form-group">
                                 <label>Area</label>
-                                <input type="text" name="area" id="adArea"
-                                       placeholder="Example: Al Rabieh" />
+                                <input type="text" name="area" id="adArea" placeholder="Example: Al Rabieh" />
                             </div>
-
                             <div class="form-group full-width">
                                 <label>Contact Phone <span style="color:red">*</span></label>
                                 <div class="phone-wrap">
                                     <span class="phone-code">+962</span>
-                                    <input type="tel" name="contactPhone" id="adPhone"
-                                           placeholder="7X XXX XXXX" required />
+                                    <input type="tel" name="contactPhone" id="adPhone" placeholder="7X XXX XXXX" required />
                                 </div>
                             </div>
-
                             <div class="form-group full-width">
                                 <label>Preferred Contact Method</label>
                                 <div class="choice-grid two-cols">
                                     <label class="choice-card selected-card">
-                                        <input type="radio" name="contactMethod"
-                                               value="Phone" checked />
-                                        <span>Phone</span>
+                                        <input type="radio" name="contactMethod" value="Phone" checked /><span>Phone</span>
                                     </label>
                                     <label class="choice-card">
-                                        <input type="radio" name="contactMethod"
-                                               value="WhatsApp" />
-                                        <span>WhatsApp</span>
+                                        <input type="radio" name="contactMethod" value="WhatsApp" /><span>WhatsApp</span>
                                     </label>
                                 </div>
                             </div>
                         </div>
-
                         <div class="step-actions">
-                            <button type="button" class="action-btn adopted-btn"
-                                    onclick="goAdoptStep(2)">
-                                Next →
-                            </button>
+                            <button type="button" class="action-btn adopted-btn" onclick="goAdoptStep(2)">Next →</button>
                         </div>
                     </div>
                 </div>
 
-                @* ══ STEP 2: Pet Photos ══ *@
+                @* STEP 2 — Photos ✅ 5 slots منفصلة *@
                 <div class="adoption-step" id="adoptStep2">
                     <div class="box adoption-step-box">
                         <div class="step-header">
-                            <div>
-                                <h3>Pet Photos</h3>
-                                <span>Step 2 of 4</span>
-                            </div>
+                            <div><h3>Pet Photos</h3><span>Step 2 of 4</span></div>
                             <div class="step-icon">🖼️</div>
                         </div>
 
-                        <div class="photo-upload-box">
-                            <label for="adPhotos" class="main-upload-area">
-                                <div class="upload-icon">📷</div>
-                                <strong>Click to upload pet photos</strong>
-                                <p>Up to 5 images — JPG, PNG</p>
-                            </label>
-                            <input type="file" id="adPhotos" name="photos"
-                                   accept="image/*" multiple hidden />
-                        </div>
+                        <p style="font-size:.83rem;color:#666;margin-bottom:.5rem;font-family:'Nunito',sans-serif">
+                            Click each slot to add a photo independently — up to 5 photos total.
+                        </p>
 
-                        <div class="photo-preview-grid" id="adoptPhotoPreview">
-                            <div class="mini-upload">+</div>
-                            <div class="mini-upload">+</div>
-                            <div class="mini-upload">+</div>
-                            <div class="mini-upload">+</div>
-                            <div class="mini-upload">+</div>
+                        @* ✅ 5 inputs منفصلة — كل input = صورة مستقلة بمكانها الخاص *@
+                        <div class="photo-slots">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <label class="photo-slot">
+                                    <span class="slot-icon">📷</span>
+                                    <span class="slot-label">Photo @i</span>
+                                    <input type="file" name="photos"
+                                           accept="image/jpeg,image/png,image/webp"
+                                           style="display:none" />
+                                </label>
+                            }
                         </div>
+                        <p style="font-size:.72rem;color:#aaa;margin-top:.4rem;font-family:'Nunito',sans-serif">
+                            JPG, PNG, WEBP · max 5 MB each · optional
+                        </p>
 
-                        <div class="step-actions between-actions">
-                            <button type="button" class="action-btn cancel-adoption-btn"
-                                    onclick="goAdoptStep(1)">
-                                ← Back
-                            </button>
-                            <button type="button" class="action-btn adopted-btn"
-                                    onclick="goAdoptStep(3)">
-                                Next →
-                            </button>
+                        <div class="step-actions between-actions" style="margin-top:1rem">
+                            <button type="button" class="action-btn cancel-adoption-btn" onclick="goAdoptStep(1)">← Back</button>
+                            <button type="button" class="action-btn adopted-btn" onclick="goAdoptStep(3)">Next →</button>
                         </div>
                     </div>
                 </div>
 
-                @* ══ STEP 3: Description & Reason ══ *@
+                @* STEP 3 *@
                 <div class="adoption-step" id="adoptStep3">
                     <div class="box adoption-step-box">
                         <div class="step-header">
-                            <div>
-                                <h3>Description & Reason</h3>
-                                <span>Step 3 of 4</span>
-                            </div>
+                            <div><h3>Description & Reason</h3><span>Step 3 of 4</span></div>
                             <div class="step-icon">📝</div>
                         </div>
-
                         <div class="form-group full-width">
                             <label>Pet Description <span style="color:red">*</span></label>
                             <textarea name="description" id="adDescription" rows="4"
-                                      placeholder="Describe the pet's personality, habits..."
-                                      required></textarea>
+                                      placeholder="Describe the pet's personality, habits..." required></textarea>
                         </div>
-
                         <div class="form-group full-width" style="margin-top:1rem">
                             <label>Reason for Adoption <span style="color:red">*</span></label>
-                            <div class="reason-note">
-                                This information helps us understand the case, and will not be shown publicly.
-                            </div>
+                            <div class="reason-note">This information helps us understand the case, and will not be shown publicly.</div>
                             <div class="choice-grid two-cols">
-                                <label class="choice-card">
-                                    <input type="radio" name="reason"
-                                           value="Cannot care for pet anymore" required />
-                                    <span>Cannot care for pet anymore</span>
-                                </label>
-                                <label class="choice-card">
-                                    <input type="radio" name="reason"
-                                           value="Found as stray" />
-                                    <span>Found as stray</span>
-                                </label>
-                                <label class="choice-card">
-                                    <input type="radio" name="reason"
-                                           value="Moving home" />
-                                    <span>Moving home</span>
-                                </label>
-                                <label class="choice-card">
-                                    <input type="radio" name="reason"
-                                           value="Other" />
-                                    <span>Other</span>
-                                </label>
+                                <label class="choice-card"><input type="radio" name="reason" value="Cannot care for pet anymore" required /><span>Cannot care for pet anymore</span></label>
+                                <label class="choice-card"><input type="radio" name="reason" value="Found as stray" /><span>Found as stray</span></label>
+                                <label class="choice-card"><input type="radio" name="reason" value="Moving home" /><span>Moving home</span></label>
+                                <label class="choice-card"><input type="radio" name="reason" value="Other" /><span>Other</span></label>
                             </div>
                         </div>
-
                         <div class="step-actions between-actions">
-                            <button type="button" class="action-btn cancel-adoption-btn"
-                                    onclick="goAdoptStep(2)">
-                                ← Back
-                            </button>
-                            <button type="button" class="action-btn adopted-btn"
-                                    onclick="goAdoptStep(4)">
-                                Next →
-                            </button>
+                            <button type="button" class="action-btn cancel-adoption-btn" onclick="goAdoptStep(2)">← Back</button>
+                            <button type="button" class="action-btn adopted-btn" onclick="goAdoptStep(4)">Next →</button>
                         </div>
                     </div>
                 </div>
 
-                @* ══ STEP 4: Review & Submit ══ *@
+                @* STEP 4 *@
                 <div class="adoption-step" id="adoptStep4">
                     <div class="box adoption-step-box">
                         <div class="step-header">
-                            <div>
-                                <h3>Review Before Submitting</h3>
-                                <span>Step 4 of 4</span>
-                            </div>
+                            <div><h3>Review Before Submitting</h3><span>Step 4 of 4</span></div>
                             <div class="step-icon">✅</div>
                         </div>
-
-                        @* Pet Info *@
                         <div class="review-card">
                             <div class="review-section">
                                 <h4>Pet</h4>
@@ -924,7 +717,6 @@
                                     <div><span>Age</span><strong>@Model.AgeDisplay</strong></div>
                                 </div>
                             </div>
-
                             <div class="review-section">
                                 <h4>Contact & Location</h4>
                                 <div class="review-list">
@@ -934,7 +726,6 @@
                                     <div><span>Method</span><strong id="reviewMethod">—</strong></div>
                                 </div>
                             </div>
-
                             <div class="review-section">
                                 <h4>Description</h4>
                                 <p id="reviewDesc" style="color:#555;font-size:.9rem">—</p>
@@ -944,21 +735,13 @@
                                 </div>
                             </div>
                         </div>
-
                         <label class="agree-check review-agree" style="margin-top:1rem;display:flex;gap:.5rem;align-items:center">
                             <input type="checkbox" id="agreeAdTerms" />
                             <span>I confirm all information is correct and agree to publish this ad.</span>
                         </label>
-
                         <div class="step-actions between-actions">
-                            <button type="button" class="action-btn cancel-adoption-btn"
-                                    onclick="goAdoptStep(3)">
-                                ← Back
-                            </button>
-                            <button type="submit" class="action-btn adopted-btn"
-                                    onclick="return checkAdoptAgree()">
-                                Submit Ad 🐾
-                            </button>
+                            <button type="button" class="action-btn cancel-adoption-btn" onclick="goAdoptStep(3)">← Back</button>
+                            <button type="submit" class="action-btn adopted-btn" onclick="return checkAdoptAgree()">Submit Ad 🐾</button>
                         </div>
                     </div>
                 </div>
@@ -969,140 +752,66 @@
 
     <footer class="footer">
         <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <span>|</span>
-            <a href="about.html">Contact</a>
-            <span>|</span>
+            <a href="about.html">About Us</a><span>|</span>
+            <a href="about.html">Contact</a><span>|</span>
             <a href="faq.html">FAQ</a>
-            <span>|</span>
-            <div class="social-inline" aria-label="Social links">
-                <span>f</span>
-                <span>🐦</span>
-                <span>◎</span>
-            </div>
         </div>
         <div>© 2026 Waffy, all rights reserved.</div>
     </footer>
 
     <script>
-
-        // ══════════════════════════════════════
-        // ADOPTION STEPS
-        // ══════════════════════════════════════
+        // ── Adoption Steps ──
         function goAdoptStep(n) {
             if (n === 2) {
                 const city  = document.getElementById("adCity")?.value;
                 const phone = document.getElementById("adPhone")?.value.trim();
-                if (!city || !phone) {
-                    alert("Please fill in City and Phone first.");
-                    return;
-                }
+                if (!city || !phone) { alert("Please fill in City and Phone first."); return; }
             }
             if (n === 4) {
                 const desc   = document.getElementById("adDescription")?.value.trim();
                 const reason = document.querySelector('input[name="reason"]:checked');
-                if (!desc || !reason) {
-                    alert("Please complete Description and Reason.");
-                    return;
-                }
-                document.getElementById("reviewCity").textContent =
-                    document.getElementById("adCity")?.value || "—";
-                document.getElementById("reviewArea").textContent =
-                    document.getElementById("adArea")?.value || "—";
-                document.getElementById("reviewPhone").textContent =
-                    "+962 " + (document.getElementById("adPhone")?.value || "—");
-                document.getElementById("reviewMethod").textContent =
-                    document.querySelector('input[name="contactMethod"]:checked')?.value || "—";
-                document.getElementById("reviewDesc").textContent = desc;
+                if (!desc || !reason) { alert("Please complete Description and Reason."); return; }
+                document.getElementById("reviewCity").textContent   = document.getElementById("adCity")?.value || "—";
+                document.getElementById("reviewArea").textContent   = document.getElementById("adArea")?.value || "—";
+                document.getElementById("reviewPhone").textContent  = "+962 " + (document.getElementById("adPhone")?.value || "—");
+                document.getElementById("reviewMethod").textContent = document.querySelector('input[name="contactMethod"]:checked')?.value || "—";
+                document.getElementById("reviewDesc").textContent   = desc;
                 document.getElementById("reviewReason").textContent = reason.value;
             }
-
-            document.querySelectorAll(".adoption-step").forEach(s =>
-                s.classList.remove("active"));
+            document.querySelectorAll(".adoption-step").forEach(s => s.classList.remove("active"));
             document.getElementById(`adoptStep${n}`)?.classList.add("active");
             document.querySelector("#adoptionFlow .adoption-modal")?.scrollTo(0, 0);
         }
-
         function checkAdoptAgree() {
             if (!document.getElementById("agreeAdTerms")?.checked) {
-                alert("Please agree to the terms before submitting.");
-                return false;
+                alert("Please agree to the terms before submitting."); return false;
             }
             return true;
         }
 
-        // ══════════════════════════════════════
-        // LOST STEPS
-        // ══════════════════════════════════════
+        // ── Lost Steps ──
         function goLostStep(n) {
             if (n === 3) {
                 const desc = document.querySelector('#lostForm textarea[name="description"]')?.value.trim();
-                if (!desc) {
-                    alert("Please add a description.");
-                    return;
-                }
+                if (!desc) { alert("Please add a description."); return; }
             }
             if (n === 6) {
                 const q = document.querySelector('#lostForm input[name="secretQuestion"]')?.value.trim();
                 const a = document.querySelector('#lostForm input[name="secretAnswer"]')?.value.trim();
-                if (!q || !a) {
-                    alert("Please enter the secret question and answer.");
-                    return;
-                }
+                if (!q || !a) { alert("Please enter the secret question and answer."); return; }
             }
-
-            document.querySelectorAll(".lost-step").forEach(s =>
-                s.classList.remove("active"));
+            document.querySelectorAll(".lost-step").forEach(s => s.classList.remove("active"));
             document.getElementById(`lostStep${n}`)?.classList.add("active");
             document.querySelector("#lostFlowModal .lost-modal")?.scrollTo(0, 0);
         }
-
         function checkLostAgree() {
             if (!document.getElementById("agreeLostTerms")?.checked) {
-                alert("Please agree to the terms before submitting.");
-                return false;
+                alert("Please agree to the terms before submitting."); return false;
             }
             return true;
         }
 
-        // ══════════════════════════════════════
-        // PHOTO PREVIEWS
-        // ══════════════════════════════════════
-        document.getElementById("adPhotos")?.addEventListener("change", function () {
-            updatePreview(this.files, "adoptPhotoPreview");
-        });
-
-        document.getElementById("lostPhotos")?.addEventListener("change", function () {
-            updatePreview(this.files, "lostPhotoPreview");
-        });
-
-        function updatePreview(files, gridId) {
-            const grid = document.getElementById(gridId);
-            if (!grid) return;
-            grid.innerHTML = "";
-            const max = 5;
-            const arr = Array.from(files).slice(0, max);
-            arr.forEach(file => {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    const div = document.createElement("div");
-                    div.className = "preview-thumb";
-                    div.innerHTML = `<img src="${e.target.result}" alt="photo">`;
-                    grid.appendChild(div);
-                };
-                reader.readAsDataURL(file);
-            });
-            for (let i = arr.length; i < max; i++) {
-                const div = document.createElement("div");
-                div.className = "mini-upload";
-                div.textContent = "+";
-                grid.appendChild(div);
-            }
-        }
-
-        // ══════════════════════════════════════
-        // NAVBAR
-        // ══════════════════════════════════════
+        // ── Navbar ──
         const servicesDropdown    = document.getElementById("servicesDropdown");
         const servicesToggle      = document.getElementById("servicesToggle");
         const menuBtn             = document.getElementById("menuBtn");
@@ -1111,77 +820,55 @@
         const mobileServicesToggle = document.getElementById("mobileServicesToggle");
 
         if (servicesToggle && servicesDropdown) {
-            servicesToggle.addEventListener("click", e => {
-                e.stopPropagation();
-                servicesDropdown.classList.toggle("open");
-            });
-            document.addEventListener("click", e => {
-                if (!servicesDropdown.contains(e.target))
-                    servicesDropdown.classList.remove("open");
-            });
+            servicesToggle.addEventListener("click", e => { e.stopPropagation(); servicesDropdown.classList.toggle("open"); });
+            document.addEventListener("click", e => { if (!servicesDropdown.contains(e.target)) servicesDropdown.classList.remove("open"); });
         }
-
         if (menuBtn && navLinks) {
-            menuBtn.addEventListener("click", e => {
-                e.stopPropagation();
-                navLinks.classList.toggle("open");
-            });
-            document.addEventListener("click", e => {
-                if (!navLinks.contains(e.target) && e.target !== menuBtn)
-                    navLinks.classList.remove("open");
-            });
+            menuBtn.addEventListener("click", e => { e.stopPropagation(); navLinks.classList.toggle("open"); });
+            document.addEventListener("click", e => { if (!navLinks.contains(e.target) && e.target !== menuBtn) navLinks.classList.remove("open"); });
         }
-
         if (mobileServicesBlock && mobileServicesToggle)
-            mobileServicesToggle.addEventListener("click", () =>
-                mobileServicesBlock.classList.toggle("open"));
+            mobileServicesToggle.addEventListener("click", () => mobileServicesBlock.classList.toggle("open"));
 
-        // ══════════════════════════════════════
-        // OPEN / CLOSE MODALS
-        // ══════════════════════════════════════
-        const adoptionFlow    = document.getElementById("adoptionFlow");
-        const lostFlowModal   = document.getElementById("lostFlowModal");
+        // ── Modals ──
+        const adoptionFlow  = document.getElementById("adoptionFlow");
+        const lostFlowModal = document.getElementById("lostFlowModal");
 
-        document.getElementById("openAdoptionFormBtn")?.addEventListener("click", () => {
-            adoptionFlow?.classList.add("show");
-            goAdoptStep(1);
-        });
-
-        document.getElementById("closeAdoptionFlowBtn")?.addEventListener("click", () =>
-            adoptionFlow?.classList.remove("show"));
-
-        document.getElementById("closeAdoptionFlowBtn2")?.addEventListener("click", () =>
-            adoptionFlow?.classList.remove("show"));
-
-        document.getElementById("openLostFlowBtn")?.addEventListener("click", () => {
-            lostFlowModal?.classList.add("show");
-            goLostStep(1);
-        });
-
-        document.getElementById("closeLostFlowModal")?.addEventListener("click", () =>
-            lostFlowModal?.classList.remove("show"));
-
-        // ✅ إغلاق عند الضغط خارج الـ modal
+        document.getElementById("openAdoptionFormBtn")?.addEventListener("click", () => { adoptionFlow?.classList.add("show"); goAdoptStep(1); });
+        document.getElementById("closeAdoptionFlowBtn")?.addEventListener("click", () => adoptionFlow?.classList.remove("show"));
+        document.getElementById("openLostFlowBtn")?.addEventListener("click", () => { lostFlowModal?.classList.add("show"); goLostStep(1); });
+        document.getElementById("closeLostFlowModal")?.addEventListener("click", () => lostFlowModal?.classList.remove("show"));
         window.addEventListener("click", e => {
             if (e.target === adoptionFlow) adoptionFlow?.classList.remove("show");
             if (e.target === lostFlowModal) lostFlowModal?.classList.remove("show");
         });
 
-        // ══════════════════════════════════════════════════════
-        // ✅ افتح الـ Modal تلقائياً لو في رسالة نجاح أو خطأ
-        // ══════════════════════════════════════════════════════
         document.addEventListener("DOMContentLoaded", () => {
-
             const hasAdoptMsg = @((TempData.Peek("AdoptSuccess") != null || TempData.Peek("AdoptError") != null) ? "true" : "false");
-            if (hasAdoptMsg) {
-                adoptionFlow?.classList.add("show");
-            }
-
+            if (hasAdoptMsg) adoptionFlow?.classList.add("show");
             const hasLostMsg = @((TempData.Peek("LostSuccess") != null || TempData.Peek("LostError") != null) ? "true" : "false");
-            if (hasLostMsg) {
-                lostFlowModal?.classList.add("show");
-            }
+            if (hasLostMsg) lostFlowModal?.classList.add("show");
         });
+
+        // ── Photo slot preview ──
+document.querySelectorAll('.photo-slot input[type="file"]').forEach(input => {
+    input.addEventListener('change', function () {
+        const file = this.files[0];
+        if (!file) return;
+        const label = this.closest('.photo-slot');
+        const reader = new FileReader();
+        reader.onload = e => {
+            label.style.backgroundImage  = `url('${e.target.result}')`;
+            label.style.backgroundSize   = 'cover';
+            label.style.backgroundPosition = 'center';
+            label.style.border = '2px solid #5a9e2f';
+            // إخفاء الأيقونة والنص
+            label.querySelector('.slot-icon').style.display = 'none';
+            label.querySelector('.slot-label').style.display = 'none';
+        };
+        reader.readAsDataURL(file);
+    });
+});
 
     </script>
 </body>

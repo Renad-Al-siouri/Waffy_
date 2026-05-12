@@ -9,6 +9,80 @@
     <title>Waffy | Add Pet</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/Petform.css" />
+    <style>
+        /* ── Single photo upload ── */
+        .photo-upload-zone {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            border-radius: 16px;
+            border: 2px dashed #c5d9a0;
+            background: #f9fff3;
+            cursor: pointer;
+            overflow: hidden;
+            transition: border-color .2s, background .2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: .3rem;
+        }
+
+            .photo-upload-zone:hover {
+                border-color: #5a9e2f;
+                background: #f0fae3;
+            }
+
+            .photo-upload-zone img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                position: absolute;
+                top: 0;
+                left: 0;
+                border-radius: 14px;
+            }
+
+            .photo-upload-zone .upload-placeholder {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: .3rem;
+                color: #6a8c3c;
+                font-size: .82rem;
+                font-weight: 700;
+                text-align: center;
+                padding: .5rem;
+            }
+
+                .photo-upload-zone .upload-placeholder .icon {
+                    font-size: 2.2rem;
+                    line-height: 1;
+                }
+
+            .photo-upload-zone .photo-overlay {
+                display: none;
+                position: absolute;
+                inset: 0;
+                background: rgba(90,158,47,.7);
+                color: #fff;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5rem;
+                border-radius: 14px;
+            }
+
+            .photo-upload-zone:hover .photo-overlay {
+                display: flex;
+            }
+
+        .photo-hint-text {
+            font-size: .75rem;
+            color: #999;
+            margin-top: .4rem;
+            font-family: 'Nunito', sans-serif;
+        }
+    </style>
 </head>
 <body>
     <div class="pet-form-page">
@@ -34,9 +108,25 @@
                 <div class="s-card-body">
                     <div class="form-grid">
 
+                        @* ── صورة واحدة ── *@
                         <div class="field full">
                             <label>Pet Photo</label>
-                            <input type="file" name="petImage" accept="image/*" />
+                            <label for="petImageInput" class="photo-upload-zone" id="uploadZone">
+                                <div class="upload-placeholder" id="uploadPlaceholder">
+                                    <span class="icon">📷</span>
+                                    <span>Click to upload</span>
+                                    <span style="font-weight:400;font-size:.72rem;color:#999">JPG, PNG, WEBP · max 5 MB</span>
+                                </div>
+                                <img id="photoPreview" src="" alt="" style="display:none" />
+                                <div class="photo-overlay">📷 Change</div>
+                            </label>
+                            <input type="file"
+                                   id="petImageInput"
+                                   name="petImage"
+                                   accept="image/jpeg,image/png,image/webp"
+                                   hidden
+                                   onchange="previewPhoto(this)" />
+                            <p class="photo-hint-text" id="photoHint">No photo selected — optional</p>
                         </div>
 
                         <div class="field full">
@@ -123,8 +213,7 @@
 
                         <div class="field full">
                             <label>Medical Notes</label>
-                            <textarea name="medicalNotes"
-                                      placeholder="Any health issues or notes..."></textarea>
+                            <textarea name="medicalNotes" placeholder="Any health issues or notes..."></textarea>
                         </div>
 
                     </div>
@@ -174,8 +263,7 @@
 
                         <div class="field full">
                             <label>Traits / Description</label>
-                            <textarea name="traits"
-                                      placeholder="e.g. Friendly, loves to play..."></textarea>
+                            <textarea name="traits" placeholder="e.g. Friendly, loves to play..."></textarea>
                         </div>
 
                     </div>
@@ -183,15 +271,29 @@
             </div>
 
             <div class="form-actions">
-                <a asp-controller="Account"
-                   asp-action="Profile"
-                   class="btn btn-secondary">← Cancel</a>
-                <button type="submit" class="btn btn-primary">
-                    Add Pet 🐾
-                </button>
+                <a asp-controller="Account" asp-action="Profile" class="btn btn-secondary">← Cancel</a>
+                <button type="submit" class="btn btn-primary">Add Pet 🐾</button>
             </div>
 
         </form>
     </div>
+
+    <script>
+        function previewPhoto(input) {
+            const preview = document.getElementById('photoPreview');
+            const placeholder = document.getElementById('uploadPlaceholder');
+            const hint = document.getElementById('photoHint');
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+                hint.textContent = file.name;
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
 </body>
 </html>

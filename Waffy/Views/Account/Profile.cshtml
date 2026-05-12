@@ -8,45 +8,190 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Waffy | Profile</title>
-
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
     <link rel="stylesheet" href="~/css/profile.css" />
+    <style>
+        /* ══════════════════════════════════════
+           NEW PET CARDS
+        ══════════════════════════════════════ */
+        .pets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 20px;
+        }
+
+        .pet-card {
+            background: #fff;
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(90,101,42,.10);
+            border: 1px solid #e8efd8;
+            display: flex;
+            flex-direction: column;
+            height: 420px;
+            transition: transform .22s, box-shadow .22s;
+        }
+        .pet-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 14px 36px rgba(90,101,42,.18);
+        }
+
+        /* ── Photo ── */
+        .pc-photo {
+            position: relative;
+            height: 160px;
+            flex-shrink: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg,#e8efd8,#f4f9ee);
+        }
+        .pc-photo img {
+            width: 100%; height: 100%;
+            object-fit: cover; display: block;
+            transition: transform .4s ease;
+        }
+        .pet-card:hover .pc-photo img { transform: scale(1.04); }
+
+        .pc-photo-placeholder {
+            width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 4.5rem;
+        }
+
+        .pc-species-pill {
+            position: absolute; top: 10px; left: 10px;
+            background: rgba(255,255,255,.88);
+            backdrop-filter: blur(6px);
+            color: #4a7a2c; font-size: .68rem; font-weight: 800;
+            padding: 3px 9px; border-radius: 999px;
+            border: 1px solid rgba(90,143,56,.22);
+            font-family: 'Nunito', sans-serif;
+            text-transform: capitalize;
+        }
+
+        .pc-vacc-dot {
+            position: absolute; top: 10px; right: 10px;
+            width: 11px; height: 11px;
+            border-radius: 50%; border: 2px solid #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,.18);
+        }
+        .pc-vacc-dot.ok  { background: #4caf50; }
+        .pc-vacc-dot.nok { background: #ff9800; }
+
+        /* ── Body ── */
+        .pc-body {
+            padding: 13px 14px 8px;
+            flex: 1; display: flex; flex-direction: column;
+            overflow: hidden; min-height: 0;
+        }
+
+        .pc-name {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.2rem; font-weight: 600;
+            color: #3d6b20; margin: 0 0 1px; line-height: 1.2;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .pc-sub {
+            font-size: .72rem; color: #8a9a6a; font-weight: 700;
+            margin: 0 0 9px;
+        }
+
+        /* Tags */
+        .pc-tags {
+            display: flex; flex-wrap: wrap; gap: 4px;
+            margin-bottom: 9px; flex-shrink: 0;
+        }
+        .pc-tag {
+            font-size: .62rem; font-weight: 800;
+            padding: 2px 7px; border-radius: 999px;
+            font-family: 'Nunito', sans-serif; line-height: 1.4;
+        }
+        .t-green  { background: #e8f5e9; color: #2e7d32; }
+        .t-orange { background: #fff3e0; color: #e65100; }
+        .t-purple { background: #f3e5f5; color: #6a1b9a; }
+        .t-grey   { background: #f5f5f5; color: #777; }
+
+        /* Notes */
+        .pc-notes { flex: 1; overflow: hidden; min-height: 0; }
+        .pc-notes-text {
+            font-size: .74rem; color: #6b5e4e; line-height: 1.55;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .pc-notes-text.expanded {
+            display: block;
+            max-height: 72px; overflow-y: auto;
+            -webkit-line-clamp: unset;
+        }
+        .see-more-btn {
+            background: none; border: none; color: #5a8f38;
+            font-size: .68rem; font-weight: 800; cursor: pointer;
+            padding: 2px 0; font-family: 'Nunito', sans-serif;
+        }
+        .see-more-btn:hover { text-decoration: underline; }
+        .pc-no-notes { font-size: .7rem; color: #ccc; font-style: italic; }
+
+        /* ── Actions ── */
+        .pc-actions {
+            display: flex; gap: 5px;
+            padding: 9px 12px 13px;
+            border-top: 1px solid #f4f4f4;
+            flex-shrink: 0;
+        }
+        .pc-btn {
+            flex: 1; border: none; border-radius: 9px;
+            padding: 6px 2px; font-size: .69rem; font-weight: 800;
+            cursor: pointer; font-family: 'Nunito', sans-serif;
+            transition: background .15s, transform .15s;
+            text-align: center; text-decoration: none;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .pc-btn:hover { transform: translateY(-1px); }
+        .pc-btn.view  { background: #5a8f38; color: #fff; }
+        .pc-btn.view:hover { background: #4a7a2c; }
+        .pc-btn.edit  { background: #f0f5e8; color: #5a8f38; border: 1px solid #c8dfa8; }
+        .pc-btn.edit:hover { background: #e4eed8; }
+        .pc-btn.del   { background: #fde8e8; color: #c0392b; border: 1px solid #f5b8b8; }
+        .pc-btn.del:hover { background: #fcc; }
+
+        .add-pet-box { border-radius: 22px !important; }
+
+        @@media (max-width: 600px) {
+            .pets-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .pet-card  { height: 390px; }
+            .pc-photo  { height: 130px; }
+        }
+        @@media (max-width: 360px) {
+            .pets-grid { grid-template-columns: 1fr; }
+        }
+    </style>
 </head>
 <body>
-    <!-- HEADER -->
     <div class="top-hero-area">
         <div class="top-hero-shell">
             <header class="topbar">
                 <div class="header-shell">
                     <nav class="navbar">
-
                         <div class="left-nav desktop-nav desktop-links">
                             <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                             <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                             <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                             <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-
                         </div>
-
                         <div class="logo-center">
                             <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
                         </div>
-
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
-
-
-
                                 <div class="services-dropdown" id="servicesDropdown">
                                     <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services
-                                        <span class="dropdown-arrow">▼</span>
+                                        Services <span class="dropdown-arrow">▼</span>
                                     </button>
-
                                     <div class="dropdown-menu" id="servicesMenu">
                                         <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
                                         <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
@@ -60,50 +205,31 @@
                                         <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                     </div>
                                 </div>
-
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
-
                             </div>
-
                             <div class="nav-actions">
-                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
-                                    <i class="fa-solid fa-cart-shopping"></i>
-                                </a>
-
-                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon" aria-label="Notifications">
-                                    <i class="fa-solid fa-bell"></i>
-                                </a>
-
-                                <a asp-controller="Account" asp-action="Profile" asp-route-id="@Model.User.UserId" class="profile-btn" aria-label="Profile">
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
+                                <a asp-controller="Account" asp-action="Profile" asp-route-id="@Model.User.UserId" class="profile-btn">
                                     <img src="../Images/user.jpg" alt="Profile">
                                 </a>
-
                                 <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
-
                             <div class="mobile-nav-wrap">
-                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
+                                <button class="menu-btn" id="menuBtn" type="button">☰</button>
                                 <div class="nav-links" id="navLinks">
-                                    <div class="mobile-menu-logo">
-                                        <img src="../Images/logo.png" alt="Waffy Logo">
-                                    </div>
-
+                                    <div class="mobile-menu-logo"><img src="../Images/logo.png" alt="Waffy Logo"></div>
                                     <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                                     <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                                     <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                                     <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                                     <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
-
                                     <div class="mobile-services-block" id="mobileServicesBlock">
                                         <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
-                                            <span>Services</span>
-                                            <span class="dropdown-arrow">▼</span>
+                                            <span>Services</span><span class="dropdown-arrow">▼</span>
                                         </button>
-
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
-
                                             <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                             <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                             <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
@@ -111,215 +237,188 @@
                                             <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                                     <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
                             </div>
                         </div>
-
                     </nav>
                 </div>
             </header>
         </div>
     </div>
 
-    <!-- PAGE -->
     <main class="profile-page">
         <div class="container">
-            <!-- PROFILE CARD -->
+
             <section class="profile-card">
                 <div class="profile-top">
                     <div class="avatar-wrap">
                         <div class="avatar">
-                            @if (Model != null && !string.IsNullOrEmpty(Model.User.ProfileImage))
-                            {
-                                <img src="@Model.User.ProfileImage" alt="Profile Image" />
-                            }
+                            @if (!string.IsNullOrEmpty(Model.User.ProfileImage))
+                            { <img src="@Model.User.ProfileImage" alt="Profile" /> }
                             else
-                            {
-                                <span>👤</span>
-                            }
+                            { <span>👤</span> }
                         </div>
-                        <button class="camera-btn" id="changePhotoBtn" type="button">📷</button>
-                        <input type="file" id="photoInput" accept="image/*" hidden />
                     </div>
-
                     <div class="profile-info">
                         <h1>@Model.User.FullName</h1>
-
-                        <div class="meta-line">
-                            <span>♀ @Model.User.Gender</span>
-                        </div>
-
-                        <div class="meta-line">
-                            <span>📍 @Model.User.City</span>
-                        </div>
-
-                        <a asp-controller="Profile" asp-action="Edit_Profile"  class="edit-profile-btn">✏ Edit Profile</a>
+                        <div class="meta-line"><span>♀ @Model.User.Gender</span></div>
+                        <div class="meta-line"><span>📍 @Model.User.City</span></div>
+                        <a asp-controller="Profile" asp-action="Edit_Profile" class="edit-profile-btn">✏ Edit Profile</a>
                     </div>
                 </div>
-
                 <div class="contact-box">
                     <div class="contact-row">
                         <span class="contact-label">✉ Email</span>
-                        <span class="contact-value" id="userEmail">@Model.User.Email</span>
+                        <span class="contact-value">@Model.User.Email</span>
                     </div>
-
                     <div class="contact-row">
                         <span class="contact-label">📞 Phone</span>
-                        <span class="contact-value" id="userPhone">@Model.User.Phone</span>
+                        <span class="contact-value">@Model.User.Phone</span>
                     </div>
-
                     <div class="contact-row">
                         <span class="contact-label">🏠 Address</span>
-                        <span class="contact-value" id="userAddress">@Model.User.AddressDetail</span>
+                        <span class="contact-value">@Model.User.AddressDetail</span>
                     </div>
                 </div>
             </section>
 
-            <!-- PETS SECTION -->
             <section class="pets-section">
-                <div class="section-title">
-                    <span>🐾 My Pets</span>
-                </div>
+                <div class="section-title">🐾 My Pets</div>
 
                 @if (TempData["PetSuccess"] != null)
                 {
-                    <div style="background:#f0fff0;border:1px solid #b2dfb2;color:#2d7a2d;
-                        padding:0.7rem 1rem;border-radius:10px;margin-bottom:1rem;font-weight:700">
+                    <div style="background:#f0fff0;border:1px solid #b2dfb2;color:#2d7a2d;padding:.7rem 1rem;border-radius:10px;margin-bottom:1rem;font-weight:700">
                         ✅ @TempData["PetSuccess"]
                     </div>
                 }
                 @if (TempData["PetError"] != null)
                 {
-                    <div style="background:#fff0f0;border:1px solid #ffcccc;color:#c0392b;
-                        padding:0.7rem 1rem;border-radius:10px;margin-bottom:1rem;font-weight:700">
+                    <div style="background:#fff0f0;border:1px solid #ffcccc;color:#c0392b;padding:.7rem 1rem;border-radius:10px;margin-bottom:1rem;font-weight:700">
                         ⚠️ @TempData["PetError"]
                     </div>
                 }
 
-                <div class="pets-grid" id="petsGrid">
+                <div class="pets-grid">
                     @foreach (var pet in Model.Pets)
                     {
-                        <article class="pet-card" data-pet-id="@pet.IdPet">
-                            <div class="pet-image-box">
-                                <div class="pet-avatar-wrap">
-                                    <div class="pet-avatar">
-                                        @if (!string.IsNullOrEmpty(pet.ImageUrl))
-                                        {
-                                            <img src="@pet.ImageUrl" alt="@pet.Name" class="pet-image" />
-                                            <span class="pet-default-icon" style="display:none">🐾</span>
-                                        }
-                                        else
-                                        {
-                                            <img class="pet-image" style="display:none" />
-                                            <span class="pet-default-icon">🐾</span>
-                                        }
-                                </div>  @* ← إغلاق pet-avatar *@
+                        <article class="pet-card">
 
-                                @* ── Upload Photo Form ── *@
-                                <form method="post"
-                                      asp-controller="Pet"
-                                      asp-action="UploadPetPhoto"
-                                      enctype="multipart/form-data"
-                                      id="photoForm_@pet.IdPet">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="petId" value="@pet.IdPet" />
-                                    <input type="file"
-                                           name="photo"
-                                           accept="image/*"
-                                           class="pet-photo-input"
-                                           hidden
-                                           onchange="this.form.submit()" />
-                                </form>
-
-                                <button class="pet-camera-btn" type="button"
-                                        onclick="document.querySelector('#photoForm_@pet.IdPet input[type=file]').click()">
-                                    📷
-                                </button>
-
-                            </div>  @* ← إغلاق pet-avatar-wrap *@
-                        </div>  @* ← إغلاق pet-image-box *@
-
-                        <div class="pet-content">
-                            <div class="pet-head">
-                                <div>
-                                    <h3>@pet.Name</h3>
-                                    <p class="pet-type">@pet.Species</p>
-                                </div>
-                                <span class="pet-dot"></span>
+                            <div class="pc-photo">
+                                @if (!string.IsNullOrEmpty(pet.ImageUrl))
+                                {
+                                    <img src="@pet.ImageUrl" alt="@pet.Name" />
+                                }
+                                else
+                                {
+                                    <div class="pc-photo-placeholder">
+                                        @(pet.Species?.ToLower() switch {
+                                            "dog"     => "🐕",
+                                            "cat"     => "🐈",
+                                            "bird"    => "🐦",
+                                            "rabbit"  => "🐇",
+                                            "hamster" => "🐹",
+                                            "snake"   => "🐍",
+                                            _         => "🐾"
+                                        })
+                                    </div>
+                                }
+                                <span class="pc-species-pill">@pet.Species</span>
+                                <span class="pc-vacc-dot @(pet.VaccinationStatus == "UpToDate" ? "ok" : "nok")"
+                                      title="@(pet.VaccinationStatus == "UpToDate" ? "Vaccinated ✅" : "Vaccines needed ⚠️")"></span>
                             </div>
 
-                            <p class="pet-age">Age: @pet.AgeDisplay</p>
+                            <div class="pc-body">
+                                <div class="pc-name">@pet.Name</div>
+                                <div class="pc-sub">@pet.AgeDisplay</div>
 
-                            <ul class="pet-notes">
-                                <li class="@(pet.VaccinationStatus == "UpToDate" ? "good" : "alert")">
-                                    @(pet.VaccinationStatus == "UpToDate"
-                                                                        ? "Up-to-date on vaccines"
-                                                                        : "Vaccines needed")
-                                </li>
-                                @if (!string.IsNullOrEmpty(pet.MedicalNotes))
+                                <div class="pc-tags">
+                                    @if (pet.VaccinationStatus == "UpToDate")
                                     {
-                                        <li class="alert">@pet.MedicalNotes</li>
+                                        <span class="pc-tag t-green">✅ Vaccinated</span>
                                     }
-                                </ul>
-
-                                <div class="pet-actions">
-                                    <a asp-controller="Pet"
-                                       asp-action="Petrecord"
-                                       asp-route-petId="@pet.IdPet"
-                                       class="pet-btn primary">View Details</a>
-
-                                    <a asp-controller="Pet"
-                                       asp-action="EditPetPage"
-                                       asp-route-petId="@pet.IdPet"
-                                       class="pet-btn secondary">Edit</a>
-
-                                    <form method="post"
-                                          asp-controller="Pet"
-                                          asp-action="DeletePet"
-                                          style="display:inline"
-                                          onsubmit="return confirm('Delete @pet.Name?')">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="petId" value="@pet.IdPet" />
-                                        <button type="submit" class="pet-btn danger">Delete</button>
-                                    </form>
+                                    else
+                                    {
+                                        <span class="pc-tag t-orange">⚠️ Vaccines needed</span>
+                                    }
+                                    @if (pet.IsNeutered)
+                                    {
+                                        <span class="pc-tag t-purple">✂️ Neutered</span>
+                                    }
+                                    @if (pet.GoodWithChildren)
+                                    {
+                                        <span class="pc-tag t-orange">👶 Kids ok</span>
+                                    }
+                                    @if (pet.GoodWithPets)
+                                    {
+                                        <span class="pc-tag t-green">🐾 Pet-friendly</span>
+                                    }
                                 </div>
 
-                            </div>  @* ← إغلاق pet-content *@
+                                <div class="pc-notes">
+                                    @if (!string.IsNullOrEmpty(pet.MedicalNotes))
+                                    {
+                                        <div class="pc-notes-text" id="notes-@pet.IdPet">@pet.MedicalNotes</div>
+                                        @if (pet.MedicalNotes.Length > 90)
+                                        {
+                                            <button class="see-more-btn" onclick="toggleNotes('@pet.IdPet', this)">See More ↓</button>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <span class="pc-no-notes">No medical notes</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="pc-actions">
+                                <a asp-controller="Pet" asp-action="Petrecord"
+                                   asp-route-petId="@pet.IdPet" class="pc-btn view">View</a>
+
+                                <a asp-controller="Pet" asp-action="EditPetPage"
+                                   asp-route-petId="@pet.IdPet" class="pc-btn edit">Edit</a>
+
+                                <form method="post" asp-controller="Pet" asp-action="DeletePet"
+                                      style="flex:1" onsubmit="return confirm('Delete @pet.Name?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="petId" value="@pet.IdPet" />
+                                    <button type="submit" class="pc-btn del" style="width:100%">Delete</button>
+                                </form>
+                            </div>
+
                         </article>
                     }
                 </div>
 
-                <!-- ADD PET -->
-                <div class="add-pet-box" id="addPetBox">
-                    <a asp-controller="Pet"
-                       asp-action="AddPetPage"
-                       class="add-pet-circle">＋</a>
+                <div class="add-pet-box" style="margin-top:20px">
+                    <a asp-controller="Pet" asp-action="AddPetPage" class="add-pet-circle">＋</a>
                     <p>Click to add a new pet</p>
                 </div>
+            </section>
 
-            </section>  @* ← pets-section *@
-
-        </div>  @* ← إغلاق container *@
+        </div>
     </main>
 
-    <!-- FOOTER -->
     <footer class="footer">
         <div class="container">
             <div class="footer-links">
-                <a href="#">Home</a>
-                <span>|</span>
-                <a href="#">Clinics</a>
-                <span>|</span>
-                <a href="#">Supplies</a>
-                <span>|</span>
+                <a href="#">Home</a><span>|</span>
+                <a href="#">Clinics</a><span>|</span>
+                <a href="#">Supplies</a><span>|</span>
                 <a href="#">About Us</a>
             </div>
             <p>© 2026 Waffy. All rights reserved.</p>
         </div>
     </footer>
+
     <script src="~/js/profile.js"></script>
+    <script>
+        function toggleNotes(petId, btn) {
+            const el = document.getElementById('notes-' + petId);
+            const expanded = el.classList.toggle('expanded');
+            btn.textContent = expanded ? 'See Less ↑' : 'See More ↓';
+        }
+    </script>
 </body>
 </html>

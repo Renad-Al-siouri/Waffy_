@@ -185,5 +185,18 @@ namespace Waffy.Repository
             await conn.ExecuteAsync(sql, new { IdLostReport = reportId });
         }
 
+        public async Task<IEnumerable<string>> GetAllImagesAsync(int reportId)
+        {
+            const string sql = @"
+        SELECT ImageUrl
+        FROM   LostPetImage
+        WHERE  IdLostReport = @IdLostReport
+          AND  ImageUrl IS NOT NULL
+        ORDER BY Id ASC";
+
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<string>(sql, new { IdLostReport = reportId });
+        }
+
     }
 }

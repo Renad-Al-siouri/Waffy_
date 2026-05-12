@@ -13,8 +13,110 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        /* ── Carousel (same as Adapt) ── */
+        .pet-thumb {
+            position: relative;
+            overflow: hidden;
+            background: #f5f5f5;
+        }
+
+            .pet-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: none;
+            }
+
+                .pet-thumb img.car-active {
+                    display: block;
+                }
+
+        .car-dots {
+            position: absolute;
+            bottom: 7px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            z-index: 2;
+        }
+
+        .car-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.55);
+            cursor: pointer;
+            border: none;
+            padding: 0;
+            transition: background .2s, transform .2s;
+        }
+
+            .car-dot.active {
+                background: #fff;
+                transform: scale(1.2);
+            }
+
+        .car-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.85);
+            border: none;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #3d7a10;
+            box-shadow: 0 1px 4px rgba(0,0,0,.15);
+            transition: background .2s;
+            line-height: 1;
+        }
+
+            .car-btn:hover {
+                background: rgba(255,255,255,1);
+            }
+
+            .car-btn.prev {
+                left: 6px;
+            }
+
+            .car-btn.next {
+                right: 6px;
+            }
+
+        .pet-thumb[data-count="1"] .car-btn,
+        .pet-thumb[data-count="1"] .car-dots {
+            display: none !important;
+        }
+
+        .photo-counter {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            background: rgba(0,0,0,.45);
+            color: #fff;
+            font-size: .68rem;
+            font-weight: 700;
+            padding: 2px 7px;
+            border-radius: 20px;
+            font-family: 'Nunito', sans-serif;
+            z-index: 2;
+        }
+
+        .pet-thumb[data-count="1"] .photo-counter {
+            display: none;
+        }
+    </style>
 </head>
-    <body data-logged-in="@(Context.Session.GetInt32("UserId").HasValue ? "true" : "false")">
+<body data-logged-in="@(Context.Session.GetInt32("UserId").HasValue ? "true" : "false")">
     <div class="top-note">
         💚 Be the reason a family smiles again.
         Return a lost pet and receive a special reward as a thank you.
@@ -101,58 +203,38 @@
 
         <section class="hero-section fade-up">
             <h1>Lost Pets 🐾</h1>
-            <p>
-                Be the reason a family smiles again.<br>
-                Return a lost pet to its owner and receive a reward as a thank you.
-            </p>
+            <p>Be the reason a family smiles again.<br>Return a lost pet to its owner and receive a reward as a thank you.</p>
         </section>
 
         <section class="steps-grid fade-up">
             <article class="step-card">
-                <img src="../Images/lost/rep.png" alt="Report">
-                <h3>Report</h3>
+                <img src="../Images/lost/rep.png" alt="Report"><h3>Report</h3>
                 <p>Share the lost pet details and location.</p>
             </article>
             <article class="step-card">
-                <img src="../Images/lost/ret.png" alt="Return">
-                <h3>Return Safely</h3>
+                <img src="../Images/lost/ret.png" alt="Return"><h3>Return Safely</h3>
                 <p>Help connect the pet with its owner.</p>
             </article>
             <article class="step-card">
-                <img src="../Images/lost/ver.png" alt="Verify">
-                <h3>Verify</h3>
+                <img src="../Images/lost/ver.png" alt="Verify"><h3>Verify</h3>
                 <p>Answer the secret question to prove you found it.</p>
             </article>
             <article class="step-card">
-                <img src="../Images/lost/rew.png" alt="Reward">
-                <h3>Reward</h3>
+                <img src="../Images/lost/rew.png" alt="Reward"><h3>Reward</h3>
                 <p>Receive cash reward or special voucher.</p>
             </article>
         </section>
 
-        @* ══ FILTER + SEARCH ══ *@
         <section class="adoption-layout fade-up" style="margin-top:2rem">
             <aside class="sidebar-card">
                 <h3>Filter by Type</h3>
                 <div class="filter-list">
-                    <button class="filter-item active" data-filter="all">
-                        <span>🐾</span><span>All Animals</span>
-                    </button>
-                    <button class="filter-item" data-filter="dog">
-                        <img src="../Images/adapt/dog.png" alt="Dog"><span>Dogs</span>
-                    </button>
-                    <button class="filter-item" data-filter="cat">
-                        <img src="../Images/adapt/cat.png" alt="Cat"><span>Cats</span>
-                    </button>
-                    <button class="filter-item" data-filter="rabbit">
-                        <img src="../Images/adapt/rubit.png" alt="Rabbit"><span>Rabbits</span>
-                    </button>
-                    <button class="filter-item" data-filter="bird">
-                        <img src="../Images/adapt/bird.png" alt="Bird"><span>Birds</span>
-                    </button>
-                    <button class="filter-item" data-filter="hamster">
-                        <img src="../Images/adapt/hamester.png" alt="Hamster"><span>Hamsters</span>
-                    </button>
+                    <button class="filter-item active" data-filter="all"><span>🐾</span><span>All Animals</span></button>
+                    <button class="filter-item" data-filter="dog"><img src="../Images/adapt/dog.png" alt="Dog"><span>Dogs</span></button>
+                    <button class="filter-item" data-filter="cat"><img src="../Images/adapt/cat.png" alt="Cat"><span>Cats</span></button>
+                    <button class="filter-item" data-filter="rabbit"><img src="../Images/adapt/rubit.png" alt="Rabbit"><span>Rabbits</span></button>
+                    <button class="filter-item" data-filter="bird"><img src="../Images/adapt/bird.png" alt="Bird"><span>Birds</span></button>
+                    <button class="filter-item" data-filter="hamster"><img src="../Images/adapt/hamester.png" alt="Hamster"><span>Hamsters</span></button>
                 </div>
             </aside>
 
@@ -160,8 +242,7 @@
                 <div class="search-row">
                     <div class="search-box">
                         <span>🔍</span>
-                        <input type="text" id="lostSearch"
-                               placeholder="Search by name, breed, color, city...">
+                        <input type="text" id="lostSearch" placeholder="Search by name, breed, color, city...">
                     </div>
                 </div>
 
@@ -192,15 +273,48 @@
                                  data-has-reward="@(r.HasReward ? "true" : "false")"
                                  data-date="@r.DateLost"
                                  data-image="@r.Image"
+                                 data-images="@string.Join("|", r.Images)"
                                  data-secret-question="@r.SecretQuestion"
                                  data-expiry="@r.ExpiryDate"
                                  data-id="@r.Id">
 
-                            <div class="pet-thumb">
-                                <img src="@r.Image" alt="@r.Name">
+                            @* ── Carousel ── *@
+                            <div class="pet-thumb"
+                                 data-count="@r.Images.Count"
+                                 data-current="0">
+
+                                @for (int i = 0; i < r.Images.Count; i++)
+                                {
+                                    <img src="@r.Images[i]"
+                                         alt="@r.Name @(i + 1)"
+                                         class="@(i == 0 ? "car-active" : "")" />
+                                }
+
                                 @if (r.HasReward)
                                 {
                                     <div class="reward-badge">🎁 @r.Reward JOD</div>
+                                }
+
+                                @if (r.Images.Count > 1)
+                                {
+                                    <span class="photo-counter">1 / @r.Images.Count</span>
+                                    <button class="car-btn prev" type="button"
+                                            onclick="carMove(this,-1)" aria-label="Previous">
+                                        ‹
+                                    </button>
+                                    <button class="car-btn next" type="button"
+                                            onclick="carMove(this, 1)" aria-label="Next">
+                                        ›
+                                    </button>
+                                    <div class="car-dots">
+                                        @for (int i = 0; i < r.Images.Count; i++)
+                                        {
+                                            <button class="car-dot @(i == 0 ? "active" : "")"
+                                                    type="button"
+                                                    onclick="carGoTo(this, @i)"
+                                                    aria-label="Photo @(i + 1)"></button>
+                                        }
+                                    </div>
                                 }
                             </div>
 
@@ -220,14 +334,8 @@
                             </div>
 
                             <div class="pet-actions">
-                                <button class="olive-btn"
-                                        data-open-flow="@r.Id">
-                                    🔍 I Found It
-                                </button>
-                                <button class="olive-btn secondary-btn"
-                                        data-open-details="@r.Id">
-                                    View Details
-                                </button>
+                                <button class="olive-btn" data-open-flow="@r.Id">🔍 I Found It</button>
+                                <button class="olive-btn secondary-btn" data-open-details="@r.Id">View Details</button>
                             </div>
 
                         </article>
@@ -237,7 +345,6 @@
                         <h3>No pets found</h3>
                         <p>Try another filter or search keyword.</p>
                     </div>
-
                 </div>
 
                 @* Pagination *@
@@ -245,8 +352,7 @@
                     @if (Model.HasPreviousPage)
                     {
                         <a asp-controller="Pet" asp-action="Lost"
-                           asp-route-page="@(Model.CurrentPage - 1)"
-                           class="more-btn">← Previous</a>
+                           asp-route-page="@(Model.CurrentPage - 1)" class="more-btn">← Previous</a>
                     }
                     <span style="font-weight:700;color:#5a8f38">
                         Page @Model.CurrentPage of @Model.TotalPages
@@ -254,111 +360,80 @@
                     @if (Model.HasNextPage)
                     {
                         <a asp-controller="Pet" asp-action="Lost"
-                           asp-route-page="@(Model.CurrentPage + 1)"
-                           class="more-btn">Next →</a>
+                           asp-route-page="@(Model.CurrentPage + 1)" class="more-btn">Next →</a>
                     }
                 </div>
             </section>
-
         </section>
-
     </main>
 
     <footer class="footer">
         <div class="footer-links">
-            <a href="#">About Us</a><span>|</span>
-            <a href="#">Contact</a><span>|</span>
-            <a href="#">FAQ</a>
+            <a href="#">About Us</a><span>|</span><a href="#">Contact</a><span>|</span><a href="#">FAQ</a>
         </div>
         <div>© 2026 Waffy, all rights reserved.</div>
     </footer>
 
-    @* ══ DETAILS MODAL ══ *@
     <div id="detailsModal" class="flow-modal hidden">
         <div class="flow-overlay" id="detailsOverlay"></div>
-        <div class="flow-card" style="max-width:600px">
+        <div class="flow-card" style="max-width:800px">
             <button class="flow-close" id="closeDetailsBtn">&times;</button>
             <div id="detailsContent"></div>
         </div>
     </div>
 
-    @* ══ I FOUND IT FLOW MODAL ══ *@
     <div id="flowModal" class="flow-modal hidden">
         <div class="flow-overlay" data-close-flow></div>
         <div class="flow-card">
             <button class="flow-close" data-close-flow>&times;</button>
-
-            @* Step 1 — Finder Info *@
             <section class="flow-step active" data-step="1">
                 <div class="modal-head">
                     <h2>🔍 Finder Verification</h2>
                     <p>Enter your real information to claim the reward.</p>
                 </div>
-
                 <div class="secret-box">
                     <div class="question-card" style="margin-bottom:1rem">
                         ⚠️ Please use the same phone number you'll use to contact the owner.
-                        The reward is only delivered after verification.
                     </div>
-
                     <div class="form-grid one">
                         <label>
                             <span>Full Name <span style="color:red">*</span></span>
                             <input id="finderName" type="text" placeholder="Your full name" />
                         </label>
                     </div>
-
                     <div class="form-grid one" style="margin-top:.8rem">
                         <label>
                             <span>Phone Number <span style="color:red">*</span></span>
                             <input id="finderPhone" type="tel" placeholder="+962 7X XXX XXXX" />
                         </label>
                     </div>
-
                     <div class="form-grid one" style="margin-top:.8rem">
                         <label>
                             <span>Secret Question</span>
-                            <div class="question-card" id="secretQuestionDisplay" style="font-weight:700;color:#59652a">
-                                —
-                            </div>
+                            <div class="question-card" id="secretQuestionDisplay" style="font-weight:700;color:#59652a">—</div>
                         </label>
                     </div>
-
                     <div class="form-grid one" style="margin-top:.8rem">
                         <label>
                             <span>Your Answer <span style="color:red">*</span></span>
                             <input id="secretAnswer" type="text" placeholder="Enter your answer" />
                         </label>
                     </div>
-
-                    <small style="color:#888;margin-top:.5rem;display:block">
-                        Answer correctly to be verified as a genuine finder.
-                    </small>
                 </div>
-
                 <div class="step-actions" style="margin-top:1rem">
-                    <button class="step-btn" type="button" onclick="goToVerificationStep()">
-                        Submit for Verification →
-                    </button>
+                    <button class="step-btn" type="button" onclick="goToVerificationStep()">Submit for Verification →</button>
                 </div>
             </section>
-
-            @* Step 2 — Submitted *@
             <section class="flow-step" data-step="2">
                 <div class="result-box">
                     <div class="result-icon">✅</div>
                     <h2>Report Submitted!</h2>
                     <p>Your information has been sent to the pet owner.</p>
-
-                    <div id="verificationResult" style="margin-top:1rem;padding:.8rem;border-radius:10px">
-                        <!-- يُملأ من JS -->
-                    </div>
-
+                    <div id="verificationResult" style="margin-top:1rem;padding:.8rem;border-radius:10px"></div>
                     <div class="note-box" style="margin-top:.8rem">
                         📞 Owner will contact you on: <strong id="displayPhone"></strong><br>
                         🎁 Reward will be added to your wallet after confirmation.
                     </div>
-
                     <div class="step-actions" style="margin-top:1.5rem">
                         <button class="step-btn" data-close-flow type="button">Done ✅</button>
                     </div>
@@ -371,5 +446,27 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="~/js/lost.js"></script>
+    <script>
+        function carMove(btn, dir) {
+            const thumb = btn.closest('.pet-thumb');
+            carGoToIndex(thumb, parseInt(thumb.dataset.current) + dir);
+        }
+        function carGoTo(dot, idx) {
+            const thumb = dot.closest('.pet-thumb');
+            carGoToIndex(thumb, idx);
+        }
+        function carGoToIndex(thumb, idx) {
+            const imgs    = thumb.querySelectorAll('img');
+            const dots    = thumb.querySelectorAll('.car-dot');
+            const counter = thumb.querySelector('.photo-counter');
+            const count   = imgs.length;
+            if (count <= 1) return;
+            idx = ((idx % count) + count) % count;
+            imgs.forEach((img, i) => img.classList.toggle('car-active', i === idx));
+            dots.forEach((d,   i) => d.classList.toggle('active',      i === idx));
+            if (counter) counter.textContent = `${idx + 1} / ${count}`;
+            thumb.dataset.current = idx;
+        }
+    </script>
 </body>
 </html>

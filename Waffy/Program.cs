@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Http.Features;
 using Waffy.Interfaces;
 using Waffy.Models;
 using Waffy.Repositories;
@@ -7,7 +7,36 @@ using Waffy.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+{
+    var ex = e.ExceptionObject as Exception;
+    var msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] FATAL\nType   : {ex?.GetType().FullName}\nMessage: {ex?.Message}\nStack  :\n{ex?.StackTrace}\n" + new string('-', 80) + "\n";
+    File.AppendAllText("crash.log", msg);
+    Console.WriteLine(msg);
+};
+
+TaskScheduler.UnobservedTaskException += (_, e) =>
+{
+    var msg = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] UNOBSERVED TASK\nType   : {e.Exception?.GetType().FullName}\nMessage: {e.Exception?.Message}\n" + new string('-', 80) + "\n";
+    File.AppendAllText("crash.log", msg);
+    Console.WriteLine(msg);
+    e.SetObserved();
+};
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 52_428_800;
+    options.AllowSynchronousIO = true;
+});
+
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 52_428_800;
+    options.ValueLengthLimit = 52_428_800;
+    options.MultipartHeadersLengthLimit = 52_428_800;
+    options.MemoryBufferThreshold = 52_428_800;
+});
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -28,16 +57,12 @@ builder.Services.AddScoped<IDonationRepository, DonationRepository>();
 builder.Services.AddScoped<IDangerousAnimalReportRepository, DangerousAnimalReportRepository>();
 builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();
 builder.Services.AddScoped<IDonationAnimalRepository, DonationAnimalRepository>();
-builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IPetLawRepository, PetLawRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductImageRepository, ProductImageRepository>();
 builder.Services.AddScoped<IStoreImageRepository, StoreImageRepository>();
 builder.Services.AddScoped<ICartRepository, CartRepository>();
-// أضف هذا السطر مع باقي الـ registrations
-builder.Services.AddScoped<IOrderRepository, OrderRepository>();
-builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
-builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();
+
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -46,42 +71,24 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(options =>
-{
-    options.MultipartBodyLengthLimit = 52428800; // 50MB
-    options.ValueLengthLimit = 52428800;
-    options.MultipartHeadersLengthLimit = 52428800;
-    options.MemoryBufferThreshold = 65536;    // ← 64KB فقط في RAM
-                                              // الباقي يُكتب في temp file
-});
-
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.Limits.MaxRequestBodySize = 52428800; // 50MB
-});
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
+    app.UseDeveloperExceptionPage();
+else
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
-app.UseHttpsRedirection();
+
 app.UseStaticFiles();
 app.UseSession();
 app.UseRouting();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
-
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Home_Before}/{id?}");
 
 app.Run();
-
-

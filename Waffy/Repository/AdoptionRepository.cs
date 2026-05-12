@@ -231,6 +231,18 @@ namespace Waffy.Repository
             return await conn.ExecuteScalarAsync<int>(sql, new { Id = postId });
         }
 
+        public async Task<IEnumerable<string>> GetAllImagesAsync(int postId)
+        {
+            const string sql = @"
+        SELECT ImageUrl
+        FROM   AdoptionImage
+        WHERE  IdPost = @IdPost
+          AND  ImageUrl IS NOT NULL
+        ORDER BY Id ASC";
+
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<string>(sql, new { IdPost = postId });
+        }
     }
 }
 

@@ -30,6 +30,7 @@ namespace Waffy.Interfaces
         Task AddLikeAsync(int postId, int userId);
         Task RemoveLikeAsync(int postId, int userId);
         Task<int> GetLikesAsync(int postId);
+        Task<IEnumerable<string>> GetAllImagesAsync(int postId);
 
     }
 }

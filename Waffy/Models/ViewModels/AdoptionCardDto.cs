@@ -15,6 +15,10 @@
         public string Gender { get; set; } = "";
         public string Description { get; set; } = "";
         public string Image { get; set; } = "";
+
+        // ✅ جديد: قائمة كل الصور للـ carousel
+        public List<string> Images { get; set; } = new();
+
         public string City { get; set; } = "";
         public string Area { get; set; } = "";
         public string ContactPhone { get; set; } = "";
@@ -27,9 +31,14 @@
         public bool GoodWithPets { get; set; }
         public bool IsLikedByCurrentUser { get; set; }
 
-        // ✅ Mapping هنا في DTO — مش في Controller ومش في Model
-        public static AdoptionCardDto FromPost(AdoptionPost post, string imageUrl)
+        // ✅ تغيّر: يقبل List<string> بدل string واحدة
+        public static AdoptionCardDto FromPost(AdoptionPost post, List<string> imageUrls)
         {
+            const string fallback = "/Images/adapt/dog.png";
+
+            var images = imageUrls.Where(u => !string.IsNullOrEmpty(u)).ToList();
+            if (images.Count == 0) images.Add(fallback);
+
             return new AdoptionCardDto
             {
                 Id = post.IdPost,
@@ -42,26 +51,14 @@
                 Description = post.Description ?? "",
                 Health = post.HealthStatus ?? "Healthy",
                 Likes = post.Likes,
-
                 Age = CalcAge(post.BirthDate),
-
-                // ✅ Size من الـ EnergyLevel
                 Size = ToSize(post.AnimalType),
-
-                // ✅ Temperament حقيقي
                 Temperament = BuildTemperament(post),
-
-                // ✅ Vaccinations حقيقي
                 Vaccinations = post.IsVaccinated
-                               ? new[] { "✅ Vaccinated" }
-                               : new[] { "❌ Not vaccinated" },
-
-                // ✅ Image حقيقي
-                Image = string.IsNullOrEmpty(imageUrl)
-                        ? "/Images/adapt/dog.png"
-                        : imageUrl,
-
-                // ✅ معلومات إضافية
+                                   ? new[] { "✅ Vaccinated" }
+                                   : new[] { "❌ Not vaccinated" },
+                Image = images[0],
+                Images = images,
                 IsNeutered = post.IsNeutered,
                 GoodWithChildren = post.GoodWithChildren,
                 GoodWithPets = post.GoodWithPets,
@@ -72,41 +69,31 @@
                 ContactName = post.ContactName ?? ""
             };
         }
-        // ✅ helper بنفس منطق Pet.AgeDisplay
+
         private static string CalcAge(DateTime? birthDate)
         {
             if (!birthDate.HasValue) return "Unknown";
-
-            // ✅ لو التاريخ في المستقبل
             if (birthDate.Value > DateTime.Today) return "Newborn";
 
             var today = DateTime.Today;
             var birth = birthDate.Value;
-
             int years = today.Year - birth.Year;
             int months = today.Month - birth.Month;
 
-            if (today.Day < birth.Day)
-                months--;
-
-            if (months < 0)
-            {
-                years--;
-                months += 12;
-            }
+            if (today.Day < birth.Day) months--;
+            if (months < 0) { years--; months += 12; }
 
             if (years > 0 && months > 0)
                 return $"{years} Year{(years > 1 ? "s" : "")} & {months} Month{(months > 1 ? "s" : "")}";
-
             if (years > 0)
                 return $"{years} Year{(years > 1 ? "s" : "")}";
-
             if (months > 0)
                 return $"{months} Month{(months > 1 ? "s" : "")}";
 
             int days = (today - birth).Days;
             return days <= 0 ? "Newborn" : $"{days} Day{(days > 1 ? "s" : "")}";
         }
+
         private static string ToSize(string? animalType) => animalType?.ToLower() switch
         {
             "dog" => "Medium",
@@ -121,7 +108,6 @@
         private static string BuildTemperament(AdoptionPost post)
         {
             var traits = new List<string>();
-
             traits.Add(post.EnergyLevel switch
             {
                 "High" => "Energetic",
@@ -129,15 +115,11 @@
                 "Low" => "Gentle",
                 _ => "Friendly"
             });
-
             if (post.GoodWithChildren) traits.Add("Good with kids");
             if (post.GoodWithPets) traits.Add("Good with pets");
             if (post.IsNeutered) traits.Add("Neutered");
-
             return string.Join(", ", traits);
         }
-
-
 
         private static string ToTemperament(string? energyLevel) => energyLevel switch
         {
@@ -145,6 +127,6 @@
             "Medium" => "Friendly, Calm",
             "Low" => "Gentle, Quiet",
             _ => "Friendly"
-        }; 
+        };
     }
 }

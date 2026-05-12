@@ -1,34 +1,290 @@
-﻿@model Waffy.Models.Pet
+﻿@model Waffy.Models.ViewModels.EditPetViewModel
 @{
     Layout = null;
+    var pet = Model.Pet;
+    var mainImage = Model.Images.FirstOrDefault(i => i.IsMain) ?? Model.Images.FirstOrDefault();
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Waffy | Edit @Model.Name</title>
+    <title>Waffy | Edit @pet.Name</title>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/Petform.css" />
+    <style>
+        .photo-manage-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 1.5rem;
+            padding: 1rem;
+            background: #f9fff3;
+            border-radius: 14px;
+            border: 1px solid #d8edbc;
+            flex-wrap: wrap;
+        }
+
+        .photo-preview-box {
+            width: 130px;
+            height: 130px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 2px solid #c5d9a0;
+            background: #f0f0f0;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .photo-preview-box img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .photo-preview-box .no-photo {
+                font-size: 2.5rem;
+                color: #ccc;
+            }
+
+        .photo-actions-col {
+            display: flex;
+            flex-direction: column;
+            gap: .7rem;
+            flex: 1;
+        }
+
+            .photo-actions-col p {
+                font-size: .83rem;
+                color: #666;
+                margin: 0;
+                font-family: 'Nunito', sans-serif;
+            }
+
+        .photo-btn-row {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn-replace {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            padding: .45rem 1rem;
+            background: #e8f7d8;
+            color: #3d7a10;
+            border: 1.5px solid #b6d98a;
+            border-radius: 10px;
+            font-size: .82rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            transition: background .2s;
+        }
+
+            .btn-replace:hover {
+                background: #d0f0b0;
+            }
+
+        .btn-remove-photo {
+            display: inline-flex;
+            align-items: center;
+            gap: .3rem;
+            padding: .45rem 1rem;
+            background: #fde8e8;
+            color: #c0392b;
+            border: 1.5px solid #f5b8b8;
+            border-radius: 10px;
+            font-size: .82rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            transition: background .2s;
+        }
+
+            .btn-remove-photo:hover {
+                background: #fcc;
+            }
+
+        .new-preview-wrap {
+            display: none;
+            align-items: center;
+            gap: .6rem;
+            margin-top: .3rem;
+        }
+
+            .new-preview-wrap.visible {
+                display: flex;
+            }
+
+        .new-preview-thumb {
+            width: 52px;
+            height: 52px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #5a9e2f;
+            flex-shrink: 0;
+        }
+
+            .new-preview-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .new-preview-name {
+            font-size: .75rem;
+            color: #555;
+            font-family: 'Nunito',sans-serif;
+            flex: 1;
+        }
+
+        .btn-save-photo {
+            padding: .45rem 1.1rem;
+            background: #5a9e2f;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: .82rem;
+            font-weight: 700;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            white-space: nowrap;
+        }
+
+            .btn-save-photo:hover {
+                background: #4a8a25;
+            }
+
+        .alert-success {
+            background: #f0fff0;
+            border: 1px solid #b2dfb2;
+            color: #2d7a2d;
+            padding: .7rem 1rem;
+            border-radius: 10px;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body>
     <div class="pet-form-page">
 
-        <h2>✏️ Edit @Model.Name</h2>
+        <h2>✏️ Edit @pet.Name</h2>
 
+        @if (TempData["PetSuccess"] != null)
+        {
+            <div class="alert-success">✅ @TempData["PetSuccess"]</div>
+        }
         @if (TempData["PetError"] != null)
         {
             <div class="alert-error">⚠️ @TempData["PetError"]</div>
         }
 
+        @* ════════════════════════════════════════════════════
+           SECTION 1 — Photo Management
+           ✅ كل form مستقل — لا يوجد nested forms
+           ════════════════════════════════════════════════════ *@
+        <div class="s-card">
+            <div class="s-card-head">
+                <span class="s-card-title">📷 Pet Photo</span>
+            </div>
+            <div class="s-card-body">
+                <div class="photo-manage-card">
+
+                    @* معاينة الصورة الحالية *@
+                    <div class="photo-preview-box">
+                        @if (mainImage != null)
+                        {
+                            <img src="@mainImage.ImageUrl" alt="@pet.Name" id="currentPhotoImg" />
+                        }
+                        else
+                        {
+                            <span class="no-photo">🐾</span>
+                        }
+                    </div>
+
+                    <div class="photo-actions-col">
+                        <p>
+                            @if (mainImage != null)
+                            {
+                                <strong>Current photo saved.</strong>
+                                <text> Replace it with a new one, or remove it entirely.</text>
+                            }
+                            else
+                            {
+                                <strong>No photo yet.</strong>
+                                <text> Upload one below.</text>
+                            }
+                        </p>
+
+                        @* ── أزرار Replace و Remove جنب بعض ── *@
+                        <div class="photo-btn-row">
+
+                            @* زر اختيار صورة جديدة — يشغّل الـ input المخفي *@
+                            <label for="replaceInput" class="btn-replace">
+                                📷 @(mainImage != null ? "Replace Photo" : "Upload Photo")
+                            </label>
+
+                            @* ✅ Remove — form مستقل تماماً خارج replaceForm *@
+                            @if (mainImage != null)
+                            {
+                                <form method="post"
+                                      asp-controller="Pet"
+                                      asp-action="RemovePetPhoto"
+                                      onsubmit="return confirm('Remove the current photo?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="petId" value="@pet.IdPet" />
+                                    <button type="submit" class="btn-remove-photo">🗑 Remove</button>
+                                </form>
+                            }
+                        </div>
+
+                        @* ✅ Replace — form مستقل تماماً *@
+                        <form method="post"
+                              asp-controller="Pet"
+                              asp-action="ReplacePetPhoto"
+                              asp-route-petId="@pet.IdPet"
+                              enctype="multipart/form-data"
+                              id="replaceForm">
+                            @Html.AntiForgeryToken()
+
+                            @* Input مخفي يُفعَّل من الـ label أعلاه *@
+                            <input type="file"
+                                   id="replaceInput"
+                                   name="photo"
+                                   accept="image/jpeg,image/png,image/webp"
+                                   hidden
+                                   onchange="onReplaceSelected(this)" />
+
+                            @* معاينة الصورة الجديدة + زر الحفظ — تظهر بعد الاختيار *@
+                            <div class="new-preview-wrap" id="newPreviewWrap">
+                                <div class="new-preview-thumb">
+                                    <img id="newPreviewImg" src="" alt="preview" />
+                                </div>
+                                <span class="new-preview-name" id="newPreviewName"></span>
+                                <button type="submit" class="btn-save-photo">✅ Save Photo</button>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* ════════════════════════════════════════════════════
+           SECTION 2 — Pet Data (بدون file upload)
+           ════════════════════════════════════════════════════ *@
         <form method="post"
               asp-controller="Pet"
               asp-action="EditPet"
-              enctype="multipart/form-data">
+              id="editPetForm">
             @Html.AntiForgeryToken()
-            <input type="hidden" name="petId" value="@Model.IdPet" />
+            <input type="hidden" name="petId" value="@pet.IdPet" />
 
-            @* ── Pet Information ── *@
             <div class="s-card">
                 <div class="s-card-head">
                     <span class="s-card-title">🐾 Pet Information</span>
@@ -37,20 +293,8 @@
                     <div class="form-grid">
 
                         <div class="field full">
-                            <label>New Photo (optional)</label>
-                            <input type="file" name="petImage" accept="image/*" />
-                            @if (!string.IsNullOrEmpty(Model.ImageUrl))
-                            {
-                                <img src="@Model.ImageUrl"
-                                     class="current-img-preview"
-                                     alt="Current photo" />
-                            }
-                        </div>
-
-                        <div class="field full">
                             <label>Pet Name <span style="color:red">*</span></label>
-                            <input type="text" name="name"
-                                   value="@Model.Name" required />
+                            <input type="text" name="name" value="@pet.Name" required />
                         </div>
 
                         <div class="field">
@@ -59,40 +303,44 @@
                                 <option value="">Select</option>
                                 @foreach (var s in new[] { "Dog", "Cat", "Bird", "Rabbit", "Snake", "Hamster", "Other" })
                                 {
-                                    <option value="@s" selected="@(Model.Species == s)">@s</option>
+                                    <option value="@s" selected="@(pet.Species == s)">@s</option>
                                 }
                             </select>
                         </div>
 
                         <div class="field">
                             <label>Breed</label>
-                            <input type="text" name="breed" value="@Model.Breed" />
+                            <input type="text" name="breed" value="@pet.Breed" />
                         </div>
 
                         <div class="field">
                             <label>Gender</label>
                             <select name="gender">
                                 <option value="">Select</option>
-                                <option value="Male" selected="@(Model.Gender == "Male")">Male</option>
-                                <option value="Female" selected="@(Model.Gender == "Female")">Female</option>
+                                <option value="Male" selected="@(pet.Gender == "Male")">Male</option>
+                                <option value="Female" selected="@(pet.Gender == "Female")">Female</option>
                             </select>
                         </div>
 
                         <div class="field">
                             <label>Birth Date</label>
                             <input type="date" name="birthDate"
-                                   value="@Model.BirthDate?.ToString("yyyy-MM-dd")" />
+                                   value="@pet.BirthDate?.ToString("yyyy-MM-dd")" />
                         </div>
 
                         <div class="field">
                             <label>Color</label>
-                            <input type="text" name="color" value="@Model.Color" />
+                            <input type="text" name="color" value="@pet.Color" />
+                        </div>
+
+                        <div class="field">
+                            <label>Microchip ID</label>
+                            <input type="text" name="microchipId" value="@pet.MicrochipId" />
                         </div>
 
                         <div class="field">
                             <label>Weight (kg)</label>
-                            <input type="number" name="weight"
-                                   step="0.1" value="@Model.Weight" />
+                            <input type="number" name="weight" step="0.1" value="@pet.Weight" />
                         </div>
 
                     </div>
@@ -110,23 +358,23 @@
                         <div class="field">
                             <label>Vaccination Status</label>
                             <select name="vaccinationStatus">
-                                <option value="UpToDate" selected="@(Model.VaccinationStatus == "UpToDate")">Up to date</option>
-                                <option value="Partial" selected="@(Model.VaccinationStatus == "Partial")">Partial</option>
-                                <option value="None" selected="@(Model.VaccinationStatus == "None")">None</option>
+                                <option value="UpToDate" selected="@(pet.VaccinationStatus == "UpToDate")">Up to date</option>
+                                <option value="Partial" selected="@(pet.VaccinationStatus == "Partial")">Partial</option>
+                                <option value="None" selected="@(pet.VaccinationStatus == "None")">None</option>
                             </select>
                         </div>
 
                         <div class="field">
                             <label>Neutered / Spayed</label>
                             <select name="isNeutered">
-                                <option value="false" selected="@(!Model.IsNeutered)">No</option>
-                                <option value="true" selected="@(Model.IsNeutered)">Yes</option>
+                                <option value="false" selected="@(!pet.IsNeutered)">No</option>
+                                <option value="true" selected="@(pet.IsNeutered)">Yes</option>
                             </select>
                         </div>
 
                         <div class="field full">
                             <label>Medical Notes</label>
-                            <textarea name="medicalNotes">@Model.MedicalNotes</textarea>
+                            <textarea name="medicalNotes">@pet.MedicalNotes</textarea>
                         </div>
 
                     </div>
@@ -144,39 +392,39 @@
                         <div class="field">
                             <label>Energy Level</label>
                             <select name="energyLevel">
-                                <option value="Low" selected="@(Model.EnergyLevel == "Low")">Low</option>
-                                <option value="Medium" selected="@(Model.EnergyLevel == "Medium")">Medium</option>
-                                <option value="High" selected="@(Model.EnergyLevel == "High")">High</option>
+                                <option value="Low" selected="@(pet.EnergyLevel == "Low")">Low</option>
+                                <option value="Medium" selected="@(pet.EnergyLevel == "Medium")">Medium</option>
+                                <option value="High" selected="@(pet.EnergyLevel == "High")">High</option>
                             </select>
                         </div>
 
                         <div class="field">
                             <label>Trained</label>
                             <select name="isTrained">
-                                <option value="false" selected="@(!Model.IsTrained)">No</option>
-                                <option value="true" selected="@(Model.IsTrained)">Yes</option>
+                                <option value="false" selected="@(!pet.IsTrained)">No</option>
+                                <option value="true" selected="@(pet.IsTrained)">Yes</option>
                             </select>
                         </div>
 
                         <div class="field">
                             <label>Good with Children</label>
                             <select name="goodWithChildren">
-                                <option value="false" selected="@(!Model.GoodWithChildren)">No</option>
-                                <option value="true" selected="@(Model.GoodWithChildren)">Yes</option>
+                                <option value="false" selected="@(!pet.GoodWithChildren)">No</option>
+                                <option value="true" selected="@(pet.GoodWithChildren)">Yes</option>
                             </select>
                         </div>
 
                         <div class="field">
                             <label>Good with Other Pets</label>
                             <select name="goodWithPets">
-                                <option value="false" selected="@(!Model.GoodWithPets)">No</option>
-                                <option value="true" selected="@(Model.GoodWithPets)">Yes</option>
+                                <option value="false" selected="@(!pet.GoodWithPets)">No</option>
+                                <option value="true" selected="@(pet.GoodWithPets)">Yes</option>
                             </select>
                         </div>
 
                         <div class="field full">
                             <label>Traits / Description</label>
-                            <textarea name="traits">@Model.Traits</textarea>
+                            <textarea name="traits">@pet.Traits</textarea>
                         </div>
 
                     </div>
@@ -184,15 +432,25 @@
             </div>
 
             <div class="form-actions">
-                <a asp-controller="Account"
-                   asp-action="Profile"
-                   class="btn btn-secondary">← Cancel</a>
-                <button type="submit" class="btn btn-primary">
-                    Save Changes ✅
-                </button>
+                <a asp-controller="Account" asp-action="Profile" class="btn btn-secondary">← Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes ✅</button>
             </div>
 
         </form>
     </div>
+
+    <script>
+        function onReplaceSelected(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => {
+                document.getElementById('newPreviewImg').src  = e.target.result;
+                document.getElementById('newPreviewName').textContent = file.name;
+                document.getElementById('newPreviewWrap').classList.add('visible');
+            };
+            reader.readAsDataURL(file);
+        }
+    </script>
 </body>
 </html>

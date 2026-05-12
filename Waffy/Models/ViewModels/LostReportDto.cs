@@ -12,6 +12,10 @@ public class LostReportDto
     public decimal Reward { get; set; }
     public bool HasReward => Reward > 0;
     public string Image { get; set; } = "";
+
+    // ✅ جديد: قائمة كل الصور للـ carousel
+    public List<string> Images { get; set; } = new();
+
     public string DateLost { get; set; } = "";
     public string Description { get; set; } = "";
     public string SpecialMarks { get; set; } = "";
@@ -19,8 +23,14 @@ public class LostReportDto
     public string SecretQuestion { get; set; } = "";
     public string ExpiryDate { get; set; } = "";
 
-    public static LostReportDto FromReport(LostPetReport r, string imageUrl)
+    // ✅ تغيّر: يقبل List<string> بدل string واحدة
+    public static LostReportDto FromReport(LostPetReport r, List<string> imageUrls)
     {
+        const string fallback = "/Images/lost/Beagle.png";
+
+        var images = imageUrls.Where(u => !string.IsNullOrEmpty(u)).ToList();
+        if (images.Count == 0) images.Add(fallback);
+
         return new LostReportDto
         {
             Id = r.IdLostReport,
@@ -31,9 +41,8 @@ public class LostReportDto
             City = r.City ?? "",
             Area = r.Area ?? "",
             Reward = r.RewardAmount ?? 0,
-            Image = string.IsNullOrEmpty(imageUrl)
-                             ? "/Images/lost/Beagle.png"
-                             : imageUrl,
+            Image = images[0],
+            Images = images,
             DateLost = r.DateLost.HasValue
                              ? r.DateLost.Value.ToString("MMM dd, yyyy")
                              : "",

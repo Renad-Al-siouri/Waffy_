@@ -24,6 +24,7 @@ namespace Waffy.Interfaces
         Task AddImageAsync(int idLostReport, string imageUrl);
         Task<IEnumerable<LostPetImage>> GetImagesByReportIdAsync(int idLostReport);
         Task<string?> GetFirstImageAsync(int idLostReport);
+        Task<IEnumerable<string>> GetAllImagesAsync(int reportId);
 
         Task<IEnumerable<LostPetReport>> GetActivePagedAsync(int page, int pageSize);
         Task<int> GetActiveTotalCountAsync();
