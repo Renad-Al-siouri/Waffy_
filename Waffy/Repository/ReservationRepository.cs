@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using Waffy.Interfaces;
 using Waffy.Models;
+using Waffy.Models.ViewModels;
 
 namespace Waffy.Repository
 {
@@ -134,5 +135,31 @@ namespace Waffy.Repository
                 await conn.ExecuteAsync(updateSql, new { PostId = postId });
             }
         }
+
+        public async Task<IEnumerable<AdoptionReservationAdminDto>> GetAllWithDetailsAsync()
+        {
+            const string sql = @"
+        SELECT 
+            ar.IdReservation,
+            ar.IdPost,
+            ap.PetName,
+            ap.AnimalType,
+            ap.PostedByType,
+            ISNULL(ur.FullName, 'Unknown') AS RequesterName,
+            ISNULL(uo.FullName, 'Unknown') AS OwnerName,
+            ar.Status,
+            ar.Message,
+            ar.CreatedAt
+        FROM AdoptionReservation ar
+        INNER JOIN AdoptionPost ap ON ar.IdPost  = ap.IdPost
+        LEFT JOIN  Users ur        ON ar.IdRequester = ur.UserId
+        LEFT JOIN  Users uo        ON ap.PostedById  = uo.UserId
+        ORDER BY ar.CreatedAt DESC";
+
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<AdoptionReservationAdminDto>(sql);
+        }
+
+
     }
 }

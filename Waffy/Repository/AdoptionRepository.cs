@@ -2,6 +2,7 @@
 using Microsoft.Data.SqlClient;
 using Waffy.Interfaces;
 using Waffy.Models;
+using Waffy.Models.ViewModels;
 
 namespace Waffy.Repository
 {
@@ -242,6 +243,44 @@ namespace Waffy.Repository
 
             using var conn = new SqlConnection(_connectionString);
             return await conn.QueryAsync<string>(sql, new { IdPost = postId });
+        }
+
+        public async Task<IEnumerable<AdoptionPostAdminDto>> GetAllAsync()
+        {
+            const string sql = @"
+        SELECT 
+            ap.IdPost,
+            ap.PetName,
+            ap.AnimalType,
+            ap.PostedByType,
+            ISNULL(u.FullName, 'Unknown') AS OwnerName,
+            ap.City,
+            ap.Status,
+            ap.AdoptionStatus,
+            ap.Likes,
+            ap.CreatedAt,
+            ISNULL((SELECT COUNT(*) FROM PostFlag pf 
+                    WHERE pf.IdPost = ap.IdPost), 0) AS FlagCount
+        FROM AdoptionPost ap
+        LEFT JOIN Users u ON ap.PostedById = u.UserId
+        ORDER BY ap.CreatedAt DESC";
+
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<AdoptionPostAdminDto>(sql);
+        }
+
+        public async Task ApproveAsync(int id)
+        {
+            const string sql = "UPDATE AdoptionPost SET Status = 'Approved' WHERE IdPost = @Id";
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(sql, new { Id = id });
+        }
+
+        public async Task RejectAsync(int id)
+        {
+            const string sql = "UPDATE AdoptionPost SET Status = 'Rejected' WHERE IdPost = @Id";
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(sql, new { Id = id });
         }
     }
 }

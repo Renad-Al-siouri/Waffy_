@@ -22,6 +22,7 @@ namespace Waffy.Controllers
         private readonly IStoreRepository _storeRepo;
         private readonly IOrderRepository _orderRepo;
         private readonly IOrderItemRepository _orderItemRepo;
+        private readonly IPostFlagRepository _flagRepo;
 
         public ProfileController(
             IUserRepository userRepository,
@@ -37,7 +38,8 @@ namespace Waffy.Controllers
             IStoreRepository storeRepo,
             IWalletRepository walletRepo,
             IOrderRepository orderRepo,
-            IOrderItemRepository orderItemRepo)
+            IOrderItemRepository orderItemRepo,
+            IPostFlagRepository flagRepo)
         {
             _userRepository = userRepository;
             _petRepo = petRepo;
@@ -53,6 +55,7 @@ namespace Waffy.Controllers
             _storeRepo = storeRepo;
             _orderRepo = orderRepo;
             _orderItemRepo = orderItemRepo;
+            _flagRepo = flagRepo;
         }
 
         // ── helper: تجلب المستخدم من Session أو ترجع null ──
@@ -274,6 +277,8 @@ namespace Waffy.Controllers
             });
         }
         public IActionResult Appointments() => View();
+
+
         [HttpGet]
         public async Task<IActionResult> Orders()
         {
@@ -346,14 +351,19 @@ namespace Waffy.Controllers
 
             var myRequests = (await _reservationRepo.GetByRequesterIdAsync(user.UserId)).ToList();
 
+            var postIds = posts.Select(p => p.IdPost);
+            var flagCounts = await _flagRepo.GetFlagCountsForPostsAsync(postIds);
+
             return View(new AdoptionAdsViewModel
             {
                 User = user,
                 Posts = posts,
                 Reservations = reservations,
-                MyRequests = myRequests
+                MyRequests = myRequests,
+                FlagCounts = flagCounts   
             });
         }
+
 
             
 
@@ -591,6 +601,20 @@ namespace Waffy.Controllers
                     Date = comp.CreatedAt ?? DateTime.UtcNow,
                     Color = comp.Priority == "High" || comp.Priority == "Urgent"
                                     ? "#dc2626" : "#b36d2c"
+                });
+            }
+
+            // إبلاغات قدّمها المستخدم
+            var myFlags = await _flagRepo.GetByUserIdAsync(user.UserId);
+            foreach (var f in myFlags)
+            {
+                events.Add(new TimelineEvent
+                {
+                    Icon = "🚩",
+                    Title = "Post Reported",
+                    Description = $"You reported a post as: {f.Reason}",
+                    Date = f.CreatedAt,
+                    Color = "#dc2626"
                 });
             }
 

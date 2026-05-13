@@ -1,5 +1,8 @@
-﻿@{
+﻿@model Waffy.Models.ViewModels.SuperAdminAdoptionViewModel
+@{
     Layout = null;
+    var statusOptions = new[] { "All", "Pending", "Approved", "Closed", "Rejected" };
+    var sourceOptions = new[] { "All", "User", "Clinic", "Store" };
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -13,95 +16,95 @@
     <link rel="stylesheet" href="~/css/KpiResponsive.css" asp-append-version="true" />
 </head>
 <body>
-
     <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
     <div class="wa-shell" id="waShell">
 
         <!-- ═══ SIDEBAR ═══ -->
         <aside class="wa-sb" id="waSb">
             <div class="sb-logo">
-                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy Logo" class="sb-logo-img"></div>
+                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
                 <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
             </div>
             <nav class="sb-nav">
                 <div class="sb-group sb-group-flat">
-                    <a class="sb-row" href="@Url.Action("Dashboard", "SuperAdmin")" data-tip="Dashboard"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span><span class="sb-lbl">Dashboard</span></a>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
+                        <span class="sb-lbl">Dashboard</span>
+                    </a>
                 </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Management</div>
                     <div>
-                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" data-tip="Users" type="button">
+                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button">
                             <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span>
                             <span class="sb-lbl">Users</span>
                             <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
                         </button>
                         <div class="sb-sub" id="g-users">
                             <div class="sb-sub-inner">
-                                <a class="sb-child" href="@Url.Action("Users", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Users"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a>
                             </div>
                         </div>
                     </div>
                     <div>
                         <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
                             <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
-                            <span class="sb-lbl">Clinics</span><span class="sb-bdg bd-y">4</span>
+                            <span class="sb-lbl">Clinics</span>
                             <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
                         </button>
                         <div class="sb-sub" id="g-clinics">
                             <div class="sb-sub-inner">
-                                <a class="sb-child" href="@Url.Action("Clinics", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
-                                <a class="sb-child" href="@Url.Action("Reviews_Complaints_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews & Complaints</span></a>
-                                <a class="sb-child" href="@Url.Action("Analytics_C", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_C"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" data-tip="Shop" type="button">
+                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button">
                             <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
-                            <span class="sb-lbl">Shop</span><span class="sb-bdg bd-r">3</span>
+                            <span class="sb-lbl">Shop</span>
                             <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
                         </button>
                         <div class="sb-sub" id="g-shop">
                             <div class="sb-sub-inner">
-                                <a class="sb-child" href="@Url.Action("Stores", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span><span class="sb-bdg bd-y sb-child-bdg">3</span></a>
-                                <a class="sb-child" href="@Url.Action("Reviews_Complaints_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews & Complaints</span><span class="sb-bdg bd-r sb-child-bdg">6</span></a>
-                                <a class="sb-child" href="@Url.Action("Analytics_S", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_S"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_S"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <button class="sb-row open active" id="t-adopt" onclick="acc('g-adopt','t-adopt')" data-tip="Adoption" type="button">
+                        <button class="sb-row open active" id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button">
                             <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
-                            <span class="sb-lbl">Adoption</span><span class="sb-bdg bd-y">5</span>
+                            <span class="sb-lbl">Adoption</span>
+                            <span class="sb-bdg bd-y">@Model.PendingCount</span>
                             <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
                         </button>
                         <div class="sb-sub open" id="g-adopt" style="height:auto;">
                             <div class="sb-sub-inner">
-                                <a class="sb-child active" href="@Url.Action("Listings", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span><span class="sb-bdg bd-y sb-child-bdg">5</span></a>
-                                <a class="sb-child" href="@Url.Action("Flagged", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span><span class="sb-bdg bd-r sb-child-bdg">3</span></a>
-                                <a class="sb-child" href="@Url.Action("Adopted_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
-                                <a class="sb-child" href="@Url.Action("Analytics_A", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Listings"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span><span class="sb-bdg bd-y sb-child-bdg">@Model.PendingCount</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Adopted_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_A"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" data-tip="Reports" type="button">
+                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" type="button">
                             <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
-                            <span class="sb-lbl">Reports</span><span class="sb-bdg bd-y">8</span>
+                            <span class="sb-lbl">Reports</span>
                             <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
                         </button>
                         <div class="sb-sub" id="g-rep">
                             <div class="sb-sub-inner">
-                                <a class="sb-child" href="@Url.Action("Lost_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span><span class="sb-bdg bd-y sb-child-bdg">8</span></a>
-                                <a class="sb-child" href="@Url.Action("Found_Pets", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span><span class="sb-bdg bd-g sb-child-bdg">5</span></a>
-                                <a class="sb-child" href="@Url.Action("Dangerous_Animals", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span><span class="sb-bdg bd-r sb-child-bdg">4</span></a>
-                                <a class="sb-child" href="@Url.Action("Donations", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="System_Complaints">
-                                    <span class="sb-dot"></span>
-                                    <span class="sb-child-lbl">System Complaints</span>
-                                </a>
-                                <a class="sb-child" href="@Url.Action("Laws_Regulations", "SuperAdmin")"><span class="sb-dot"></span><span class="sb-child-lbl">Laws & Regulations</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Donations"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="System_Complaints"><span class="sb-dot"></span><span class="sb-child-lbl">System Complaints</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Laws_Regulations"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
                             </div>
                         </div>
                     </div>
@@ -109,102 +112,321 @@
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Tools</div>
-                    <a class="sb-row" href="@Url.Action("Map", "SuperAdmin")" data-tip="Map"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span><span class="sb-lbl">Map</span></a>
-                    <a class="sb-row" href="@Url.Action("Notifications", "SuperAdmin")" data-tip="Notifications"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span><span class="sb-lbl">Notifications</span><span class="sb-bdg bd-r">12</span></a>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Map">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span>
+                        <span class="sb-lbl">Map</span>
+                    </a>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
+                        <span class="sb-lbl">Notifications</span>
+                    </a>
                 </div>
             </nav>
             <div class="sb-foot">
-                <div class="sb-user-row"><div class="sb-av">DC</div><div class="sb-user-info"><div class="sb-user-name">Daniel Carter</div><div class="sb-user-role">Operations Director</div></div></div>
-                <button class="sb-logout" onclick="alert('Sign out')" type="button"><svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg><span class="sb-logout-lbl">Sign Out</span></button>
+                <div class="sb-user-row">
+                    <div class="sb-av">@ViewBag.AdminInitials</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">@ViewBag.AdminName</div>
+                        <div class="sb-user-role">Super Admin</div>
+                    </div>
+                </div>
+                <form method="post" asp-controller="Account" asp-action="Logout" style="margin:0">
+                    @Html.AntiForgeryToken()
+                    <button class="sb-logout" type="submit">
+                        <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                        <span class="sb-logout-lbl">Sign Out</span>
+                    </button>
+                </form>
             </div>
         </aside>
 
         <!-- ═══ TOPNAV ═══ -->
         <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button"><svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg></button>
+            <button class="tn-toggle" onclick="toggleSb()" type="button">
+                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+            </button>
             <nav class="tn-bread"><span>Adoption</span><span>/</span><b>Listings</b></nav>
-            <div class="tn-center"><div class="tn-center-main">Adoption Listings</div><div class="tn-center-sub">Super Admin Panel</div></div>
+            <div class="tn-center">
+                <div class="tn-center-main">Adoption Listings</div>
+                <div class="tn-center-sub">Super Admin Panel</div>
+            </div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-                <a class="tn-btn" href="@Url.Action("Notifications", "SuperAdmin")"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg><span class="tn-count">12</span></a>
+                <a class="tn-btn" asp-controller="SuperAdmin" asp-action="Notifications">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+                </a>
                 <div class="tn-sep"></div>
-                <div class="tn-profile" onclick="alert('Profile')"><div class="tn-av">DC</div><div><div class="tn-pname">Daniel Carter</div><div class="tn-prole">Operations Director</div></div></div>
+                <div class="tn-profile">
+                    <div class="tn-av">@ViewBag.AdminInitials</div>
+                    <div><div class="tn-pname">@ViewBag.AdminName</div><div class="tn-prole">Super Admin</div></div>
+                </div>
             </div>
         </header>
 
         <!-- ═══ MAIN ═══ -->
         <main class="wa-main" id="waMain">
+
+            @if (ViewBag.Success != null)
+            {
+                <div style="margin:16px 24px 0;background:var(--success-soft);border:1px solid rgba(46,125,50,.2);
+                            color:#2e7d32;padding:12px 16px;border-radius:var(--r);font-weight:800;font-size:.86rem;">
+                    @ViewBag.Success
+                </div>
+            }
+            @if (ViewBag.Error != null)
+            {
+                <div style="margin:16px 24px 0;background:var(--danger-soft);border:1px solid rgba(217,83,79,.2);
+                            color:var(--danger);padding:12px 16px;border-radius:var(--r);font-weight:800;font-size:.86rem;">
+                    @ViewBag.Error
+                </div>
+            }
+
             <section class="page-hero">
                 <div>
                     <h1>🐾 Adoption Listings</h1>
-                    <p>127 total listings — 5 pending approval — 3 flagged</p>
-                </div>
-                <div class="page-hero-actions">
-                    <button class="btn btn-outline btn-sm">📥 Export</button>
+                    <p>@Model.TotalCount total posts — @Model.PendingCount pending your approval</p>
                 </div>
             </section>
 
             <div class="page-body">
 
-                <!-- KPI -->
-                <div class="kpi-grid kpi-grid-5" style="grid-template-columns:repeat(5,1fr);">
-                    <div class="kpi-card c1"><div class="kpi-ico green">📋</div><div class="kpi-val" id="kpiTotal">127</div><div class="kpi-label">Total Listings</div><div class="kpi-chip chip-green">▲ 12 this month</div></div>
-                    <div class="kpi-card c2"><div class="kpi-ico blue">🐾</div><div class="kpi-val" id="kpiAvail">89</div><div class="kpi-label">Available</div><div class="kpi-chip chip-blue">70% of total</div></div>
-                    <div class="kpi-card c3"><div class="kpi-ico yellow">⏳</div><div class="kpi-val" id="kpiPending">5</div><div class="kpi-label">Pending Approval</div><div class="kpi-chip chip-yellow">Needs review</div></div>
-                    <div class="kpi-card c1"><div class="kpi-ico green">✅</div><div class="kpi-val" id="kpiAdopted">28</div><div class="kpi-label">Adopted This Month</div><div class="kpi-chip chip-green">▲ 18%</div></div>
-                    <div class="kpi-card c4"><div class="kpi-ico red">🚩</div><div class="kpi-val" id="kpiFlagged">3</div><div class="kpi-label">Flagged</div><div class="kpi-chip chip-red">Review needed</div></div>
-                </div>
-
-                <!-- Tabs -->
-                <div class="tabs-bar">
-                    <button class="tab-btn active" onclick="switchTab(this,'all')">All <span class="tab-count" id="tabAllCount">127</span></button>
-                    <button class="tab-btn" onclick="switchTab(this,'pending')">⏳ Pending <span class="tab-count" id="tabPendingCount">5</span></button>
-                    <button class="tab-btn" onclick="switchTab(this,'adopted')">✅ Adopted <span class="tab-count" id="tabAdoptedCount">28</span></button>
-                </div>
-
-                <!-- ── ALL TAB ── -->
-                <div id="pane-all">
-                    <div class="toolbar">
-                        <div class="search-wrap"><span style="color:var(--text-muted);font-size:1rem;flex-shrink:0;">🔍</span><input id="searchInput" placeholder="Search pet name or creator..." oninput="renderAll()" /></div>
-                        <select class="sel-wrap" id="typeFilter" onchange="renderAll()"><option value="">All Types</option><option value="cat">🐈 Cats</option><option value="dog">🐕 Dogs</option><option value="bird">🐦 Birds</option><option value="other">Others</option></select>
-                        <select class="sel-wrap" id="sourceFilter" onchange="renderAll()"><option value="">All Sources</option><option value="user">User</option><option value="clinic">Clinic</option><option value="store">Store</option></select>
-                        <select class="sel-wrap" id="statusFilter" onchange="renderAll()"><option value="">All Statuses</option><option value="available">Available</option><option value="reserved">Reserved</option><option value="adopted">Adopted</option><option value="pending">Pending</option></select>
+                <!-- ── KPI Cards ── -->
+                <div class="kpi-grid kpi-grid-5" style="margin-bottom:20px;">
+                    <div class="kpi-card c1">
+                        <div class="kpi-ico green">📋</div>
+                        <div class="kpi-val">@Model.TotalCount</div>
+                        <div class="kpi-label">Total Posts</div>
+                        <div class="kpi-chip chip-green">All time</div>
                     </div>
-
-                    <div class="table-card">
-                        <div class="table-head-bar"><div class="table-head-title">All Listings</div><span class="table-count" id="allCount">127 listings</span></div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead><tr><th>Pet</th><th>Type</th><th>Age</th><th>Gender</th><th>Created By</th><th>Source</th><th>City</th><th>Ad Status</th><th>Adoption</th><th>Actions</th></tr></thead>
-                                <tbody id="allBody"></tbody>
-                            </table>
-                        </div>
+                    <div class="kpi-card c3">
+                        <div class="kpi-ico yellow">⏳</div>
+                        <div class="kpi-val">@Model.PendingCount</div>
+                        <div class="kpi-label">Pending</div>
+                        <div class="kpi-chip chip-yellow">Needs review</div>
+                    </div>
+                    <div class="kpi-card c1">
+                        <div class="kpi-ico green">✅</div>
+                        <div class="kpi-val">@Model.ApprovedCount</div>
+                        <div class="kpi-label">Approved</div>
+                        <div class="kpi-chip chip-green">Live now</div>
+                    </div>
+                    <div class="kpi-card c2">
+                        <div class="kpi-ico blue">🔒</div>
+                        <div class="kpi-val">@Model.ClosedCount</div>
+                        <div class="kpi-label">Closed</div>
+                        <div class="kpi-chip chip-blue">Completed</div>
+                    </div>
+                    <div class="kpi-card c4">
+                        <div class="kpi-ico red">❌</div>
+                        <div class="kpi-val">@Model.RejectedCount</div>
+                        <div class="kpi-label">Rejected</div>
+                        <div class="kpi-chip chip-red">By admin</div>
                     </div>
                 </div>
 
-                <!-- ── PENDING TAB ── -->
-                <div id="pane-pending" style="display:none;">
-                    <div class="table-card">
-                        <div class="table-head-bar"><div class="table-head-title">⏳ Pending Approval</div><span class="table-count" id="pendingCount">5 listings</span></div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead><tr><th>Pet</th><th>Type</th><th>Created By</th><th>Source</th><th>Reason</th><th>Submitted</th><th>Actions</th></tr></thead>
-                                <tbody id="pendingBody"></tbody>
-                            </table>
-                        </div>
+                <!-- ── Filter Form ── -->
+                <form method="get" asp-action="Listings" asp-controller="SuperAdmin"
+                      class="toolbar" style="margin-bottom:14px;">
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;width:100%;">
+                        <span style="font-weight:800;font-size:.82rem;color:var(--text-muted);white-space:nowrap;">
+                            Filter by:
+                        </span>
+                        <select name="statusFilter" class="sel-wrap"
+                                style="height:44px;min-width:160px;border:1.5px solid var(--border);
+                                   border-radius:12px;background:#fff;padding:0 12px;
+                                   font-weight:700;font-size:.86rem;">
+                            @foreach (var s in statusOptions)
+                            {
+                                if (s == Model.StatusFilter)
+                                {
+                                    <option value="@s" selected>@s</option>
+                                }
+                                else
+                                {
+                                    <option value="@s">@s</option>
+                                }
+                            }
+                        </select>
+                        <select name="sourceFilter" class="sel-wrap"
+                                style="height:44px;min-width:160px;border:1.5px solid var(--border);
+                                   border-radius:12px;background:#fff;padding:0 12px;
+                                   font-weight:700;font-size:.86rem;">
+                            @foreach (var s in sourceOptions)
+                            {
+                                if (s == Model.SourceFilter)
+                                {
+                                    <option value="@s" selected>@(s == "All" ? "All Sources" : s)</option>
+                                }
+                                else
+                                {
+                                    <option value="@s">@(s == "All" ? "All Sources" : s)</option>
+                                }
+                            }
+                        </select>
+                        <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+                        <a href="@Url.Action("Listings", "SuperAdmin")" class="btn btn-outline btn-sm">Reset</a>
                     </div>
-                </div>
+                </form>
 
-                <!-- ── ADOPTED TAB ── -->
-                <div id="pane-adopted" style="display:none;">
-                    <div class="table-card">
-                        <div class="table-head-bar"><div class="table-head-title">✅ Adopted</div><span class="table-count" id="adoptedCount">28 listings</span></div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead><tr><th>Pet</th><th>Type</th><th>Created By</th><th>City</th><th>Adoption Date</th></tr></thead>
-                                <tbody id="adoptedBody"></tbody>
-                            </table>
+                <!-- ── Table ── -->
+                <div class="table-card">
+                    <div class="table-head-bar">
+                        <div class="table-head-title">
+                            @if (Model.StatusFilter != "All" || Model.SourceFilter != "All")
+                            {
+                                <span>Filtered Results</span>
+                            }
+                            else
+                            {
+                                <span>All Adoption Posts</span>
+                            }
                         </div>
+                        <span class="table-count">@Model.Posts.Count() posts</span>
+                    </div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Pet</th>
+                                    <th>Type</th>
+                                    <th>Source</th>
+                                    <th>Owner</th>
+                                    <th>City</th>
+                                    <th>Post Status</th>
+                                    <th>Adoption</th>
+                                    <th>❤ Likes</th>
+                                    <th>🚩</th>
+                                    <th>Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (!Model.Posts.Any())
+                                {
+                                    <tr>
+                                        <td colspan="11" style="text-align:center;padding:32px;
+                                        color:var(--text-muted);font-weight:700;">
+                                            No posts found for the selected filters.
+                                        </td>
+                                    </tr>
+                                }
+                                @foreach (var post in Model.Posts)
+                                {
+                                    var rowBg = post.FlagCount > 0 ? "background:#fffcf3;" : "";
+                                    <tr style="@rowBg">
+                                        <td>
+                                            <div style="display:flex;align-items:center;gap:9px;">
+                                                <div style="width:36px;height:36px;border-radius:10px;
+                                                 background:var(--brand-xlight);display:grid;
+                                                 place-items:center;font-size:1rem;
+                                                 border:1px solid var(--brand-light);flex-shrink:0;">
+                                                    @(post.AnimalType?.ToLower() == "cat" ? "🐈" :
+                                                                                                    post.AnimalType?.ToLower() == "dog" ? "🐕" :
+                                                                                                    post.AnimalType?.ToLower() == "bird" ? "🐦" :
+                                                                                                    post.AnimalType?.ToLower() == "rabbit" ? "🐇" : "🐾")
+                                            </div>
+                                            <div>
+                                                <div class="cell-title">@post.PetName</div>
+                                                <div class="cell-sub">#@post.IdPost</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td style="font-size:.82rem;">@post.AnimalType</td>
+                                    <td>
+                                        @{
+                                                var srcClass = post.PostedByType == "User" ? "badge-info" :
+                                                post.PostedByType == "Clinic" ? "badge-success" :
+                                                "badge-purple";
+                                            }
+                                            <span class="badge @srcClass">@post.PostedByType</span>
+                                        </td>
+                                        <td style="font-size:.82rem;color:var(--text-muted);">@post.OwnerName</td>
+                                        <td style="font-size:.82rem;">@post.City</td>
+                                        <td>
+                                            @{
+                                                var stClass = post.Status == "Approved" ? "badge-success" :
+                                                post.Status == "Pending" ? "badge-warning" :
+                                                post.Status == "Rejected" ? "badge-danger" :
+                                                "badge-muted";
+                                            }
+                                            <span class="badge @stClass">@post.Status</span>
+                                        </td>
+                                        <td>
+                                            @{
+                                                var adClass = post.AdoptionStatus == "Available" ? "badge-info" :
+                                                post.AdoptionStatus == "Reserved" ? "badge-orange" :
+                                                "badge-muted";
+                                            }
+                                            <span class="badge @adClass">@post.AdoptionStatus</span>
+                                        </td>
+                                        <td style="font-size:.84rem;font-weight:800;">❤ @post.Likes</td>
+                                        <td>
+                                            @if (post.FlagCount > 0)
+                                            {
+                                                <span style="background:var(--danger-soft);color:var(--danger);
+                                                      font-size:.72rem;font-weight:900;padding:3px 8px;
+                                                      border-radius:999px;">
+                                                    🚩 @post.FlagCount
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span style="color:var(--text-muted);font-size:.8rem;">—</span>
+                                            }
+                                        </td>
+                                        <td style="font-size:.78rem;color:var(--text-muted);">
+                                            @post.CreatedAt.ToString("MMM dd, yyyy")
+                                        </td>
+                                        <td>
+                                            <div class="action-group">
+                                                @if (post.Status == "Pending")
+                                                {
+                                                    <form method="post" asp-action="ApproveListing"
+                                                          asp-controller="SuperAdmin" style="display:inline"
+                                                          onsubmit="return confirm('Approve and publish this post?')">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@post.IdPost" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.StatusFilter" />
+                                                        <input type="hidden" name="sourceFilter" value="@Model.SourceFilter" />
+                                                        <button type="submit" class="btn btn-success btn-xs">✓ Approve</button>
+                                                    </form>
+                                                    <form method="post" asp-action="RejectListing"
+                                                          asp-controller="SuperAdmin" style="display:inline"
+                                                          onsubmit="return confirm('Reject this post?')">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@post.IdPost" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.StatusFilter" />
+                                                        <input type="hidden" name="sourceFilter" value="@Model.SourceFilter" />
+                                                        <button type="submit" class="btn btn-danger btn-xs">✕ Reject</button>
+                                                    </form>
+                                                }
+                                                @if (post.Status == "Approved")
+                                                {
+                                                    <form method="post" asp-action="CloseListing"
+                                                          asp-controller="SuperAdmin" style="display:inline"
+                                                          onsubmit="return confirm('Close this post?')">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="id" value="@post.IdPost" />
+                                                        <input type="hidden" name="statusFilter" value="@Model.StatusFilter" />
+                                                        <input type="hidden" name="sourceFilter" value="@Model.SourceFilter" />
+                                                        <button type="submit" class="btn btn-outline btn-xs">🔒 Close</button>
+                                                    </form>
+                                                }
+                                                @if (post.FlagCount > 0)
+                                                {
+                                                    <a asp-action="Flagged" asp-controller="SuperAdmin"
+                                                       class="btn btn-warning btn-xs">🚩 Flags</a>
+                                                }
+                                                @if (post.Status == "Closed" || post.Status == "Rejected")
+                                                {
+                                                    <span style="color:var(--text-muted);font-size:.8rem;">—</span>
+                                                }
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
@@ -212,343 +434,6 @@
         </main>
     </div>
 
-    <!-- ═══ DETAIL MODAL ═══ -->
-    <div class="detail-overlay" id="detailModal" onclick="if(event.target===this)closeModal('detailModal')">
-        <div class="detail-panel" style="max-width:920px;">
-            <div class="dp-header"><div class="dp-title" id="detailTitle">🐾 Listing Details</div><button class="dp-close" onclick="closeModal('detailModal')">✕</button></div>
-            <div class="dp-body" id="detailContent"></div>
-            <div class="dp-footer">
-                <button class="btn btn-success btn-sm" id="approveBtn" style="display:none;" onclick="approveListing(null,true)">✓ Approve & Publish</button>
-                <button class="btn btn-warning btn-sm" onclick="closeModal('detailModal');openModal('rejectModal')">↩ Request Edit</button>
-                <button class="btn btn-danger btn-sm" onclick="closeModal('detailModal');openModal('rejectModal')">✕ Reject</button>
-                <button class="btn btn-outline btn-sm" onclick="closeModal('detailModal')">Close</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══ REJECT MODAL ═══ -->
-    <div class="modal-overlay" id="rejectModal" onclick="if(event.target===this)closeModal('rejectModal')">
-        <div class="modal-box" style="max-width:500px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:0 24px 60px rgba(38,31,23,.25);overflow:hidden;">
-            <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.5);">
-                <div style="font-family:'Fredoka',sans-serif;font-size:1.1rem;font-weight:700;color:var(--brand-dark);">↩ Reject / Request Edit</div>
-                <button class="dp-close" onclick="closeModal('rejectModal')">✕</button>
-            </div>
-            <div style="padding:20px;">
-                <div style="background:var(--warning-soft);border:1px solid rgba(226,163,58,.2);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;font-size:.83rem;font-weight:800;color:#9b6000;">⚠️ A notification will be sent to the creator explaining the reason.</div>
-                <div class="field" style="margin-bottom:12px;">
-                    <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Reason</label>
-                    <select style="width:100%;min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;">
-                        <option>Incomplete information</option>
-                        <option>Unclear images</option>
-                        <option>This looks like a sale, not adoption</option>
-                        <option>Violates content policy</option>
-                        <option>Health information is inaccurate</option>
-                    </select>
-                </div>
-                <div class="field" style="margin-bottom:12px;">
-                    <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Message to Creator</label>
-                    <textarea style="width:100%;min-height:100px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:12px 14px;font-weight:700;font-size:.86rem;outline:none;font-family:'Nunito',sans-serif;resize:vertical;" placeholder="Explain what needs to be fixed..."></textarea>
-                </div>
-                <label style="display:flex;align-items:center;gap:9px;background:var(--surface-2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;">
-                    <input type="checkbox" checked style="accent-color:var(--brand);width:16px;height:16px;">
-                    <span style="font-size:.82rem;font-weight:800;">Allow resubmission after edits</span>
-                </label>
-            </div>
-            <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;background:rgba(255,255,255,.5);">
-                <button class="btn btn-warning" onclick="closeModal('rejectModal');showToast('📨 Message sent to creator!')">📨 Send</button>
-                <button class="btn btn-outline" onclick="closeModal('rejectModal')">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ═══ FLAG REVIEW MODAL ═══ -->
-    <div class="modal-overlay" id="flagModal" onclick="if(event.target===this)closeModal('flagModal')">
-        <div class="modal-box" style="max-width:500px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:0 24px 60px rgba(38,31,23,.25);overflow:hidden;">
-            <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:rgba(255,255,255,.5);">
-                <div style="font-family:'Fredoka',sans-serif;font-size:1.1rem;font-weight:700;color:var(--brand-dark);">🚩 Review Report</div>
-                <button class="dp-close" onclick="closeModal('flagModal')">✕</button>
-            </div>
-            <div style="padding:20px;">
-                <div id="flagWarnBox" style="background:var(--danger-soft);border:1px solid rgba(217,83,79,.2);border-radius:var(--r);padding:12px 14px;margin-bottom:14px;font-size:.83rem;font-weight:800;color:var(--danger);">⚠️ Reported content</div>
-                <div id="flagPreview" style="background:#fff;border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:14px;"></div>
-                <div class="field" style="margin-bottom:12px;">
-                    <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Decision</label>
-                    <select id="flagDecision" style="width:100%;min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;">
-                        <option value="safe">Close report (listing is valid)</option>
-                        <option value="warn">Warn creator</option>
-                        <option value="hide">Hide listing temporarily</option>
-                        <option value="delete">Delete listing</option>
-                        <option value="suspend">Suspend creator account</option>
-                    </select>
-                </div>
-                <div class="field">
-                    <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">Admin Note</label>
-                    <textarea style="width:100%;min-height:90px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:12px 14px;font-weight:700;font-size:.86rem;outline:none;font-family:'Nunito',sans-serif;resize:vertical;" placeholder="Write admin notes..."></textarea>
-                </div>
-            </div>
-            <div style="padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px;background:rgba(255,255,255,.5);">
-                <button class="btn btn-success" onclick="applyFlagDecision()">✓ Apply Decision</button>
-                <button class="btn btn-outline" onclick="closeModal('flagModal')">Cancel</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast -->
-    <div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;padding:11px 22px;border-radius:var(--pill);font-weight:800;font-size:.85rem;z-index:1999;display:none;align-items:center;gap:6px;box-shadow:0 8px 22px rgba(89,101,42,.3);white-space:nowrap;"></div>
-
-    <script src="~/js/superAdminClinic.js" asp-append-version="true"></script>
-    <script src="~/js/superAdminAdoption.js" asp-append-version="true"></script>
-    <script>
-        setPageInfo('Adoption Listings', 'Super Admin Panel', 'Adoption', 'Listings');
-
-        /* ── Tab switching ── */
-        let currentTab = 'all';
-        function switchTab(btn, tab) {
-          document.querySelectorAll('.tabs-bar .tab-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          currentTab = tab;
-          document.getElementById('pane-all').style.display     = tab === 'all'     ? 'block' : 'none';
-          document.getElementById('pane-pending').style.display = tab === 'pending' ? 'block' : 'none';
-          document.getElementById('pane-adopted').style.display = tab === 'adopted' ? 'block' : 'none';
-        }
-
-        /* ── Render ── */
-        function renderAll() {
-          const q    = (document.getElementById('searchInput')?.value || '').toLowerCase();
-          const type = document.getElementById('typeFilter')?.value   || '';
-          const src  = document.getElementById('sourceFilter')?.value || '';
-          const stat = document.getElementById('statusFilter')?.value || '';
-
-          const filtered = state.listings.filter(l => {
-            const mQ  = !q    || l.name.toLowerCase().includes(q) || l.owner.toLowerCase().includes(q);
-            const mT  = !type || l.animalType === type;
-            const mS  = !src  || l.source === src;
-            const mSt = !stat || l.adoptionStatus === stat || (stat === 'pending' && l.adStatus === 'pending');
-            return mQ && mT && mS && mSt;
-          });
-
-          // All tab
-          const allBody = document.getElementById('allBody');
-          if (allBody) allBody.innerHTML = filtered.map(l => `
-            <tr onclick="openDetail(${l.id})" style="cursor:pointer;${l.flaggedCount > 0 ? 'background:#fffcf3;' : ''}">
-              <td><div style="display:flex;align-items:center;gap:9px;">
-                <div style="width:38px;height:38px;border-radius:11px;background:var(--brand-xlight);display:grid;place-items:center;font-size:1.1rem;border:1px solid var(--brand-light);flex-shrink:0;">${petEmoji(l.animalType)}</div>
-                <div><div class="cell-title">${l.name}</div>${l.flaggedCount > 0 ? `<span style="display:inline-flex;align-items:center;gap:3px;background:var(--danger-soft);color:var(--danger);font-size:.68rem;font-weight:900;padding:2px 7px;border-radius:999px;">🚩 ${l.flaggedCount}</span>` : ''}</div>
-              </div></td>
-              <td>${l.animalLabel}</td>
-              <td style="color:var(--text-muted);">${l.age}</td>
-              <td>${l.gender}</td>
-              <td style="color:var(--text-muted);font-size:.78rem;">${l.owner}</td>
-              <td>${srcBadge(l.source)}</td>
-              <td>${l.city}</td>
-              <td>${adBadge(l.adStatus)}</td>
-              <td>${adoptBadge(l.adoptionStatus)}</td>
-              <td><div class="action-group" onclick="event.stopPropagation()">
-                <button class="btn btn-outline btn-xs" onclick="openDetail(${l.id})">👁</button>
-                ${l.flaggedCount > 0 ? `<button class="btn btn-danger btn-xs" onclick="openFlagModal(${l.id})">🚩</button>` : ''}
-                <button class="btn btn-danger btn-xs" onclick="deleteListing(${l.id})">🗑</button>
-              </div></td>
-            </tr>`).join('');
-          document.getElementById('allCount').textContent = filtered.length + ' listings';
-
-          // Pending tab
-          const pendingItems = state.listings.filter(l => l.adStatus === 'pending');
-          const pendingBody  = document.getElementById('pendingBody');
-          if (pendingBody) pendingBody.innerHTML = pendingItems.map(l => `
-            <tr onclick="openDetail(${l.id})" style="cursor:pointer;">
-              <td><div style="display:flex;align-items:center;gap:9px;">
-                <div style="width:38px;height:38px;border-radius:11px;background:var(--brand-xlight);display:grid;place-items:center;font-size:1.1rem;border:1px solid var(--brand-light);flex-shrink:0;">${petEmoji(l.animalType)}</div>
-                <div class="cell-title">${l.name}</div>
-              </div></td>
-              <td>${l.animalLabel}</td>
-              <td style="color:var(--text-muted);font-size:.78rem;">${l.owner}</td>
-              <td>${srcBadge(l.source)}</td>
-              <td>${reasonBadge(l.reason)}</td>
-              <td style="color:var(--text-muted);font-size:.78rem;">${l.date}</td>
-              <td><div class="action-group" onclick="event.stopPropagation()">
-                <button class="btn btn-success btn-xs" onclick="approveListing(${l.id})">✓ Approve</button>
-                <button class="btn btn-warning btn-xs" onclick="openModal('rejectModal')">↩ Edit</button>
-                <button class="btn btn-danger btn-xs" onclick="rejectListing(${l.id})">✕ Reject</button>
-              </div></td>
-            </tr>`).join('');
-          document.getElementById('pendingCount').textContent   = pendingItems.length + ' listings';
-          document.getElementById('tabPendingCount').textContent = pendingItems.length;
-
-          // Adopted tab
-          const adoptedItems = state.listings.filter(l => l.adoptionStatus === 'adopted');
-          const adoptedBody  = document.getElementById('adoptedBody');
-          if (adoptedBody) adoptedBody.innerHTML = adoptedItems.map(l => `
-            <tr>
-              <td><div style="display:flex;align-items:center;gap:9px;">
-                <div style="width:38px;height:38px;border-radius:11px;background:var(--brand-xlight);display:grid;place-items:center;font-size:1.1rem;border:1px solid var(--brand-light);flex-shrink:0;">${petEmoji(l.animalType)}</div>
-                <div class="cell-title">${l.name}</div>
-              </div></td>
-              <td>${l.animalLabel}</td>
-              <td style="color:var(--text-muted);font-size:.78rem;">${l.owner}</td>
-              <td>${l.city}</td>
-              <td style="color:var(--text-muted);font-size:.78rem;">${l.adoptedDate || l.date}</td>
-            </tr>`).join('');
-          document.getElementById('adoptedCount').textContent   = adoptedItems.length + ' listings';
-          document.getElementById('tabAdoptedCount').textContent = adoptedItems.length;
-
-          // Update KPIs
-          const total   = state.listings.length;
-          const avail   = state.listings.filter(l => l.adoptionStatus === 'available').length;
-          const pending = state.listings.filter(l => l.adStatus === 'pending').length;
-          const adopted = state.listings.filter(l => l.adoptionStatus === 'adopted').length;
-          const flagged = state.listings.filter(l => l.flaggedCount > 0).length;
-          document.getElementById('kpiTotal').textContent   = total;
-          document.getElementById('kpiAvail').textContent   = avail;
-          document.getElementById('kpiPending').textContent = pending;
-          document.getElementById('kpiAdopted').textContent = adopted;
-          document.getElementById('kpiFlagged').textContent = flagged;
-          document.getElementById('tabAllCount').textContent = total;
-        }
-
-        /* ── Detail ── */
-        function openDetail(id) {
-          const l = state.listings.find(x => x.id === id);
-          if (!l) return;
-          state.selectedListingId = id;
-          document.getElementById('detailTitle').textContent = `${petEmoji(l.animalType)} ${l.name} — ${l.animalLabel}`;
-          const ab = document.getElementById('approveBtn');
-          ab.style.display = l.adStatus === 'pending' ? 'inline-flex' : 'none';
-          ab.onclick = () => approveListing(id, true);
-
-          document.getElementById('detailContent').innerHTML = `
-            <div style="display:grid;grid-template-columns:1fr 280px;gap:14px;">
-              <div>
-                <div class="dp-section"><div class="dp-section-title">Pet Information</div><div class="dp-grid">
-                  <div class="dp-info-item"><div class="dp-info-label">Name</div><div class="dp-info-val">${l.name}</div></div>
-                  <div class="dp-info-item"><div class="dp-info-label">Type</div><div class="dp-info-val">${l.animalLabel}</div></div>
-                  <div class="dp-info-item"><div class="dp-info-label">Age</div><div class="dp-info-val">${l.age}</div></div>
-                  <div class="dp-info-item"><div class="dp-info-label">Gender</div><div class="dp-info-val">${l.gender}</div></div>
-                  <div class="dp-info-item"><div class="dp-info-label">City</div><div class="dp-info-val">${l.city}</div></div>
-                  <div class="dp-info-item"><div class="dp-info-label">Health</div><div class="dp-info-val">${l.health}</div></div>
-                </div></div>
-                <div class="dp-section" style="margin-top:12px;"><div class="dp-section-title">Health & Behavior</div><div class="dp-grid">
-                  <div class="dp-info-item"><div class="dp-info-label">Vaccinated</div><div class="dp-info-val">${l.vaccinated}</div></div>
-                  <div class="dp-info-item"><div class="dp-info-label">Neutered</div><div class="dp-info-val">${l.neutered}</div></div>
-                  <div class="dp-info-item"><div class="dp-info-label">Traits</div><div class="dp-info-val">${l.traits}</div></div>
-                  <div class="dp-info-item"><div class="dp-info-label">Energy Level</div><div class="dp-info-val">${l.energy}</div></div>
-                  <div class="dp-info-item"><div class="dp-info-label">Good w/ Children</div><div class="dp-info-val">${l.children}</div></div>
-                  <div class="dp-info-item"><div class="dp-info-label">Good w/ Pets</div><div class="dp-info-val">${l.pets}</div></div>
-                </div></div>
-                ${l.description ? `<div class="dp-section" style="margin-top:12px;"><div class="dp-section-title">Description</div><p style="font-size:.82rem;color:var(--text-muted);font-weight:700;line-height:1.7;">${l.description}</p></div>` : ''}
-              </div>
-              <div>
-                <div class="dp-section" style="background:var(--warning-soft);border-color:rgba(226,163,58,.2);">
-                  <div class="dp-section-title" style="color:#9b6000;">Admin Info</div>
-                  <div class="dp-grid" style="grid-template-columns:1fr;">
-                    <div class="dp-info-item"><div class="dp-info-label">Reason</div><div class="dp-info-val">${reasonBadge(l.reason)}</div></div>
-                    <div class="dp-info-item"><div class="dp-info-label">Created By</div><div class="dp-info-val">${l.owner}</div></div>
-                    <div class="dp-info-item"><div class="dp-info-label">Source</div><div class="dp-info-val">${srcBadge(l.source)}</div></div>
-                    <div class="dp-info-item"><div class="dp-info-label">Submitted</div><div class="dp-info-val">${l.date}</div></div>
-                    <div class="dp-info-item"><div class="dp-info-label">Ad Status</div><div class="dp-info-val">${adBadge(l.adStatus)}</div></div>
-                    <div class="dp-info-item"><div class="dp-info-label">Adoption</div><div class="dp-info-val">${adoptBadge(l.adoptionStatus)}</div></div>
-                    ${l.flaggedCount > 0 ? `<div class="dp-info-item"><div class="dp-info-label">Reports</div><div class="dp-info-val"><span style="background:var(--danger-soft);color:var(--danger);font-size:.72rem;font-weight:900;padding:4px 9px;border-radius:999px;">🚩 ${l.flaggedCount}</span></div></div>` : ''}
-                  </div>
-                </div>
-                <div class="dp-section" style="margin-top:12px;">
-                  <div class="dp-section-title">Update Adoption Status</div>
-                  <select id="detailStatusSel" style="width:100%;min-height:44px;border:1.5px solid var(--border);border-radius:12px;background:#fff;padding:0 14px;font-weight:700;font-size:.86rem;outline:none;margin-bottom:10px;">
-                    <option value="available" ${l.adoptionStatus==='available'?'selected':''}>Available</option>
-                    <option value="reserved"  ${l.adoptionStatus==='reserved' ?'selected':''}>Reserved</option>
-                    <option value="adopted"   ${l.adoptionStatus==='adopted'  ?'selected':''}>Adopted</option>
-                  </select>
-                  <button class="btn btn-primary" style="width:100%;" onclick="saveStatus()">💾 Save Update</button>
-                </div>
-              </div>
-            </div>`;
-          openModal('detailModal');
-        }
-
-        function saveStatus() {
-          const sel = document.getElementById('detailStatusSel');
-          const l   = state.listings.find(x => x.id === state.selectedListingId);
-          if (!sel || !l) return;
-          l.adoptionStatus = sel.value;
-          if (sel.value === 'adopted' && !l.adoptedDate) l.adoptedDate = 'Today';
-          renderAll();
-          closeModal('detailModal');
-          showToast('✅ Status updated!');
-        }
-
-        /* ── Actions ── */
-        function approveListing(id, fromModal = false) {
-          const l = state.listings.find(x => x.id === (id ?? state.selectedListingId));
-          if (!l) return;
-          l.adStatus = 'approved';
-          if (fromModal) closeModal('detailModal');
-          renderAll();
-          showToast(`✅ ${l.name} approved and published!`);
-        }
-        function rejectListing(id) {
-          const l = state.listings.find(x => x.id === id);
-          if (!l) return;
-          l.adStatus = 'rejected';
-          renderAll();
-          showToast(`❌ ${l.name} rejected.`);
-        }
-        function deleteListing(id) {
-          const l = state.listings.find(x => x.id === id);
-          if (!l || !confirm(`Delete listing for ${l.name}?`)) return;
-          state.listings = state.listings.filter(x => x.id !== id);
-          closeModal('detailModal'); closeModal('flagModal');
-          renderAll();
-          showToast('🗑 Listing deleted.');
-        }
-
-        /* ── Flag ── */
-        function openFlagModal(id) {
-          const l = state.listings.find(x => x.id === id);
-          if (!l) return;
-          state.selectedListingId = id;
-          document.getElementById('flagWarnBox').innerHTML = `⚠️ Reported by <strong>${l.flaggedCount}</strong> user(s) for: <strong>${l.flagReason || 'Reported content'}</strong>`;
-          document.getElementById('flagPreview').innerHTML = `<div style="font-weight:900;font-size:.9rem;color:var(--brand-dark);">${petEmoji(l.animalType)} ${l.name} — ${l.animalLabel}</div><div style="font-size:.78rem;color:var(--text-muted);margin-top:4px;">${l.owner} — ${l.city} — ${l.date}</div>`;
-          openModal('flagModal');
-        }
-        function applyFlagDecision() {
-          const decision = document.getElementById('flagDecision').value;
-          const l = state.listings.find(x => x.id === state.selectedListingId);
-          if (!l) return;
-          if (decision === 'safe')    { l.flaggedCount = 0; l.flagReason = ''; showToast('✅ Report closed — listing marked safe.'); }
-          else if (decision === 'warn')    { showToast(`⚠️ Warning sent to ${l.owner}.`); }
-          else if (decision === 'hide')    { l.adStatus = 'pending'; l.flaggedCount = 0; showToast('👁 Listing hidden temporarily.'); }
-          else if (decision === 'delete')  { deleteListing(l.id); return; }
-          else if (decision === 'suspend') { showToast(`🔒 Account action recorded for ${l.owner}.`); }
-          closeModal('flagModal');
-          renderAll();
-        }
-
-        /* ── Helpers ── */
-        function openModal(id)  { document.getElementById(id).classList.add('open'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-        function showToast(msg) {
-          const t = document.getElementById('toast'); t.textContent = msg; t.style.display = 'flex';
-          setTimeout(() => t.style.display = 'none', 3000);
-        }
-        function petEmoji(type) { return type==='cat'?'🐈':type==='dog'?'🐕':type==='bird'?'🐦':'🐾'; }
-        function srcBadge(s) {
-          const m = { user:'badge-info', clinic:'badge-success', store:'badge-purple' };
-          return `<span class="badge ${m[s]||'badge-muted'}">${s.charAt(0).toUpperCase()+s.slice(1)}</span>`;
-        }
-        function adBadge(s) {
-          const m = { approved:'badge-success', pending:'badge-warning', rejected:'badge-danger' };
-          const l = { approved:'Published', pending:'Pending', rejected:'Rejected' };
-          return `<span class="badge ${m[s]||'badge-muted'}">${l[s]||s}</span>`;
-        }
-        function adoptBadge(s) {
-          const m = { available:'badge-info', reserved:'badge-orange', adopted:'badge-success' };
-          return `<span class="badge ${m[s]||'badge-muted'}">${s.charAt(0).toUpperCase()+s.slice(1)}</span>`;
-        }
-        function reasonBadge(r) {
-          const m = { rescue:'🚨 Rescue', stray:'🐾 Stray', cannot_care:'💔 Cannot Care', moving:'🏠 Moving' };
-          return `<span class="badge badge-warning">${m[r]||r}</span>`;
-        }
-
-        /* ── Init ── */
-        renderAll();
-    </script>
+    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
 </body>
 </html>

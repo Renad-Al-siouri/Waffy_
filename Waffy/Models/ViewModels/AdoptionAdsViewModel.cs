@@ -8,5 +8,7 @@ namespace Waffy.Models.ViewModels
         public Dictionary<int, List<AdoptionReservation>> Reservations { get; set; } = new();
         public List<AdoptionReservation> MyRequests { get; set; } = new();
 
+        public Dictionary<int, int> FlagCounts { get; set; } = new Dictionary<int, int>();
+
     }
 }

@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Waffy.Interfaces;
 using Waffy.Models;
+using Waffy.Models.ViewModels;
 using Waffy.Repositories.Interfaces;
 
 namespace Waffy.Controllers
@@ -13,19 +14,22 @@ namespace Waffy.Controllers
         private readonly IClinicRepository _clinicRepo;
         private readonly IStoreRepository _storeRepo;
         private readonly IPetLawRepository _lawRepo;
+        private readonly INotificationRepository _notifRepo;
 
         public HomeController(
             ILogger<HomeController> logger,
             IComplaintRepository complaintRepo,
             IClinicRepository clinicRepo,
             IStoreRepository storeRepo,
-            IPetLawRepository lawRepo)
+            IPetLawRepository lawRepo,
+            INotificationRepository notifRepo)
         {
             _logger = logger;
             _complaintRepo = complaintRepo;
             _clinicRepo = clinicRepo;
             _storeRepo = storeRepo;
             _lawRepo = lawRepo;
+            _notifRepo = notifRepo;
         }
 
         public IActionResult Index()
@@ -127,9 +131,38 @@ namespace Waffy.Controllers
             TempData["SupportSuccess"] = "✅ Your report was received successfully!";
             return RedirectToAction("Suport");
         }
-        public IActionResult Notifications()
+        public async Task<IActionResult> Notifications()
         {
-            return View();
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            var notifications = (await _notifRepo.GetByUserIdAsync(userId.Value)).ToList();
+            var unreadCount = await _notifRepo.GetUnreadCountAsync(userId.Value);
+
+            return View(new NotificationViewModel
+            {
+                Notifications = notifications,
+                UnreadCount = unreadCount,
+                TotalCount = notifications.Count
+            });
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkNotificationRead(int id)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+            await _notifRepo.MarkAsReadAsync(id);
+            return RedirectToAction("Notifications");
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkAllNotificationsRead()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+            await _notifRepo.MarkAllAsReadAsync(userId.Value);
+            return RedirectToAction("Notifications");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

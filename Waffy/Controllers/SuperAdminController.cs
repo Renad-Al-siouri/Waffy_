@@ -19,8 +19,12 @@ namespace Waffy.Controllers
         private readonly IDangerousAnimalReportRepository _dangerRepo;
         private readonly IDonationRepository _donationRepo;
         private readonly IDonationAnimalRepository _donationAnimalRepo;
-        private readonly IComplaintRepository _complaintRepo;       // ← from v1
-        private readonly IPetLawRepository _lawRepo;                // ← from v2
+        private readonly IComplaintRepository _complaintRepo;       
+        private readonly IPetLawRepository _lawRepo;
+        private readonly IAdoptionRepository _adoptionRepo;
+        private readonly IReservationRepository _reservationRepo;
+        private readonly IPostFlagRepository _flagRepo;
+        private readonly INotificationRepository _notifRepo;
 
         public SuperAdminController(
             IUserRepository userRepo,
@@ -33,7 +37,11 @@ namespace Waffy.Controllers
             IDonationRepository donationRepo,
             IDonationAnimalRepository donationAnimalRepo,
             IComplaintRepository complaintRepo,
-            IPetLawRepository lawRepo)
+            IPetLawRepository lawRepo,
+            IAdoptionRepository adoptionRepo,
+            IReservationRepository reservationRepo,
+            IPostFlagRepository flagRepo,
+            INotificationRepository notifRepo)
         {
             _userRepo = userRepo;
             _storeRepo = storeRepo;
@@ -46,6 +54,10 @@ namespace Waffy.Controllers
             _donationAnimalRepo = donationAnimalRepo;
             _complaintRepo = complaintRepo;
             _lawRepo = lawRepo;
+            _adoptionRepo = adoptionRepo;
+            _reservationRepo = reservationRepo;
+            _flagRepo = flagRepo;
+            _notifRepo = notifRepo;
         }
 
         // ── Guards ───────────────────────────────────────────────
@@ -845,14 +857,222 @@ namespace Waffy.Controllers
         }
 
         // ════════════════════════════════════════════════════════
+        // LISTINGS — GET
+        // ════════════════════════════════════════════════════════
+        public async Task<IActionResult> Listings(
+            string statusFilter = "All", string sourceFilter = "All")
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var allPosts = (await _adoptionRepo.GetAllAsync()).ToList();
+
+            var vm = new SuperAdminAdoptionViewModel
+            {
+                TotalCount = allPosts.Count,
+                PendingCount = allPosts.Count(p => p.Status == "Pending"),
+                ApprovedCount = allPosts.Count(p => p.Status == "Approved"),
+                ClosedCount = allPosts.Count(p => p.Status == "Closed"),
+                RejectedCount = allPosts.Count(p => p.Status == "Rejected"),
+                StatusFilter = statusFilter,
+                SourceFilter = sourceFilter
+            };
+
+            var filtered = allPosts.AsEnumerable();
+            if (statusFilter != "All") filtered = filtered.Where(p => p.Status == statusFilter);
+            if (sourceFilter != "All") filtered = filtered.Where(p => p.PostedByType == sourceFilter);
+            vm.Posts = filtered.ToList();
+
+            if (TempData["ListingSuccess"] != null) ViewBag.Success = TempData["ListingSuccess"];
+            if (TempData["ListingError"] != null) ViewBag.Error = TempData["ListingError"];
+
+            return View(vm);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveListing(
+            int id, string statusFilter = "All", string sourceFilter = "All")
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _adoptionRepo.ApproveAsync(id);
+            TempData["ListingSuccess"] = "✅ Post approved and published.";
+            return RedirectToAction("Listings", new { statusFilter, sourceFilter });
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectListing(
+            int id, string statusFilter = "All", string sourceFilter = "All")
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _adoptionRepo.RejectAsync(id);
+            TempData["ListingSuccess"] = "❌ Post rejected.";
+            return RedirectToAction("Listings", new { statusFilter, sourceFilter });
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> CloseListing(
+            int id, string statusFilter = "All", string sourceFilter = "All")
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _adoptionRepo.ClosePostAsync(id);
+            TempData["ListingSuccess"] = "🔒 Post closed.";
+            return RedirectToAction("Listings", new { statusFilter, sourceFilter });
+        }
+
+        // ════════════════════════════════════════════════════════
+        // ADOPTED PETS — GET (مراقبة فقط)
+        // ════════════════════════════════════════════════════════
+        public async Task<IActionResult> Adopted_Pets(string statusFilter = "All")
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var all = (await _reservationRepo.GetAllWithDetailsAsync()).ToList();
+
+            var vm = new SuperAdminReservationViewModel
+            {
+                TotalCount = all.Count,
+                PendingCount = all.Count(r => r.Status == "Pending"),
+                ApprovedCount = all.Count(r => r.Status == "Approved"),
+                RejectedCount = all.Count(r => r.Status == "Rejected"),
+                CancelledCount = all.Count(r => r.Status == "Cancelled"),
+                StatusFilter = statusFilter,
+                Reservations = statusFilter == "All"
+                    ? all
+                    : all.Where(r => r.Status == statusFilter).ToList()
+            };
+
+            return View(vm);
+        }
+
+        // ════════════════════════════════════════════════════════
+        // FLAGGED — GET
+        // ════════════════════════════════════════════════════════
+        public async Task<IActionResult> Flagged(string reasonFilter = "All")
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var allFlagged = (await _flagRepo.GetAllFlaggedPostsAsync()).ToList();
+            var filtered = reasonFilter == "All"
+                ? allFlagged
+                : allFlagged.Where(f => f.TopReason == reasonFilter).ToList();
+
+            var items = new List<FlaggedPostWithReporters>();
+            foreach (var post in filtered)
+            {
+                var reporters = await _flagRepo.GetFlagsByPostIdAsync(post.IdPost);
+                var actions = await _flagRepo.GetActionsByPostIdAsync(post.IdPost);
+                items.Add(new FlaggedPostWithReporters
+                {
+                    Post = post,
+                    Reporters = reporters,
+                    Actions = actions
+                });
+            }
+
+            // History مع التفاصيل الكاملة
+            var historyPosts = (await _flagRepo.GetFlagHistoryAsync()).ToList();
+            var historyItems = new List<FlaggedPostWithReporters>();
+            foreach (var h in historyPosts)
+            {
+                var reporters = await _flagRepo.GetFlagsByPostIdAsync(h.IdPost);
+                var actions = await _flagRepo.GetActionsByPostIdAsync(h.IdPost);
+                historyItems.Add(new FlaggedPostWithReporters
+                {
+                    Post = h,
+                    Reporters = reporters,
+                    Actions = actions
+                });
+            }
+
+            ViewBag.ReasonFilter = reasonFilter;
+            ViewBag.HistoryItems = historyItems;
+
+            if (TempData["FlagSuccess"] != null) ViewBag.Success = TempData["FlagSuccess"];
+
+            return View(items);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ClearFlags(int postId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            var adminId = HttpContext.Session.GetInt32("UserId") ?? 0;
+
+            await _flagRepo.LogActionAsync(postId, adminId,
+                "Cleared", null, null, "No violation found — flags cleared");
+            await _flagRepo.MarkAsReviewedAsync(postId, adminId,
+                "Cleared", "No violation found");
+
+            TempData["FlagSuccess"] = "✅ Flags reviewed and cleared.";
+            return RedirectToAction("Flagged");
+        }
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> FlagClosePost(int postId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            var adminId = HttpContext.Session.GetInt32("UserId") ?? 0;
+
+            await _flagRepo.LogActionAsync(postId, adminId,
+                "Closed", null, null, "Post closed due to policy violation");
+            await _flagRepo.MarkAsReviewedAsync(postId, adminId,
+                "Closed", "Post closed due to policy violation");
+            await _adoptionRepo.ClosePostAsync(postId);
+
+            TempData["FlagSuccess"] = "🔒 Post closed and flags reviewed.";
+            return RedirectToAction("Flagged");
+        }
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendWarning(
+    int postId, int targetUserId, string targetName,
+    string warningMessage, string adminAction)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            var adminId = HttpContext.Session.GetInt32("UserId") ?? 0;
+
+            // سجّل العملية فقط — لا تعلّم reviewed
+            await _flagRepo.LogActionAsync(
+                postId, adminId, adminAction,
+                targetUserId, targetName, warningMessage);
+
+            // أرسل الإشعار
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = targetUserId,
+                Type = "Warning",
+                Title = "⚠️ Warning from Waffy Admin",
+                Message = warningMessage,
+                IsRead = false,
+                RelatedEntityType = "AdoptionPost",
+                RelatedEntityId = postId,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["FlagSuccess"] = $"✅ Warning sent to {targetName}.";
+            return RedirectToAction("Flagged");
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RevertDecision(int postId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            var adminId = HttpContext.Session.GetInt32("UserId") ?? 0;
+
+            await _flagRepo.LogActionAsync(postId, adminId,
+                "DecisionReverted", null, null, "Decision reverted by admin");
+            await _flagRepo.RevertReviewAsync(postId);
+
+            TempData["FlagSuccess"] = "↩️ Decision reverted. Post moved back to active flags.";
+            return RedirectToAction("Flagged");
+        }
+
+        // ════════════════════════════════════════════════════════
         // Stubs
         // ════════════════════════════════════════════════════════
         public IActionResult Clinics() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Details_C() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Analytics_C() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
-        public IActionResult Listings() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
-        public IActionResult Flagged() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
-        public IActionResult Adopted_Pets() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Analytics_A() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Lost_Pets() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Found_Pets() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }

@@ -18,14 +18,18 @@
             overflow: hidden;
             background: #f5f5f5;
         }
-        .pet-thumb img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: none;
-            transition: opacity .3s ease;
-        }
-        .pet-thumb img.car-active { display: block; }
+
+            .pet-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: none;
+                transition: opacity .3s ease;
+            }
+
+                .pet-thumb img.car-active {
+                    display: block;
+                }
 
         .car-dots {
             position: absolute;
@@ -36,8 +40,10 @@
             gap: 5px;
             z-index: 2;
         }
+
         .car-dot {
-            width: 7px; height: 7px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
             background: rgba(255,255,255,.55);
             cursor: pointer;
@@ -45,15 +51,18 @@
             padding: 0;
             transition: background .2s, transform .2s;
         }
-        .car-dot.active {
-            background: #fff;
-            transform: scale(1.2);
-        }
+
+            .car-dot.active {
+                background: #fff;
+                transform: scale(1.2);
+            }
+
         .car-btn {
             position: absolute;
             top: 50%;
             transform: translateY(-50%);
-            width: 26px; height: 26px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             background: rgba(255,255,255,.85);
             border: none;
@@ -69,13 +78,23 @@
             transition: background .2s;
             line-height: 1;
         }
-        .car-btn:hover { background: rgba(255,255,255,1); }
-        .car-btn.prev { left:  6px; }
-        .car-btn.next { right: 6px; }
 
-        /* hide arrows when single image */
+            .car-btn:hover {
+                background: rgba(255,255,255,1);
+            }
+
+            .car-btn.prev {
+                left: 6px;
+            }
+
+            .car-btn.next {
+                right: 6px;
+            }
+
         .pet-thumb[data-count="1"] .car-btn,
-        .pet-thumb[data-count="1"] .car-dots { display: none !important; }
+        .pet-thumb[data-count="1"] .car-dots {
+            display: none !important;
+        }
 
         .photo-counter {
             position: absolute;
@@ -90,11 +109,177 @@
             font-family: 'Nunito', sans-serif;
             z-index: 2;
         }
-        .pet-thumb[data-count="1"] .photo-counter { display: none; }
+
+        .pet-thumb[data-count="1"] .photo-counter {
+            display: none;
+        }
+
+        /* ── Report Post ── */
+        .report-wrap {
+            margin-top: .5rem;
+            border-top: 1px solid rgba(89,101,42,.1);
+            padding-top: .5rem;
+            width: 100%;
+        }
+
+        .report-toggle-btn {
+            background: none;
+            border: 1px solid rgba(220,38,38,.3);
+            color: #dc2626;
+            font-size: .72rem;
+            font-weight: 800;
+            padding: 4px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            transition: all .2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+            .report-toggle-btn:hover {
+                background: #fef2f2;
+                border-color: #dc2626;
+            }
+
+        .report-panel {
+            display: none;
+            margin-top: .6rem;
+            background: #fef2f2;
+            border: 1px solid rgba(220,38,38,.18);
+            border-radius: 14px;
+            padding: .8rem;
+            animation: fadeIn .2s ease;
+        }
+
+            .report-panel.open {
+                display: block;
+            }
+
+        .report-panel-title {
+            font-size: .76rem;
+            font-weight: 900;
+            color: #dc2626;
+            margin-bottom: .3rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .report-note {
+            font-size: .71rem;
+            color: #9ca3af;
+            font-weight: 700;
+            margin-bottom: .6rem;
+            line-height: 1.5;
+        }
+
+        .report-panel select {
+            width: 100%;
+            padding: 7px 10px;
+            border: 1px solid rgba(220,38,38,.25);
+            border-radius: 10px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .78rem;
+            font-weight: 700;
+            color: #374151;
+            margin-bottom: .6rem;
+            background: #fff;
+            outline: none;
+        }
+
+            .report-panel select:focus {
+                border-color: #dc2626;
+            }
+
+        .report-actions {
+            display: flex;
+            gap: .5rem;
+            align-items: center;
+        }
+
+        .report-submit-btn {
+            background: #dc2626;
+            color: #fff;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 10px;
+            font-size: .76rem;
+            font-weight: 800;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            transition: background .2s;
+        }
+
+            .report-submit-btn:hover {
+                background: #b91c1c;
+            }
+
+        .report-cancel-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: .76rem;
+            font-weight: 800;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+        }
+
+        .report-already {
+            font-size: .74rem;
+            color: #9ca3af;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 0;
+        }
+
+        /* ── Flag Success Toast ── */
+        .flag-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #22c55e;
+            color: #fff;
+            padding: 11px 22px;
+            border-radius: 30px;
+            font-weight: 800;
+            font-size: .84rem;
+            z-index: 9999;
+            box-shadow: 0 4px 20px rgba(0,0,0,.15);
+            font-family: 'Nunito', sans-serif;
+            white-space: nowrap;
+        }
+
+        @@keyframes fadeIn {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
     </style>
 </head>
 <body data-logged-in="@(Context.Session.GetInt32("UserId").HasValue ? "true" : "false")">
+
     @Html.AntiForgeryToken()
+
+    @* ── Flag Success Message ── *@
+    @if (TempData["FlagSuccess"] != null)
+    {
+        <div class="flag-toast">✅ @TempData["FlagSuccess"]</div>
+    }
+
     <div class="top-hero-area">
         <div class="top-hero-shell">
             <header class="topbar">
@@ -241,40 +426,41 @@
 
                     @foreach (var pet in Model.Posts)
                     {
+                        @* تحقق هل المستخدم أبلغ عن هذا البوست *@
+                        var alreadyKey = "FlagError_" + pet.Id;
+                        var isAlready = TempData[alreadyKey]?.ToString() == "already";
+                        var isLoggedIn = Context.Session.GetInt32("UserId") != null;
+
                         <article class="pet-item" data-type="@pet.Type">
 
                             @* ── Carousel ── *@
                             <div class="pet-thumb"
                                  data-count="@pet.Images.Count"
                                  data-current="0">
-
-                                @* صور متعددة *@
                                 @for (int i = 0; i < pet.Images.Count; i++)
                                 {
                                     <img src="@pet.Images[i]"
                                          alt="@pet.Name @(i + 1)"
                                          class="@(i == 0 ? "car-active" : "")" />
                                 }
-
-                                @* عداد الصور *@
                                 @if (pet.Images.Count > 1)
                                 {
-                                    <span class="photo-counter">
-                                        1 / @pet.Images.Count
-                                    </span>
-
+                                    <span class="photo-counter">1 / @pet.Images.Count</span>
                                     <button class="car-btn prev" type="button"
-                                            onclick="carMove(this,-1)" aria-label="Previous">‹</button>
+                                            onclick="carMove(this,-1)" aria-label="Previous">
+                                        ‹
+                                    </button>
                                     <button class="car-btn next" type="button"
-                                            onclick="carMove(this, 1)" aria-label="Next">›</button>
-
+                                            onclick="carMove(this, 1)" aria-label="Next">
+                                        ›
+                                    </button>
                                     <div class="car-dots">
                                         @for (int i = 0; i < pet.Images.Count; i++)
                                         {
                                             <button class="car-dot @(i == 0 ? "active" : "")"
                                                     type="button"
                                                     onclick="carGoTo(this, @i)"
-                                                    aria-label="Photo @(i+1)"></button>
+                                                    aria-label="Photo @(i + 1)"></button>
                                         }
                                     </div>
                                 }
@@ -290,7 +476,6 @@
                                 <p><strong>Gender:</strong> @pet.Gender</p>
                                 <p><strong>City:</strong> 📍 @pet.City @(!string.IsNullOrEmpty(pet.Area) ? $"- {pet.Area}" : "")</p>
                                 <p><strong>Temperament:</strong> @pet.Temperament</p>
-
                                 <div style="display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.5rem">
                                     <span style="background:#e8f5e9;color:#2e7d32;padding:.2rem .6rem;border-radius:20px;font-size:.75rem;font-weight:700">
                                         @pet.Vaccinations[0]
@@ -313,7 +498,9 @@
                             <div class="pet-actions">
                                 <div class="like-wrap">
                                     <button class="like-btn @(pet.IsLikedByCurrentUser ? "active" : "")"
-                                            data-like="@pet.Id">❤</button>
+                                            data-like="@pet.Id">
+                                        ❤
+                                    </button>
                                     <span class="likes-count">
                                         <span id="likes-@pet.Id">@pet.Likes</span> likes
                                     </span>
@@ -342,6 +529,64 @@
                                         data-code="@pet.PostCode">
                                     View Details
                                 </button>
+
+                                @* ── Report Section ── *@
+                                @if (isLoggedIn)
+                                {
+                                    <div class="report-wrap">
+                                        @if (isAlready)
+                                        {
+                                            <span class="report-already">🚩 Already reported</span>
+                                        }
+                                        else
+                                        {
+                                            <button type="button"
+                                                    class="report-toggle-btn"
+                                                    onclick="toggleReport('rp_@pet.Id')">
+                                                🚩 Report
+                                            </button>
+                                            <div id="rp_@pet.Id" class="report-panel">
+                                                <div class="report-panel-title">
+                                                    🚩 Report This Post
+                                                </div>
+                                                <p class="report-note">
+                                                    Help us keep Waffy safe and honest.
+                                                    Select a reason and we'll review it.
+                                                </p>
+                                                <form method="post"
+                                                      asp-controller="Pet"
+                                                      asp-action="FlagPost">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="postId" value="@pet.Id" />
+                                                    <select name="reason">
+                                                        <option value="Selling instead of adoption">
+                                                            💰 Selling instead of adoption
+                                                        </option>
+                                                        <option value="Fake listing">
+                                                            🤥 Fake or misleading listing
+                                                        </option>
+                                                        <option value="Inappropriate content">
+                                                            ⚠️ Inappropriate content
+                                                        </option>
+                                                        <option value="Other">
+                                                            📝 Other
+                                                        </option>
+                                                    </select>
+                                                    <div class="report-actions">
+                                                        <button type="submit" class="report-submit-btn">
+                                                            Submit Report
+                                                        </button>
+                                                        <button type="button"
+                                                                class="report-cancel-btn"
+                                                                onclick="toggleReport('rp_@pet.Id')">
+                                                            Cancel
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        }
+                                    </div>
+                                }
                             </div>
 
                         </article>
@@ -396,34 +641,37 @@
 
     <script src="~/js/adaptjs.js"></script>
     <script>
-        // ════════════════════════════
-        // Carousel logic
-        // ════════════════════════════
+        // ── Carousel ──
         function carMove(btn, dir) {
             const thumb = btn.closest('.pet-thumb');
             carGoToIndex(thumb, parseInt(thumb.dataset.current) + dir);
         }
-
         function carGoTo(dot, idx) {
             const thumb = dot.closest('.pet-thumb');
             carGoToIndex(thumb, idx);
         }
-
         function carGoToIndex(thumb, idx) {
             const imgs    = thumb.querySelectorAll('img');
             const dots    = thumb.querySelectorAll('.car-dot');
             const counter = thumb.querySelector('.photo-counter');
             const count   = imgs.length;
             if (count <= 1) return;
-
             idx = ((idx % count) + count) % count;
-
             imgs.forEach((img, i) => img.classList.toggle('car-active', i === idx));
             dots.forEach((d,   i) => d.classList.toggle('active',      i === idx));
-
             if (counter) counter.textContent = `${idx + 1} / ${count}`;
             thumb.dataset.current = idx;
         }
+
+        // ── Report Toggle ──
+        function toggleReport(id) {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('open');
+        }
+
+        // ── Auto-hide flag toast ──
+        const flagToast = document.querySelector('.flag-toast');
+        if (flagToast) setTimeout(() => flagToast.style.display = 'none', 4000);
     </script>
 </body>
 </html>

@@ -1,4 +1,5 @@
 ﻿using Waffy.Models;
+using Waffy.Models.ViewModels;
 
 namespace Waffy.Interfaces
 {
@@ -31,6 +32,9 @@ namespace Waffy.Interfaces
         Task RemoveLikeAsync(int postId, int userId);
         Task<int> GetLikesAsync(int postId);
         Task<IEnumerable<string>> GetAllImagesAsync(int postId);
+        Task<IEnumerable<AdoptionPostAdminDto>> GetAllAsync();
+        Task ApproveAsync(int id);
+        Task RejectAsync(int id);
 
     }
 }

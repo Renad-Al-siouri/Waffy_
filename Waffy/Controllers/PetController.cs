@@ -14,17 +14,20 @@ namespace Waffy.Controllers
         private readonly IUserRepository _userRepo;
         private readonly IAdoptionRepository _adoptionRepo;
         private readonly ILostPetRepository _lostPetRepo;
+        private readonly IPostFlagRepository _flagRepo;
 
         public PetController(
             IPetRepository petRepo,
             IUserRepository userRepo,
             IAdoptionRepository adoptionRepo,
-            ILostPetRepository lostPetRepo)
+            ILostPetRepository lostPetRepo,
+            IPostFlagRepository flagRepo)
         {
             _petRepo = petRepo;
             _userRepo = userRepo;
             _adoptionRepo = adoptionRepo;
             _lostPetRepo = lostPetRepo;
+            _flagRepo = flagRepo;
         }
 
         // ════════════════════════════════════════════════════
@@ -68,6 +71,35 @@ namespace Waffy.Controllers
             }
 
             return View(new AdoptionPageViewModel { Posts = cards });
+        }
+
+        // ════════════════════════════════════════════════════
+        // ADOPTION FlagPost
+        // ════════════════════════════════════════════════════
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> FlagPost(int postId, string reason)
+        {
+            var userId = GetCurrentUserId();
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            var alreadyFlagged = await _flagRepo.HasFlaggedAsync(postId, userId.Value);
+            if (alreadyFlagged)
+            {
+                TempData["FlagError_" + postId] = "already";
+                return RedirectToAction("Adapt");
+            }
+
+            await _flagRepo.AddFlagAsync(new PostFlag
+            {
+                IdPost = postId,
+                IdUser = userId.Value,
+                Reason = reason,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["FlagSuccess"] = "✅ Thank you. Our team will review this post.";
+            return RedirectToAction("Adapt");
         }
 
         // ════════════════════════════════════════════════════
@@ -541,7 +573,7 @@ namespace Waffy.Controllers
                 ContactPhone = Trunc(contactPhone, 20),
                 Description = Trunc(description, 1000),
                 ReasonForAdoption = Trunc(reason, 500),
-                Status = PostStatus.Approved.ToString(),
+                Status = PostStatus.Pending.ToString(),
                 AdoptionStatus = AdoptionStatus.Available.ToString(),
                 PostCode = GenerateCode("ADT"),
                 BirthDate = pet.BirthDate,

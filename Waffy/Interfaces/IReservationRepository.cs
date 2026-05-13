@@ -1,4 +1,5 @@
 ﻿using Waffy.Models;
+using Waffy.Models.ViewModels;
 
 namespace Waffy.Interfaces
 {
@@ -13,5 +14,6 @@ namespace Waffy.Interfaces
         Task RejectAsync(int reservationId);
 
         Task CancelAsync(int reservationId);
+        Task<IEnumerable<AdoptionReservationAdminDto>> GetAllWithDetailsAsync();
     }
 }
