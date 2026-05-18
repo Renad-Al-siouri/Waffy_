@@ -114,7 +114,7 @@
             display: none;
         }
 
-        /* ── Report Post ── */
+        /* ── Report Button ── */
         .report-wrap {
             margin-top: .5rem;
             border-top: 1px solid rgba(89,101,42,.1);
@@ -143,89 +143,6 @@
                 border-color: #dc2626;
             }
 
-        .report-panel {
-            display: none;
-            margin-top: .6rem;
-            background: #fef2f2;
-            border: 1px solid rgba(220,38,38,.18);
-            border-radius: 14px;
-            padding: .8rem;
-            animation: fadeIn .2s ease;
-        }
-
-            .report-panel.open {
-                display: block;
-            }
-
-        .report-panel-title {
-            font-size: .76rem;
-            font-weight: 900;
-            color: #dc2626;
-            margin-bottom: .3rem;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .report-note {
-            font-size: .71rem;
-            color: #9ca3af;
-            font-weight: 700;
-            margin-bottom: .6rem;
-            line-height: 1.5;
-        }
-
-        .report-panel select {
-            width: 100%;
-            padding: 7px 10px;
-            border: 1px solid rgba(220,38,38,.25);
-            border-radius: 10px;
-            font-family: 'Nunito', sans-serif;
-            font-size: .78rem;
-            font-weight: 700;
-            color: #374151;
-            margin-bottom: .6rem;
-            background: #fff;
-            outline: none;
-        }
-
-            .report-panel select:focus {
-                border-color: #dc2626;
-            }
-
-        .report-actions {
-            display: flex;
-            gap: .5rem;
-            align-items: center;
-        }
-
-        .report-submit-btn {
-            background: #dc2626;
-            color: #fff;
-            border: none;
-            padding: 6px 16px;
-            border-radius: 10px;
-            font-size: .76rem;
-            font-weight: 800;
-            cursor: pointer;
-            font-family: 'Nunito', sans-serif;
-            transition: background .2s;
-        }
-
-            .report-submit-btn:hover {
-                background: #b91c1c;
-            }
-
-        .report-cancel-btn {
-            background: none;
-            border: none;
-            color: #9ca3af;
-            font-size: .76rem;
-            font-weight: 800;
-            cursor: pointer;
-            font-family: 'Nunito', sans-serif;
-        }
-
         .report-already {
             font-size: .74rem;
             color: #9ca3af;
@@ -233,10 +150,120 @@
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 3px 0;
         }
 
-        /* ── Flag Success Toast ── */
+        /* ── Flag Modal ── */
+        .flag-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(38,31,23,.5);
+            backdrop-filter: blur(4px);
+            z-index: 1200;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+            .flag-modal-overlay.open {
+                display: flex;
+            }
+
+        .flag-modal-box {
+            background: #fff;
+            border-radius: 20px;
+            max-width: 420px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,.18);
+            animation: flagSlideUp .22s ease;
+            overflow: hidden;
+        }
+
+        @@keyframes flagSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(14px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .flag-modal-head {
+            padding: 16px 20px 12px;
+            border-bottom: 1px solid #f5e8e8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fef2f2;
+        }
+
+        .flag-modal-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #dc2626;
+        }
+
+        .flag-modal-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: rgba(220,38,38,.1);
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            color: #dc2626;
+            display: grid;
+            place-items: center;
+            transition: .18s;
+        }
+
+            .flag-modal-close:hover {
+                background: rgba(220,38,38,.2);
+            }
+
+        .flag-modal-body {
+            padding: 18px 20px 0;
+        }
+
+        .flag-modal-note {
+            font-size: .78rem;
+            color: #9ca3af;
+            font-weight: 700;
+            margin-bottom: 14px;
+            line-height: 1.6;
+        }
+
+        .flag-modal-select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid rgba(220,38,38,.25);
+            border-radius: 12px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .84rem;
+            font-weight: 700;
+            color: #374151;
+            background: #fff;
+            outline: none;
+            transition: border-color .18s;
+            margin-bottom: 4px;
+        }
+
+            .flag-modal-select:focus {
+                border-color: #dc2626;
+            }
+
+        .flag-modal-footer {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            padding: 14px 20px 18px;
+        }
+
+        /* ── Flag Toast ── */
         .flag-toast {
             position: fixed;
             top: 20px;
@@ -253,28 +280,13 @@
             font-family: 'Nunito', sans-serif;
             white-space: nowrap;
         }
-
-        @@keyframes fadeIn {
-            from
-
-        {
-            opacity: 0;
-            transform: translateY(-4px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        }
     </style>
 </head>
 <body data-logged-in="@(Context.Session.GetInt32("UserId").HasValue ? "true" : "false")">
 
     @Html.AntiForgeryToken()
 
-    @* ── Flag Success Message ── *@
+    @* ── Flag Success Toast ── *@
     @if (TempData["FlagSuccess"] != null)
     {
         <div class="flag-toast">✅ @TempData["FlagSuccess"]</div>
@@ -426,7 +438,6 @@
 
                     @foreach (var pet in Model.Posts)
                     {
-                        @* تحقق هل المستخدم أبلغ عن هذا البوست *@
                         var alreadyKey = "FlagError_" + pet.Id;
                         var isAlready = TempData[alreadyKey]?.ToString() == "already";
                         var isLoggedIn = Context.Session.GetInt32("UserId") != null;
@@ -542,48 +553,9 @@
                                         {
                                             <button type="button"
                                                     class="report-toggle-btn"
-                                                    onclick="toggleReport('rp_@pet.Id')">
+                                                    onclick="openFlagModal(@pet.Id)">
                                                 🚩 Report
                                             </button>
-                                            <div id="rp_@pet.Id" class="report-panel">
-                                                <div class="report-panel-title">
-                                                    🚩 Report This Post
-                                                </div>
-                                                <p class="report-note">
-                                                    Help us keep Waffy safe and honest.
-                                                    Select a reason and we'll review it.
-                                                </p>
-                                                <form method="post"
-                                                      asp-controller="Pet"
-                                                      asp-action="FlagPost">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="postId" value="@pet.Id" />
-                                                    <select name="reason">
-                                                        <option value="Selling instead of adoption">
-                                                            💰 Selling instead of adoption
-                                                        </option>
-                                                        <option value="Fake listing">
-                                                            🤥 Fake or misleading listing
-                                                        </option>
-                                                        <option value="Inappropriate content">
-                                                            ⚠️ Inappropriate content
-                                                        </option>
-                                                        <option value="Other">
-                                                            📝 Other
-                                                        </option>
-                                                    </select>
-                                                    <div class="report-actions">
-                                                        <button type="submit" class="report-submit-btn">
-                                                            Submit Report
-                                                        </button>
-                                                        <button type="button"
-                                                                class="report-cancel-btn"
-                                                                onclick="toggleReport('rp_@pet.Id')">
-                                                            Cancel
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
                                         }
                                     </div>
                                 }
@@ -607,6 +579,7 @@
         <div>© 2026 Waffy, All rights reserved.</div>
     </footer>
 
+    @* ── Details Modal ── *@
     <div id="detailsModal" class="modal hidden">
         <div class="modal-overlay" data-close-modal></div>
         <div class="modal-card">
@@ -615,8 +588,7 @@
         </div>
     </div>
 
-    <div id="toast" class="toast"></div>
-
+    @* ── Reserve Modal ── *@
     <div id="reserveModal" class="modal hidden">
         <div class="modal-overlay" onclick="closeReserveModal()"></div>
         <div class="modal-card" style="max-width:460px">
@@ -638,6 +610,61 @@
             </form>
         </div>
     </div>
+
+    @* ── Flag Modal ── *@
+    <div id="flagModal" class="flag-modal-overlay">
+        <div class="flag-modal-box">
+            <div class="flag-modal-head">
+                <div class="flag-modal-title">🚩 Report Post</div>
+                <button class="flag-modal-close"
+                        onclick="closeFlagModal()"
+                        type="button">
+                    ✕
+                </button>
+            </div>
+            <div class="flag-modal-body">
+                <p class="flag-modal-note">
+                    Help us keep Waffy safe and honest.<br>
+                    Select a reason and we'll review it promptly.
+                </p>
+                <form method="post"
+                      asp-controller="Pet"
+                      asp-action="FlagPost"
+                      id="flagForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="postId" id="flagPostId" />
+                    <select name="reason" class="flag-modal-select">
+                        <option value="Selling instead of adoption">💰 Selling instead of adoption</option>
+                        <option value="Fake listing">🤥 Fake or misleading listing</option>
+                        <option value="Inappropriate content">⚠️ Inappropriate content</option>
+                        <option value="Other">📝 Other</option>
+                    </select>
+                    <div class="flag-modal-footer">
+                        <button type="button"
+                                onclick="closeFlagModal()"
+                                style="background:none;border:1.5px solid #e5e7eb;
+                                       color:#6b7280;padding:8px 18px;border-radius:10px;
+                                       font-weight:800;font-size:.82rem;
+                                       font-family:'Nunito',sans-serif;cursor:pointer;">
+                            Cancel
+                        </button>
+                        <button type="submit"
+                                style="background:#dc2626;color:#fff;border:none;
+                                       padding:8px 22px;border-radius:10px;
+                                       font-weight:900;font-size:.84rem;
+                                       font-family:'Nunito',sans-serif;cursor:pointer;
+                                       transition:.18s;"
+                                onmouseover="this.style.background='#b91c1c'"
+                                onmouseout="this.style.background='#dc2626'">
+                            🚩 Submit Report
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
 
     <script src="~/js/adaptjs.js"></script>
     <script>
@@ -663,11 +690,26 @@
             thumb.dataset.current = idx;
         }
 
-        // ── Report Toggle ──
-        function toggleReport(id) {
-            const el = document.getElementById(id);
-            if (el) el.classList.toggle('open');
+        // ── Flag Modal ──
+        function openFlagModal(postId) {
+            document.getElementById('flagPostId').value = postId;
+            document.getElementById('flagModal').classList.add('open');
+            document.body.style.overflow = 'hidden';
         }
+        function closeFlagModal() {
+            document.getElementById('flagModal').classList.remove('open');
+            document.body.style.overflow = '';
+        }
+
+        // إغلاق عند الضغط خارج الـ Modal
+        document.getElementById('flagModal').addEventListener('click', function(e) {
+            if (e.target === this) closeFlagModal();
+        });
+
+        // إغلاق بـ Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeFlagModal();
+        });
 
         // ── Auto-hide flag toast ──
         const flagToast = document.querySelector('.flag-toast');
