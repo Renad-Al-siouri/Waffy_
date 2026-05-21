@@ -555,9 +555,29 @@ namespace Waffy.Controllers
                 TempData["LostSuccess"] = "⚠️ You are not authorized.";
                 return RedirectToAction("Lost_Reports");
             }
-
-            // ── تأكيد الـ Claim ─────────────────────────────
+            // ── تأكيد الـ Claim المختار ─────────────────────
             await _claimRepo.ConfirmClaimAsync(claimId);
+            // ── رفض باقي الـ Claims تلقائياً ──────────────────
+            var allClaims = await _claimRepo.GetByReportIdAsync(report.IdLostReport);
+            foreach (var other in allClaims.Where(c => c.IdClaim != claimId && c.Status == "Pending"))
+            {
+                await _claimRepo.RejectClaimAsync(other.IdClaim);
+
+                if (other.IdUser.HasValue)
+                {
+                    await _notifRepo.AddAsync(new Notification
+                    {
+                        IdUser = other.IdUser.Value,
+                        Type = "ClaimRejected",
+                        Title = "❌ Claim not confirmed",
+                        Message = $"Another person was confirmed as the finder of {report.PetName}. Thank you for your help! 🐾",
+                        IsRead = false,
+                        RelatedEntityType = "LostPetReport",
+                        RelatedEntityId = report.IdLostReport,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
 
             // ── نقل المكافأة إذا كانت محجوزة ────────────────
             if (report.RewardAmount > 0

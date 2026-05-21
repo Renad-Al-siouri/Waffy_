@@ -14,6 +14,9 @@ namespace Waffy.Models.ViewModels
         public Wallet? Wallet { get; set; }
         public List<Order> Orders { get; set; } = new();
         public int TotalFlagsCount { get; set; }
+        public List<Complaint> Complaints { get; set; } = new();
+        public int ComplaintsCount { get; set; }
+        public List<Notification> MessageHistory { get; set; } = new();
 
         // ── Counts — Mini Stats ──────────────────────────
         public int PetsCount { get; set; }

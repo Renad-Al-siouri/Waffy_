@@ -14,7 +14,7 @@ namespace Waffy.Controllers
         private readonly IStoreRepository _storeRepo;
         private readonly IProductRepository _productRepo;
         private readonly IOrderRepository _orderRepo;
-        private readonly IOrderItemRepository _orderItemRepo;       // ← from v2
+        private readonly IOrderItemRepository _orderItemRepo;     
         private readonly IStoreDocumentRepository _docRepo;
         private readonly IDangerousAnimalReportRepository _dangerRepo;
         private readonly IDonationRepository _donationRepo;
@@ -217,6 +217,12 @@ namespace Waffy.Controllers
             var postIds = adoptionPosts.Select(p => p.IdPost);
             var flagCounts = await _flagRepo.GetFlagCountsForPostsAsync(postIds);
             var totalFlags = flagCounts.Values.Sum();
+            var complaints = (await _complaintRepo.GetByUserIdAsync(id)).ToList();
+            var messageHistory = (await _notifRepo.GetByUserIdAsync(id))
+    .Where(n => n.RelatedEntityType == "AdminMessage"
+             || n.RelatedEntityType == "AdminAction")
+    .OrderByDescending(n => n.CreatedAt)
+    .ToList();
 
             // ── أسماء المتاجر ─────────────────────────────────
             var storeNames = new Dictionary<int, string>();
@@ -249,6 +255,9 @@ namespace Waffy.Controllers
                 ReturnStatus = returnStatus,
                 ReturnRole = returnRole,
                 TotalFlagsCount = totalFlags,
+                Complaints = complaints,
+                ComplaintsCount = complaints.Count,
+                MessageHistory = messageHistory,
                 ReturnPage = returnPage
             };
 
@@ -288,6 +297,45 @@ namespace Waffy.Controllers
             await _userRepo.IncrementWarningCountAsync(userId);
 
             TempData["SuccessMessage"] = "⚠️ Warning sent successfully.";
+            return RedirectToAction("Details_U", new
+            {
+                id = userId,
+                returnSearch,
+                returnStatus,
+                returnRole,
+                returnPage
+            });
+        }
+
+
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendMessage(
+    int userId, string msgType, string title,
+    string message, string priority,
+    string? returnSearch, string? returnStatus,
+    string? returnRole, int returnPage = 1)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(message))
+            {
+                TempData["ErrorMessage"] = "⚠️ Please fill in title and message.";
+                return RedirectToAction("Details_U", new { id = userId, returnSearch, returnStatus, returnRole, returnPage });
+            }
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = userId,
+                Type = msgType,
+                Title = title,
+                Message = message,
+                IsRead = false,
+                RelatedEntityType = "AdminMessage",
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["SuccessMessage"] = $"✅ Message sent successfully.";
             return RedirectToAction("Details_U", new
             {
                 id = userId,

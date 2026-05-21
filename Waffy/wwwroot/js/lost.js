@@ -233,7 +233,7 @@ function openFlow(petId) {
     currentSecretQ = card.dataset.secretQuestion || "";
     const qDisplay = document.getElementById("secretQuestionDisplay");
     if (qDisplay) qDisplay.textContent = currentSecretQ || "No secret question set.";
-    ["finderName", "finderPhone", "secretAnswer"].forEach(id => {
+    ["secretAnswer"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = "";
     });
@@ -244,10 +244,8 @@ function openFlow(petId) {
 function closeFlow() { flowModal?.classList.add("hidden"); }
 
 async function goToVerificationStep() {
-    const name = document.getElementById("finderName")?.value.trim() || "";
-    const phone = document.getElementById("finderPhone")?.value.trim() || "";
     const answer = document.getElementById("secretAnswer")?.value.trim() || "";
-    if (!name || !phone || !answer) { showToast("⚠️ Please fill in all fields."); return; }
+    if (!answer) { showToast("⚠️ Please enter your answer."); return; }
 
     const btn = document.querySelector("[onclick='goToVerificationStep()']");
     if (btn) { btn.disabled = true; btn.textContent = "Submitting..."; }
@@ -256,14 +254,19 @@ async function goToVerificationStep() {
         const res = await fetch("/FoundPetClaim/Submit", {
             method: "POST",
             headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: new URLSearchParams({ reportId: currentPetId, finderName: name, finderPhone: phone, secretAnswer: answer })
+            body: new URLSearchParams({
+                reportId: currentPetId,
+                secretAnswer: answer
+            })
         });
         const data = await res.json();
+
         if (!data.success) {
             showToast("❌ " + data.message);
             if (btn) { btn.disabled = false; btn.textContent = "Submit for Verification →"; }
             return;
         }
+
         const resultEl = document.getElementById("verificationResult");
         if (resultEl) {
             resultEl.textContent = data.message;
@@ -274,14 +277,18 @@ async function goToVerificationStep() {
             resultEl.style.padding = ".8rem 1rem";
             resultEl.style.fontWeight = "700";
         }
+
+        // ✅ نأخذ التلفون من الـ response بدل الحقل المحذوف
         const phoneEl = document.getElementById("displayPhone");
-        if (phoneEl) phoneEl.textContent = phone;
+        if (phoneEl) phoneEl.textContent = data.phone || "—";
+
         showStep(2);
     } catch (err) {
         showToast("❌ Something went wrong. Please try again.");
         if (btn) { btn.disabled = false; btn.textContent = "Submit for Verification →"; }
     }
 }
+
 
 // ══════════════════════════════════
 // CLICK HANDLERS

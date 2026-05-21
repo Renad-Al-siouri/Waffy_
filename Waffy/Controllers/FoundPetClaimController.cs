@@ -15,13 +15,15 @@ namespace Waffy.Controllers
         private readonly IConfiguration _config;
         private readonly ISurpriseRewardRepository _surpriseRepo;
         private readonly INotificationRepository _notifRepo;
+        private readonly IUserRepository _userRepo;
 
         public FoundPetClaimController(
             IFoundPetClaimRepository claimRepo,
             ILostPetRepository lostRepo,
             IConfiguration config,
             ISurpriseRewardRepository surpriseRepo,
-INotificationRepository notificationRepo
+INotificationRepository notificationRepo,
+            IUserRepository userRepo
             )
         {
             _claimRepo = claimRepo;
@@ -29,7 +31,7 @@ INotificationRepository notificationRepo
             _config = config;
             _surpriseRepo = surpriseRepo;
             _notifRepo = notificationRepo;
-
+            _userRepo = userRepo;
         }
 
         private int? GetCurrentUserId() =>
@@ -40,20 +42,27 @@ INotificationRepository notificationRepo
         // ════════════════════════════════════════════════════
         [HttpPost]
         public async Task<IActionResult> Submit(
-            int reportId,
-            string finderName,
-            string finderPhone,
-            string secretAnswer)
+      int reportId,
+      string secretAnswer)
         {
+            var userId = GetCurrentUserId();
+
+            // ✅ المستخدم يجب أن يكون مسجل دخول
+            if (userId == null)
+                return Json(new { success = false, message = "Please log in to report a found pet." });
+
             var report = await _lostRepo.GetByIdAsync(reportId);
             if (report == null)
                 return Json(new { success = false, message = "Report not found." });
 
-            var userId = GetCurrentUserId();
-
             // ✅ صاحب الحيوان لا يستطيع أن يكون finder
-            if (userId.HasValue && userId.Value == report.IdUser)
+            if (userId.Value == report.IdUser)
                 return Json(new { success = false, message = "You cannot claim your own pet." });
+
+            // ✅ جلب بيانات المستخدم من DB
+            var user = await _userRepo.GetByIdAsync(userId.Value);
+            if (user == null)
+                return Json(new { success = false, message = "User not found." });
 
             // ✅ تحقق من السؤال السري بـ SHA256
             var hash = Convert.ToHexString(
@@ -65,9 +74,9 @@ INotificationRepository notificationRepo
             var claim = new FoundPetClaim
             {
                 IdLostReport = reportId,
-                IdUser = userId,
-                FinderName = finderName.Trim(),
-                FinderPhone = finderPhone.Trim(),
+                IdUser = userId.Value,
+                FinderName = user.FullName,     // ← من DB
+                FinderPhone = user.Phone ?? "",  // ← من DB
                 Description = "Submitted via Lost page",
                 IsVerified = isVerified,
                 Status = "Pending",
@@ -80,11 +89,13 @@ INotificationRepository notificationRepo
             {
                 success = true,
                 verified = isVerified,
+                phone = user.Phone ?? "—",   // ✅ نرسله للـ JS لعرضه في Step 2
                 message = isVerified
                     ? "✅ Correct! The owner will contact you soon."
                     : "⚠️ Wrong answer, but your info is saved. Owner may still contact you."
             });
         }
+
 
         // ════════════════════════════════════════════════════
         // CONFIRM FOUND — POST من Lost_Reports
