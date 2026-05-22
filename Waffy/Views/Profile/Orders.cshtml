@@ -1,15 +1,9 @@
 ﻿@model List<Waffy.Models.Order>
-
 @{
     ViewData["Title"] = "My Orders";
     Layout = null;
     var storeNames = ViewBag.StoreNames as Dictionary<int, string> ?? new();
-    ViewBag.SidebarName = ViewBag.FullName ?? "User";
-    ViewBag.SidebarEmail = ViewBag.Email ?? "";
-    ViewBag.SidebarBalance = ViewBag.SidebarBalance as string ?? "0.00";
-    ViewBag.SidebarOrdersBadge = Model.Count(o => o.Status == "Pending").ToString();
 }
-
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -22,7 +16,6 @@
     <link rel="stylesheet" href="~/css/waffy-shared.css">
     <link rel="stylesheet" href="~/css/waffy-responsive-patch.css">
     <style>
-        /* ══ Order Cards ══ */
         .order-card {
             background: #fff;
             border: 1px solid var(--line, #eee);
@@ -119,7 +112,6 @@
                 background: #59652a;
             }
 
-        /* ══ Status Badges ══ */
         .badge {
             display: inline-block;
             padding: 3px 10px;
@@ -158,7 +150,6 @@
             color: #c62828;
         }
 
-        /* ══ Track Modal ══ */
         .track-overlay {
             display: none;
             position: fixed;
@@ -212,7 +203,6 @@
             color: #59652a;
         }
 
-        /* ══ Timeline ══ */
         .timeline {
             position: relative;
             padding-left: 36px;
@@ -298,7 +288,6 @@
             margin-top: 2px;
         }
 
-        /* ══ Order Items in Modal ══ */
         .modal-items {
             margin-top: 16px;
             padding-top: 16px;
@@ -343,7 +332,6 @@
             color: #2d3a1f;
         }
 
-        /* ══ Empty ══ */
         .empty-orders {
             text-align: center;
             padding: 50px 20px;
@@ -372,7 +360,6 @@
                 font-size: .88rem;
             }
 
-        /* ══ Filter Bar ══ */
         .filter-bar {
             display: flex;
             gap: 6px;
@@ -406,7 +393,6 @@
 </head>
 <body>
 
-    <!-- ══ NAVBAR ══ -->
     <div class="top-hero-area">
         <div class="top-hero-shell">
             <header class="topbar">
@@ -484,9 +470,9 @@
         </div>
     </div>
 
-    <!-- ══ PAGE WRAP ══ -->
     <div class="page-wrap">
         @await Html.PartialAsync("_ProfileSidebar")
+
         <main class="main-content">
             <div class="page-header">
                 <div>
@@ -499,7 +485,6 @@
                 </a>
             </div>
 
-            <!-- Filter chips -->
             <div class="filter-bar">
                 <span class="filter-chip active" onclick="filterBy('all',this)">All (@Model.Count)</span>
                 <span class="filter-chip" onclick="filterBy('pending',this)">
@@ -563,33 +548,25 @@
         </main>
     </div>
 
-    <!-- ══ TRACK MODAL ══ -->
     <div class="track-overlay" id="trackOverlay" onclick="closeTrackModal()">
         <div class="track-modal" onclick="event.stopPropagation()">
             <div class="track-modal-hd">
                 <div class="track-modal-title">📦 Order Tracking</div>
                 <button class="track-close" onclick="closeTrackModal()">✕</button>
             </div>
-
-            <!-- Order Info -->
             <div style="background:#f9fbf6;border-radius:12px;padding:12px 14px;margin-bottom:16px">
                 <div style="font-family:monospace;font-weight:900;font-size:.9rem;color:#3a5e1f" id="modalCode"></div>
                 <div style="font-size:.76rem;color:#888;margin-top:4px" id="modalStore"></div>
                 <div style="font-size:.76rem;color:#888;margin-top:2px" id="modalAddress"></div>
                 <div style="font-size:.76rem;color:#888;margin-top:2px" id="modalPayment"></div>
             </div>
-
-            <!-- Timeline -->
             <div class="timeline" id="modalTimeline"></div>
-
-            <!-- Items -->
             <div class="modal-items" id="modalItems">
                 <div style="text-align:center;color:#aaa;font-size:.82rem;padding:10px">Loading items...</div>
             </div>
         </div>
     </div>
 
-    <!-- ══ Mobile Bottom Nav ══ -->
     <div class="mobile-bottom-nav" id="mobileBottomNav">
         <a href="/Profile/Edit_Profile" class="mb-nav-item"><i class="fa-solid fa-user"></i><span>Edit</span></a>
         <a href="/Profile/My_Wallet" class="mb-nav-item"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
@@ -616,7 +593,6 @@
     </div>
 
     <div class="toast" id="toast"></div>
-
     <footer class="footer">
         <div class="container">
             <div class="footer-links">
@@ -628,7 +604,6 @@
     </footer>
 
     <script>
-        // ── Filter ──────────────────────────────────────────────────────
         function filterBy(status, chipEl){
             document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
             chipEl.classList.add('active');
@@ -637,89 +612,40 @@
             });
         }
 
-        // ── Timeline builder ─────────────────────────────────────────────
         const stages      = ['pending','confirmed','preparing','shipped','delivered'];
         const stageIcons  = ['🕐','✅','🍳','🚚','🎉'];
         const stageLabels = ['Order Placed','Confirmed','Preparing','Out for Delivery','Delivered'];
-        const stageDescs  = [
-            'Your order was received',
-            'The store confirmed your order',
-            'Your items are being packed',
-            'Your order is on its way',
-            'Order delivered!'
-        ];
+        const stageDescs  = ['Your order was received','The store confirmed your order','Your items are being packed','Your order is on its way','Order delivered!'];
 
         function buildTimeline(status){
             const isCancelled = status === 'cancelled';
             if(isCancelled){
-                return `
-                <div class="tl-item">
-                    <div class="tl-dot done">✓</div>
-                    <div class="tl-label">Order Placed</div>
-                    <div class="tl-desc">Your order was received</div>
-                </div>
-                <div class="tl-item">
-                    <div class="tl-dot cancelled-dot">✕</div>
-                    <div class="tl-label" style="color:#e74c3c">Cancelled</div>
-                    <div class="tl-desc">This order was cancelled</div>
-                </div>`;
+                return `<div class="tl-item"><div class="tl-dot done">✓</div><div class="tl-label">Order Placed</div><div class="tl-desc">Your order was received</div></div><div class="tl-item"><div class="tl-dot cancelled-dot">✕</div><div class="tl-label" style="color:#e74c3c">Cancelled</div><div class="tl-desc">This order was cancelled</div></div>`;
             }
             const cur = stages.indexOf(status);
             return stages.map((s,i)=>{
-                const isDone   = i < cur;
-                const isActive = i === cur;
-                const dotCls   = isDone ? 'done' : isActive ? 'active' : '';
-                const lblCls   = isActive ? 'active-lbl' : (!isDone ? 'muted' : '');
-                const icon     = isDone ? '✓' : stageIcons[i];
-                return `
-                <div class="tl-item">
-                    <div class="tl-dot ${dotCls}">${icon}</div>
-                    <div>
-                        <div class="tl-label ${lblCls}">${stageLabels[i]}</div>
-                        <div class="tl-desc">${stageDescs[i]}</div>
-                        ${isActive ? '<div class="tl-current">Current status</div>' : ''}
-                    </div>
-                </div>`;
+                const isDone=i<cur, isActive=i===cur;
+                const dotCls=isDone?'done':isActive?'active':'';
+                const lblCls=isActive?'active-lbl':(!isDone?'muted':'');
+                const icon=isDone?'✓':stageIcons[i];
+                return `<div class="tl-item"><div class="tl-dot ${dotCls}">${icon}</div><div><div class="tl-label ${lblCls}">${stageLabels[i]}</div><div class="tl-desc">${stageDescs[i]}</div>${isActive?'<div class="tl-current">Current status</div>':''}</div></div>`;
             }).join('');
         }
 
-        // ── Open Track Modal ─────────────────────────────────────────────
         async function openTrackModal(orderId, code, status, storeName, recipient, address, payment){
             document.getElementById('modalCode').textContent    = code;
             document.getElementById('modalStore').textContent   = '🏪 ' + storeName + ' · ' + recipient;
             document.getElementById('modalAddress').textContent = '📍 ' + (address || '—');
             document.getElementById('modalPayment').textContent = '💳 ' + (payment || '—');
             document.getElementById('modalTimeline').innerHTML  = buildTimeline(status);
-
-            // جلب عناصر الطلب
-            document.getElementById('modalItems').innerHTML =
-                '<div style="text-align:center;color:#aaa;font-size:.82rem;padding:10px">Loading items...</div>';
-
+            document.getElementById('modalItems').innerHTML = '<div style="text-align:center;color:#aaa;font-size:.82rem;padding:10px">Loading items...</div>';
             try{
                 const res  = await fetch(`/Profile/OrderItems?orderId=${orderId}`);
                 const data = await res.json();
                 if(data.items && data.items.length){
-                    document.getElementById('modalItems').innerHTML = `
-                        <div style="font-size:.78rem;font-weight:800;color:#6a9a3a;margin-bottom:8px">Items Ordered</div>
-                        ${data.items.map(item=>`
-                            <div class="modal-item">
-                                <div>
-                                    <div class="modal-item-name">${item.name}</div>
-                                    <div class="modal-item-qty">× ${item.qty}</div>
-                                </div>
-                                <div class="modal-item-price">${item.subtotal} JD</div>
-                            </div>`).join('')}
-                        <div class="modal-total">
-                            <span>Total</span>
-                            <span>${data.total} JD</span>
-                        </div>`;
-                } else {
-                    document.getElementById('modalItems').innerHTML = '';
-                }
-            } catch(e){
-                document.getElementById('modalItems').innerHTML = '';
-            }
-
+                    document.getElementById('modalItems').innerHTML = `<div style="font-size:.78rem;font-weight:800;color:#6a9a3a;margin-bottom:8px">Items Ordered</div>${data.items.map(item=>`<div class="modal-item"><div><div class="modal-item-name">${item.name}</div><div class="modal-item-qty">× ${item.qty}</div></div><div class="modal-item-price">${item.subtotal} JD</div></div>`).join('')}<div class="modal-total"><span>Total</span><span>${data.total} JD</span></div>`;
+                } else { document.getElementById('modalItems').innerHTML = ''; }
+            } catch(e){ document.getElementById('modalItems').innerHTML = ''; }
             document.getElementById('trackOverlay').classList.add('open');
             document.body.style.overflow = 'hidden';
         }
@@ -730,7 +656,6 @@
         }
         document.addEventListener('keydown', e=>{ if(e.key==='Escape') closeTrackModal(); });
 
-        // ── Mobile menu & dropdowns ──────────────────────────────────────
         document.addEventListener('DOMContentLoaded', () => {
             const moreBtn = document.getElementById('mbMoreBtn');
             const moreDrawer = document.getElementById('mbMoreDrawer');
@@ -757,10 +682,7 @@
         function changeAvatar(input){
             if(input.files && input.files[0]){
                 const r = new FileReader();
-                r.onload = e => {
-                    const sb = document.getElementById('sidebarAvatar');
-                    if(sb) sb.innerHTML = `<img src="${e.target.result}" alt="Profile">`;
-                };
+                r.onload = e => { const sb = document.getElementById('sidebarAvatar'); if(sb) sb.innerHTML = `<img src="${e.target.result}" alt="Profile">`; };
                 r.readAsDataURL(input.files[0]);
             }
         }

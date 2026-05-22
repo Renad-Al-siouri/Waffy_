@@ -1,8 +1,7 @@
 ﻿@{
+    ViewData["Title"] = "Appointments";
     Layout = null;
-    ViewBag.SidebarName = Context.Session.GetString("FullName") ?? "";
-    ViewBag.SidebarEmail = Context.Session.GetString("Email") ?? "";
-    ViewBag.SidebarBalance = ViewBag.SidebarBalance as string ?? "0.00";
+    
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -66,7 +65,6 @@
                                 <button class="menu-btn" id="menuBtn" type="button">&#9776;</button>
                                 <div class="nav-links" id="navLinks">
                                     <div class="mobile-menu-logo"><img src="~/Images/logo.png" alt="Waffy"></div>
-
                                     <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                                     <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
@@ -85,7 +83,6 @@
                                             <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                                     <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
@@ -144,7 +141,6 @@
         </main>
     </div>
 
-    <!-- Mobile Bottom Navigation -->
     <div class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile bottom navigation">
         <a href="/Profile/Edit_Profile" class="mb-nav-item"><i class="fa-solid fa-user"></i><span>Edit</span></a>
         <a href="/Profile/My_Wallet" class="mb-nav-item"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>

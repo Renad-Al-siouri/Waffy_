@@ -303,10 +303,12 @@ namespace Waffy.Controllers
 
             var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
             ViewBag.SidebarBalance = (wallet?.Balance ?? 0).ToString("F2");
+            ViewBag.SidebarName = user.FullName;        // ← أضيفي
+            ViewBag.SidebarEmail = user.Email;           // ← أضيفي
+            ViewBag.SidebarProfileImage = user.ProfileImage;    // ← أضيفي
 
             return View();
         }
-
 
         [HttpGet]
         public async Task<IActionResult> Orders()
@@ -314,14 +316,13 @@ namespace Waffy.Controllers
             var userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null) return RedirectToAction("Login", "Account");
 
+            var user = await _userRepository.GetByIdAsync(userId.Value);
             var wallet = await _walletRepo.GetByUserIdAsync(userId.Value);
-            ViewBag.SidebarBalance = (wallet?.Balance ?? 0).ToString("F2");
-            // جلب طلبات هذا اليوزر
+
             var orders = (await _orderRepo.GetByUserIdAsync(userId.Value))
                          .OrderByDescending(o => o.CreatedAt)
                          .ToList();
 
-            // جلب أسماء المتاجر
             var storeIds = orders.Select(o => o.IdStore).Distinct().ToList();
             var stores = new Dictionary<int, string>();
             foreach (var id in storeIds)
@@ -330,9 +331,21 @@ namespace Waffy.Controllers
                 stores[id] = s?.Name ?? "Store";
             }
 
+            // ── Sidebar data ──────────────────────────────────────
+            ViewBag.SidebarName = user?.FullName ?? "";
+            ViewBag.SidebarEmail = user?.Email ?? "";
+            ViewBag.SidebarProfileImage = user?.ProfileImage;
+            ViewBag.SidebarBalance = (wallet?.Balance ?? 0).ToString("F2");
+
+            // ✅ Badge: كل الطلبات غير المكتملة وغير الملغاة
+            ViewBag.SidebarOrdersBadge = orders
+                .Count(o => o.Status != "Delivered" && o.Status != "Cancelled")
+                .ToString();
+
+            // ── باقي الـ ViewBag ──────────────────────────────────
             ViewBag.StoreNames = stores;
-            ViewBag.FullName = HttpContext.Session.GetString("FullName");
-            ViewBag.Email = HttpContext.Session.GetString("Email");
+            ViewBag.FullName = user?.FullName;
+            ViewBag.Email = user?.Email;
 
             return View(orders);
         }
