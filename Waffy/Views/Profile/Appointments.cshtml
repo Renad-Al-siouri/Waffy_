@@ -1,6 +1,8 @@
 ﻿@{
-    ViewData["Title"] = "Appointments";
     Layout = null;
+    ViewBag.SidebarName = Context.Session.GetString("FullName") ?? "";
+    ViewBag.SidebarEmail = Context.Session.GetString("Email") ?? "";
+    ViewBag.SidebarBalance = ViewBag.SidebarBalance as string ?? "0.00";
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -96,48 +98,8 @@
     </div>
 
     <div class="page-wrap">
-        <aside class="sidebar">
-            <div class="sb-profile">
-                <div class="sb-profile-inner">
-                    <div class="sb-avatar-wrap">
-                        <div class="sb-avatar" id="sidebarAvatar"><span>&#128100;</span></div>
-                        <button class="sb-cam" onclick="document.getElementById('avatarFile').click()">&#128247;</button>
-                        <input type="file" id="avatarFile" accept="image/*" hidden onchange="changeAvatar(this)">
-                    </div>
-                    <div class="sb-profile-text">
-                        <div class="sb-name" id="sidebarName">Batool Jaber</div>
-                        <div class="sb-email" id="sidebarEmail">Batool@@email.com</div>
-                        <div class="sb-wallet-mini">
-                            <span>&#128155; Wallet</span>
-                            <strong id="sidebarBalance">100.50 JOD</strong>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <nav class="sb-nav">
-                <div class="sb-nav-label">Account</div>
-                <a href="/Profile/Edit_Profile" class="sb-item"><i class="fa-solid fa-user"></i> Edit Profile</a>
-                <a href="/Profile/Contact_Info" class="sb-item"><i class="fa-solid fa-address-card"></i> Contact Info</a>
-                <a href="/Profile/My_Wallet" class="sb-item"><i class="fa-solid fa-wallet"></i> My Wallet<span class="sb-badge">32.50</span></a>
-                <a href="/Profile/Rewards" class="sb-item"><i class="fa-solid fa-gift"></i> Rewards<span class="sb-badge">3</span></a>
 
-                <div class="sb-nav-label">Pets &amp; Services</div>
-                <a href="/Profile/Appointments" class="sb-item active"><i class="fa-solid fa-calendar-check"></i> Appointments<span class="sb-badge">2</span></a>
-                <a href="/Profile/Orders" class="sb-item"><i class="fa-solid fa-box"></i> Orders<span class="sb-badge">3</span></a>
-                <a href="/Profile/Lost_Reports" class="sb-item"><i class="fa-solid fa-magnifying-glass"></i> Lost Reports<span class="sb-badge red">1</span></a>
-                <a href="/Profile/Adoption_Ads" class="sb-item"><i class="fa-solid fa-paw"></i> Adoption Ads<span class="sb-badge">1</span></a>
-                <a asp-controller="Profile" asp-action="My_Donations" class="sb-item"><i class="fa-solid fa-heart"></i> My Donations</a>
-                <a asp-controller="Profile" asp-action="My_Danger_Reports" class="sb-item">
-                    <i class="fa-solid fa-triangle-exclamation"></i> Danger Reports
-                </a>
-                <div class="sb-nav-label">History</div>
-                <a href="/Profile/Timeline" class="sb-item"><i class="fa-solid fa-clock-rotate-left"></i> Timeline</a>
-                <a href="/Profile/Complaints" class="sb-item"><i class="fa-solid fa-triangle-exclamation"></i> Complaints</a>
-
-                <div class="sb-nav-label">Settings</div>
-                <a href="/Profile/Security" class="sb-item"><i class="fa-solid fa-lock"></i> Security</a>
-            </nav>
-        </aside>
+        @await Html.PartialAsync("_ProfileSidebar")
 
         <main class="main-content">
             <div class="page-header"><div><h2>Appointments &#128197;</h2><p>Upcoming and past vet visits</p></div></div>

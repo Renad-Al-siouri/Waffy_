@@ -83,6 +83,10 @@ namespace Waffy.Controllers
         {
             var user = await GetCurrentUserAsync();
             if (user == null) return RedirectToAction("Login", "Account");
+
+            var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
+            ViewBag.SidebarBalance = (wallet?.Balance ?? 0).ToString("F2");
+
             return View(user);
         }
 
@@ -146,6 +150,10 @@ namespace Waffy.Controllers
         {
             var user = await GetCurrentUserAsync();
             if (user == null) return RedirectToAction("Login", "Account");
+
+            var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
+            ViewBag.SidebarBalance = (wallet?.Balance ?? 0).ToString("F2");
+
             await LoadLocationsToViewBag();
             return View(user);
         }
@@ -288,7 +296,16 @@ namespace Waffy.Controllers
                 SurpriseRewards = surpriseRewards    // ← جديد
             });
         }
-        public IActionResult Appointments() => View();
+        public async Task<IActionResult> Appointments()
+        {
+            var user = await GetCurrentUserAsync();
+            if (user == null) return RedirectToAction("Login", "Account");
+
+            var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
+            ViewBag.SidebarBalance = (wallet?.Balance ?? 0).ToString("F2");
+
+            return View();
+        }
 
 
         [HttpGet]
@@ -297,6 +314,8 @@ namespace Waffy.Controllers
             var userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null) return RedirectToAction("Login", "Account");
 
+            var wallet = await _walletRepo.GetByUserIdAsync(userId.Value);
+            ViewBag.SidebarBalance = (wallet?.Balance ?? 0).ToString("F2");
             // جلب طلبات هذا اليوزر
             var orders = (await _orderRepo.GetByUserIdAsync(userId.Value))
                          .OrderByDescending(o => o.CreatedAt)
@@ -352,6 +371,9 @@ namespace Waffy.Controllers
         {
             var user = await GetCurrentUserAsync();
             if (user == null) return RedirectToAction("Login", "Account");
+
+            var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
+            ViewBag.SidebarBalance = (wallet?.Balance ?? 0).ToString("F2");
 
             var posts = (await _adoptionRepo.GetByUserIdAsync(user.UserId)).ToList();
             var reservations = new Dictionary<int, List<AdoptionReservation>>();
@@ -437,7 +459,8 @@ namespace Waffy.Controllers
         {
             var user = await GetCurrentUserAsync();
             if (user == null) return RedirectToAction("Login", "Account");
-
+            var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
+            ViewBag.SidebarBalance = (wallet?.Balance ?? 0).ToString("F2");
             var reports = (await _lostPetRepo.GetByUserIdAsync(user.UserId)).ToList();
 
             // ✅ Finders لكل تقرير (لصاحب الحيوان)
@@ -1059,6 +1082,10 @@ namespace Waffy.Controllers
         {
             var user = await GetCurrentUserAsync();
             if (user == null) return RedirectToAction("Login", "Account");
+
+            var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
+            ViewBag.SidebarBalance = (wallet?.Balance ?? 0).ToString("F2");
+
             return View(user);
         }
 

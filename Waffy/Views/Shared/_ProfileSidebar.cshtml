@@ -1,0 +1,207 @@
+﻿@*
+ ╔══════════════════════════════════════════════════════════════════════╗
+ ║          _ProfileSidebar.cshtml  —  Waffy Unified Sidebar           ║
+ ║  الملف الموحّد للـ Sidebar — يجمع كل ميزات صفحات Profile            ║
+ ║  المسار: Views/Shared/_ProfileSidebar.cshtml                        ║
+ ║                                                                      ║
+ ║  البيانات تأتي عبر ViewBag — اضبطها في كل View قبل استدعاء الملف:  ║
+ ║                                                                      ║
+ ║  ViewBag.SidebarName         ← اسم المستخدم (string)               ║
+ ║  ViewBag.SidebarEmail        ← إيميل المستخدم (string)             ║
+ ║  ViewBag.SidebarProfileImage ← مسار الصورة (string | null)         ║
+ ║  ViewBag.SidebarBalance      ← الرصيد مُنسَّقاً (string) "32.50"   ║
+ ║  ViewBag.SidebarWalletBadge       ← badge المحفظة (string | null)  ║
+ ║  ViewBag.SidebarRewardsBadge      ← badge المكافآت (string | null) ║
+ ║  ViewBag.SidebarAppointmentsBadge ← badge المواعيد (string | null) ║
+ ║  ViewBag.SidebarOrdersBadge       ← badge الطلبات (string | null)  ║
+ ║  ViewBag.SidebarLostBadge         ← badge Lost Reports (string|null)║
+ ║  ViewBag.SidebarAdoptionBadge     ← badge Adoption (string | null) ║
+ ║  ViewBag.SidebarDonationsBadge    ← badge Donations (string | null)║
+ ║  ViewBag.SidebarDangerBadge       ← badge Danger (string | null)   ║
+ ║  ViewBag.SidebarComplaintsBadge   ← badge Complaints (string|null) ║
+ ╚══════════════════════════════════════════════════════════════════════╝
+*@
+
+@{
+    Layout = null;
+    @* ── تحديد الصفحة الحالية لإضافة class="active" تلقائياً ── *@
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    Func<string, string> IsActive = action => currentAction == action ? " active" : "";
+
+    @* ── بيانات المستخدم ── *@
+    var sidebarName = ViewBag.SidebarName as string ?? "";
+    var sidebarEmail = ViewBag.SidebarEmail as string ?? "";
+    var sidebarProfileImage = ViewBag.SidebarProfileImage as string;
+    var sidebarBalance = ViewBag.SidebarBalance as string ?? "0.00";
+
+    @* ── Badges (اختيارية — تُعرض فقط إذا كانت قيمتها غير فارغة) ── *@
+    var walletBadge = ViewBag.SidebarWalletBadge as string;
+    var rewardsBadge = ViewBag.SidebarRewardsBadge as string;
+    var appointmentsBadge = ViewBag.SidebarAppointmentsBadge as string;
+    var ordersBadge = ViewBag.SidebarOrdersBadge as string;
+    var lostBadge = ViewBag.SidebarLostBadge as string;
+    var adoptionBadge = ViewBag.SidebarAdoptionBadge as string;
+    var donationsBadge = ViewBag.SidebarDonationsBadge as string;
+    var dangerBadge = ViewBag.SidebarDangerBadge as string;
+    var complaintsBadge = ViewBag.SidebarComplaintsBadge as string;
+}
+
+<aside class="sidebar">
+
+    @* ══════════════════════════════════════════════════════════ *@
+    @*  قسم معلومات المستخدم                                      *@
+    @*  ميزات مجمّعة من:                                          *@
+    @*  • صورة شرطية    ← Contact_Info, Edit_Profile, Security    *@
+    @*  • زر الكاميرا   ← Adoption_Ads, Appointments, My_Wallet… *@
+    @*  • id للـ JS sync ← Edit_Profile                           *@
+    @*  • رصيد ديناميكي ← Complaints, Wallet, Rewards, Timeline… *@
+    @* ══════════════════════════════════════════════════════════ *@
+    <div class="sb-profile">
+        <div class="sb-profile-inner">
+            <div class="sb-avatar-wrap">
+                <div class="sb-avatar" id="sidebarAvatar">
+                    @if (!string.IsNullOrEmpty(sidebarProfileImage))
+                    {
+                        <img src="@sidebarProfileImage" alt="Profile">
+                    }
+                    else
+                    {
+                        <span>&#128100;</span>
+                    }
+                </div>
+                <button class="sb-cam" onclick="document.getElementById('avatarFile').click()">&#128247;</button>
+                <input type="file" id="avatarFile" accept="image/*" hidden onchange="changeAvatar(this)">
+            </div>
+            <div class="sb-profile-text">
+                <div class="sb-name" id="sidebarName">@sidebarName</div>
+                <div class="sb-email" id="sidebarEmail">@sidebarEmail</div>
+                <div class="sb-wallet-mini">
+                    <span>&#128155; Wallet</span>
+                    <strong id="sidebarBalance">@sidebarBalance JOD</strong>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @* ══════════════════════════════════════════════════════════ *@
+    @*  قائمة التنقل                                              *@
+    @* ══════════════════════════════════════════════════════════ *@
+    <nav class="sb-nav">
+
+        @* ── Account ── *@
+        <div class="sb-nav-label">Account</div>
+
+        <a asp-controller="Profile" asp-action="Edit_Profile"
+           class="sb-item@(IsActive("Edit_Profile"))">
+            <i class="fa-solid fa-user"></i> Edit Profile
+        </a>
+
+        <a asp-controller="Profile" asp-action="Contact_Info"
+           class="sb-item@(IsActive("Contact_Info"))">
+            <i class="fa-solid fa-address-card"></i> Contact Info
+        </a>
+
+        <a asp-controller="Profile" asp-action="My_Wallet"
+           class="sb-item@(IsActive("My_Wallet"))">
+            <i class="fa-solid fa-wallet"></i> My Wallet
+            @if (!string.IsNullOrEmpty(walletBadge))
+            {
+                <span class="sb-badge">@walletBadge</span>
+            }
+        </a>
+
+        <a asp-controller="Profile" asp-action="Rewards"
+           class="sb-item@(IsActive("Rewards"))">
+            <i class="fa-solid fa-gift"></i> Rewards
+            @if (!string.IsNullOrEmpty(rewardsBadge))
+            {
+                <span class="sb-badge">@rewardsBadge</span>
+            }
+        </a>
+
+        @* ── Pets & Services ── *@
+        <div class="sb-nav-label">Pets &amp; Services</div>
+
+        <a asp-controller="Profile" asp-action="Appointments"
+           class="sb-item@(IsActive("Appointments"))">
+            <i class="fa-solid fa-calendar-check"></i> Appointments
+            @if (!string.IsNullOrEmpty(appointmentsBadge))
+            {
+                <span class="sb-badge">@appointmentsBadge</span>
+            }
+        </a>
+
+        <a asp-controller="Profile" asp-action="Orders"
+           class="sb-item@(IsActive("Orders"))">
+            <i class="fa-solid fa-box"></i> Orders
+            @if (!string.IsNullOrEmpty(ordersBadge))
+            {
+                <span class="sb-badge">@ordersBadge</span>
+            }
+        </a>
+
+        <a asp-controller="Profile" asp-action="Lost_Reports"
+           class="sb-item@(IsActive("Lost_Reports"))">
+            <i class="fa-solid fa-magnifying-glass"></i> Lost Reports
+            @if (!string.IsNullOrEmpty(lostBadge))
+            {
+                <span class="sb-badge red">@lostBadge</span>
+            }
+        </a>
+
+        <a asp-controller="Profile" asp-action="Adoption_Ads"
+           class="sb-item@(IsActive("Adoption_Ads"))">
+            <i class="fa-solid fa-paw"></i> Adoption Ads
+            @if (!string.IsNullOrEmpty(adoptionBadge))
+            {
+                <span class="sb-badge">@adoptionBadge</span>
+            }
+        </a>
+
+        <a asp-controller="Profile" asp-action="My_Donations"
+           class="sb-item@(IsActive("My_Donations"))">
+            <i class="fa-solid fa-heart"></i> My Donations
+            @if (!string.IsNullOrEmpty(donationsBadge))
+            {
+                <span class="sb-badge">@donationsBadge</span>
+            }
+        </a>
+
+        <a asp-controller="Profile" asp-action="My_Danger_Reports"
+           class="sb-item@(IsActive("My_Danger_Reports"))">
+            <i class="fa-solid fa-triangle-exclamation"></i> Danger Reports
+            @if (!string.IsNullOrEmpty(dangerBadge))
+            {
+                <span class="sb-badge red">@dangerBadge</span>
+            }
+        </a>
+
+        @* ── History ── *@
+        <div class="sb-nav-label">History</div>
+
+        <a asp-controller="Profile" asp-action="Timeline"
+           class="sb-item@(IsActive("Timeline"))">
+            <i class="fa-solid fa-clock-rotate-left"></i> Timeline
+        </a>
+
+        @* ملاحظة: الأيقونة fa-flag مأخوذة من Complaints.cshtml (الصفحة الأصح)  *@
+        @* باقي الصفحات استخدمت fa-triangle-exclamation بالخطأ                  *@
+        <a asp-controller="Profile" asp-action="Complaints"
+           class="sb-item@(IsActive("Complaints"))">
+            <i class="fa-solid fa-flag"></i> Complaints
+            @if (!string.IsNullOrEmpty(complaintsBadge))
+            {
+                <span class="sb-badge red">@complaintsBadge</span>
+            }
+        </a>
+
+        @* ── Settings ── *@
+        <div class="sb-nav-label">Settings</div>
+
+        <a asp-controller="Profile" asp-action="Security"
+           class="sb-item@(IsActive("Security"))">
+            <i class="fa-solid fa-lock"></i> Security
+        </a>
+
+    </nav>
+</aside>
