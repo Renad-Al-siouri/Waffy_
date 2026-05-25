@@ -42,5 +42,20 @@ namespace Waffy.Repositories
             var sql = "DELETE FROM ClinicDocument WHERE Id = @Id";
             await connection.ExecuteAsync(sql, new { Id = id });
         }
+
+        // أضف هاي الـ method داخل الـ class الموجود
+
+        public async Task UpdateStatusAsync(int docId, string status, string? adminNote, int reviewedByAdminId)
+        {
+            using var connection = new SqlConnection(_ConnectionString);
+            var sql = @"
+        UPDATE ClinicDocument
+        SET Status            = @status,
+            AdminNote         = @adminNote,
+            ReviewedAt        = GETUTCDATE(),
+            ReviewedByAdminId = @reviewedByAdminId
+        WHERE Id = @docId";
+            await connection.ExecuteAsync(sql, new { docId, status, adminNote, reviewedByAdminId });
+        }
     }
 }

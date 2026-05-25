@@ -86,6 +86,7 @@ namespace Waffy.Repository
                     Longitude           = @Longitude,
                     DeliveryAvailable   = @DeliveryAvailable,
                     DeliveryAreas       = @DeliveryAreas,
+                    DeliveryFee         = @DeliveryFee,
                     OpenTime            = @OpenTime,
                     CloseTime           = @CloseTime,
                     WorkingDays         = @WorkingDays,
@@ -136,6 +137,13 @@ namespace Waffy.Repository
 
             using var connection = new SqlConnection(_connectionString);
             return await connection.QueryAsync<Store>(sql);
+        }
+
+        public async Task<int?> GetOwnerUserIdAsync(int storeId)
+        {
+            const string sql = "SELECT IdOwner FROM Store WHERE IdStore = @Id";
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryFirstOrDefaultAsync<int?>(sql, new { Id = storeId });
         }
     }
 }

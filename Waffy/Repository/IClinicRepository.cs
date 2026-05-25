@@ -10,5 +10,8 @@ namespace Waffy.Interfaces
         Task UpdateAsync(Clinic clinic);
         Task DeleteAsync(int idClinic);
         Task<IEnumerable<Clinic>> GetAllAsync();
+
+        Task<int> CountByStatusAsync(string status);
+        Task<int> CountNewThisMonthAsync();
     }
 }

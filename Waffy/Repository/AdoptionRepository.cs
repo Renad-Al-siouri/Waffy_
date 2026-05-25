@@ -282,6 +282,29 @@ namespace Waffy.Repository
             using var conn = new SqlConnection(_connectionString);
             await conn.ExecuteAsync(sql, new { Id = id });
         }
+
+        public async Task<IEnumerable<AdoptionPost>> GetByStoreIdAsync(int storeId)
+        {
+            const string sql = @"
+        SELECT * FROM AdoptionPost
+        WHERE PostedByType = 'Store'
+          AND PostedById   = @StoreId
+        ORDER BY CreatedAt DESC";
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<AdoptionPost>(sql, new { StoreId = storeId });
+        }
+
+        public async Task ChangeAdoptionStatusAsync(int idPost, string adoptionStatus)
+        {
+            const string sql = @"
+        UPDATE AdoptionPost
+        SET AdoptionStatus = @Status
+        WHERE IdPost = @Id";
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(sql, new { Id = idPost, Status = adoptionStatus });
+        }
+
+
     }
 }
 

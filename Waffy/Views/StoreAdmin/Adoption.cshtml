@@ -15,9 +15,9 @@
     <style>
         .pet-cards-grid {
             display: grid;
-            grid-template-columns: repeat(3,1fr);
-            gap: 1.2rem;
-            padding: 18px
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 18px;
+            padding: 18px;
         }
 
         .pet-card-item {
@@ -27,36 +27,23 @@
             overflow: hidden;
             box-shadow: var(--shadow-sm);
             transition: .22s ease;
-            cursor: pointer;
             position: relative
         }
 
             .pet-card-item:hover {
                 transform: translateY(-4px);
                 box-shadow: var(--shadow);
-                border-color: rgba(139,169,74,0.3)
+                border-color: rgba(139,169,74,.3)
             }
 
-        .pet-card-thumb {
-            height: 180px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3.5rem;
-            background: linear-gradient(135deg,var(--brand-xlight),var(--brand-ghost));
-            position: relative;
-            overflow: hidden
-        }
-
+        
         .pet-card-badge {
             position: absolute;
             top: 10px;
             right: 10px
         }
 
-        .pet-card-body {
-            padding: 14px 16px
-        }
+        
 
         .pet-card-name {
             font-family: "Fredoka",sans-serif;
@@ -70,19 +57,7 @@
             font-size: .78rem;
             color: var(--text-muted);
             font-weight: 700;
-            margin-bottom: 10px
-        }
-
-        .pet-card-chips {
-            display: flex;
-            gap: 5px;
-            flex-wrap: wrap;
-            margin-bottom: 12px
-        }
-
-        .pet-card-actions {
-            display: flex;
-            gap: 6px
+            margin-bottom: 6px
         }
 
         .add-form-section {
@@ -100,7 +75,7 @@
             gap: 12px;
             padding: 14px 18px;
             border-bottom: 1px solid var(--border);
-            background: linear-gradient(135deg,rgba(139,169,74,0.05),rgba(95,116,48,0.02))
+            background: linear-gradient(135deg,rgba(139,169,74,.05),rgba(95,116,48,.02))
         }
 
         .add-form-head-ico {
@@ -165,35 +140,137 @@
                 color: #fff
             }
 
-        .adopt-notice {
-            display: flex;
-            align-items: flex-start;
+        .multi-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
             gap: 10px;
-            background: var(--warning-soft);
-            border: 1.5px solid rgba(226,163,58,0.3);
-            border-radius: var(--r);
-            padding: 14px 16px;
-            margin-bottom: 16px
+            margin-top: 10px
         }
 
-        .adopt-notice-ico {
-            font-size: 1.2rem;
+        /* الكارد كامل — ارتفاع ثابت مثل البروفايل */
+        .pet-card-item {
+            background: #fff;
+            border: 1px solid #e8efd8;
+            border-radius: 22px;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(90,101,42,.10);
+            transition: .22s ease;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            height: 380px;
+        }
+
+            .pet-card-item:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 14px 36px rgba(90,101,42,.18);
+                border-color: rgba(139,169,74,.3);
+            }
+
+        /* الصورة — نفس نسبة البروفايل */
+        .pet-card-thumb {
+            height: 160px;
             flex-shrink: 0;
-            margin-top: 1px
+            position: relative;
+            background: linear-gradient(135deg, #e8efd8, #f4f9ee);
+            overflow: hidden;
         }
 
-        .adopt-notice-title {
-            font-size: .87rem;
-            font-weight: 900;
-            color: #9b6000;
-            margin-bottom: 2px
+            .pet-card-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+                transition: transform .4s ease;
+            }
+
+        .pet-card-item:hover .pet-card-thumb img {
+            transform: scale(1.04);
         }
 
-        .adopt-notice-sub {
-            font-size: .79rem;
-            color: #8b7751;
-            font-weight: 700
+        /* Body يأخذ باقي المساحة */
+        .pet-card-body {
+            flex: 1;
+            padding: 12px 14px 14px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
+
+        .pet-card-name {
+            font-family: "Fredoka", sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+            margin: 0 0 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pet-type-row {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin-bottom: 7px;
+        }
+
+        .pet-chip {
+            font-size: .62rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 999px;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .pet-card-meta {
+            font-size: .72rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            line-height: 1.6;
+            flex: 1;
+        }
+
+        .pet-card-divider {
+            height: 1px;
+            background: #f4f4f4;
+            margin: 8px 0;
+        }
+        .upload-thumb {
+            width: 100%;
+            aspect-ratio: 1;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1.5px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--brand-ghost);
+            position: relative
+        }
+
+            .upload-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover
+            }
+
+        .upload-thumb-add {
+            border: 2px dashed var(--brand-light);
+            cursor: pointer;
+            flex-direction: column;
+            gap: 4px;
+            font-size: .72rem;
+            font-weight: 800;
+            color: var(--brand);
+            transition: .18s
+        }
+
+            .upload-thumb-add:hover {
+                border-color: var(--brand-dark);
+                background: var(--brand-xlight)
+            }
 
         @@media(max-width:1100px) {
             .pet-cards-grid {
@@ -206,25 +283,33 @@
                 grid-template-columns: 1fr
             }
 
-            .add-form-body .form-group {
-                grid-template-columns: 1fr
-            }
-
-            .add-form-body .form-field.full {
-                grid-column: 1
+            .multi-upload-grid {
+                grid-template-columns: repeat(3,1fr)
             }
         }
 
-        @@media(max-width:480px) {
-            .pet-cards-grid {
-                grid-template-columns: 1fr 1fr
-            }
+        .car-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.5);
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            transition: .2s;
+        }
+
+        .car-dot-active {
+            background: #fff;
+            transform: scale(1.2);
         }
     </style>
 </head>
 <body>
     <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
     <div class="wa-shell" id="waShell">
+
+        <!-- ══ SIDEBAR ══ -->
         <aside class="wa-sb" id="waSb">
             <div class="sb-logo">
                 <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
@@ -246,21 +331,18 @@
                     <a class="sb-row" href="@Url.Action("Products", "StoreAdmin")" data-tip="Products">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
                         <span class="sb-lbl">Products</span>
-                        <span class="sb-bdg bd-g" id="productsCountBadge">0</span>
                     </a>
                     <a class="sb-row" href="@Url.Action("Orders", "StoreAdmin")" data-tip="Orders">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /></svg></span>
                         <span class="sb-lbl">Orders</span>
-                        <span class="sb-bdg bd-y" id="ordersCountBadge">0</span>
                     </a>
                     <a class="sb-row" href="@Url.Action("Customers", "StoreAdmin")" data-tip="Customers">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
                         <span class="sb-lbl">Customers</span>
                     </a>
-                    <a class="sb-row" href="@Url.Action("Reviews", "StoreAdmin")" data-tip="Reviews">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></span>
-                        <span class="sb-lbl">Reviews</span>
-                        <span class="sb-bdg bd-r" id="reviewsCountBadge">0</span>
+                    <a class="sb-row" href="@Url.Action("Reviews", "StoreAdmin")" data-tip="Complaints">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
+                        <span class="sb-lbl">Complaints</span>
                     </a>
                 </div>
                 <div class="sb-hr"></div>
@@ -268,6 +350,7 @@
                     <a class="sb-row active" href="@Url.Action("Adoption", "StoreAdmin")" data-tip="Adoption">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
                         <span class="sb-lbl">Adoption</span>
+                       
                     </a>
                 </div>
                 <div class="sb-hr"></div>
@@ -276,9 +359,8 @@
                     <a class="sb-row" href="@Url.Action("Notifications", "StoreAdmin")" data-tip="Notifications">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
                         <span class="sb-lbl">Notifications</span>
-                        <span class="sb-bdg bd-r" id="notifCountBadge">0</span>
                     </a>
-                    <a class="sb-row" href="@Url.Action("Settings", "StoreAdmin")" data-tip="Settings">
+                    <a class="sb-row" href="@Url.Action("SettingsInfo", "StoreAdmin")" data-tip="Settings">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg></span>
                         <span class="sb-lbl">Store Settings</span>
                     </a>
@@ -290,18 +372,20 @@
             </nav>
             <div class="sb-foot">
                 <div class="sb-user-row">
-                    <div class="sb-av">M</div>
+                    <div class="sb-av">@ViewBag.OwnerInitial</div>
                     <div class="sb-user-info">
-                        <div class="sb-user-name">Mohammad Al-Omari</div>
-                        <div class="sb-user-role">Store Owner</div>
+                        <div class="sb-user-name">@ViewBag.OwnerName</div>
+                        <div class="sb-user-role">@ViewBag.StoreName</div>
                     </div>
                 </div>
-                <button class="sb-logout" onclick="alert('Sign out')" type="button">
+                <a class="sb-logout" href="@Url.Action("Logout", "Account")">
                     <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
                     <span class="sb-logout-lbl">Sign Out</span>
-                </button>
+                </a>
             </div>
         </aside>
+
+        <!-- ══ TOPNAV ══ -->
         <header class="wa-tn" id="waTn">
             <button class="tn-toggle" onclick="toggleSb()" type="button">
                 <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
@@ -313,108 +397,127 @@
             </div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-              
                 <a class="tn-btn" href="@Url.Action("Notifications", "StoreAdmin")">
-                    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-                    <span class="tn-count" id="tnNotifCount">0</span>
+                    <svg class="ico" viewBox="0 0 24 24">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                    @if ((int)(ViewBag.NotifCount ?? 0) > 0)
+                    {
+                        <span class="tn-count">@ViewBag.NotifCount</span>
+                    }
                 </a>
                 <div class="tn-sep"></div>
                 <div class="tn-profile">
-                    <div class="tn-av">M</div>
-                    <div><div class="tn-pname">Mohammad Al-Omari</div><div class="tn-prole">Store Owner</div></div>
+                    <div class="tn-av">@ViewBag.OwnerInitial</div>
+                    <div>
+                        <div class="tn-pname">@ViewBag.OwnerName</div>
+                        <div class="tn-prole">@ViewBag.StoreName</div>
+                    </div>
                 </div>
             </div>
         </header>
+
+        <!-- ══ MAIN ══ -->
         <main class="wa-main" id="waMain">
-            <section class="page-hero">
-                <div class="page-hero-text">
-                    <h1>Adoption 🐾</h1>
-                    <p>Manage animals available for adoption. Every listing is reviewed by the Super Admin before going live.</p>
-                </div>
-                <div class="page-hero-actions"></div>
-                <div style="display:flex;gap:8px;justify-content:flex-end;margin-bottom:16px">
-                    <button class="btn btn-outline btn-sm" onclick="toggleAdoptionView()">⊞ Toggle View</button>
-                    <button class="btn btn-primary" onclick="openAdoptionAddPage()">+ Add Pet for Adoption</button>
-                </div>
-            </section>
-            <div class="page-body">
 
-                <!-- ══ MANAGE VIEW ══ -->
-                <div id="adoptionManagePage">
-                    <div class="kpi-grid kpi-grid-4">
-                        <div class="kpi-card c1"><div class="kpi-ico green">🐾</div><div class="kpi-val" id="adoptTotalCount">0</div><div class="kpi-label">Total Listings</div></div>
-                        <div class="kpi-card c2"><div class="kpi-ico blue">✅</div><div class="kpi-val" id="adoptAvailableCount">0</div><div class="kpi-label">Available</div></div>
-                        <div class="kpi-card c3"><div class="kpi-ico yellow">⏳</div><div class="kpi-val" id="adoptPendingCount">0</div><div class="kpi-label">Pending Review</div></div>
-                        <div class="kpi-card c1"><div class="kpi-ico green">🎉</div><div class="kpi-val" id="adoptAdoptedCount">0</div><div class="kpi-label">Adopted</div></div>
+            <!-- ── MANAGE PAGE ── -->
+            <div id="adoptionManagePage">
+                <section class="page-hero">
+                    <div class="page-hero-text">
+                        <h1>Adoption 🐾</h1>
+                        <p>Animals your store has listed for adoption — visible to all users immediately.</p>
+                    </div>
+                    <div class="page-hero-actions">
+                        <button class="btn btn-primary" onclick="openAdoptionAddPage()">+ Add Pet for Adoption</button>
+                    </div>
+                </section>
+
+                <div class="page-body">
+                    <!-- KPIs -->
+                    <div class="kpi-grid kpi-grid-4" style="margin-bottom:16px">
+                        <div class="kpi-card c1"><div class="kpi-ico green">🐾</div><div class="kpi-val">@(ViewBag.TotalCount ?? 0)</div><div class="kpi-label">Total Listings</div></div>
+                        <div class="kpi-card c2"><div class="kpi-ico blue">✅</div><div class="kpi-val">@(ViewBag.AvailableCount ?? 0)</div><div class="kpi-label">Available</div></div>
+                        <div class="kpi-card c3"><div class="kpi-ico yellow">🔒</div><div class="kpi-val" id="reservedCount">0</div><div class="kpi-label">Reserved</div></div>
+                        <div class="kpi-card c1"><div class="kpi-ico green">🎉</div><div class="kpi-val">@(ViewBag.AdoptedCount ?? 0)</div><div class="kpi-label">Adopted</div></div>
                     </div>
 
-                    <!-- Card View -->
-                    <div id="adoptionCardView">
-                        <div class="table-card">
-                            <div class="table-head-bar">
-                                <div class="search-wrap" style="flex:1;max-width:300px"><span>🔍</span><input id="adoptionSearchCards" placeholder="Search name, type, breed..."></div>
-                                <select class="sel-wrap" id="adoptionStatusCards" style="height:40px;width:auto;min-width:150px">
-                                    <option value="all">All statuses</option>
-                                    <option value="available">✅ Available</option>
-                                    <option value="reserved">🔒 Reserved</option>
-                                    <option value="adopted">🎉 Adopted</option>
-                                    <option value="pending">⏳ Pending</option>
-                                </select>
+                    <!-- Cards -->
+                    <div class="table-card">
+                        <div class="table-head-bar">
+                            <div class="search-wrap" style="flex:1;max-width:300px">
+                                <span>🔍</span>
+                                <input id="adoptSearch" placeholder="Search name, type, breed...">
                             </div>
-                            <div class="pet-cards-grid" id="petCardsGrid"></div>
+                            <select class="sel-wrap" id="adoptStatusFilter" style="height:40px;min-width:150px">
+                                <option value="all">All statuses</option>
+                                <option value="available">✅ Available</option>
+                                <option value="reserved">🔒 Reserved</option>
+                                <option value="adopted">🎉 Adopted</option>
+                            </select>
                         </div>
-                    </div>
-
-                    <!-- Table View -->
-                    <div id="adoptionTableView" style="display:none">
-                        <div class="table-card">
-                            <div class="table-head-bar">
-                                <div class="search-wrap" style="flex:1;max-width:300px"><span>🔍</span><input id="adoptionSearchTable" placeholder="Search name, type, breed..."></div>
-                                <select class="sel-wrap" id="adoptionStatusTable" style="height:40px;width:auto;min-width:150px">
-                                    <option value="all">All statuses</option>
-                                    <option value="available">✅ Available</option>
-                                    <option value="reserved">🔒 Reserved</option>
-                                    <option value="adopted">🎉 Adopted</option>
-                                    <option value="pending">⏳ Pending</option>
-                                </select>
-                            </div>
-                            <div class="table-wrap">
-                                <table>
-                                    <thead><tr><th>Pet</th><th>Type</th><th>Age</th><th>Gender</th><th>Health</th><th>Adoption</th><th>Listing</th><th>Actions</th></tr></thead>
-                                    <tbody id="petTableBody"></tbody>
-                                </table>
-                            </div>
-                        </div>
+                        <div class="pet-cards-grid" id="petCardsGrid"></div>
                     </div>
                 </div>
+            </div>
 
-                <!-- ══ ADD VIEW ══ -->
-                <div id="adoptionAddPage" style="display:none">
-                    <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+            <!-- ── ADD PAGE ── -->
+            <div id="adoptionAddPage" style="display:none">
+                <section class="page-hero">
+                    <div class="page-hero-text">
+                        <h1>Add Pet for Adoption 🐾</h1>
+                        <p>Fill in the details below — the listing goes live immediately for all users.</p>
+                    </div>
+                    <div class="page-hero-actions">
                         <button class="btn btn-outline" onclick="openAdoptionManagePage()">← Back to Listings</button>
                     </div>
-                    <div class="adopt-notice">
-                        <div class="adopt-notice-ico">⏳</div>
-                        <div>
-                            <div class="adopt-notice-title">Pending Review Required</div>
-                            <div class="adopt-notice-sub">Every new listing goes through Super Admin review before being published publicly. You will be notified once approved.</div>
-                        </div>
-                    </div>
+                </section>
+
+                <div class="page-body">
 
                     <!-- Pet Info -->
                     <div class="add-form-section">
                         <div class="add-form-head">
                             <div class="add-form-head-ico">🐾</div>
-                            <div><div class="add-form-head-title">Pet Information</div><div class="add-form-head-sub">Basic animal details</div></div>
+                            <div><div class="add-form-head-title">Pet Information</div><div class="add-form-head-sub">Basic details shown to users</div></div>
                         </div>
                         <div class="add-form-body">
                             <div class="form-group">
-                                <div class="form-field"><label class="form-label">Pet Name <span class="req">*</span></label><input class="form-input" id="petName" placeholder="e.g. Max, Luna, Bebo..."></div>
-                                <div class="form-field"><label class="form-label">Animal Type <span class="req">*</span></label><select class="form-select" id="petType"><option value="">Select type</option><option value="dog">🐕 Dog</option><option value="cat">🐈 Cat</option><option value="bird">🐦 Bird</option><option value="other">🐾 Other</option></select></div>
-                                <div class="form-field"><label class="form-label">Breed <span class="req">*</span></label><input class="form-input" id="petBreed" placeholder="Persian, Husky, Mixed..."></div>
-                                <div class="form-field"><label class="form-label">Age <span class="req">*</span></label><input class="form-input" id="petAge" placeholder="e.g. 2 years, 8 months"></div>
-                                <div class="form-field"><label class="form-label">Gender <span class="req">*</span></label><select class="form-select" id="petGender"><option value="">Select gender</option><option>Male</option><option>Female</option></select></div>
-                                <div class="form-field"><label class="form-label">Color</label><input class="form-input" id="petColor" placeholder="White, beige, brown..."></div>
+                                <div class="form-field">
+                                    <label class="form-label">Pet Name <span class="req">*</span></label>
+                                    <input class="form-input" id="petName" placeholder="e.g. Max, Luna...">
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-label">Animal Type <span class="req">*</span></label>
+                                    <select class="form-select" id="petType">
+                                        <option value="">Select type</option>
+                                        <option value="Dog">🐕 Dog</option>
+                                        <option value="Cat">🐈 Cat</option>
+                                        <option value="Bird">🐦 Bird</option>
+                                        <option value="Rabbit">🐇 Rabbit</option>
+                                        <option value="Other">🐾 Other</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-label">Breed</label>
+                                    <input class="form-input" id="petBreed" placeholder="Persian, Husky, Mixed...">
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-label">Age (months)</label>
+                                    <input class="form-input" id="petAge" type="number" min="0" placeholder="e.g. 24">
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-label">Gender</label>
+                                    <select class="form-select" id="petGender">
+                                        <option value="">Select gender</option>
+                                        <option>Male</option>
+                                        <option>Female</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-label">Color</label>
+                                    <input class="form-input" id="petColor" placeholder="White, brown, black...">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -423,19 +526,34 @@
                     <div class="add-form-section">
                         <div class="add-form-head">
                             <div class="add-form-head-ico">❤️</div>
-                            <div><div class="add-form-head-title">Health & Vaccination</div><div class="add-form-head-sub">Medical summary</div></div>
+                            <div><div class="add-form-head-title">Health & Vaccination</div><div class="add-form-head-sub">Medical information</div></div>
                         </div>
                         <div class="add-form-body">
                             <div class="form-group">
-                                <div class="form-field"><label class="form-label">Health Status <span class="req">*</span></label><select class="form-select" id="petHealth"><option value="">Select</option><option>Healthy</option><option>Has health issues</option></select></div>
-                                <div class="form-field"><label class="form-label">Neutered / Spayed <span class="req">*</span></label><select class="form-select" id="petNeuter"><option value="">Select</option><option>Yes</option><option>No</option></select></div>
-                                <div class="form-field"><label class="form-label">Vaccinated <span class="req">*</span></label><select class="form-select" id="petVaccinated" onchange="toggleVaccDate()"><option value="">Select</option><option>Yes</option><option>No</option></select></div>
-                                <div class="form-field"><label class="form-label">Health Problems</label><input class="form-input" id="petProblems" placeholder="Allergy, injury, special note..."></div>
-                                <div class="form-field full" id="vaccRow" style="display:none"><label class="form-label">Last Vaccination Date</label><input class="form-input" id="petVaccDate" type="date"></div>
-                                <div class="form-field full">
-                                    <label class="form-label">Medical Report (optional)</label>
-                                    <label class="upload-zone" for="medReportInput"><span class="upload-zone-ico">📋</span><span class="upload-zone-label">Upload Medical Report</span><span class="upload-zone-hint">PNG, JPG, or PDF</span></label>
-                                    <input id="medReportInput" type="file" accept="image/*,.pdf" hidden>
+                                <div class="form-field">
+                                    <label class="form-label">Health Status</label>
+                                    <select class="form-select" id="petHealth">
+                                        <option value="Healthy">Healthy</option>
+                                        <option value="Has health issues">Has health issues</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-label">Vaccinated</label>
+                                    <select class="form-select" id="petVaccinated" onchange="toggleVaccDate()">
+                                        <option value="No">No</option>
+                                        <option value="Yes">Yes</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-label">Neutered / Spayed</label>
+                                    <select class="form-select" id="petNeuter">
+                                        <option value="No">No</option>
+                                        <option value="Yes">Yes</option>
+                                    </select>
+                                </div>
+                                <div class="form-field full" id="vaccRow" style="display:none">
+                                    <label class="form-label">Last Vaccination Date</label>
+                                    <input class="form-input" id="petVaccDate" type="date">
                                 </div>
                             </div>
                         </div>
@@ -445,7 +563,7 @@
                     <div class="add-form-section">
                         <div class="add-form-head">
                             <div class="add-form-head-ico">🧠</div>
-                            <div><div class="add-form-head-title">Behaviour & Personality</div><div class="add-form-head-sub">Traits and compatibility info</div></div>
+                            <div><div class="add-form-head-title">Behaviour & Personality</div><div class="add-form-head-sub">Traits shown on the listing card</div></div>
                         </div>
                         <div class="add-form-body">
                             <div class="form-group">
@@ -461,118 +579,531 @@
                                         <div class="trait-pill" onclick="this.classList.toggle('on')">✨ Clean</div>
                                     </div>
                                 </div>
-                                <div class="form-field"><label class="form-label">Energy Level</label><select class="form-select" id="petEnergy"><option>Low</option><option selected>Medium</option><option>High</option></select></div>
-                                <div class="form-field"><label class="form-label">Good with Children?</label><select class="form-select" id="petChildren"><option>Yes</option><option>No</option></select></div>
-                                <div class="form-field"><label class="form-label">Good with Other Pets?</label><select class="form-select" id="petOtherPets"><option>Yes</option><option>No</option></select></div>
+                                <div class="form-field">
+                                    <label class="form-label">Energy Level</label>
+                                    <select class="form-select" id="petEnergy">
+                                        <option>Low</option>
+                                        <option selected>Medium</option>
+                                        <option>High</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-label">Good with Children?</label>
+                                    <select class="form-select" id="petChildren">
+                                        <option value="Yes">Yes</option>
+                                        <option value="No">No</option>
+                                    </select>
+                                </div>
+                                <div class="form-field">
+                                    <label class="form-label">Good with Other Pets?</label>
+                                    <select class="form-select" id="petOtherPets">
+                                        <option value="Yes">Yes</option>
+                                        <option value="No">No</option>
+                                    </select>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Photos & Listing -->
+                    <!-- Photos -->
                     <div class="add-form-section">
                         <div class="add-form-head">
-                            <div class="add-form-head-ico">🖼</div>
-                            <div><div class="add-form-head-title">Photos & Listing Info</div><div class="add-form-head-sub">Public-facing listing content</div></div>
+                            <div class="add-form-head-ico">📸</div>
+                            <div><div class="add-form-head-title">Pet Photos</div><div class="add-form-head-sub">Up to 5 photos — first one is the main photo</div></div>
+                        </div>
+                        <div class="add-form-body">
+                            <div class="multi-upload-grid" id="photoGrid">
+                                <!-- Slot 1 — main -->
+                                <label class="upload-thumb upload-thumb-add" for="photo0">
+                                    <span style="font-size:1.6rem">📷</span>
+                                    <span>Main Photo</span>
+                                </label>
+                                <input type="file" id="photo0" accept="image/*" hidden onchange="previewPhoto(this,0)">
+                                <!-- Slots 2-5 -->
+                                <label class="upload-thumb upload-thumb-add" for="photo1" id="slot1lbl" style="display:none">
+                                    <span style="font-size:1.4rem">+</span><span>Add</span>
+                                </label>
+                                <input type="file" id="photo1" accept="image/*" hidden onchange="previewPhoto(this,1)">
+                                <label class="upload-thumb upload-thumb-add" for="photo2" id="slot2lbl" style="display:none">
+                                    <span style="font-size:1.4rem">+</span><span>Add</span>
+                                </label>
+                                <input type="file" id="photo2" accept="image/*" hidden onchange="previewPhoto(this,2)">
+                                <label class="upload-thumb upload-thumb-add" for="photo3" id="slot3lbl" style="display:none">
+                                    <span style="font-size:1.4rem">+</span><span>Add</span>
+                                </label>
+                                <input type="file" id="photo3" accept="image/*" hidden onchange="previewPhoto(this,3)">
+                                <label class="upload-thumb upload-thumb-add" for="photo4" id="slot4lbl" style="display:none">
+                                    <span style="font-size:1.4rem">+</span><span>Add</span>
+                                </label>
+                                <input type="file" id="photo4" accept="image/*" hidden onchange="previewPhoto(this,4)">
+                            </div>
+                            <p style="font-size:.75rem;color:var(--text-muted);font-weight:700;margin-top:8px">JPG, PNG, WEBP · max 5 MB each</p>
+                        </div>
+                    </div>
+
+                    <!-- Description & Contact -->
+                    <div class="add-form-section">
+                        <div class="add-form-head">
+                            <div class="add-form-head-ico">📋</div>
+                            <div><div class="add-form-head-title">Description & Contact</div><div class="add-form-head-sub">Shown to users on the listing page</div></div>
                         </div>
                         <div class="add-form-body">
                             <div class="form-group">
                                 <div class="form-field full">
-                                    <label class="form-label">Pet Photo</label>
-                                    <label class="upload-zone" for="adoptPetImage"><span class="upload-zone-ico">📸</span><span class="upload-zone-label">Upload Pet Photo</span><span class="upload-zone-hint">PNG, JPG, WEBP — 800×800px recommended</span></label>
-                                    <input id="adoptPetImage" type="file" accept="image/*" hidden>
-                                    <div id="adoptPetPreviewWrap" style="display:none;margin-top:12px">
-                                        <div class="upload-preview">
-                                            <img id="adoptPetPreview" alt="Preview">
-                                            <div>
-                                                <div style="font-size:.8rem;font-weight:800;color:var(--brand-dark)">Photo uploaded ✓</div>
-                                                <button type="button" onclick="document.getElementById('adoptPetImage').click()" style="font-size:.74rem;color:var(--text-muted);font-weight:700;background:none;border:none;cursor:pointer;padding:0;margin-top:2px;font-family:inherit">Change photo</button>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <label class="form-label">Story & Description</label>
+                                    <textarea class="form-textarea" id="petDesc" placeholder="Tell the pet's story — personality, background, why they need a home..." style="min-height:100px"></textarea>
                                 </div>
-                                <div class="form-field full"><label class="form-label">Story & Description</label><textarea class="form-textarea" id="petDesc" placeholder="Tell the pet's story — personality, background, why they need a home..." style="min-height:110px"></textarea></div>
-                                <div class="form-field"><label class="form-label">Adoption Status</label><select class="form-select" id="petAdoptionStatus"><option value="available">✅ Available</option><option value="reserved">🔒 Reserved</option><option value="adopted">🎉 Adopted</option></select></div>
-                                <div class="form-field"><label class="form-label">Listing Status</label><select class="form-select" id="petListingStatus"><option value="pending">⏳ Pending Review</option><option value="approved">✅ Published</option><option value="rejected">❌ Rejected</option></select></div>
+                                <div class="form-field">
+                                    <label class="form-label">Contact Phone <span class="req">*</span></label>
+                                    <input class="form-input" id="petPhone" placeholder="Store phone number">
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div style="display:flex;gap:10px;flex-wrap:wrap;padding-bottom:2rem">
-                        <button class="btn btn-primary" onclick="submitAdoptionPet()">🐾 Submit for Review</button>
+                        <button class="btn btn-primary" onclick="submitAdoptionPet()">🐾 Publish Listing</button>
                         <button class="btn btn-outline" onclick="openAdoptionManagePage()">Cancel</button>
                     </div>
                 </div>
-
-                <!-- Pet Detail Modal -->
-                <div class="overlay" id="petModal">
-                    <div class="modal wide">
-                        <div class="modal-hd">
-                            <div class="modal-title" id="petModalTitle">🐾 Pet Details</div>
-                            <button class="modal-close" onclick="closeModal('petModal')">✕</button>
-                        </div>
-                        <div class="modal-body" id="petModalBody"></div>
-                        <div class="modal-ft">
-                            <button class="btn btn-danger" style="margin-right:auto">🗑 Delete</button>
-                            <button class="btn btn-outline" onclick="closeModal('petModal')">Close</button>
-                            <button class="btn btn-primary">✏️ Edit</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Quick Add Adoption Pet Modal -->
-                <div class="overlay" id="addAdoptionModal">
-                    <div class="modal">
-                        <div class="modal-hd">
-                            <div class="modal-title">🐾 Quick Add Pet</div>
-                            <button class="modal-close" onclick="closeModal('addAdoptionModal')">✕</button>
-                        </div>
-                        <div class="modal-body" style="padding:0">
-                            <div class="modal-section">
-                                <div class="modal-section-title">Pet Information</div>
-                                <div class="form-group">
-                                    <div class="form-field full"><label class="form-label">Pet Name <span class="req">*</span></label><input id="adoptPetName" class="form-input" placeholder="Pet name"></div>
-                                    <div class="form-field"><label class="form-label">Type <span class="req">*</span></label><select id="adoptPetType" class="form-select"><option value="">Select type</option><option>Dog</option><option>Cat</option><option>Bird</option><option>Other</option></select></div>
-                                    <div class="form-field"><label class="form-label">Breed <span class="req">*</span></label><input id="adoptPetBreed" class="form-input" placeholder="e.g. Persian, Mixed..."></div>
-                                    <div class="form-field"><label class="form-label">Age</label><input id="adoptPetAge" class="form-input" placeholder="e.g. 2 years"></div>
-                                    <div class="form-field"><label class="form-label">Status</label><select id="adoptPetStatus" class="form-select"><option value="available">✅ Available</option><option value="reserved">🔒 Reserved</option><option value="adopted">🎉 Adopted</option></select></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-ft">
-                            <button class="btn btn-outline" onclick="closeModal('addAdoptionModal')">Cancel</button>
-                            <button class="btn btn-primary" onclick="addAdoptionPet()">🐾 Save Pet</button>
-                        </div>
-                    </div>
-                </div>
-
             </div>
+
         </main>
     </div>
-    <div id="toast">✅ Done!</div>
+
+    <div id="toast" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--brand-dark);color:#fff;padding:12px 22px;border-radius:30px;font-weight:800;font-size:.86rem;font-family:'Nunito',sans-serif;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15)"></div>
+
     <script>
+        // ══ Sidebar ══════════════════════════════════════════════
         const shell=document.getElementById('waShell'),sb=document.getElementById('waSb'),ovl=document.getElementById('waOvl');
-        const mob=()=>window.innerWidth<=992;let mini=false;
+        const mob=()=>window.innerWidth<=992; let mini=false;
         function save(v){localStorage.setItem('wa_mini',v);}
-        function miniOn(){mini=true;shell.classList.add('mini');save('1');document.querySelectorAll('.sb-sub').forEach(s=>s.style.height='0px');}
-        function miniOff(){mini=false;shell.classList.remove('mini');save('0');document.querySelectorAll('.sb-sub.open').forEach(s=>{const i=s.querySelector('.sb-sub-inner');s.style.height=(i?i.scrollHeight:0)+'px';});}
+        function miniOn(){mini=true;shell.classList.add('mini');save('1');}
+        function miniOff(){mini=false;shell.classList.remove('mini');save('0');}
         function openMob(){sb.classList.add('mob-open');ovl.classList.add('show');document.body.style.overflow='hidden';}
         function closeMob(){sb.classList.remove('mob-open');ovl.classList.remove('show');document.body.style.overflow='';}
         function toggleSb(){if(mob()){sb.classList.contains('mob-open')?closeMob():openMob();}else{mini?miniOff():miniOn();}}
-        function toggleSidebar(){toggleSb();}
-        function closeSidebar(){closeMob();}
-        function markActive(){const p=location.pathname.split('/').pop();document.querySelectorAll('.sb-row[href]').forEach(el=>{if(el.getAttribute('href')===p)el.classList.add('active');});}
-        let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!mob()){closeMob();localStorage.getItem('wa_mini')==='1'?miniOn():miniOff();}else{shell.classList.remove('mini');mini=false;}},90);});
-        document.addEventListener('keydown',e=>{if(e.key==='['&&!e.ctrlKey&&!e.metaKey)toggleSb();if(e.key==='Escape')closeMob();});
-        let tx=0;
-        document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
-        document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(!mob())return;if(dx>55&&tx<28)openMob();if(dx<-55)closeMob();},{passive:true});
-        document.addEventListener('DOMContentLoaded',()=>{
-          if(!mob()&&localStorage.getItem('wa_mini')==='1')miniOn();
-          markActive();
-          const el=document.getElementById('tnNotifCount'),b=document.getElementById('notifCountBadge');
-          if(el&&b)el.textContent=b.textContent;
+        let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!mob()){closeMob();localStorage.getItem('wa_mini')==='1'?miniOn():miniOff();}else{shell.classList.remove('mini');mini=false;}},90);});
+        document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMob();});
+
+        // ══ Toast ════════════════════════════════════════════════
+        function showToast(msg, type) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.background = type === 'error' ? '#c0392b' : 'var(--brand-dark)';
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 3000);
+        }
+
+        // ══ Page navigation ══════════════════════════════════════
+        function openAdoptionAddPage() {
+            document.getElementById('adoptionManagePage').style.display = 'none';
+            document.getElementById('adoptionAddPage').style.display   = '';
+            window.scrollTo(0,0);
+        }
+        function openAdoptionManagePage() {
+            document.getElementById('adoptionAddPage').style.display   = 'none';
+            document.getElementById('adoptionManagePage').style.display = '';
+            window.scrollTo(0,0);
+        }
+
+        // ══ Vaccination date toggle ═══════════════════════════════
+        function toggleVaccDate() {
+            const v = document.getElementById('petVaccinated').value;
+            document.getElementById('vaccRow').style.display = v === 'Yes' ? '' : 'none';
+        }
+
+        // ══ Multi-photo upload ════════════════════════════════════
+        const photoFiles = [null, null, null, null, null];
+
+        function previewPhoto(input, idx) {
+            if (!input.files[0]) return;
+            photoFiles[idx] = input.files[0];
+
+            // Replace the label with a thumbnail
+            const existing = document.getElementById('thumb' + idx);
+            if (existing) existing.remove();
+
+            const thumb = document.createElement('div');
+            thumb.className = 'upload-thumb';
+            thumb.id = 'thumb' + idx;
+
+            const img = document.createElement('img');
+            const reader = new FileReader();
+            reader.onload = e => { img.src = e.target.result; };
+            reader.readAsDataURL(input.files[0]);
+
+            const del = document.createElement('button');
+            del.type = 'button';
+            del.innerHTML = '✕';
+            del.style.cssText = 'position:absolute;top:4px;right:4px;width:20px;height:20px;border-radius:50%;border:none;background:rgba(0,0,0,.5);color:#fff;font-size:.7rem;cursor:pointer;display:flex;align-items:center;justify-content:center;';
+            del.onclick = () => removePhoto(idx);
+
+            thumb.appendChild(img);
+            thumb.appendChild(del);
+
+            const label = document.getElementById('slot' + idx + 'lbl') || document.querySelector(`label[for="photo${idx}"]`);
+            if (label) label.replaceWith(thumb);
+
+            // Show next slot if not last
+            if (idx < 4) {
+                const next = document.getElementById('slot' + (idx + 1) + 'lbl');
+                if (next) next.style.display = '';
+            }
+        }
+
+        function removePhoto(idx) {
+            photoFiles[idx] = null;
+            document.getElementById('photo' + idx).value = '';
+            const thumb = document.getElementById('thumb' + idx);
+            if (thumb) {
+                const label = document.createElement('label');
+                label.className = 'upload-thumb upload-thumb-add';
+                label.setAttribute('for', 'photo' + idx);
+                label.id = idx === 0 ? undefined : 'slot' + idx + 'lbl';
+                label.innerHTML = idx === 0
+                    ? '<span style="font-size:1.6rem">📷</span><span>Main Photo</span>'
+                    : '<span style="font-size:1.4rem">+</span><span>Add</span>';
+                thumb.replaceWith(label);
+            }
+        }
+
+        // ══ Data from server ══════════════════════════════════════
+        const storePets = @Html.Raw(ViewBag.PetsJson ?? "[]");
+
+        // ══ Render cards ══════════════════════════════════════════
+              function renderCards() {
+            const grid = document.getElementById('petCardsGrid');
+            if (!grid) return;
+            const q  = (document.getElementById('adoptSearch')?.value || '').toLowerCase();
+            const sf = document.getElementById('adoptStatusFilter')?.value || 'all';
+
+            let list = storePets;
+            if (sf !== 'all') list = list.filter(p => p.adoptionStatus === sf);
+            if (q) list = list.filter(p =>
+                (p.name + p.animalType + p.breed).toLowerCase().includes(q));
+
+            const rc = document.getElementById('reservedCount');
+            if (rc) rc.textContent = storePets.filter(p => p.adoptionStatus === 'reserved').length;
+
+            if (!list.length) {
+                grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:50px 20px;color:var(--text-muted)">'
+                    + '<div style="font-size:3rem;margin-bottom:12px">🐾</div>'
+                    + '<div style="font-weight:800">No pets listed yet</div>'
+                    + '<div style="font-size:.82rem;margin-top:6px">Click "+ Add Pet for Adoption" to start</div>'
+                    + '</div>';
+                return;
+            }
+
+            const sc = { available:'#27ae60', reserved:'#3498db', adopted:'#9b59b6' };
+            grid.innerHTML = list.map(p => {
+                const color = sc[p.adoptionStatus] || '#999';
+                const emoji = p.animalType.toLowerCase() === 'cat' ? '🐈'
+                            : p.animalType.toLowerCase() === 'dog' ? '🐕'
+                            : p.animalType.toLowerCase() === 'bird'? '🦜' : '🐾';
+                const imgs  = p.images && p.images.length ? p.images : (p.image ? [p.image] : []);
+
+                // ── Carousel HTML ──
+                let thumbHtml = '';
+                if (imgs.length === 0) {
+                    thumbHtml = `<span style="font-size:3.5rem">${emoji}</span>`;
+                    } else if (imgs.length === 1) {
+        thumbHtml = `<img src="${imgs[0]}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain;position:absolute;inset:0;padding:6px;background:#fff">`;
+                } else {
+                    const dots = imgs.map((_, i) =>
+                        `<button class="car-dot${i===0?' car-dot-active':''}" onclick="carGo(${p.id},${i})" type="button"></button>`
+                    ).join('');
+                           const imgsHtml = imgs.map((url, i) =>
+            `<img src="${url}" alt="${p.name}" style="width:100%;height:100%;object-fit:contain;position:absolute;inset:0;display:${i===0?'block':'none'};padding:6px;background:#fff" class="car-img-${p.id}">`
+        ).join('');
+                    thumbHtml = `
+                        ${imgsHtml}
+                        <button onclick="carMove(${p.id},-1)" type="button" style="position:absolute;left:6px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.85);border:none;font-size:14px;font-weight:700;cursor:pointer;z-index:2;color:#3d7a10">‹</button>
+                        <button onclick="carMove(${p.id}, 1)" type="button" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.85);border:none;font-size:14px;font-weight:700;cursor:pointer;z-index:2;color:#3d7a10">›</button>
+                        <div style="position:absolute;bottom:7px;left:50%;transform:translateX(-50%);display:flex;gap:5px;z-index:2">${dots}</div>
+                        <div style="position:absolute;top:6px;left:8px;background:rgba(0,0,0,.45);color:#fff;font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:20px;z-index:2" id="counter-${p.id}">1 / ${imgs.length}</div>`;
+                }
+
+                return `
+                <div class="pet-card-item" data-id="${p.id}" data-imgs='${JSON.stringify(imgs)}' data-current="0">
+                    <div class="pet-card-thumb" style="position:relative">
+                        ${thumbHtml}
+                        <div class="pet-card-badge">
+                            <span style="background:${color}22;color:${color};border:1px solid ${color}44;
+                                font-size:.68rem;font-weight:800;padding:3px 10px;border-radius:20px">
+                                ${p.adoptionStatus}
+                            </span>
+                        </div>
+                    </div>
+                   <div class="pet-card-body">
+                        <div class="pet-card-name">${p.name}</div>
+                        <div class="pet-type-row">
+                            <span class="pet-chip">${p.animalType}</span>
+                            ${p.breed ? `<span class="pet-chip">${p.breed}</span>` : ''}
+                            ${p.gender ? `<span class="pet-chip">${p.gender}</span>` : ''}
+                        </div>
+                        <div class="pet-card-meta">
+                            ${p.city ? `📍 ${p.city}` : ''}
+                            ${p.age ? ` · 🗓 ${p.age} mo` : ''}
+                            ${p.contactPhone ? `<br>📞 ${p.contactPhone}` : ''}
+                        </div>
+                        <div class="pet-card-divider"></div>
+                        <div style="display:flex;gap:6px;align-items:center">
+                            <select style="flex:1;height:32px;font-size:.75rem;border-radius:8px;border:1px solid var(--border);font-family:Nunito,sans-serif;font-weight:700;padding:0 8px"
+                                onchange="updateStatus(${p.id}, this.value)">
+                                <option value="Available" ${p.adoptionStatus==='available'?'selected':''}>✅ Available</option>
+                                <option value="Reserved"  ${p.adoptionStatus==='reserved' ?'selected':''}>🔒 Reserved</option>
+                                <option value="Adopted"   ${p.adoptionStatus==='adopted'  ?'selected':''}>🎉 Adopted</option>
+                            </select>
+                            <button title="Edit" onclick="openEditModal(${p.id})"
+                                style="height:32px;padding:0 10px;background:var(--brand-xlight);border:1px solid var(--brand-light);border-radius:8px;color:var(--brand-dark);font-weight:800;font-size:.78rem;cursor:pointer">✏️</button>
+                            <button title="Delete" onclick="deletePet(${p.id})"
+                                style="height:32px;padding:0 10px;background:#fdecea;border:1px solid #f5b8b8;border-radius:8px;color:#c0392b;font-weight:800;font-size:.78rem;cursor:pointer">🗑</button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ══ Status update ════════════════════════════════════════
+        async function updateStatus(id, status) {
+            const fd = new FormData();
+            fd.append('postId', id);
+            fd.append('status', status);
+            try {
+                const res  = await fetch('/StoreAdmin/UpdateAdoptionStatus', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    const p = storePets.find(x => x.id === id);
+                    if (p) p.adoptionStatus = status.toLowerCase();
+                    renderCards();
+                    showToast('✅ Status updated to ' + status);
+                } else {
+                    showToast('❌ ' + (data.message || 'Error'), 'error');
+                }
+            } catch(e) { showToast('❌ Network error', 'error'); }
+        }
+
+        // ══ Delete ════════════════════════════════════════════════
+        async function deletePet(id) {
+            if (!confirm('Delete this adoption listing permanently?')) return;
+            const fd = new FormData();
+            fd.append('postId', id);
+            try {
+                const res  = await fetch('/StoreAdmin/DeleteAdoptionPost', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    const idx = storePets.findIndex(x => x.id === id);
+                    if (idx > -1) storePets.splice(idx, 1);
+                    renderCards();
+                    showToast('🗑 Listing deleted.');
+                } else {
+                    showToast('❌ ' + (data.message || 'Error'), 'error');
+                }
+            } catch(e) { showToast('❌ Network error', 'error'); }
+        }
+
+        // ══ Submit new pet ════════════════════════════════════════
+        async function submitAdoptionPet() {
+            const name  = document.getElementById('petName').value.trim();
+            const type  = document.getElementById('petType').value;
+            const phone = document.getElementById('petPhone').value.trim();
+
+            if (!name)  { showToast('⚠️ Pet name is required.', 'error'); return; }
+            if (!type)  { showToast('⚠️ Please select animal type.', 'error'); return; }
+            if (!phone) { showToast('⚠️ Contact phone is required.', 'error'); return; }
+
+            const fd = new FormData();
+            fd.append('petName',          name);
+            fd.append('animalType',       type);
+            fd.append('breed',            document.getElementById('petBreed').value.trim());
+            fd.append('ageText',          document.getElementById('petAge').value.trim());
+            fd.append('gender',           document.getElementById('petGender').value);
+            fd.append('color',            document.getElementById('petColor').value.trim());
+            fd.append('healthStatus',     document.getElementById('petHealth').value);
+            fd.append('isVaccinated',     document.getElementById('petVaccinated').value === 'Yes');
+            fd.append('isNeutered',       document.getElementById('petNeuter').value === 'Yes');
+            fd.append('goodWithChildren', document.getElementById('petChildren').value === 'Yes');
+            fd.append('goodWithPets',     document.getElementById('petOtherPets').value === 'Yes');
+            fd.append('energyLevel',      document.getElementById('petEnergy').value);
+            fd.append('description',      document.getElementById('petDesc').value.trim());
+            fd.append('contactPhone',     phone);
+            fd.append('traits', Array.from(document.querySelectorAll('.trait-pill.on'))
+                .map(el => el.textContent.trim()).join(', '));
+
+            // الصور
+            photoFiles.forEach(f => { if (f) fd.append('petImages', f); });
+
+            try {
+                const res  = await fetch('/StoreAdmin/AddAdoptionPet', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('✅ Pet listed! Code: ' + data.postCode);
+                    setTimeout(() => location.reload(), 1200);
+                } else {
+                    showToast('❌ ' + (data.message || 'Error saving pet.'), 'error');
+                }
+            } catch(e) {
+                showToast('❌ Network error.', 'error');
+                console.error(e);
+            }
+        }
+
+        // ══ Init ══════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!mob() && localStorage.getItem('wa_mini') === '1') miniOn();
+            renderCards();
+            document.getElementById('adoptSearch')?.addEventListener('input', renderCards);
+            document.getElementById('adoptStatusFilter')?.addEventListener('change', renderCards);
         });
+
+                // ── Carousel ─────────────────────────────────────────────
+        function carMove(petId, dir) {
+            const card   = document.querySelector(`[data-id="${petId}"]`);
+            const imgs   = JSON.parse(card.dataset.imgs || '[]');
+            let   cur    = parseInt(card.dataset.current || '0');
+            cur = ((cur + dir) + imgs.length) % imgs.length;
+            carGoTo(card, petId, imgs, cur);
+        }
+        function carGo(petId, idx) {
+            const card = document.querySelector(`[data-id="${petId}"]`);
+            const imgs = JSON.parse(card.dataset.imgs || '[]');
+            carGoTo(card, petId, imgs, idx);
+        }
+        function carGoTo(card, petId, imgs, idx) {
+            card.dataset.current = idx;
+            card.querySelectorAll(`.car-img-${petId}`).forEach((img, i) =>
+                img.style.display = i === idx ? 'block' : 'none');
+            card.querySelectorAll('.car-dot').forEach((d, i) =>
+                d.classList.toggle('car-dot-active', i === idx));
+            const counter = document.getElementById(`counter-${petId}`);
+            if (counter) counter.textContent = `${idx + 1} / ${imgs.length}`;
+        }
+
+        // ── Edit Modal ────────────────────────────────────────────
+        function openEditModal(id) {
+            const p = storePets.find(x => x.id === id);
+            if (!p) return;
+
+            // Build modal HTML
+            const html = `
+            <div id="editModalOverlay" onclick="closeEditModal()"
+                style="position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9998;display:flex;align-items:center;justify-content:center;padding:20px">
+                <div onclick="event.stopPropagation()"
+                    style="background:#fff;border-radius:20px;max-width:560px;width:100%;max-height:85vh;overflow-y:auto;padding:24px;box-shadow:0 12px 40px rgba(0,0,0,.15)">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                        <div style="font-family:Fredoka,sans-serif;font-size:1.2rem;font-weight:700;color:var(--brand-dark)">✏️ Edit Listing</div>
+                        <button onclick="closeEditModal()" style="width:30px;height:30px;border-radius:50%;border:none;background:var(--brand-xlight);cursor:pointer;font-size:1rem;color:var(--brand-dark)">✕</button>
+                    </div>
+                    <div class="form-group">
+                        <div class="form-field"><label class="form-label">Pet Name *</label><input class="form-input" id="e_name" value="${p.name}"></div>
+                        <div class="form-field"><label class="form-label">Breed</label><input class="form-input" id="e_breed" value="${p.breed||''}"></div>
+                        <div class="form-field"><label class="form-label">Age (months)</label><input class="form-input" id="e_age" type="number" value="${p.age||''}"></div>
+                        <div class="form-field"><label class="form-label">Gender</label>
+                            <select class="form-select" id="e_gender">
+                                <option value="">—</option>
+                                <option ${p.gender==='Male'?'selected':''}>Male</option>
+                                <option ${p.gender==='Female'?'selected':''}>Female</option>
+                            </select>
+                        </div>
+                        <div class="form-field"><label class="form-label">Health Status</label>
+                            <select class="form-select" id="e_health">
+                                <option ${p.healthStatus==='Healthy'?'selected':''}>Healthy</option>
+                                <option value="Has health issues" ${p.healthStatus==='Has health issues'?'selected':''}>Has health issues</option>
+                            </select>
+                        </div>
+                        <div class="form-field"><label class="form-label">Vaccinated</label>
+                            <select class="form-select" id="e_vacc">
+                                <option value="Yes" ${p.isVaccinated?'selected':''}>Yes</option>
+                                <option value="No"  ${!p.isVaccinated?'selected':''}>No</option>
+                            </select>
+                        </div>
+                        <div class="form-field"><label class="form-label">Neutered</label>
+                            <select class="form-select" id="e_neuter">
+                                <option value="Yes" ${p.isNeutered?'selected':''}>Yes</option>
+                                <option value="No"  ${!p.isNeutered?'selected':''}>No</option>
+                            </select>
+                        </div>
+                        <div class="form-field"><label class="form-label">Energy Level</label>
+                            <select class="form-select" id="e_energy">
+                                <option ${p.energyLevel==='Low'?'selected':''}>Low</option>
+                                <option ${p.energyLevel==='Medium'?'selected':''}>Medium</option>
+                                <option ${p.energyLevel==='High'?'selected':''}>High</option>
+                            </select>
+                        </div>
+                        <div class="form-field"><label class="form-label">Good w/ Children</label>
+                            <select class="form-select" id="e_children">
+                                <option value="Yes" ${p.goodWithChildren?'selected':''}>Yes</option>
+                                <option value="No"  ${!p.goodWithChildren?'selected':''}>No</option>
+                            </select>
+                        </div>
+                        <div class="form-field"><label class="form-label">Good w/ Other Pets</label>
+                            <select class="form-select" id="e_pets">
+                                <option value="Yes" ${p.goodWithPets?'selected':''}>Yes</option>
+                                <option value="No"  ${!p.goodWithPets?'selected':''}>No</option>
+                            </select>
+                        </div>
+                        <div class="form-field"><label class="form-label">Contact Phone</label>
+                            <input class="form-input" id="e_phone" value="${p.contactPhone||''}">
+                        </div>
+                        <div class="form-field full"><label class="form-label">Description</label>
+                            <textarea class="form-textarea" id="e_desc" style="min-height:80px">${p.description||''}</textarea>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px">
+                        <button onclick="closeEditModal()" class="btn btn-outline">Cancel</button>
+                        <button onclick="saveEdit(${id})" class="btn btn-primary">💾 Save Changes</button>
+                    </div>
+                </div>
+            </div>`;
+            document.body.insertAdjacentHTML('beforeend', html);
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModalOverlay')?.remove();
+        }
+
+        async function saveEdit(id) {
+            const name = document.getElementById('e_name').value.trim();
+            if (!name) { showToast('⚠️ Name is required.', 'error'); return; }
+
+            const fd = new FormData();
+            fd.append('postId',          id);
+            fd.append('petName',         name);
+            fd.append('breed',           document.getElementById('e_breed').value.trim());
+            fd.append('ageText',         document.getElementById('e_age').value);
+            fd.append('gender',          document.getElementById('e_gender').value);
+            fd.append('healthStatus',    document.getElementById('e_health').value);
+            fd.append('isVaccinated',    document.getElementById('e_vacc').value === 'Yes');
+            fd.append('isNeutered',      document.getElementById('e_neuter').value === 'Yes');
+            fd.append('energyLevel',     document.getElementById('e_energy').value);
+            fd.append('goodWithChildren',document.getElementById('e_children').value === 'Yes');
+            fd.append('goodWithPets',    document.getElementById('e_pets').value === 'Yes');
+            fd.append('contactPhone',    document.getElementById('e_phone').value.trim());
+            fd.append('description',     document.getElementById('e_desc').value.trim());
+
+            try {
+                const res  = await fetch('/StoreAdmin/EditAdoptionPost', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    // تحديث البيانات محلياً
+                    const p = storePets.find(x => x.id === id);
+                    if (p) {
+                        p.name        = name;
+                        p.breed       = document.getElementById('e_breed').value.trim();
+                        p.age         = parseInt(document.getElementById('e_age').value) || p.age;
+                        p.gender      = document.getElementById('e_gender').value;
+                        p.contactPhone= document.getElementById('e_phone').value.trim();
+                        p.description = document.getElementById('e_desc').value.trim();
+                    }
+                    closeEditModal();
+                    renderCards();
+                    showToast('✅ Listing updated successfully.');
+                } else {
+                    showToast('❌ ' + (data.message || 'Error'), 'error');
+                }
+            } catch(e) { showToast('❌ Network error', 'error'); }
+        }
     </script>
-    <script src="~/js/AdminStore.js"></script>
 </body>
 </html>

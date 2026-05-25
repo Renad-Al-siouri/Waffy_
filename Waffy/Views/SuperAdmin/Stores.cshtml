@@ -162,9 +162,7 @@
                     <h1>Store Management</h1>
                     <p>Approve, suspend, reject or delete stores. Click any row to view full details.</p>
                 </div>
-                <div class="page-hero-actions">
-                    <button class="btn btn-outline btn-sm" onclick="exportStores()">📥 Export</button>
-                </div>
+               
             </section>
 
             <div class="page-body">
@@ -206,7 +204,7 @@
                             <select class="sel-wrap" style="height:36px;font-size:.78rem;width:auto;min-width:160px;" onchange="sortStores(this.value)">
                                 <option value="newest">Newest First</option>
                                 <option value="name">Name A–Z</option>
-                                <option value="rating">Highest Rating</option>
+                                
                                 <option value="revenue">Highest Revenue</option>
                             </select>
                         </div>
@@ -225,7 +223,7 @@
                                     <th>City</th>
                                     <th>Products</th>
                                     <th>Revenue</th>
-                                    <th>Rating</th>
+                                   
                                     <th>Status</th>
                                     <th>Joined</th>
                                     <th>Actions</th>
@@ -280,7 +278,7 @@
                         <div class="dp-info-item" style="text-align:center;"><div class="dp-info-label">Products</div><div class="dp-info-val" id="dpProducts" style="font-family:'Fredoka',sans-serif;font-size:1.5rem;"></div></div>
                         <div class="dp-info-item" style="text-align:center;"><div class="dp-info-label">Orders</div><div class="dp-info-val" id="dpOrders" style="font-family:'Fredoka',sans-serif;font-size:1.5rem;"></div></div>
                         <div class="dp-info-item" style="text-align:center;"><div class="dp-info-label">Revenue</div><div class="dp-info-val green" id="dpRevenue" style="font-family:'Fredoka',sans-serif;font-size:1.5rem;"></div></div>
-                        <div class="dp-info-item" style="text-align:center;"><div class="dp-info-label">Rating</div><div class="dp-info-val" id="dpRating" style="font-family:'Fredoka',sans-serif;font-size:1.5rem;"></div></div>
+                        
                     </div>
                 </div>
             </div>
@@ -398,7 +396,7 @@
                 return mQ&&mSt;
             }).sort((a,b)=>{
                 if(currentSort==='name')    return a.name.localeCompare(b.name);
-                if(currentSort==='rating')  return (b.rating||0)-(a.rating||0);
+               
                 if(currentSort==='revenue') return (b.revenue||0)-(a.revenue||0);
                 return new Date(b.joined)-new Date(a.joined);
             });
@@ -415,7 +413,7 @@
                     <td>📍 ${s.city||'—'}</td>
                     <td>${s.products>0?s.products+' 📦':'—'}</td>
                     <td>${s.revenue>0?`<strong style="color:var(--success);">${Number(s.revenue).toLocaleString()} JD</strong>`:'—'}</td>
-                    <td>${starsHtml(s.rating)}</td>
+                   
                     <td>${statusBadge(s.status)}</td>
                     <td style="font-size:.78rem;color:var(--text-muted);">${s.joined}</td>
                     <td onclick="event.stopPropagation()">
@@ -452,7 +450,12 @@
             const s=stores.find(x=>x.id===id); if(!s) return;
             currentStoreId=id;
             document.getElementById('dpTitle').textContent='🏪 '+s.name;
-            document.getElementById('dpAvatar').textContent='🏪';
+                   const dpAv = document.getElementById('dpAvatar');
+        if (s.logoUrl) {
+            dpAv.innerHTML = `<img src="${s.logoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">`;
+        } else {
+            dpAv.textContent = '🏪';
+        }
             document.getElementById('dpName').textContent=s.name;
             document.getElementById('dpMeta').textContent=`${s.city||''} · Joined ${s.joined}`;
             document.getElementById('dpOwner').textContent=s.owner||'—';
@@ -465,7 +468,7 @@
             document.getElementById('dpProducts').textContent=s.products||0;
             document.getElementById('dpOrders').textContent=s.orders||0;
             document.getElementById('dpRevenue').textContent=s.revenue>0?Number(s.revenue).toLocaleString()+' JD':'—';
-            document.getElementById('dpRating').textContent=s.rating>0?'⭐'+Number(s.rating).toFixed(1):'—';
+            
             document.getElementById('dpViewFullBtn').href=`/SuperAdmin/Details_S?id=${s.id}`;
             let btns='';
             if(s.status==='pending')   btns=`<button class="btn btn-success btn-sm" onclick="openApproveModal(${s.id})">✅ Approve</button><button class="btn btn-danger btn-sm" onclick="openRejectModal(${s.id})">❌ Reject</button>`;

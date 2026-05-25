@@ -1,10 +1,44 @@
-﻿@model Waffy.Models.ViewModels.UserDetailViewModel
+﻿@model Waffy.Models.ViewModels.ClinicDetailAdminViewModel
 @{
-    ViewData["Title"] = $"Waffy — Admin | {Model.User.FullName}";
+    ViewData["Title"] = $"Waffy — Admin | {Model.Clinic.Name}";
     Layout = null;
-    var u = Model.User;
     var adminName = ViewBag.AdminName as string ?? "Admin";
     var adminInitials = ViewBag.AdminInitials as string ?? "AD";
+    var c = Model.Clinic;
+
+    // مساعدات الحالة
+    string StatusBadge(string s) => s switch
+    {
+        "Approved" => "badge-success",
+        "Pending" => "badge-warning",
+        "Suspended" => "badge-danger",
+        "Rejected" => "badge-danger",
+        _ => "badge-muted"
+    };
+    string StatusIcon(string s) => s switch
+    {
+        "Approved" => "✅",
+        "Pending" => "⏳",
+        "Suspended" => "🔒",
+        "Rejected" => "❌",
+        _ => "—"
+    };
+
+    // label الوثيقة
+    string DocLabel(string? t) => t switch
+    {
+        "MunicipalLicense" => "🏛 Municipal License",
+        "VeterinaryLicense" => "⚕️ Veterinary Practice License",
+        "NationalId" => "🪪 Manager National ID",
+        "Logo" => "🎨 Clinic Logo",
+        _ => t ?? "Document"
+    };
+    bool IsImg(string? url)
+    {
+        if (string.IsNullOrEmpty(url)) return false;
+        var e = System.IO.Path.GetExtension(url).ToLowerInvariant();
+        return e is ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp";
+    }
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -16,263 +50,16 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
     <style>
-        /* ── كل الـ styles من الـ View الأصلي محفوظة ── */
         @@keyframes fadeUp {
             from {
                 opacity: 0;
-                transform: translateY(10px)
+                transform: translateY(8px);
             }
 
             to {
                 opacity: 1;
-                transform: translateY(0)
+                transform: translateY(0);
             }
-        }
-
-        .detail-hero {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: var(--r-lg);
-            box-shadow: var(--shadow);
-            padding: 22px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: flex-start;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .dh-avatar {
-            width: 84px;
-            height: 84px;
-            border-radius: 22px;
-            font-size: 2.2rem;
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            position: relative;
-            overflow: hidden;
-        }
-
-            .dh-avatar img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
-
-        .dh-online {
-            position: absolute;
-            bottom: -4px;
-            right: -4px;
-            width: 17px;
-            height: 17px;
-            border-radius: 50%;
-            border: 3px solid #fff;
-            background: var(--success);
-        }
-
-        .dh-info {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .dh-name {
-            font-family: 'Fredoka',sans-serif;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--brand-dark);
-        }
-
-        .dh-meta {
-            display: flex;
-            gap: 14px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-            font-size: .83rem;
-            color: var(--text-muted);
-            font-weight: 700;
-        }
-
-        .dh-tags {
-            display: flex;
-            gap: 7px;
-            flex-wrap: wrap;
-            margin-top: 10px;
-        }
-
-        .dh-tag {
-            padding: 5px 12px;
-            border-radius: var(--pill);
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            font-size: .76rem;
-            font-weight: 800;
-            color: var(--brand-dark);
-        }
-
-        .trust-box {
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: var(--r);
-            padding: 16px 22px;
-            text-align: center;
-            min-width: 130px;
-            box-shadow: var(--shadow);
-            flex-shrink: 0;
-        }
-
-        .trust-val {
-            font-family: 'Fredoka',sans-serif;
-            font-size: 2rem;
-            font-weight: 700;
-        }
-
-        .trust-label {
-            font-size: .75rem;
-            color: var(--text-muted);
-            font-weight: 800;
-            margin-top: 4px;
-        }
-
-        .alert-box {
-            display: none;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-            background: #FFF9EE;
-            border: 1.5px solid #E8D9A0;
-            border-radius: var(--r);
-            padding: 14px 18px;
-            margin-bottom: 14px;
-        }
-
-            .alert-box.show {
-                display: flex;
-                animation: fadeUp .22s ease;
-            }
-
-        .quick-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: var(--r);
-            padding: 14px 16px;
-            margin-bottom: 14px;
-            box-shadow: var(--shadow);
-        }
-
-        .mini-stats {
-            display: grid;
-            grid-template-columns: repeat(6,1fr);
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-
-        .mini-stat {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: var(--r);
-            padding: 14px;
-            text-align: center;
-            box-shadow: var(--shadow);
-        }
-
-        .mini-val {
-            font-family: 'Fredoka',sans-serif;
-            font-size: 1.45rem;
-            color: var(--brand-dark);
-            font-weight: 700;
-        }
-
-        .mini-label {
-            font-size: .73rem;
-            color: var(--text-muted);
-            font-weight: 800;
-            margin-top: 5px;
-        }
-
-        .tabs-row {
-            display: flex;
-            gap: 5px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            margin-bottom: 14px;
-            padding-bottom: 2px;
-        }
-
-            .tabs-row::-webkit-scrollbar {
-                display: none;
-            }
-
-        .inner-card {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: var(--r-lg);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-            margin-bottom: 14px;
-        }
-
-        .inner-card-head {
-            padding: 13px 18px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .inner-card-title {
-            font-family: 'Fredoka',sans-serif;
-            font-size: .97rem;
-            font-weight: 700;
-            color: var(--brand-dark);
-        }
-
-        .inner-card-body {
-            padding: 16px 18px;
-        }
-
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
-
-        .info-list {
-            display: grid;
-        }
-
-        .info-line {
-            display: flex;
-            justify-content: space-between;
-            gap: 12px;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(221,209,191,.55);
-            font-size: .84rem;
-        }
-
-            .info-line:last-child {
-                border-bottom: none;
-            }
-
-        .info-key {
-            color: var(--text-muted);
-            font-weight: 700;
-        }
-
-        .info-val {
-            font-weight: 900;
-            color: var(--brand-dark);
-            text-align: right;
         }
 
         .flash-toast {
@@ -302,34 +89,368 @@
             color: var(--danger);
         }
 
-        @@media(max-width:900px) {
-            .mini-stats {
-                grid-template-columns: repeat(3,1fr);
+        /* Hero */
+        .clinic-hero {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow);
+            padding: 22px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .ch-logo {
+            width: 88px;
+            height: 88px;
+            border-radius: 18px;
+            object-fit: cover;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.4rem;
+            overflow: hidden;
+        }
+
+            .ch-logo img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
             }
 
+        .ch-info {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .ch-name {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+        }
+
+        .ch-meta {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+            font-size: .83rem;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        /* Quick actions bar */
+        .quick-bar {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r);
+            padding: 14px 16px;
+            margin-bottom: 14px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            box-shadow: var(--shadow);
+        }
+
+        /* Info card */
+        .info-card {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+
+        .info-card-head {
+            padding: 13px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .info-card-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: .97rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+        }
+
+        .info-card-body {
+            padding: 16px 18px;
+        }
+
+        .info-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(221,209,191,.5);
+            font-size: .84rem;
+        }
+
+            .info-line:last-child {
+                border-bottom: none;
+            }
+
+        .info-key {
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .info-val {
+            font-weight: 900;
+            color: var(--brand-dark);
+            text-align: right;
+        }
+
+        /* Document card */
+        .doc-card {
+            border: 1.5px solid var(--border);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+            margin-bottom: 14px;
+            background: #fff;
+            box-shadow: var(--shadow);
+            transition: box-shadow .15s;
+        }
+
+            .doc-card:hover {
+                box-shadow: 0 6px 20px rgba(0,0,0,.08);
+            }
+
+        .doc-card-head {
+            padding: 14px 18px;
+            background: var(--surface-2);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .doc-card-label {
+            font-weight: 800;
+            font-size: .9rem;
+            color: var(--brand-dark);
+        }
+
+        .doc-card-body {
+            padding: 14px 18px;
+        }
+
+        /* doc approved/rejected tint */
+        .doc-card.doc-approved {
+            border-color: rgba(76,175,80,.4);
+        }
+
+            .doc-card.doc-approved .doc-card-head {
+                background: rgba(76,175,80,.06);
+            }
+
+        .doc-card.doc-rejected {
+            border-color: rgba(244,67,54,.35);
+        }
+
+            .doc-card.doc-rejected .doc-card-head {
+                background: rgba(244,67,54,.05);
+            }
+
+        /* Preview */
+        .doc-preview-img {
+            width: 100%;
+            max-height: 220px;
+            object-fit: contain;
+            border-radius: var(--r);
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            margin-bottom: 12px;
+            cursor: zoom-in;
+        }
+
+        .doc-preview-pdf {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            background: var(--surface-2);
+            border-radius: var(--r);
+            border: 1px solid var(--border);
+            margin-bottom: 12px;
+            text-decoration: none;
+            color: var(--brand-dark);
+            font-weight: 800;
+            font-size: .86rem;
+        }
+
+        .doc-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        /* Grid */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        @@media(max-width:900px) {
             .grid-2 {
                 grid-template-columns: 1fr;
             }
         }
 
-        @@media(max-width:600px) {
-            .mini-stats {
-                grid-template-columns: repeat(2,1fr);
+        /* Approve banner */
+        .approve-banner {
+            background: linear-gradient(135deg, #f0f7e2, #e4f0cc);
+            border: 2px solid rgba(139,169,74,.35);
+            border-radius: var(--r-xl);
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            box-shadow: var(--shadow);
+        }
+
+        .approve-banner-text h3 {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+            margin: 0 0 4px;
+        }
+
+        .approve-banner-text p {
+            font-size: .83rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        /* Reject banner */
+        .reject-banner {
+            background: #fff8f8;
+            border: 2px solid rgba(244,67,54,.25);
+            border-radius: var(--r-xl);
+            padding: 20px 24px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            box-shadow: var(--shadow);
+        }
+
+        /* Modal */
+        .modal-ovl {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0,0,0,.45);
+            backdrop-filter: blur(2px);
+            align-items: center;
+            justify-content: center;
+        }
+
+            .modal-ovl.open {
+                display: flex;
             }
 
-            .detail-hero {
-                flex-direction: column;
-                align-items: center;
-                text-align: center;
+        .modal-box {
+            background: #fff;
+            border-radius: var(--r-xl);
+            padding: 28px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.2);
+            animation: fadeUp .2s ease;
+        }
+
+        .modal-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+            margin-bottom: 18px;
+        }
+
+        .modal-field {
+            margin-bottom: 14px;
+        }
+
+            .modal-field label {
+                display: block;
+                font-size: .78rem;
+                font-weight: 800;
+                color: var(--text-muted);
+                margin-bottom: 6px;
             }
 
-            .dh-meta {
-                justify-content: center;
+            .modal-field select, .modal-field textarea, .modal-field input {
+                width: 100%;
+                padding: 10px 12px;
+                border-radius: var(--r);
+                border: 1.5px solid var(--border);
+                font-family: 'Nunito',sans-serif;
+                font-size: .84rem;
+                font-weight: 700;
+                resize: vertical;
             }
 
-            .dh-tags {
-                justify-content: center;
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+
+        /* Lightbox */
+        .lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 2000;
+            background: rgba(0,0,0,.88);
+            align-items: center;
+            justify-content: center;
+            cursor: zoom-out;
+        }
+
+            .lightbox.open {
+                display: flex;
             }
+
+            .lightbox img {
+                max-width: 90vw;
+                max-height: 90vh;
+                border-radius: var(--r);
+                box-shadow: 0 20px 60px rgba(0,0,0,.5);
+            }
+
+        .alert-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-radius: var(--r);
+            padding: 14px 18px;
+            margin-bottom: 14px;
         }
     </style>
 </head>
@@ -337,7 +458,7 @@
     <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
     <div class="wa-shell" id="waShell">
 
-        <!-- ══ SIDEBAR (نفس Users.cshtml بالضبط) ═══════════════════ -->
+        <!-- ══ SIDEBAR (same as Clinics.cshtml) ══════════════════ -->
         <aside class="wa-sb" id="waSb">
             <div class="sb-logo">
                 <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
@@ -354,28 +475,26 @@
                 <div class="sb-group">
                     <div class="sb-grp-hd">Management</div>
                     <div>
-                        <button class="sb-row open active" id="t-users" onclick="acc('g-users','t-users')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
+                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span>
                             <span class="sb-lbl">Users</span>
                             <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
                         </button>
-                        <div class="sb-sub open" id="g-users" style="height:auto;">
+                        <div class="sb-sub" id="g-users">
                             <div class="sb-sub-inner">
-                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Users">
-                                    <span class="sb-dot"></span><span class="sb-child-lbl">All Users</span>
-                                </a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Users"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a>
                             </div>
                         </div>
                     </div>
                     <div>
-                        <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
+                        <button class="sb-row open active" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
                             <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
                             <span class="sb-lbl">Clinics</span>
                             <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
                         </button>
-                        <div class="sb-sub" id="g-clinics">
+                        <div class="sb-sub open" id="g-clinics" style="height:auto;">
                             <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
+                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
                                 <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
                                 <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_C"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
                             </div>
@@ -390,13 +509,7 @@
                         <span class="sb-lbl">Notifications</span>
                     </a>
                     <a class="sb-row" asp-controller="SuperAdmin" asp-action="RewardLog">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24">
-                                <path d="M20 12V22H4V12" />
-                                <path d="M22 7H2v5h20V7z" />
-                                <path d="M12 22V7" />
-                            </svg>
-                        </span>
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20 12V22H4V12" /><path d="M22 7H2v5h20V7z" /><path d="M12 22V7" /></svg></span>
                         <span class="sb-lbl">Reward Log</span>
                     </a>
                 </div>
@@ -416,7 +529,7 @@
             </div>
         </aside>
 
-        <!-- ══ TOPNAV ════════════════════════════════════════════════ -->
+        <!-- ══ TOPNAV ═════════════════════════════════════════════ -->
         <header class="wa-tn" id="waTn">
             <button class="tn-toggle" onclick="toggleSb()" type="button">
                 <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24">
@@ -426,18 +539,13 @@
                 </svg>
             </button>
             <nav class="tn-bread">
-                <span>Management</span><span>/</span>
-                <a asp-controller="SuperAdmin" asp-action="Users"
-                   asp-route-search="@Model.ReturnSearch"
-                   asp-route-status="@Model.ReturnStatus"
-                   asp-route-role="@Model.ReturnRole"
-                   asp-route-page="@Model.ReturnPage"
-                   style="color:var(--text-muted);font-weight:800;">Users</a>
-                <span>/</span><b>@u.FullName</b>
+                <span>Clinics</span><span>/</span>
+                <a asp-controller="SuperAdmin" asp-action="Clinics" style="color:var(--text-muted);font-weight:800;">All Clinics</a>
+                <span>/</span><b>@c.Name</b>
             </nav>
             <div class="tn-center">
-                <div class="tn-center-main">@u.FullName</div>
-                <div class="tn-center-sub">360° Profile View</div>
+                <div class="tn-center-main">@c.Name</div>
+                <div class="tn-center-sub">Clinic Review &amp; Approval</div>
             </div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
@@ -451,10 +559,9 @@
             </div>
         </header>
 
-        <!-- ══ MAIN ══════════════════════════════════════════════════ -->
+        <!-- ══ MAIN ═══════════════════════════════════════════════ -->
         <main class="wa-main" id="waMain">
 
-            @* Flash *@
             @if (ViewBag.Success != null)
             {
                 <div class="flash-toast flash-success" id="flashMsg">@ViewBag.Success</div>
@@ -466,281 +573,460 @@
 
             <section class="page-hero">
                 <div>
-                    <h1>User 360° Profile</h1>
-                    <p>@u.FullName — @u.RoleName · @u.AccountStatus</p>
+                    <h1>Clinic Review</h1>
+                    <p>@c.Name — @c.City · <span class="badge @StatusBadge(c.VerificationStatus)">@StatusIcon(c.VerificationStatus) @c.VerificationStatus</span></p>
                 </div>
                 <div class="page-hero-actions">
-                    <a asp-controller="SuperAdmin" asp-action="Users"
-                       asp-route-search="@Model.ReturnSearch"
-                       asp-route-status="@Model.ReturnStatus"
-                       asp-route-role="@Model.ReturnRole"
-                       asp-route-page="@Model.ReturnPage"
-                       class="btn btn-outline btn-sm">← Back to Users</a>
+                    <a asp-controller="SuperAdmin" asp-action="Clinics" class="btn btn-outline btn-sm">← Back to Clinics</a>
                 </div>
             </section>
 
             <div class="page-body">
 
-                @* Suspended Alert *@
-                @if (u.AccountStatus == "Suspended")
+                <!-- ── Approval Banner (when all docs reviewed) ─── -->
+                @if (c.VerificationStatus == "Pending" && Model.AllDocsApproved)
                 {
-                    <div class="alert-box show">
+                    <div class="approve-banner">
+                        <div class="approve-banner-text">
+                            <h3>✅ All documents verified — Ready to approve!</h3>
+                            <p>All required documents have been reviewed and approved. You can now activate this clinic.</p>
+                        </div>
+                        <form method="post" asp-controller="SuperAdmin" asp-action="ApproveClinic">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                            <input type="hidden" name="from" value="details" />
+                            <button type="submit" class="btn btn-primary"
+                                    onclick="return confirm('Approve and activate @c.Name.Replace("'", "\\'")?')">
+                                ✅ Approve &amp; Activate Clinic
+                            </button>
+                        </form>
+                    </div>
+                }
+
+                @if (c.VerificationStatus == "Pending" && Model.HasRejectedDoc)
+                {
+                    <div class="reject-banner">
                         <div>
-                            <div style="font-weight:900;color:#9b6000;">🔒 This account is currently suspended.</div>
-                            <div style="font-size:.8rem;color:#8b7751;font-weight:700;margin-top:2px;">
-                                The user cannot log in. You can reactivate it below.
+                            <div style="font-weight:900;color:#9b1a1a;">❌ One or more documents were rejected.</div>
+                            <div style="font-size:.8rem;color:#8b5151;font-weight:700;margin-top:2px;">
+                                You can reject the whole application to notify the clinic owner.
                             </div>
                         </div>
-                        <form method="post" asp-controller="SuperAdmin" asp-action="ActivateUser" style="display:inline;">
+                        <button class="btn btn-danger btn-sm"
+                                onclick="openModal('rejectModal')">
+                            ❌ Reject Application
+                        </button>
+                    </div>
+                }
+
+                @if (c.VerificationStatus == "Suspended")
+                {
+                    <div class="alert-box" style="background:#FFF9EE;border:1.5px solid #E8D9A0;">
+                        <div>
+                            <div style="font-weight:900;color:#9b6000;">🔒 This clinic is currently suspended.</div>
+                            <div style="font-size:.8rem;color:#8b7751;font-weight:700;margin-top:2px;">The clinic owner cannot log in.</div>
+                        </div>
+                        <form method="post" asp-controller="SuperAdmin" asp-action="ReactivateClinic">
                             @Html.AntiForgeryToken()
-                            <input type="hidden" name="userId" value="@u.UserId" />
-                            <input type="hidden" name="returnSearch" value="@Model.ReturnSearch" />
-                            <input type="hidden" name="returnStatus" value="@Model.ReturnStatus" />
-                            <input type="hidden" name="returnRole" value="@Model.ReturnRole" />
-                            <input type="hidden" name="returnPage" value="@Model.ReturnPage" />
+                            <input type="hidden" name="clinicId" value="@c.IdClinic" />
                             <input type="hidden" name="from" value="details" />
-                            <button type="submit" class="btn btn-outline btn-sm"
-                                    onclick="return confirm('Activate this account?')">
+                            <button type="submit" class="btn btn-primary btn-sm"
+                                    onclick="return confirm('Reactivate @c.Name.Replace("'", "\\'")?')">
                                 ✅ Reactivate
                             </button>
                         </form>
                     </div>
                 }
 
-                @* Pending Alert *@
-                @if (u.AccountStatus == "Pending")
-                {
-                    <div class="alert-box show">
-                        <div>
-                            <div style="font-weight:900;color:#9b6000;">⏳ Account pending review.</div>
-                            <div style="font-size:.8rem;color:#8b7751;font-weight:700;margin-top:2px;">
-                                Review the user's documents and activate or reject their account.
-                            </div>
-                        </div>
-                        <div style="display:flex;gap:8px;">
-                            <form method="post" asp-controller="SuperAdmin" asp-action="ActivateUser" style="display:inline;">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="userId" value="@u.UserId" />
-                                <input type="hidden" name="returnSearch" value="@Model.ReturnSearch" />
-                                <input type="hidden" name="returnStatus" value="@Model.ReturnStatus" />
-                                <input type="hidden" name="returnRole" value="@Model.ReturnRole" />
-                                <input type="hidden" name="returnPage" value="@Model.ReturnPage" />
-                                <input type="hidden" name="from" value="details" />
-                                <button type="submit" class="btn btn-primary btn-sm"
-                                        onclick="return confirm('Activate this account?')">
-                                    ✅ Approve
-                                </button>
-                            </form>
-                            <form method="post" asp-controller="SuperAdmin" asp-action="SuspendUser" style="display:inline;">
-                                @Html.AntiForgeryToken()
-                                <input type="hidden" name="userId" value="@u.UserId" />
-                                <input type="hidden" name="returnSearch" value="@Model.ReturnSearch" />
-                                <input type="hidden" name="returnStatus" value="@Model.ReturnStatus" />
-                                <input type="hidden" name="returnRole" value="@Model.ReturnRole" />
-                                <input type="hidden" name="returnPage" value="@Model.ReturnPage" />
-                                <input type="hidden" name="from" value="details" />
-                                <button type="submit" class="btn btn-danger btn-sm"
-                                        onclick="return confirm('Reject and suspend this account?')">
-                                    🔒 Reject
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                }
-
-                <!-- ── Detail Hero ────────────────────────────────── -->
-                <div class="detail-hero">
-                    <div class="dh-avatar">
-                        @if (!string.IsNullOrEmpty(u.ProfileImage))
-                        {
-                            <img src="~/uploads/@u.ProfileImage" alt="@u.FullName" />
-                        }
-                        else
-                        {
-                            @u.AvatarInitials
-                        }
-                        @if (u.AccountStatus == "Active")
-                        {
-                            <div class="dh-online"></div>
-                        }
-                    </div>
-                    <div class="dh-info">
-                        <div class="dh-name">@u.FullName</div>
-                        <div class="dh-meta">
-                            <span>📧 @u.Email</span>
-                            <span>📞 @u.Phone</span>
-                            @if (!string.IsNullOrEmpty(u.City))
-                            {
-                                <span>📍 @u.City@(!string.IsNullOrEmpty(u.Area) ? $" — {u.Area}" : "")</span>
-                            }
-                            <span>📅 Joined @u.JoinedLabel</span>
-                            <span class="badge @u.StatusBadgeClass">@u.StatusIcon @u.AccountStatus</span>
-                        </div>
-                        <div class="dh-tags">
-                            <span class="dh-tag">@u.RoleIcon @u.RoleName</span>
-                            @if (!string.IsNullOrEmpty(u.Gender))
-                            {
-                                <span class="dh-tag">@u.Gender</span>
-                            }
-                            @if (!string.IsNullOrEmpty(u.Bio))
-                            {
-                                <span class="dh-tag" style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
-                                    @u.Bio
-                                </span>
-                            }
-                        </div>
-                    </div>
-                    <div class="trust-box">
-                        <div class="trust-val">ID</div>
-                        <div style="font-family:'Fredoka',sans-serif;font-size:1.4rem;font-weight:700;color:var(--brand-dark);">
-                            #@u.UserId
-                        </div>
-                        <div class="trust-label">User ID</div>
-                    </div>
-                </div>
-
-                <!-- ── Quick Actions (POST forms) ─────────────────── -->
-                <div class="quick-actions">
-                    @if (u.AccountStatus == "Active")
+                <!-- ── Quick Actions ──────────────────────────── -->
+                <div class="quick-bar">
+                    @if (c.VerificationStatus == "Pending")
                     {
-                        <form method="post" asp-controller="SuperAdmin" asp-action="SuspendUser" style="display:inline;">
+                        <form method="post" asp-controller="SuperAdmin" asp-action="ApproveClinic" style="display:inline;">
                             @Html.AntiForgeryToken()
-                            <input type="hidden" name="userId" value="@u.UserId" />
-                            <input type="hidden" name="returnSearch" value="@Model.ReturnSearch" />
-                            <input type="hidden" name="returnStatus" value="@Model.ReturnStatus" />
-                            <input type="hidden" name="returnRole" value="@Model.ReturnRole" />
-                            <input type="hidden" name="returnPage" value="@Model.ReturnPage" />
-                            <input type="hidden" name="from" value="details" />
-                            <button type="submit" class="btn btn-danger btn-sm"
-                                    onclick="return confirm('Suspend @u.FullName.Replace("'", "\\'")?')">
-                                🔒 Suspend
-                            </button>
-                        </form>
-                    }
-                    else if (u.AccountStatus is "Suspended" or "Pending")
-                    {
-                        <form method="post" asp-controller="SuperAdmin" asp-action="ActivateUser" style="display:inline;">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="userId" value="@u.UserId" />
-                            <input type="hidden" name="returnSearch" value="@Model.ReturnSearch" />
-                            <input type="hidden" name="returnStatus" value="@Model.ReturnStatus" />
-                            <input type="hidden" name="returnRole" value="@Model.ReturnRole" />
-                            <input type="hidden" name="returnPage" value="@Model.ReturnPage" />
+                            <input type="hidden" name="clinicId" value="@c.IdClinic" />
                             <input type="hidden" name="from" value="details" />
                             <button type="submit" class="btn btn-primary btn-sm"
-                                    onclick="return confirm('Activate @u.FullName.Replace("'", "\\'")?')">
-                                ✅ Activate
+                                    onclick="return confirm('Approve @c.Name.Replace("'", "\\'")?')">
+                                ✅ Approve Clinic
+                            </button>
+                        </form>
+                        <button class="btn btn-danger btn-sm" onclick="openModal('rejectModal')">❌ Reject</button>
+                    }
+                    else if (c.VerificationStatus == "Approved")
+                    {
+                        <button class="btn btn-danger btn-sm" onclick="openModal('suspendModal')">🔒 Suspend</button>
+                        <button class="btn btn-outline btn-sm" onclick="openModal('warnModal')">⚠️ Warn Owner</button>
+                    }
+                    else if (c.VerificationStatus == "Suspended")
+                    {
+                        <form method="post" asp-controller="SuperAdmin" asp-action="ReactivateClinic" style="display:inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                            <input type="hidden" name="from" value="details" />
+                            <button type="submit" class="btn btn-primary btn-sm"
+                                    onclick="return confirm('Reactivate @c.Name.Replace("'", "\\'")?')">
+                                ✅ Reactivate
                             </button>
                         </form>
                     }
-
-                    <form method="post" asp-controller="SuperAdmin" asp-action="DeleteUser" style="display:inline;">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="userId" value="@u.UserId" />
-                        <input type="hidden" name="returnSearch" value="@Model.ReturnSearch" />
-                        <input type="hidden" name="returnStatus" value="@Model.ReturnStatus" />
-                        <input type="hidden" name="returnRole" value="@Model.ReturnRole" />
-                        <input type="hidden" name="returnPage" value="@Model.ReturnPage" />
-                        <button type="submit" class="btn btn-danger btn-sm"
-                                onclick="return confirm('Delete @u.FullName.Replace("'", "\\'")\npermanently? This cannot be undone.')">
-                            🗑️ Delete User
-                        </button>
-                    </form>
-
-                    <a asp-controller="SuperAdmin" asp-action="Users"
-                       asp-route-search="@Model.ReturnSearch"
-                       asp-route-status="@Model.ReturnStatus"
-                       asp-route-role="@Model.ReturnRole"
-                       asp-route-page="@Model.ReturnPage"
-                       class="btn btn-outline btn-sm">← Back</a>
+                    <a asp-controller="SuperAdmin" asp-action="Clinics" class="btn btn-outline btn-sm">← Back</a>
                 </div>
 
-                <!-- ── Info Cards ──────────────────────────────────── -->
+                <!-- ── Info Grid ────────────────────────────── -->
                 <div class="grid-2">
-                    <div class="inner-card">
-                        <div class="inner-card-head"><div class="inner-card-title">👤 Account Information</div></div>
-                        <div class="inner-card-body">
-                            <div class="info-list">
-                                <div class="info-line"><span class="info-key">User ID</span>     <span class="info-val">#@u.UserId</span></div>
-                                <div class="info-line"><span class="info-key">Full Name</span>   <span class="info-val">@u.FullName</span></div>
-                                <div class="info-line"><span class="info-key">Email</span>       <span class="info-val">@u.Email</span></div>
-                                <div class="info-line"><span class="info-key">Phone</span>       <span class="info-val">@(u.Phone ?? "—")</span></div>
-                                <div class="info-line"><span class="info-key">Gender</span>      <span class="info-val">@(u.Gender ?? "—")</span></div>
-                                <div class="info-line"><span class="info-key">Role</span>        <span class="info-val"><span class="badge @u.RoleBadgeClass">@u.RoleIcon @u.RoleName</span></span></div>
-                                <div class="info-line"><span class="info-key">Status</span>      <span class="info-val"><span class="badge @u.StatusBadgeClass">@u.StatusIcon @u.AccountStatus</span></span></div>
-                                <div class="info-line"><span class="info-key">Joined</span>      <span class="info-val">@(u.CreatedAt?.ToString("dd MMM yyyy") ?? "—")</span></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="inner-card">
-                        <div class="inner-card-head"><div class="inner-card-title">📍 Location & Bio</div></div>
-                        <div class="inner-card-body">
-                            <div class="info-list">
-                                <div class="info-line"><span class="info-key">City</span>          <span class="info-val">@(u.City ?? "—")</span></div>
-                                <div class="info-line"><span class="info-key">Area</span>          <span class="info-val">@(u.Area ?? "—")</span></div>
-                                <div class="info-line">
-                                    <span class="info-key">Bio</span>
-                                    <span class="info-val" style="max-width:200px;text-align:right;">
-                                        @(string.IsNullOrEmpty(u.Bio) ? "—" : u.Bio)
-                                    </span>
+                    <div class="info-card">
+                        <div class="info-card-head"><div class="info-card-title">🏥 Clinic Information</div></div>
+                        <div class="info-card-body">
+                            <!-- Logo preview -->
+                            @{
+                                var logoDoc = Model.Documents.FirstOrDefault(d => d.DocumentType == "Logo");
+                                var logoSrc = c.LogoUrl ?? logoDoc?.FileUrl;
+                            }
+                            @if (!string.IsNullOrEmpty(logoSrc))
+                            {
+                                <div style="margin-bottom:14px;text-align:center;">
+                                    <img src="@logoSrc" alt="Clinic Logo"
+                                         style="height:80px;object-fit:contain;border-radius:12px;border:1px solid var(--border);" />
                                 </div>
+                            }
+                            <div class="info-line"><span class="info-key">Clinic ID</span>      <span class="info-val">#@c.IdClinic</span></div>
+                            <div class="info-line"><span class="info-key">Name</span>           <span class="info-val">@c.Name</span></div>
+                            <div class="info-line"><span class="info-key">Type</span>           <span class="info-val">@(c.ClinicType ?? "—")</span></div>
+                            <div class="info-line"><span class="info-key">City</span>           <span class="info-val">@c.City@(!string.IsNullOrEmpty(c.Area) ? $" — {c.Area}" : "")</span></div>
+                            <div class="info-line"><span class="info-key">Phone</span>          <span class="info-val">@c.Phone</span></div>
+                            <div class="info-line"><span class="info-key">Email</span>          <span class="info-val">@(c.Email ?? "—")</span></div>
+                            <div class="info-line"><span class="info-key">Has Emergency</span>  <span class="info-val">@(c.HasEmergency ? "✅ Yes" : "No")</span></div>
+                            <div class="info-line">
+                                <span class="info-key">Status</span>
+                                <span class="info-val"><span class="badge @StatusBadge(c.VerificationStatus)">@StatusIcon(c.VerificationStatus) @c.VerificationStatus</span></span>
+                            </div>
+                            <div class="info-line"><span class="info-key">Registered</span>    <span class="info-val">@c.CreatedAt.ToString("dd MMM yyyy, HH:mm")</span></div>
+                            @if (!string.IsNullOrEmpty(c.Description))
+                            {
+                                <div class="info-line" style="align-items:flex-start;">
+                                    <span class="info-key">Description</span>
+                                    <span class="info-val" style="max-width:240px;text-align:right;font-size:.8rem;">@c.Description</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-card-head"><div class="info-card-title">👤 Owner Information</div></div>
+                        <div class="info-card-body">
+                            <div class="info-line"><span class="info-key">Full Name</span>  <span class="info-val">@Model.OwnerName</span></div>
+                            <div class="info-line"><span class="info-key">Email</span>      <span class="info-val">@Model.OwnerEmail</span></div>
+                            <div class="info-line"><span class="info-key">Phone</span>      <span class="info-val">@Model.OwnerPhone</span></div>
+                            <div class="info-line"><span class="info-key">User ID</span>   <span class="info-val">#@Model.OwnerId</span></div>
+                            <div class="info-line">
+                                <span class="info-key">Profile</span>
+                                <span class="info-val">
+                                    <a asp-controller="SuperAdmin" asp-action="Details_U"
+                                       asp-route-id="@Model.OwnerId"
+                                       class="btn btn-outline btn-xs">👤 View User</a>
+                                </span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- ── Tabs — المحتوى مؤقت حتى تُربط الـ repos ────── -->
-                <div class="tabs-row">
-                    <button class="tab-btn active" onclick="showTab('info',this)">📋 Info</button>
-                    <button class="tab-btn" onclick="showTab('pets',this)">🐾 Pets</button>
-                    <button class="tab-btn" onclick="showTab('appointments',this)">📅 Appointments</button>
-                    <button class="tab-btn" onclick="showTab('orders',this)">🛍️ Orders</button>
-                    <button class="tab-btn" onclick="showTab('lost',this)">🔍 Lost Reports</button>
-                    <button class="tab-btn" onclick="showTab('adoption',this)">🏠 Adoption</button>
-                    <button class="tab-btn" onclick="showTab('timeline',this)">⏱️ Timeline</button>
-                    <button class="tab-btn" onclick="showTab('complaints',this)">🚨 Complaints</button>
-                </div>
-
-                <div class="tab-pane active" id="tab-info">
-                    <div class="inner-card">
-                        <div class="inner-card-head"><div class="inner-card-title">Summary</div></div>
-                        <div class="inner-card-body" style="color:var(--text-muted);font-size:.86rem;font-weight:700;">
-                            Full user activity data (Pets, Appointments, Orders, Reports) will be connected here once the corresponding repositories are built. The account management actions above are fully functional.
+                <!-- ══ Documents Section ══════════════════════════ -->
+                <div class="info-card" style="margin-bottom:0;">
+                    <div class="info-card-head">
+                        <div class="info-card-title">📋 Submitted Documents</div>
+                        <div style="font-size:.78rem;font-weight:700;color:var(--text-muted);">
+                            Review each document before approving the clinic
                         </div>
                     </div>
-                </div>
+                    <div class="info-card-body">
 
-                @* باقي الـ tabs — placeholder حتى تُبنى الـ repos *@
-                @foreach (var tabId in new[] { "pets", "appointments", "orders", "lost", "adoption", "timeline", "complaints" })
-                {
-                    <div class="tab-pane" id="tab-@tabId">
-                        <div class="inner-card">
-                            <div class="inner-card-head">
-                                <div class="inner-card-title">@tabId.ToUpper()</div>
-                                <span class="badge badge-muted">Coming soon</span>
+                        @{
+                            var requiredDocs = Model.Documents.Where(d => d.DocumentType != "Logo").ToList();
+                            var logoDocs = Model.Documents.Where(d => d.DocumentType == "Logo").ToList();
+                        }
+
+                        @if (!requiredDocs.Any())
+                        {
+                            <div style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">
+                                ⚠️ No documents submitted yet.
                             </div>
-                            <div class="inner-card-body" style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">
-                                🔧 This tab will be connected when the corresponding repository is built.
-                            </div>
+                        }
+
+                        <div class="grid-2">
+                            @foreach (var doc in requiredDocs)
+                            {
+                                var docStatusClass = (doc.Status?.ToLower()) switch
+                                {
+                                    "approved" => "doc-approved",
+                                    "rejected" => "doc-rejected",
+                                    _ => ""
+                                };
+                                var docBadge = (doc.Status?.ToLower()) switch
+                                {
+                                    "approved" => "badge-success",
+                                    "rejected" => "badge-danger",
+                                    _ => "badge-warning"
+                                };
+                                var docIcon = (doc.Status?.ToLower()) switch
+                                {
+                                    "approved" => "✅",
+                                    "rejected" => "❌",
+                                    _ => "⏳"
+                                };
+
+                                <div class="doc-card @docStatusClass">
+                                    <div class="doc-card-head">
+                                        <span class="doc-card-label">@DocLabel(doc.DocumentType)</span>
+                                        <span class="badge @docBadge">@docIcon @doc.Status</span>
+                                    </div>
+                                    <div class="doc-card-body">
+                                        <div style="font-size:.75rem;color:var(--text-muted);font-weight:700;margin-bottom:10px;">
+                                            Uploaded @doc.UploadedAt.ToString("dd MMM yyyy, HH:mm")
+                                        </div>
+
+                                        @if (IsImg(doc.FileUrl))
+                                        {
+                                            <img src="@doc.FileUrl" class="doc-preview-img"
+                                                 alt="@doc.DocumentType"
+                                                 onclick="openLightbox('@doc.FileUrl')" />
+                                        }
+                                        else
+                                        {
+                                            <a href="@doc.FileUrl" target="_blank" class="doc-preview-pdf">
+                                                <span style="font-size:1.8rem;">📄</span>
+                                                <div>
+                                                    <div>@DocLabel(doc.DocumentType)</div>
+                                                    <div style="font-size:.72rem;opacity:.7;">Click to open PDF</div>
+                                                </div>
+                                            </a>
+                                        }
+
+                                        @if (!string.IsNullOrEmpty(doc.AdminNote))
+                                        {
+                                            <div style="background:#fff9f0;border:1px solid #f0d9a0;border-radius:8px;padding:10px 12px;font-size:.78rem;font-weight:700;color:#9b6000;margin-bottom:10px;">
+                                                📝 Admin note: @doc.AdminNote
+                                            </div>
+                                        }
+
+                                        <!-- Doc Actions -->
+                                        <div class="doc-actions">
+                                            @if (doc.Status?.ToLower() != "approved")
+                                            {
+                                                <form method="post" asp-controller="SuperAdmin"
+                                                      asp-action="ApproveClinicDocument" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="docId" value="@doc.Id" />
+                                                    <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                                                    <button type="submit" class="btn btn-primary btn-xs">✅ Approve</button>
+                                                </form>
+                                            }
+                                            @if (doc.Status?.ToLower() != "rejected")
+                                            {
+                                                <button class="btn btn-danger btn-xs"
+                                                        onclick="openRejectDoc(@doc.Id, '@DocLabel(doc.DocumentType).Replace("'", "\\'")')">
+                                                    ❌ Reject
+                                                </button>
+                                            }
+                                            <a href="@doc.FileUrl" target="_blank" class="btn btn-outline btn-xs">⬇ Download</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
                         </div>
+
+                        <!-- Progress indicator -->
+                        @{
+                            int totalReq = requiredDocs.Count;
+                            int approvedReq = requiredDocs.Count(d => d.Status?.ToLower() == "approved");
+                            int rejectedReq = requiredDocs.Count(d => d.Status?.ToLower() == "rejected");
+                            double pct = totalReq > 0 ? (approvedReq * 100.0 / totalReq) : 0;
+                        }
+                        @if (totalReq > 0)
+                        {
+                            <div style="margin-top:18px;padding:14px 16px;background:var(--surface-2);border-radius:var(--r);border:1px solid var(--border);">
+                                <div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:800;color:var(--brand-dark);margin-bottom:8px;">
+                                    <span>📊 Review Progress</span>
+                                    <span>@approvedReq / @totalReq approved</span>
+                                </div>
+                                <div style="height:8px;background:var(--border);border-radius:99px;overflow:hidden;">
+                                    <div style="height:100%;width:@pct.ToString("F0")%;background:var(--success);border-radius:99px;transition:width .4s;"></div>
+                                </div>
+                                @if (rejectedReq > 0)
+                                {
+                                    <div style="margin-top:8px;font-size:.76rem;font-weight:800;color:var(--danger);">
+                                        ⚠️ @rejectedReq document(s) rejected — clinic cannot be approved until re-submitted.
+                                    </div>
+                                }
+                                else if (approvedReq == totalReq)
+                                {
+                                    <div style="margin-top:8px;font-size:.76rem;font-weight:800;color:var(--success);">
+                                        ✅ All documents approved — you can now approve the clinic!
+                                    </div>
+                                }
+                            </div>
+                        }
                     </div>
-                }
+                </div>
 
             </div>
         </main>
     </div>
 
+    <!-- ══ Modals ═══════════════════════════════════════════════ -->
+    <!-- Reject Clinic Modal -->
+    <div class="modal-ovl" id="rejectModal">
+        <div class="modal-box">
+            <div class="modal-title">❌ Reject Clinic Application</div>
+            <p style="font-size:.83rem;color:var(--text-muted);font-weight:700;margin-bottom:16px;">
+                The clinic owner will be notified with the reason. They cannot log in after rejection.
+            </p>
+            <form method="post" asp-controller="SuperAdmin" asp-action="RejectClinic">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                <input type="hidden" name="from" value="details" />
+                <div class="modal-field">
+                    <label>Rejection Reason</label>
+                    <select name="reason" class="sel-wrap" style="width:100%;">
+                        <option value="Incomplete documents">Incomplete or unreadable documents</option>
+                        <option value="Expired license">Expired license</option>
+                        <option value="Invalid information">Invalid clinic information</option>
+                        <option value="Duplicate application">Duplicate application</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="modal-field">
+                    <label>Additional Message <span style="opacity:.6;">(optional)</span></label>
+                    <textarea name="message" rows="3" placeholder="Explain what the clinic needs to fix or resubmit…"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('rejectModal')">Cancel</button>
+                    <button type="submit" class="btn btn-danger btn-sm">❌ Reject &amp; Notify Owner</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Suspend Clinic Modal -->
+    <div class="modal-ovl" id="suspendModal">
+        <div class="modal-box">
+            <div class="modal-title">🔒 Suspend Clinic</div>
+            <form method="post" asp-controller="SuperAdmin" asp-action="SuspendClinic">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                <input type="hidden" name="from" value="details" />
+                <div class="modal-field">
+                    <label>Suspension Reason</label>
+                    <select name="reason" class="sel-wrap" style="width:100%;">
+                        <option value="Policy violation">Policy violation</option>
+                        <option value="Fraud complaint">Fraud or complaint</option>
+                        <option value="Expired documents">Expired documents</option>
+                        <option value="Repeated warnings">Repeated warnings</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="modal-field">
+                    <label>Duration</label>
+                    <select name="duration" class="sel-wrap" style="width:100%;">
+                        <option value="7 days">7 days</option>
+                        <option value="14 days">14 days</option>
+                        <option value="30 days">30 days</option>
+                        <option value="indefinite">Indefinite</option>
+                    </select>
+                </div>
+                <div class="modal-field">
+                    <label>Message to Owner <span style="opacity:.6;">(optional)</span></label>
+                    <textarea name="message" rows="3" placeholder="Additional notes for the clinic owner…"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('suspendModal')">Cancel</button>
+                    <button type="submit" class="btn btn-danger btn-sm">🔒 Suspend Clinic</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Warn Owner Modal -->
+    <div class="modal-ovl" id="warnModal">
+        <div class="modal-box">
+            <div class="modal-title">⚠️ Send Warning to Clinic Owner</div>
+            <form method="post" asp-controller="SuperAdmin" asp-action="WarnClinic">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                <div class="modal-field">
+                    <label>Warning Type</label>
+                    <select name="warnType" class="sel-wrap" style="width:100%;">
+                        <option value="Policy Reminder">Policy Reminder</option>
+                        <option value="Complaint Notice">Complaint Notice</option>
+                        <option value="Document Update Required">Document Update Required</option>
+                        <option value="Service Quality">Service Quality Concern</option>
+                        <option value="Final Warning">Final Warning</option>
+                    </select>
+                </div>
+                <div class="modal-field">
+                    <label>Warning Message</label>
+                    <textarea name="warnMessage" rows="4" placeholder="Write the warning message…"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('warnModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">⚠️ Send Warning</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Reject Document Modal -->
+    <div class="modal-ovl" id="rejectDocModal">
+        <div class="modal-box">
+            <div class="modal-title">❌ Reject Document</div>
+            <p style="font-size:.83rem;color:var(--text-muted);font-weight:700;margin-bottom:14px;">
+                Document: <strong id="rejectDocName"></strong>
+            </p>
+            <form method="post" asp-controller="SuperAdmin" asp-action="RejectClinicDocument">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="docId" id="rejectDocId" />
+                <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                <div class="modal-field">
+                    <label>Reason / Admin Note <span style="opacity:.6;">(optional)</span></label>
+                    <textarea name="adminNote" rows="3" placeholder="e.g. Document is expired, unreadable, or incorrect…"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('rejectDocModal')">Cancel</button>
+                    <button type="submit" class="btn btn-danger btn-sm">❌ Reject Document</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <img id="lightboxImg" src="" alt="Document Preview" />
+    </div>
+
     <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
     <script>
-        function showTab(id, btn) {
-            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tabs-row .tab-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-' + id)?.classList.add('active');
-            if (btn) btn.classList.add('active');
+        function openModal(id)  { document.getElementById(id).classList.add('open'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+        document.querySelectorAll('.modal-ovl').forEach(m => {
+            m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+        });
+
+        function openRejectDoc(docId, docName) {
+            document.getElementById('rejectDocId').value = docId;
+            document.getElementById('rejectDocName').textContent = docName;
+            openModal('rejectDocModal');
         }
-        // Auto-hide flash
+
+        function openLightbox(src) {
+            document.getElementById('lightboxImg').src = src;
+            document.getElementById('lightbox').classList.add('open');
+        }
+        function closeLightbox() {
+            document.getElementById('lightbox').classList.remove('open');
+        }
+
         const fm = document.getElementById('flashMsg');
-        if (fm) { setTimeout(() => fm.style.opacity = '0', 3000); setTimeout(() => fm.remove(), 3400); }
+        if (fm) { setTimeout(() => fm.style.opacity = '0', 3500); setTimeout(() => fm.remove(), 3900); }
     </script>
 </body>
 </html>

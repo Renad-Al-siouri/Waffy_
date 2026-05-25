@@ -2,7 +2,7 @@
 using System.Text.Json;
 using Waffy.Interfaces;
 using Waffy.Models;
-using Waffy.Repositories.Interfaces;
+
 namespace Waffy.Controllers
 {
     public class StoreAdminController : Controller
@@ -16,7 +16,9 @@ namespace Waffy.Controllers
         private readonly ICategoryRepository _categoryRepo;
         private readonly IProductImageRepository _productImageRepo;
         private readonly IStoreImageRepository _storeImageRepo;
-
+        private readonly IComplaintRepository _complaintRepo;
+        private readonly IAdoptionRepository _adoptionRepo;
+        private readonly INotificationRepository _notifRepo;
         public StoreAdminController(
             IStoreRepository storeRepo,
             IProductRepository productRepo,
@@ -25,7 +27,10 @@ namespace Waffy.Controllers
             IStoreDocumentRepository docRepo,
             ICategoryRepository categoryRepo,
             IProductImageRepository productImageRepo,
-            IStoreImageRepository storeImageRepo)
+            IStoreImageRepository storeImageRepo,
+            IComplaintRepository complaintRepo,
+            IAdoptionRepository adoptionRepo,
+            INotificationRepository notifRepo) 
         {
             _storeRepo = storeRepo;
             _productRepo = productRepo;
@@ -35,6 +40,9 @@ namespace Waffy.Controllers
             _categoryRepo = categoryRepo;
             _productImageRepo = productImageRepo;
             _storeImageRepo = storeImageRepo;
+            _complaintRepo = complaintRepo;
+            _adoptionRepo = adoptionRepo;
+            _notifRepo = notifRepo;
         }
 
         // ══ HELPERS ═══════════════════════════════════════════════
@@ -50,15 +58,62 @@ namespace Waffy.Controllers
             return await _storeRepo.GetByOwnerUserIdAsync(userId.Value);
         }
 
-        private void SetSidebarData(Store store)
+        private async Task SetSidebarDataAsync(Store store)
         {
             string ownerName = HttpContext.Session.GetString("FullName") ?? "Store Owner";
-            string initial = ownerName.Length > 0 ? ownerName[0].ToString().ToUpper() : "S";
             ViewBag.StoreName = store.Name ?? "";
             ViewBag.OwnerName = ownerName;
-            ViewBag.OwnerInitial = initial;
+            ViewBag.OwnerInitial = ownerName.Length > 0 ? ownerName[0].ToString().ToUpper() : "S";
+
+            var userId = HttpContext.Session.GetInt32("UserId");
+            ViewBag.NotifCount = userId.HasValue
+                ? await _notifRepo.GetUnreadCountAsync(userId.Value) : 0;
+
+            var orders = await _orderRepo.GetByStoreIdAsync(store.IdStore);
+            var complaints = await _complaintRepo.GetByStoreIdAsync(store.IdStore);
+            var products = await _productRepo.GetByStoreIdAsync(store.IdStore);
+
+           
         }
 
+        private async Task CheckAndNotifyLowStockAsync(Store store)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (!userId.HasValue) return;
+
+            var products = (await _productRepo.GetByStoreIdAsync(store.IdStore)).ToList();
+            foreach (var p in products)
+            {
+                if (p.StockQuantity == 0)
+                {
+                    await _notifRepo.AddAsync(new Notification
+                    {
+                        IdUser = userId.Value,
+                        Type = "OutOfStock",
+                        Title = "⚠️ Product Out of Stock",
+                        Message = $"\"{p.Name}\" is now out of stock.",
+                        IsRead = false,
+                        RelatedEntityType = "Product",
+                        RelatedEntityId = p.Id,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+                else if (p.StockQuantity <= 3)
+                {
+                    await _notifRepo.AddAsync(new Notification
+                    {
+                        IdUser = userId.Value,
+                        Type = "LowStock",
+                        Title = "📦 Low Stock Alert",
+                        Message = $"\"{p.Name}\" has only {p.StockQuantity} unit(s) left.",
+                        IsRead = false,
+                        RelatedEntityType = "Product",
+                        RelatedEntityId = p.Id,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
+        }
         private async Task<string> SaveFileAsync(IFormFile file, string subFolder)
         {
             var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", subFolder);
@@ -85,77 +140,119 @@ namespace Waffy.Controllers
             return ext is ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp";
         }
 
+        /// <summary>
+        /// Maps an Order to the JS-friendly object used by the frontend.
+        /// Includes per-item product images and delivery-person info.
+        /// </summary>
         private async Task<object> MapOrderToJs(Order o)
         {
-            var items = (await _orderItemRepo.GetByOrderIdAsync(o.IdOrder)).ToList();
+            // Uses IOrderRepository.GetItemsByOrderIdAsync — avoids IOrderItemRepository method name mismatch
+            var rawItems = (await _orderRepo.GetItemsByOrderIdAsync(o.IdOrder)).ToList();
+
+            var itemDetails = new List<object>();
+            foreach (var i in rawItems)
+            {
+                string mainImg = "";
+                try
+                {
+                    var imgs = (await _productImageRepo.GetByProductIdAsync(i.IdProduct)).ToList();
+                    mainImg = imgs.FirstOrDefault(x => x.IsMain)?.ImageUrl
+                            ?? imgs.FirstOrDefault()?.ImageUrl ?? "";
+                }
+                catch { /* image fetch is best-effort */ }
+
+                itemDetails.Add(new
+                {
+                    name = i.ProductNameSnapshot ?? "Product",
+                    qty = i.Quantity,
+                    price = i.SalePrice ?? i.UnitPrice,
+                    image = mainImg
+                });
+            }
+
             return new
             {
                 idOrder = o.IdOrder,
-                id = o.IdOrder.ToString(),
+                id = o.StoreOrderNumber > 0 ? o.StoreOrderNumber.ToString() : o.IdOrder.ToString(),
                 cust = o.RecipientName ?? "—",
                 phone = o.RecipientPhone ?? "",
                 address = o.DeliveryAddress ?? "",
-                email = "",
                 date = o.CreatedAt.ToString("dd MMM yyyy"),
-                prods = items.Count,
-                total = items.Sum(i => i.Quantity * (i.SalePrice ?? i.UnitPrice)),
+                prods = rawItems.Count,
+                total = rawItems.Sum(i => i.Quantity * (i.SalePrice ?? i.UnitPrice)),
+                deliveryFee = o.DeliveryFee,
+                grandTotal = rawItems.Sum(i => i.Quantity * (i.SalePrice ?? i.UnitPrice)) + o.DeliveryFee,
                 status = (o.Status ?? "pending").ToLower(),
-                items = items.Select(i => $"{i.ProductNameSnapshot ?? "Product"} × {i.Quantity}").ToList()
+                deliveryPersonName = o.DeliveryPersonName ?? "",
+                deliveryPersonPhone = o.DeliveryPersonPhone ?? "",
+                items = itemDetails
             };
         }
 
-        // ══ INDEX / DASHBOARD ═════════════════════════════════════
+        // ══ INDEX ═════════════════════════════════════════════════
 
         public IActionResult Index() => RedirectToAction("Dashboard");
 
+        // ══ DASHBOARD ═════════════════════════════════════════════
+
         [HttpGet]
-public async Task<IActionResult> Dashboard()
-{
-    if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
-    var store = await GetCurrentStore();
-    if (store == null) return RedirectToAction("Login", "Account");
-    SetSidebarData(store);
- 
-    var products   = (await _productRepo.GetByStoreIdAsync(store.IdStore)).ToList();
-    var categories = (await _categoryRepo.GetByStoreIdAsync(store.IdStore)).ToList();
-    var orders     = (await _orderRepo.GetByStoreIdAsync(store.IdStore)).ToList();
-    var revenue    = await _orderRepo.GetTotalRevenueByStoreAsync(store.IdStore);
- 
-    var productsJs = new List<object>();
-    foreach (var p in products)
-    {
-        var imgs    = (await _productImageRepo.GetByProductIdAsync(p.Id)).ToList();
-        var mainImg = imgs.FirstOrDefault(i => i.IsMain)?.ImageUrl
-                   ?? imgs.FirstOrDefault()?.ImageUrl
-                   ?? p.ImageUrl ?? "";
-        productsJs.Add(new
+        public async Task<IActionResult> Dashboard()
         {
-            id     = p.Id,
-            name   = p.Name ?? "",
-            cat    = p.IdCategory.ToString(),
-            price  = p.Price,
-            stock  = p.StockQuantity,
-            status = p.StockQuantity == 0 ? "out" : (p.IsVisible ? "active" : "hidden"),
-            image  = mainImg
-        });
-    }
- 
-    ViewBag.ProductsJson    = JsonSerializer.Serialize(productsJs);
-    ViewBag.CategoriesJson  = JsonSerializer.Serialize(categories.Select(c => new
-    {
-        id   = c.IdCategory,
-        name = c.Name ?? "",
-        icon = (c.Icon != null && c.Icon != "??" && c.Icon != "?") ? c.Icon : "📦"
-    }));
-    ViewBag.OrdersJson      = JsonSerializer.Serialize(await Task.WhenAll(orders.Select(MapOrderToJs)));
-    ViewBag.TotalRevenue    = revenue;
-    ViewBag.PendingOrders   = orders.Count(o => o.Status == "Pending");
-    ViewBag.CompletedOrders = orders.Count(o => o.Status == "Delivered");
-    ViewBag.LowStockCount   = products.Count(p => p.StockQuantity <= 2);
-    ViewBag.ProductsCount   = products.Count;
-    ViewBag.TotalOrders     = orders.Count;
-    return View();
-}
+            if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
+            var store = await GetCurrentStore();
+            if (store == null) return RedirectToAction("Login", "Account");
+            await SetSidebarDataAsync(store);
+
+            ViewData["Title"] = "Dashboard";
+            ViewData["ActiveNav"] = "Dashboard";
+            ViewData["BreadSection"] = "Store";
+            ViewData["BreadPage"] = "Dashboard";
+
+            var products = (await _productRepo.GetByStoreIdAsync(store.IdStore)).ToList();
+            var categories = (await _categoryRepo.GetByStoreIdAsync(store.IdStore)).ToList();
+            var orders = (await _orderRepo.GetByStoreIdAsync(store.IdStore)).ToList();
+            var (itemsRevenue, deliveryRevenue) = await _orderRepo.GetTotalRevenueByStoreAsync(store.IdStore);
+            ViewBag.ItemsRevenue = itemsRevenue;
+            ViewBag.DeliveryRevenue = deliveryRevenue;
+            ViewBag.TotalRevenue = itemsRevenue + deliveryRevenue;
+            // Build products JSON (with main image)
+            var productsJs = new List<object>();
+            foreach (var p in products)
+            {
+                var imgs = (await _productImageRepo.GetByProductIdAsync(p.Id)).ToList();
+                var mainImg = imgs.FirstOrDefault(i => i.IsMain)?.ImageUrl
+                           ?? imgs.FirstOrDefault()?.ImageUrl
+                           ?? p.ImageUrl ?? "";
+                productsJs.Add(new
+                {
+                    id = p.Id,
+                    name = p.Name ?? "",
+                    cat = p.IdCategory.ToString(),
+                    price = p.Price,
+                    stock = p.StockQuantity,
+                    status = p.StockQuantity == 0 ? "out" : (p.IsVisible ? "active" : "hidden"),
+                    image = mainImg
+                });
+            }
+
+            ViewBag.ProductsJson = JsonSerializer.Serialize(productsJs);
+            ViewBag.CategoriesJson = JsonSerializer.Serialize(categories.Select(c => new
+            {
+                id = c.IdCategory,
+                name = c.Name ?? "",
+                icon = (c.Icon != null && c.Icon != "??" && c.Icon != "?") ? c.Icon : "📦"
+            }));
+            ViewBag.OrdersJson = JsonSerializer.Serialize(
+                                          await Task.WhenAll(orders.Select(MapOrderToJs)));
+            ViewBag.TotalRevenue = itemsRevenue + deliveryRevenue;
+            ViewBag.PendingOrders = orders.Count(o => o.Status == "Pending");
+            ViewBag.CompletedOrders = orders.Count(o => o.Status == "Delivered");
+            ViewBag.LowStockCount = products.Count(p => p.StockQuantity <= 2);
+            ViewBag.ProductsCount = products.Count;
+            ViewBag.TotalOrders = orders.Count;
+
+            return View();
+        }
 
         // ══ PRODUCTS ══════════════════════════════════════════════
 
@@ -165,7 +262,12 @@ public async Task<IActionResult> Dashboard()
             if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
             var store = await GetCurrentStore();
             if (store == null) return RedirectToAction("Login", "Account");
-            SetSidebarData(store);
+            await SetSidebarDataAsync(store);
+
+            ViewData["Title"] = "Products";
+            ViewData["ActiveNav"] = "Products";
+            ViewData["BreadSection"] = "Store";
+            ViewData["BreadPage"] = "Products";
 
             var products = (await _productRepo.GetByStoreIdAsync(store.IdStore)).ToList();
             var categories = (await _categoryRepo.GetByStoreIdAsync(store.IdStore)).ToList();
@@ -209,6 +311,7 @@ public async Task<IActionResult> Dashboard()
             }));
             ViewBag.StoreId = store.IdStore;
             ViewBag.ProductCount = products.Count;
+
             return View();
         }
 
@@ -222,11 +325,10 @@ public async Task<IActionResult> Dashboard()
             var store = await GetCurrentStore();
             if (store == null) return Json(new { success = false, message = "Store not found." });
 
-            var validImageFiles = imageFiles?.Where(f => f?.Length > 0).ToList() ?? new();
-            if (validImageFiles.Count > 8)
+            var validFiles = imageFiles?.Where(f => f?.Length > 0).ToList() ?? new();
+            if (validFiles.Count > 8)
                 return Json(new { success = false, message = "Maximum 8 images allowed." });
 
-            // إذا لم تُختر فئة، نأخذ أول فئة للمتجر
             int finalCategoryId = idCategory;
             if (finalCategoryId <= 0)
             {
@@ -249,14 +351,13 @@ public async Task<IActionResult> Dashboard()
             };
 
             var newId = await _productRepo.AddAsync(product);
-
             var savedImages = new List<object>();
             int sortOrder = 0;
-            foreach (var imgFile in validImageFiles)
+
+            foreach (var imgFile in validFiles)
             {
                 var url = await SaveFileAsync(imgFile, "products");
                 bool main = sortOrder == 0;
-
                 var imgId = await _productImageRepo.AddAsync(new ProductImage
                 {
                     IdProduct = newId,
@@ -264,9 +365,7 @@ public async Task<IActionResult> Dashboard()
                     SortOrder = sortOrder,
                     IsMain = main
                 });
-
                 savedImages.Add(new { id = imgId, url, isMain = main });
-
                 if (main)
                 {
                     product.Id = newId;
@@ -294,7 +393,6 @@ public async Task<IActionResult> Dashboard()
             if (product == null || product.IdStore != store.IdStore)
                 return Json(new { success = false, message = "Product not found." });
 
-            // حذف الصور المطلوب حذفها
             if (!string.IsNullOrEmpty(deleteImageIds))
             {
                 foreach (var imgId in deleteImageIds
@@ -306,7 +404,6 @@ public async Task<IActionResult> Dashboard()
                 }
             }
 
-            // إضافة الصور الجديدة
             var validNewFiles = newImageFiles?.Where(f => f?.Length > 0).ToList() ?? new();
             if (validNewFiles.Count > 0)
             {
@@ -454,11 +551,17 @@ public async Task<IActionResult> Dashboard()
             if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
             var store = await GetCurrentStore();
             if (store == null) return RedirectToAction("Login", "Account");
-            SetSidebarData(store);
+            await SetSidebarDataAsync(store);
+
+            ViewData["Title"] = "Orders";
+            ViewData["ActiveNav"] = "Orders";
+            ViewData["BreadSection"] = "Store";
+            ViewData["BreadPage"] = "Orders";
 
             var orders = (await _orderRepo.GetByStoreIdAsync(store.IdStore)).ToList();
             ViewBag.OrdersJson = JsonSerializer.Serialize(
                 await Task.WhenAll(orders.Select(MapOrderToJs)));
+
             return View();
         }
 
@@ -484,6 +587,67 @@ public async Task<IActionResult> Dashboard()
                 _ => status
             };
             await _orderRepo.UpdateStatusAsync(idOrder, dbStatus);
+
+            // ── إشعار للمستخدم ──────────────────────────────────
+            var (icon, title, message) = dbStatus switch
+            {
+                "Confirmed" => ("✅", "Order Confirmed",
+                                 $"Your order #{order.OrderCode} has been confirmed and is being prepared."),
+                "Preparing" => ("👨‍🍳", "Order Being Prepared",
+                                 $"Your order #{order.OrderCode} is now being prepared."),
+                "Shipped" => ("🚚", "Order Shipped",
+                                 $"Your order #{order.OrderCode} is on its way!" +
+                                 (string.IsNullOrEmpty(order.DeliveryPersonName) ? "" : $" Delivery: {order.DeliveryPersonName}.")),
+                "Delivered" => ("📦", "Order Delivered",
+                                 $"Your order #{order.OrderCode} has been delivered. Enjoy!"),
+                "Cancelled" => ("❌", "Order Cancelled",
+                                 $"Your order #{order.OrderCode} has been cancelled by the store."),
+                _ => ("🔔", "Order Updated",
+                                 $"Your order #{order.OrderCode} status updated to {dbStatus}.")
+            };
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = order.IdUser,
+                Type = "Order" + dbStatus,
+                Title = icon + " " + title,
+                Message = message,
+                IsRead = false,
+                RelatedEntityType = "Order",
+                RelatedEntityId = idOrder,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            if (dbStatus == "Delivered")
+                await CheckAndNotifyLowStockAsync(store);
+
+            return Json(new { success = true });
+        }
+
+        /// <summary>
+        /// Sets the delivery person details and marks the order as Shipped.
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> UpdateDeliveryPerson(
+            int idOrder, string deliveryPersonName, string deliveryPersonPhone)
+        {
+            if (!IsStoreOwner()) return Json(new { success = false, message = "Not authorized." });
+            var store = await GetCurrentStore();
+            if (store == null) return Json(new { success = false });
+
+            var order = await _orderRepo.GetByIdAsync(idOrder);
+            if (order == null || order.IdStore != store.IdStore)
+                return Json(new { success = false, message = "Order not found." });
+
+            if (string.IsNullOrWhiteSpace(deliveryPersonName) ||
+                string.IsNullOrWhiteSpace(deliveryPersonPhone))
+                return Json(new { success = false, message = "Delivery person details are required." });
+
+            await _orderRepo.UpdateDeliveryPersonAsync(
+                idOrder,
+                deliveryPersonName.Trim(),
+                deliveryPersonPhone.Trim());
+
             return Json(new { success = true });
         }
 
@@ -495,7 +659,12 @@ public async Task<IActionResult> Dashboard()
             if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
             var store = await GetCurrentStore();
             if (store == null) return RedirectToAction("Login", "Account");
-            SetSidebarData(store);
+            await SetSidebarDataAsync(store);
+
+            ViewData["Title"] = "Customers";
+            ViewData["ActiveNav"] = "Customers";
+            ViewData["BreadSection"] = "Store";
+            ViewData["BreadPage"] = "Customers";
 
             var customers = await _orderRepo.GetCustomersByStoreAsync(store.IdStore);
             ViewBag.CustomersJson = JsonSerializer.Serialize(customers.Select(c => new
@@ -523,7 +692,13 @@ public async Task<IActionResult> Dashboard()
             if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
             var store = await GetCurrentStore();
             if (store == null) return RedirectToAction("Login", "Account");
-            SetSidebarData(store);
+            await SetSidebarDataAsync(store);
+
+            ViewData["Title"] = "Store Settings — Info";
+            ViewData["ActiveNav"] = "Settings";
+            ViewData["ActiveSettings"] = "Info";
+            ViewData["BreadSection"] = "Settings";
+            ViewData["BreadPage"] = "Store Info";
 
             var docs = (await _docRepo.GetByStoreIdAsync(store.IdStore)).ToList();
             ViewBag.Documents = docs.Select(d => new
@@ -566,7 +741,13 @@ public async Task<IActionResult> Dashboard()
             if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
             var store = await GetCurrentStore();
             if (store == null) return RedirectToAction("Login", "Account");
-            SetSidebarData(store);
+            await SetSidebarDataAsync(store);
+
+            ViewData["Title"] = "Store Settings — Images";
+            ViewData["ActiveNav"] = "Settings";
+            ViewData["ActiveSettings"] = "Images";
+            ViewData["BreadSection"] = "Settings";
+            ViewData["BreadPage"] = "Images & Gallery";
 
             var allImages = (await _storeImageRepo.GetByStoreIdAsync(store.IdStore)).ToList();
             ViewBag.GalleryImages = allImages
@@ -580,19 +761,15 @@ public async Task<IActionResult> Dashboard()
         }
 
         [HttpPost]
-        public async Task<IActionResult> UploadStoreImages(
-            string imageType,
-            List<IFormFile>? imageFiles)
+        public async Task<IActionResult> UploadStoreImages(string imageType, List<IFormFile>? imageFiles)
         {
             if (!IsStoreOwner()) return Json(new { success = false, message = "Not authorized." });
             var store = await GetCurrentStore();
             if (store == null) return Json(new { success = false, message = "Store not found." });
 
             var validFiles = imageFiles?.Where(f => f?.Length > 0).ToList() ?? new();
-            if (!validFiles.Any())
-                return Json(new { success = false, message = "No files received." });
+            if (!validFiles.Any()) return Json(new { success = false, message = "No files received." });
 
-            // Logo و Cover: صورة واحدة فقط
             if (imageType == "Logo" || imageType == "Cover")
             {
                 await _storeImageRepo.DeleteByStoreIdAndTypeAsync(store.IdStore, imageType);
@@ -626,8 +803,6 @@ public async Task<IActionResult> Dashboard()
                     SortOrder = sortOrder++
                 });
                 savedUrls.Add(url);
-
-                // نحدّث الحقول القديمة في Store للتوافق
                 if (imageType == "Logo")
                 {
                     store.LogoUrl = url;
@@ -639,7 +814,6 @@ public async Task<IActionResult> Dashboard()
                     await _storeRepo.UpdateAsync(store);
                 }
             }
-
             return Json(new { success = true, urls = savedUrls });
         }
 
@@ -659,7 +833,14 @@ public async Task<IActionResult> Dashboard()
             if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
             var store = await GetCurrentStore();
             if (store == null) return RedirectToAction("Login", "Account");
-            SetSidebarData(store);
+            await SetSidebarDataAsync(store);
+
+            ViewData["Title"] = "Store Settings — Contact";
+            ViewData["ActiveNav"] = "Settings";
+            ViewData["ActiveSettings"] = "Contact";
+            ViewData["BreadSection"] = "Settings";
+            ViewData["BreadPage"] = "Contact & Location";
+
             if (TempData["Success"] != null) ViewBag.Success = TempData["Success"];
             return View(store);
         }
@@ -696,21 +877,30 @@ public async Task<IActionResult> Dashboard()
             if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
             var store = await GetCurrentStore();
             if (store == null) return RedirectToAction("Login", "Account");
-            SetSidebarData(store);
+            await SetSidebarDataAsync(store);
+
+            ViewData["Title"] = "Store Settings — Delivery";
+            ViewData["ActiveNav"] = "Settings";
+            ViewData["ActiveSettings"] = "Delivery";
+            ViewData["BreadSection"] = "Settings";
+            ViewData["BreadPage"] = "Delivery Settings";
+
             if (TempData["Success"] != null) ViewBag.Success = TempData["Success"];
             return View(store);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> SettingsDelivery(
-            bool deliveryAvailable, string? deliveryAreas,
-            string? openTime, string? closeTime, string? workingDays)
+             bool deliveryAvailable, string? deliveryAreas,
+    string? openTime, string? closeTime, string? workingDays,
+    decimal? deliveryFee)
         {
             if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
             var store = await GetCurrentStore();
             if (store == null) return RedirectToAction("Login", "Account");
 
             store.DeliveryAvailable = deliveryAvailable;
+            store.DeliveryFee = deliveryFee ?? 0;
             store.DeliveryAreas = deliveryAreas;
             store.WorkingDays = workingDays;
             store.OpenTime = string.IsNullOrEmpty(openTime) ? null : TimeSpan.TryParse(openTime, out var ot) ? ot : null;
@@ -721,32 +911,6 @@ public async Task<IActionResult> Dashboard()
             return RedirectToAction("SettingsDelivery");
         }
 
-        // ── Payment ───────────────────────────────────────────────
-
-        [HttpGet]
-        public async Task<IActionResult> SettingsPayment()
-        {
-            if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
-            var store = await GetCurrentStore();
-            if (store == null) return RedirectToAction("Login", "Account");
-            SetSidebarData(store);
-            if (TempData["Success"] != null) ViewBag.Success = TempData["Success"];
-            return View(store);
-        }
-
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> SettingsPayment(string? acceptedPayments)
-        {
-            if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
-            var store = await GetCurrentStore();
-            if (store == null) return RedirectToAction("Login", "Account");
-
-            store.AcceptedPayments = acceptedPayments;
-            await _storeRepo.UpdateAsync(store);
-            TempData["Success"] = "✅ Payment methods saved.";
-            return RedirectToAction("SettingsPayment");
-        }
-
         // ── Security ──────────────────────────────────────────────
 
         [HttpGet]
@@ -755,7 +919,14 @@ public async Task<IActionResult> Dashboard()
             if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
             var store = await GetCurrentStore();
             if (store == null) return RedirectToAction("Login", "Account");
-            SetSidebarData(store);
+            await SetSidebarDataAsync(store);
+
+            ViewData["Title"] = "Store Settings — Security";
+            ViewData["ActiveNav"] = "Settings";
+            ViewData["ActiveSettings"] = "Security";
+            ViewData["BreadSection"] = "Settings";
+            ViewData["BreadPage"] = "Account Security";
+
             if (TempData["Success"] != null) ViewBag.Success = TempData["Success"];
             if (TempData["Error"] != null) ViewBag.Error = TempData["Error"];
             return View();
@@ -776,29 +947,300 @@ public async Task<IActionResult> Dashboard()
                 TempData["Error"] = "❌ Please fill in all password fields.";
                 return RedirectToAction("SettingsSecurity");
             }
-
             if (newPassword != confirmPassword)
             {
                 TempData["Error"] = "❌ New passwords do not match.";
                 return RedirectToAction("SettingsSecurity");
             }
-
             if (newPassword.Length < 6)
             {
                 TempData["Error"] = "❌ New password must be at least 6 characters.";
                 return RedirectToAction("SettingsSecurity");
             }
 
-            // TODO: تحقق من الـ currentPassword مقابل الـ DB وحدّث الـ hash
+            // TODO: verify currentPassword against DB hash, update with new hash
             TempData["Success"] = "✅ Password updated successfully.";
             return RedirectToAction("SettingsSecurity");
         }
 
-        // ══ STUBS ═════════════════════════════════════════════════
+        // ══ STUB PAGES ════════════════════════════════════════════
 
-        public IActionResult Reviews() => View();
-        public IActionResult Adoption() => View();
-        public IActionResult Notifications() => View();
-        public IActionResult Subscription() => View();
+        [HttpGet]
+        public async Task<IActionResult> Reviews()
+        {
+            if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
+            var store = await GetCurrentStore();
+            if (store == null) return RedirectToAction("Login", "Account");
+            await SetSidebarDataAsync(store);
+
+            ViewData["Title"] = "Complaints";
+            ViewData["ActiveNav"] = "Reviews";
+            ViewData["BreadSection"] = "Store";
+            ViewData["BreadPage"] = "Complaints";
+
+            var complaints = (await _complaintRepo.GetByStoreIdAsync(store.IdStore)).ToList();
+            ViewBag.ComplaintsJson = JsonSerializer.Serialize(complaints.Select(c => new
+            {
+                id = c.IdComplaint,
+                complainant = c.ComplainantName ?? "Anonymous",
+                title = c.Title ?? "",
+                description = c.Description ?? "",
+                status = (c.Status ?? "open").ToLower(),
+                priority = c.Priority ?? "Medium",
+                date = c.CreatedAt?.ToString("dd MMM yyyy · hh:mm tt") ?? "",
+                source = c.IdUser.HasValue ? "User" : "Admin"
+            }));
+
+            ViewBag.TotalCount = complaints.Count;
+            ViewBag.OpenCount = complaints.Count(c => c.Status == "Open");
+            ViewBag.ResolvedCount = complaints.Count(c => c.Status == "Resolved");
+
+            return View();
+        }
+
+        // ── Update complaint status (AJAX) ────────────────────────
+        [HttpPost]
+        public async Task<IActionResult> UpdateComplaintStatus(int id, string status)
+        {
+            if (!IsStoreOwner()) return Json(new { success = false });
+            await _complaintRepo.UpdateStatusAsync(id, status);
+            return Json(new { success = true });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Adoption()
+        {
+            if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
+            var store = await GetCurrentStore();
+            if (store == null) return RedirectToAction("Login", "Account");
+            await SetSidebarDataAsync(store);
+
+            ViewData["Title"] = "Adoption";
+            ViewData["ActiveNav"] = "Adoption";
+            ViewData["BreadSection"] = "Store";
+            ViewData["BreadPage"] = "Adoption";
+
+            var posts = (await _adoptionRepo.GetByStoreIdAsync(store.IdStore)).ToList();
+
+            // جلب صورة لكل post
+            var postData = new List<object>();
+            foreach (var p in posts)
+            {
+                var imgs = (await _adoptionRepo.GetAllImagesAsync(p.IdPost)).ToList();
+                postData.Add(new
+                {
+                    id = p.IdPost,
+                    name = p.PetName ?? "",
+                    animalType = p.AnimalType ?? "",
+                    breed = p.Breed ?? "",
+                    age = p.Age,
+                    gender = p.Gender ?? "",
+                    city = p.City ?? "",
+                    healthStatus = p.HealthStatus ?? "",
+                    isVaccinated = p.IsVaccinated,
+                    isNeutered = p.IsNeutered,
+                    goodWithChildren = p.GoodWithChildren,
+                    goodWithPets = p.GoodWithPets,
+                    energyLevel = p.EnergyLevel ?? "",
+                    adoptionStatus = (p.AdoptionStatus ?? "Available").ToLower(),
+                    status = (p.Status ?? "Approved").ToLower(),
+                    description = p.Description ?? "",
+                    contactPhone = p.ContactPhone ?? "",
+                    postCode = p.PostCode ?? "",
+                    image = imgs.FirstOrDefault() ?? "",
+                    images = imgs,                          // ← كل الصور
+                    createdAt = p.CreatedAt.ToString("dd MMM yyyy")
+                });
+            }
+
+            ViewBag.PetsJson = System.Text.Json.JsonSerializer.Serialize(postData);
+            ViewBag.TotalCount = posts.Count;
+            ViewBag.AvailableCount = posts.Count(p => p.AdoptionStatus == "Available");
+            ViewBag.AdoptedCount = posts.Count(p => p.AdoptionStatus == "Adopted");
+
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddAdoptionPet(
+            string petName, string animalType, string? breed, string? ageText,
+            string? gender, string? color, string? healthStatus,
+            bool isVaccinated, bool isNeutered, bool goodWithChildren, bool goodWithPets,
+            string? energyLevel, string? description, string? contactPhone,
+            string? traits, List<IFormFile>? petImages)
+        {
+            if (!IsStoreOwner()) return Json(new { success = false, message = "Not authorized." });
+            var store = await GetCurrentStore();
+            if (store == null) return Json(new { success = false });
+
+            if (string.IsNullOrWhiteSpace(petName))
+                return Json(new { success = false, message = "Pet name is required." });
+
+            var post = new AdoptionPost
+            {
+                PostedByType = "Store",
+                PostedById = store.IdStore,
+                IdPet = null,                      // stores have no Pet record
+                StoreName = store.Name,
+                PetName = petName.Trim(),
+                AnimalType = animalType?.Trim(),
+                Breed = breed?.Trim(),
+                Age = int.TryParse(ageText, out var a) ? a : null,
+                Gender = gender,
+                Color = color?.Trim(),
+                HealthStatus = healthStatus?.Trim(),
+                IsVaccinated = isVaccinated,
+                IsNeutered = isNeutered,
+                GoodWithChildren = goodWithChildren,
+                GoodWithPets = goodWithPets,
+                EnergyLevel = energyLevel,
+                Description = description?.Trim(),
+                ContactName = store.Name,
+                ContactPhone = contactPhone?.Trim() ?? store.Phone ?? "",
+                City = store.City ?? "",
+                Area = store.Area ?? "",
+                ReasonForAdoption = "Store adoption listing",
+                Status = "Approved",                // ← no approval needed for verified stores
+                AdoptionStatus = "Available",
+                PostCode = $"WAFFY-STR-{Guid.NewGuid().ToString()[..6].ToUpper()}",
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var newId = await _adoptionRepo.AddAsync(post);
+
+            // حفظ الصور
+            var validImages = petImages?.Where(f => f?.Length > 0).Take(5).ToList() ?? new();
+            foreach (var img in validImages)
+            {
+                var url = await SaveFileAsync(img, "adoption");
+                if (!string.IsNullOrEmpty(url))
+                    await _adoptionRepo.AddImageAsync(newId, url);
+            }
+
+            return Json(new { success = true, id = newId, postCode = post.PostCode });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateAdoptionStatus(int postId, string status)
+        {
+            if (!IsStoreOwner()) return Json(new { success = false });
+            var store = await GetCurrentStore();
+            if (store == null) return Json(new { success = false });
+
+            var post = await _adoptionRepo.GetByIdAsync(postId);
+            if (post == null || post.PostedById != store.IdStore)
+                return Json(new { success = false, message = "Not authorized." });
+
+            await _adoptionRepo.ChangeAdoptionStatusAsync(postId, status);
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> DeleteAdoptionPost(int postId)
+        {
+            if (!IsStoreOwner()) return Json(new { success = false });
+            var store = await GetCurrentStore();
+            if (store == null) return Json(new { success = false });
+
+            var post = await _adoptionRepo.GetByIdAsync(postId);
+            if (post == null || post.PostedById != store.IdStore)
+                return Json(new { success = false, message = "Not authorized." });
+
+            await _adoptionRepo.DeleteAsync(postId);
+            return Json(new { success = true });
+        }
+
+       
+        [HttpGet]
+        public async Task<IActionResult> Notifications()
+        {
+            if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
+            var store = await GetCurrentStore();
+            if (store == null) return RedirectToAction("Login", "Account");
+            await SetSidebarDataAsync(store);
+
+            var userId = HttpContext.Session.GetInt32("UserId")!.Value;
+            var notifs = (await _notifRepo.GetByUserIdAsync(userId)).ToList();
+
+            ViewBag.NotificationsJson = System.Text.Json.JsonSerializer.Serialize(
+                notifs.Select(n => new
+                {
+                    id = n.Id,
+                    type = n.Type ?? "",
+                    title = n.Title ?? "",
+                    message = n.Message ?? "",
+                    isRead = n.IsRead,
+                    createdAt = n.CreatedAt,
+                    relatedType = n.RelatedEntityType ?? "",
+                    relatedId = n.RelatedEntityId
+                }));
+
+            ViewBag.UnreadCount = notifs.Count(n => !n.IsRead);
+            ViewBag.TotalCount = notifs.Count;
+            return View();
+        }
+        // أضف هذين الـ endpoints
+        [HttpPost]
+        public async Task<IActionResult> MarkNotificationRead(int id)
+        {
+            if (!IsStoreOwner()) return Json(new { success = false });
+            await _notifRepo.MarkAsReadAsync(id);
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MarkAllNotificationsRead()
+        {
+            if (!IsStoreOwner()) return Json(new { success = false });
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId.HasValue) await _notifRepo.MarkAllAsReadAsync(userId.Value);
+            return Json(new { success = true });
+        }
+        [HttpGet]
+        public async Task<IActionResult> Subscription()
+        {
+            if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
+            var store = await GetCurrentStore();
+            if (store == null) return RedirectToAction("Login", "Account");
+            await SetSidebarDataAsync(store);
+            ViewData["Title"] = "Subscription";
+            ViewData["ActiveNav"] = "Subscription";
+            ViewData["BreadSection"] = "Management";
+            ViewData["BreadPage"] = "Subscription & Payments";
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> EditAdoptionPost(
+    int postId, string petName, string? breed, string? ageText,
+    string? gender, string? color, string? healthStatus,
+    bool isVaccinated, bool isNeutered, bool goodWithChildren, bool goodWithPets,
+    string? energyLevel, string? description, string? contactPhone, string? traits)
+        {
+            if (!IsStoreOwner()) return Json(new { success = false });
+            var store = await GetCurrentStore();
+            if (store == null) return Json(new { success = false });
+
+            var post = await _adoptionRepo.GetByIdAsync(postId);
+            if (post == null || post.PostedById != store.IdStore)
+                return Json(new { success = false, message = "Not authorized." });
+
+            post.PetName = petName.Trim();
+            post.Breed = breed?.Trim();
+            post.Age = int.TryParse(ageText, out var a) ? a : post.Age;
+            post.Gender = gender;
+            post.Color = color?.Trim();
+            post.HealthStatus = healthStatus?.Trim();
+            post.IsVaccinated = isVaccinated;
+            post.IsNeutered = isNeutered;
+            post.GoodWithChildren = goodWithChildren;
+            post.GoodWithPets = goodWithPets;
+            post.EnergyLevel = energyLevel;
+            post.Description = description?.Trim();
+            post.ContactPhone = contactPhone?.Trim();
+
+            await _adoptionRepo.UpdateAsync(post);
+            return Json(new { success = true });
+        }
     }
 }

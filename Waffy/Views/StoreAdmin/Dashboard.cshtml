@@ -152,7 +152,7 @@
             </div>
             <nav class="sb-nav">
                 <div class="sb-group sb-group-flat">
-                    <a class="sb-row active" href="@Url.Action("Dashboard", "StoreAdmin")" data-tip="Dashboard">
+                    <a class="sb-row active" href="@Url.Action("Dashboard","StoreAdmin")" data-tip="Dashboard">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
                         <span class="sb-lbl">Dashboard</span>
                     </a>
@@ -163,20 +163,20 @@
                     <a class="sb-row" href="@Url.Action("Products", "StoreAdmin")" data-tip="Products">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
                         <span class="sb-lbl">Products</span>
-                        <span class="sb-bdg bd-g" id="productsCountBadge">@(ViewBag.ProductsCount ?? 0)</span>
+                       
                     </a>
                     <a class="sb-row" href="@Url.Action("Orders", "StoreAdmin")" data-tip="Orders">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /></svg></span>
                         <span class="sb-lbl">Orders</span>
-                        <span class="sb-bdg bd-y" id="ordersCountBadge">@(ViewBag.PendingOrders ?? 0)</span>
+                       
                     </a>
                     <a class="sb-row" href="@Url.Action("Customers", "StoreAdmin")" data-tip="Customers">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
                         <span class="sb-lbl">Customers</span>
                     </a>
-                    <a class="sb-row" href="@Url.Action("Reviews", "StoreAdmin")" data-tip="Reviews">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></span>
-                        <span class="sb-lbl">Reviews</span>
+                    <a class="sb-row" href="@Url.Action("Reviews", "StoreAdmin")" data-tip="Complaints">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
+                        <span class="sb-lbl">Complaints</span>
                     </a>
                 </div>
                 <div class="sb-hr"></div>
@@ -229,8 +229,14 @@
             <div class="tn-right">
               
                 <a class="tn-btn" href="@Url.Action("Notifications", "StoreAdmin")">
-                    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-                    <span class="tn-count" id="tnNotifCount">0</span>
+                    <svg class="ico" viewBox="0 0 24 24">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                    @if ((int)(ViewBag.NotifCount ?? 0) > 0)
+                    {
+                        <span class="tn-count">@ViewBag.NotifCount</span>
+                    }
                 </a>
                 <div class="tn-sep"></div>
                 <div class="tn-profile">
@@ -258,8 +264,16 @@
                 <div class="kpi-grid kpi-grid-5">
                     <div class="kpi-card c1">
                         <div class="kpi-ico green">💰</div>
-                        <div class="kpi-val" id="salesKpi">@(ViewBag.TotalRevenue != null ? ((decimal)ViewBag.TotalRevenue).ToString("F2") : "0.00")</div>
+                        <div class="kpi-val">@(((decimal)(ViewBag.TotalRevenue ?? 0)).ToString("F3"))</div>
                         <div class="kpi-label">Total Revenue (JOD)</div>
+                        <div style="display:flex;flex-direction:column;gap:2px;margin-top:6px">
+                            <div style="font-size:.68rem;font-weight:800;color:var(--text-muted)">
+                                📦 Products: @(((decimal)(ViewBag.ItemsRevenue ?? 0)).ToString("F3")) JD
+                            </div>
+                            <div style="font-size:.68rem;font-weight:800;color:var(--text-muted)">
+                                🚚 Delivery: @(((decimal)(ViewBag.DeliveryRevenue ?? 0)).ToString("F3")) JD
+                            </div>
+                        </div>
                     </div>
                     <div class="kpi-card c2">
                         <div class="kpi-ico blue">🧾</div>
@@ -533,7 +547,17 @@
                     </div>
                     <div style="font-size:.78rem;font-weight:800;color:var(--brand-dark);margin-bottom:8px">Items:</div>
                     <ul style="margin:0;padding-left:18px">
-                        ${(o.items||[]).map(i=>`<li style="font-size:.84rem;margin-bottom:4px">${i}</li>`).join('') || '<li style="color:var(--text-muted)">—</li>'}
+                           ${(o.items||[]).map(i=>`
+        <li style="list-style:none;display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
+            ${i.image
+                ? `<img src="${i.image}" style="width:44px;height:44px;object-fit:cover;border-radius:7px;flex-shrink:0">`
+                : `<div style="width:44px;height:44px;border-radius:7px;background:var(--brand-ghost);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">📦</div>`}
+            <div style="flex:1">
+                <div style="font-weight:700;font-size:.83rem">${i.name}</div>
+                <div style="font-size:.73rem;color:var(--text-muted)">× ${i.qty} · ${parseFloat(i.price).toFixed(3)} JD</div>
+            </div>
+            <strong style="font-size:.83rem;color:var(--brand-dark)">${(i.qty*i.price).toFixed(3)} JD</strong>
+        </li>`).join('') || '<li style="color:var(--text-muted)">—</li>'}
                     </ul>
                     <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
                         <span style="font-weight:700">Total:</span>
@@ -568,25 +592,50 @@
         }
 
         // ── Best Sellers ─────────────────────────────────────────────────
-        function renderBestSellers(){
+                function renderBestSellers(){
             const el=document.getElementById('bestSellersList');
-            const products=(window.serverProducts||[]).slice(0,5);
-            if(!products.length){el.innerHTML='<p style="color:var(--text-muted);font-size:.84rem;text-align:center;padding:20px">No products yet</p>';return;}
-            el.innerHTML=products.map((p,i)=>`
+            const orders=window.serverOrders||[];
+            const counts={};
+
+            orders.forEach(o=>{
+                (o.items||[]).forEach(i=>{
+                    if(typeof i==='object' && i.name){
+                        if(!counts[i.name]) counts[i.name]={qty:0,image:i.image||''};
+                        counts[i.name].qty+=i.qty||1;
+                    }
+                });
+            });
+
+            const sorted=Object.entries(counts).sort((a,b)=>b[1].qty-a[1].qty).slice(0,5);
+
+            if(!sorted.length){
+                // fallback: عرض المنتجات مباشرة لو ما في طلبات
+                const products=(window.serverProducts||[]).slice(0,5);
+                if(!products.length){el.innerHTML='<p style="color:var(--text-muted);font-size:.84rem;text-align:center;padding:20px">No products yet</p>';return;}
+                el.innerHTML=products.map((p,i)=>`
+                    <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
+                        <span style="font-size:1.1rem;font-weight:900;color:var(--brand);min-width:24px">#${i+1}</span>
+                        ${p.image?`<img src="${p.image}" style="width:36px;height:36px;object-fit:cover;border-radius:7px">`:
+                                  `<div style="width:36px;height:36px;border-radius:7px;background:var(--brand-ghost);display:flex;align-items:center;justify-content:center">📦</div>`}
+                        <div style="flex:1;min-width:0">
+                            <div style="font-weight:800;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${p.name}</div>
+                            <div style="font-size:.72rem;color:var(--text-muted)">${p.price?.toFixed?p.price.toFixed(3):p.price} JD</div>
+                        </div>
+                    </div>`).join('');
+                return;
+            }
+
+            el.innerHTML=sorted.map(([name,data],i)=>`
                 <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)">
                     <span style="font-size:1.1rem;font-weight:900;color:var(--brand);min-width:24px">#${i+1}</span>
-                    ${p.image?`<img src="${p.image}" style="width:36px;height:36px;object-fit:cover;border-radius:7px">`:
-                              `<div style="width:36px;height:36px;border-radius:7px;background:var(--brand-ghost);display:flex;align-items:center;justify-content:center;font-size:.9rem">📦</div>`}
+                    ${data.image?`<img src="${data.image}" style="width:36px;height:36px;object-fit:cover;border-radius:7px">`:
+                                 `<div style="width:36px;height:36px;border-radius:7px;background:var(--brand-ghost);display:flex;align-items:center;justify-content:center">📦</div>`}
                     <div style="flex:1;min-width:0">
-                        <div style="font-weight:800;font-size:.82rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${p.name}</div>
-                        <div style="font-size:.72rem;color:var(--text-muted)">${p.price?.toFixed ? p.price.toFixed(3) : p.price} JD</div>
+                        <div style="font-weight:800;font-size:.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div>
+                        <div style="font-size:.72rem;color:var(--text-muted)">${data.qty} sold</div>
                     </div>
-                    <span style="font-size:.7rem;padding:2px 8px;border-radius:10px;${p.status==='out'?'background:#ffe0e0;color:#c0392b':'background:var(--gp);color:var(--brand-dark)'}">
-                        ${p.status==='out'?'Out of Stock':'In Stock'}
-                    </span>
                 </div>`).join('');
         }
-
         // ── Chart ────────────────────────────────────────────────────────
         function renderChart(){
             const ctx=document.getElementById('salesChart');
@@ -597,8 +646,12 @@
             const data=new Array(12).fill(0);
             orders.forEach(o=>{
                 if(o.date){
-                    const d=new Date(o.date);
-                    if(!isNaN(d)) data[d.getMonth()]+=parseFloat(o.total||0);
+                           const MONTHS={Jan:0,Feb:1,Mar:2,Apr:3,May:4,Jun:5,Jul:6,Aug:7,Sep:8,Oct:9,Nov:10,Dec:11};
+        const parts=(o.date||'').split(' ');
+        if(parts.length===3){
+            const m=MONTHS[parts[1]];
+            if(m!==undefined) data[m]+=parseFloat(o.total||0);
+        }
                 }
             });
             new Chart(ctx,{
@@ -729,6 +782,6 @@
             if(lsc && (window.serverStats.lowStock||0)===0) lsc.style.display='none';
         });
     </script>
-    <script src="~/js/AdminStore.js"></script>
+    
 </body>
 </html>

@@ -2,7 +2,12 @@
 @{
     ViewData["Title"] = "My Orders";
     Layout = null;
+    var storeLogos = ViewBag.StoreLogos as Dictionary<int, string> ?? new();
     var storeNames = ViewBag.StoreNames as Dictionary<int, string> ?? new();
+    ViewBag.SidebarName = ViewBag.FullName ?? "User";
+    ViewBag.SidebarEmail = ViewBag.Email ?? "";
+    ViewBag.SidebarBalance = ViewBag.SidebarBalance as string ?? "0.00";
+    ViewBag.SidebarOrdersBadge = Model.Count(o => o.Status == "Pending").ToString();
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -524,7 +529,20 @@
                                 <span class="badge @badgeCls">@(o.Status ?? "Pending")</span>
                             </div>
                             <div class="order-card-body">
-                                <div style="width:38px;height:38px;background:#e8f0d8;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0">🏪</div>
+                                @{
+                                    var logo = storeLogos.GetValueOrDefault(o.IdStore, "");
+                                }
+                                <div style="width:42px;height:42px;border-radius:10px;overflow:hidden;flex-shrink:0;border:1px solid #e0ead0">
+                                    @if (!string.IsNullOrEmpty(logo))
+                                    {
+                                        <img src="@logo" alt="@storeName"
+                                             style="width:100%;height:100%;object-fit:cover" />
+                                    }
+                                    else
+                                    {
+                                        <div style="width:100%;height:100%;background:#e8f0d8;display:flex;align-items:center;justify-content:center;font-size:1.2rem">🏪</div>
+                                    }
+                                </div>
                                 <div style="flex:1">
                                     <div class="order-store-name">@storeName</div>
                                     <div class="order-payment">
@@ -537,9 +555,31 @@
                                     📍 @(o.DeliveryAddress?.Length > 45 ? o.DeliveryAddress[..45] + "…" : o.DeliveryAddress)
                                 </div>
                                 <button class="track-btn"
-                                        onclick="openTrackModal(@o.IdOrder, '@o.OrderCode', '@status', '@storeName', '@o.RecipientName', '@o.DeliveryAddress', '@(o.PaymentMethod ?? "")')">
+                                        data-id="@o.IdOrder"
+                                        data-code="@o.OrderCode"
+                                        data-status="@status"
+                                        data-store="@storeName"
+                                        data-recipient="@Html.Raw(System.Text.Json.JsonSerializer.Serialize(o.RecipientName ?? ""))"
+                                        data-address="@Html.Raw(System.Text.Json.JsonSerializer.Serialize(o.DeliveryAddress ?? ""))"
+                                        data-payment="@(o.PaymentMethod ?? "")"
+                                        data-dpname="@(o.DeliveryPersonName ?? "")"
+                                        data-dpphone="@(o.DeliveryPersonPhone ?? "")"
+                                        onclick="openTrackModal(this)">
                                     Track Order →
                                 </button>
+                                @if (status == "pending" || status == "confirmed" || status == "preparing")
+                                {
+                                    <form method="post" asp-controller="Profile" asp-action="CancelOrder"
+                                          onsubmit="return confirm('Cancel this order?')">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="orderId" value="@o.IdOrder">
+                                        <button type="submit"
+                                                style="padding:6px 14px;background:#fdecea;border:1px solid #f5b8b8;
+                               border-radius:20px;font-size:.76rem;font-weight:800;color:#c0392b;cursor:pointer">
+                                            Cancel Order
+                                        </button>
+                                    </form>
+                                }
                             </div>
                         </div>
                     }
@@ -561,6 +601,7 @@
                 <div style="font-size:.76rem;color:#888;margin-top:2px" id="modalPayment"></div>
             </div>
             <div class="timeline" id="modalTimeline"></div>
+            <div id="modalDeliveryPerson"></div>
             <div class="modal-items" id="modalItems">
                 <div style="text-align:center;color:#aaa;font-size:.82rem;padding:10px">Loading items...</div>
             </div>
@@ -632,20 +673,66 @@
             }).join('');
         }
 
-        async function openTrackModal(orderId, code, status, storeName, recipient, address, payment){
+                      async function openTrackModal(btn) {
+            const orderId   = btn.dataset.id;
+            const code      = btn.dataset.code;
+            const status    = btn.dataset.status;
+            const storeName = btn.dataset.store;
+            const recipient = JSON.parse(btn.dataset.recipient || '""');
+            const address   = JSON.parse(btn.dataset.address   || '""');
+            const payment   = btn.dataset.payment;
+            const dpName = btn.dataset.dpname || '';
+            const dpPhone   = btn.dataset.dpphone;
+
             document.getElementById('modalCode').textContent    = code;
             document.getElementById('modalStore').textContent   = '🏪 ' + storeName + ' · ' + recipient;
             document.getElementById('modalAddress').textContent = '📍 ' + (address || '—');
             document.getElementById('modalPayment').textContent = '💳 ' + (payment || '—');
             document.getElementById('modalTimeline').innerHTML  = buildTimeline(status);
-            document.getElementById('modalItems').innerHTML = '<div style="text-align:center;color:#aaa;font-size:.82rem;padding:10px">Loading items...</div>';
-            try{
-                const res  = await fetch(`/Profile/OrderItems?orderId=${orderId}`);
+
+            // ── معلومات المندوب ──
+            var dpEl = document.getElementById('modalDeliveryPerson');
+            if ((status === 'shipped' || status === 'delivered') && (dpName || dpPhone)) {
+                dpEl.innerHTML =
+                    '<div style="margin:14px 0;padding:12px 14px;background:#e8f5e9;border:1px solid #a5d6a7;border-radius:12px">'
+                  + '<div style="font-size:.72rem;font-weight:800;color:#2e7d32;margin-bottom:6px">🚚 Delivery Person</div>'
+                  + '<div style="font-weight:800;font-size:.88rem;color:#1b5e20">' + (dpName || '—') + '</div>'
+                  + '<div style="font-size:.78rem;color:#388e3c;margin-top:3px">📞 ' + (dpPhone || '—') + '</div>'
+                  + '</div>';
+            } else {
+                dpEl.innerHTML = '';
+            }
+
+            // ── Items ──
+            document.getElementById('modalItems').innerHTML =
+                '<div style="text-align:center;color:#aaa;font-size:.82rem;padding:10px">Loading items...</div>';
+            try {
+                const res  = await fetch('/Profile/OrderItems?orderId=' + orderId);
                 const data = await res.json();
-                if(data.items && data.items.length){
-                    document.getElementById('modalItems').innerHTML = `<div style="font-size:.78rem;font-weight:800;color:#6a9a3a;margin-bottom:8px">Items Ordered</div>${data.items.map(item=>`<div class="modal-item"><div><div class="modal-item-name">${item.name}</div><div class="modal-item-qty">× ${item.qty}</div></div><div class="modal-item-price">${item.subtotal} JD</div></div>`).join('')}<div class="modal-total"><span>Total</span><span>${data.total} JD</span></div>`;
-                } else { document.getElementById('modalItems').innerHTML = ''; }
-            } catch(e){ document.getElementById('modalItems').innerHTML = ''; }
+                if (data.items && data.items.length) {
+                    var html = '<div style="font-size:.78rem;font-weight:800;color:#6a9a3a;margin-bottom:8px">Items Ordered</div>';
+                    data.items.forEach(function(item) {
+                        var imgPart = (item.image && item.image !== '')
+                            ? '<img src="' + item.image + '" style="width:48px;height:48px;object-fit:cover;border-radius:8px;flex-shrink:0;border:1px solid #e8f0e0">'
+                            : '<div style="width:48px;height:48px;border-radius:8px;background:#e8f0d8;display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0">📦</div>';
+                        html += '<div class="modal-item" style="align-items:center;gap:10px">'
+                              + imgPart
+                              + '<div style="flex:1;min-width:0">'
+                              +   '<div class="modal-item-name">' + item.name + '</div>'
+                              +   '<div class="modal-item-qty">× ' + item.qty + '</div>'
+                              + '</div>'
+                              + '<div class="modal-item-price">' + item.subtotal + ' JD</div>'
+                              + '</div>';
+                    });
+                    html += '<div class="modal-total"><span>Total</span><span>' + data.total + ' JD</span></div>';
+                    document.getElementById('modalItems').innerHTML = html;
+                } else {
+                    document.getElementById('modalItems').innerHTML = '';
+                }
+            } catch(e) {
+                document.getElementById('modalItems').innerHTML = '';
+            }
+
             document.getElementById('trackOverlay').classList.add('open');
             document.body.style.overflow = 'hidden';
         }

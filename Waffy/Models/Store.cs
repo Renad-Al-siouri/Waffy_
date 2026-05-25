@@ -19,6 +19,7 @@
         public double? Latitude { get; set; }
         public double? Longitude { get; set; }
         public bool DeliveryAvailable { get; set; }
+        public decimal? DeliveryFee { get; set; }   
         public string? DeliveryAreas { get; set; }
         public TimeSpan? OpenTime { get; set; }
         public TimeSpan? CloseTime { get; set; }
@@ -29,5 +30,9 @@
         public int? VerifiedByAdminId { get; set; }
         public decimal? Rating { get; set; }
         public DateTime CreatedAt { get; set; }
+
+       
+       
+       
     }
 }

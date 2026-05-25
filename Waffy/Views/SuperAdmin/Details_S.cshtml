@@ -166,7 +166,7 @@
                     <div class="kpi-card c1"><div class="kpi-ico green">📦</div><div class="kpi-val" id="ksProducts">—</div><div class="kpi-label">Products</div></div>
                     <div class="kpi-card c2"><div class="kpi-ico blue">🛒</div><div class="kpi-val" id="ksOrders">—</div><div class="kpi-label">Total Orders</div></div>
                     <div class="kpi-card c1"><div class="kpi-ico green">💰</div><div class="kpi-val" id="ksRevenue">—</div><div class="kpi-label">Revenue</div></div>
-                    <div class="kpi-card c2"><div class="kpi-ico blue">⭐</div><div class="kpi-val" id="ksRating">—</div><div class="kpi-label">Rating</div></div>
+                   
                 </div>
 
                 <!-- Tabs -->
@@ -227,7 +227,7 @@
                         </div>
                         <div class="table-wrap">
                             <table>
-                                <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Delivery Fee</th><th>Date</th><th>Status</th></tr></thead>
+                                <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Items Total</th><th>Delivery</th><th>Grand Total</th><th>Date</th><th>Status</th></tr></thead>
                                 <tbody id="ordersTBody"></tbody>
                             </table>
                         </div>
@@ -381,7 +381,13 @@
             document.title = `Waffy — ${s.name}`;
             document.getElementById('heroTitle').textContent = `🏪 ${s.name}`;
             document.getElementById('heroSub').textContent   = `${s.city || ''} · Joined ${s.joined || ''}`;
-            document.getElementById('storeAvatar').textContent = '🏪';
+                    const avatarEl = document.getElementById('storeAvatar');
+        if (s.logoUrl) {
+            avatarEl.innerHTML = `<img src="${s.logoUrl}" alt="${s.name}"
+                style="width:100%;height:100%;object-fit:cover;border-radius:22px;">`;
+        } else {
+            avatarEl.textContent = '🏪';
+        }
             document.getElementById('storeName').textContent   = s.name;
             document.getElementById('storeBadges').innerHTML   = statusBadge(s.status);
             document.getElementById('storeMeta').innerHTML     =
@@ -390,7 +396,7 @@
             document.getElementById('ksProducts').textContent = s.products || 0;
             document.getElementById('ksOrders').textContent   = s.orders   || 0;
             document.getElementById('ksRevenue').textContent  = s.revenue > 0 ? Number(s.revenue).toLocaleString() + ' JD' : '0 JD';
-            document.getElementById('ksRating').textContent   = s.rating  > 0 ? '⭐ ' + Number(s.rating).toFixed(1) : '—';
+           
 
             // أزرار الأكشن حسب الحالة
             let btns = '';
@@ -410,7 +416,24 @@
             renderProducts();
             renderStoreInfo();
         }
-
+                function showTab(name, btn) {
+            // إخفاء كل التابات
+            ['products','orders','customers','documents','info'].forEach(t => {
+                const el = document.getElementById('tab-' + t);
+                if (el) el.style.display = 'none';
+            });
+            // إزالة active من كل الأزرار
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            // إظهار التاب المطلوب
+            const target = document.getElementById('tab-' + name);
+            if (target) target.style.display = 'block';
+            if (btn) btn.classList.add('active');
+            // استدعاء دالة الرسم المناسبة
+            if (name === 'orders')    renderOrders();
+            if (name === 'customers') renderCustomers();
+            if (name === 'documents') renderDocuments();
+            if (name === 'info')      renderStoreInfo();
+        }
         // ══ PRODUCTS ══
         function renderProducts() {
             const q  = (document.getElementById('prodSearch')?.value || '').toLowerCase();
@@ -424,16 +447,26 @@
                     <tr>
                         <td>
                             <div style="display:flex;align-items:center;gap:10px;">
-                                <div style="width:38px;height:38px;border-radius:10px;background:var(--brand-xlight);display:grid;place-items:center;font-size:1.1rem;flex-shrink:0;overflow:hidden;">
-                                    ${p.image ? `<img src="${p.image}" style="width:100%;height:100%;object-fit:cover;">` : '📦'}
-                                </div>
+                               <div style="width:38px;height:38px;border-radius:10px;background:var(--brand-xlight);
+             display:grid;place-items:center;font-size:1.1rem;flex-shrink:0;overflow:hidden;
+             position:relative;">
+            ${p.images && p.images.length
+                ? `<img src="${p.images[0]}" style="width:100%;height:100%;object-fit:cover;"
+                       onerror="this.parentElement.textContent='📦'">
+                   ${p.images.length > 1
+                       ? `<span style="position:absolute;bottom:1px;right:2px;font-size:8px;
+                                       background:rgba(0,0,0,.5);color:#fff;border-radius:4px;
+                                       padding:1px 3px;">${p.images.length}</span>`
+                       : ''}`
+                : '📦'}
+        </div>
                                 <div class="cell-title">${p.name}</div>
                             </div>
                         </td>
                         <td><strong style="color:var(--brand-dark);">${Number(p.price).toFixed(2)} JD</strong></td>
                         <td style="color:${p.stock === 0 ? 'var(--danger)' : 'var(--text)'};">${p.stock === 0 ? '⚠️ Out of stock' : p.stock + ' units'}</td>
                         <td>${statusBadge(p.status)}</td>
-                        <td><button class="btn btn-outline btn-xs" onclick="toggleProductVisibility(${p.id}, this)">${p.status === 'hidden' ? '👁 Show' : '🙈 Hide'}</button></td>
+                        <td>-</td>
                     </tr>`).join('')
                 : `<tr><td colspan="5" style="text-align:center;padding:28px;color:var(--text-muted);">No products yet.</td></tr>`;
             document.getElementById('prodPagInfo').textContent = `Showing ${data.length} of ${products.length} products`;
@@ -469,7 +502,9 @@
                             <div style="font-size:.76rem;color:var(--text-muted);">${o.phone || ''}</div>
                         </td>
                         <td style="font-size:.82rem;color:var(--text-muted);max-width:180px;white-space:normal;">${Array.isArray(o.items) && o.items.length ? o.items.join(', ') : '—'}</td>
-                        <td><strong style="color:var(--success);">${Number(o.deliveryFee || 0).toFixed(2)} JD</strong></td>
+                               <td>${Number(o.itemsTotal || 0).toFixed(3)} JD</td>
+        <td>${Number(o.deliveryFee || 0).toFixed(3)} JD</td>
+        <td><strong style="color:var(--success);">${Number(o.total || 0).toFixed(3)} JD</strong></td>
                         <td style="font-size:.8rem;color:var(--text-muted);">${o.date || '—'}</td>
                         <td>${statusBadge(o.status)}</td>
                     </tr>`).join('')
@@ -576,18 +611,25 @@
             document.getElementById('suspendFormD').submit();
         }
 
-        function sendWarning() { closeM('warnModal'); toast('Warning sent to store owner.', 'warning'); }
+               async function sendWarning() {
+            const type    = document.getElementById('warnType').value;
+            const message = document.getElementById('warnMessage').value.trim();
+            if (!message) { toast('Please write a warning message.', 'warning'); return; }
 
-        // ══ TABS ══
-        const TABS = ['products', 'orders', 'documents', 'info'];
-              function showTab(id, btn) {
-            ['products','orders','customers','documents','info'].forEach(t =>
-                document.getElementById('tab-' + t).style.display = t === id ? 'block' : 'none');
-            document.querySelectorAll('#tabsBar .tab-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            if (id === 'orders')    renderOrders();
-            if (id === 'documents') renderDocuments();
-            if (id === 'customers') renderCustomers();
+            const fd = new FormData();
+            fd.append('storeId',     STORE_ID);
+            fd.append('warnType',    type);
+            fd.append('warnMessage', message);
+            fd.append('__RequestVerificationToken', getToken());
+
+            try {
+                const res  = await fetch('/SuperAdmin/WarnStore', { method:'POST', body:fd });
+                const data = await res.json();
+                if (data.success) {
+                    closeM('warnModal');
+                    toast('⚠️ Warning sent and recorded.', 'warning');
+                }
+            } catch(e) { toast('Error sending warning.', 'danger'); }
         }
 
         // ══ MODAL ══

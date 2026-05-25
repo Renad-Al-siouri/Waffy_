@@ -95,27 +95,12 @@ namespace Waffy.Controllers
             var store = await _storeRepo.GetByIdAsync(storeId);
             if (store == null) return NotFound();
 
-            // جلب المنتجات المرئية فقط
-            var products = (await _productRepo.GetByStoreIdAsync(storeId))
-                .Where(p => p.IsVisible)
-                .ToList();
-
-            var totalBeforeFilter = products.Count;
-
-            // ── Filters ──────────────────────────────────────────
-            if (!string.IsNullOrWhiteSpace(search))
-            {
-                var q = search.Trim().ToLower();
-                products = products.Where(p =>
-                    p.Name.ToLower().Contains(q) ||
-                    (p.Description ?? "").ToLower().Contains(q)
-                ).ToList();
-            }
-            if (categoryId.HasValue)
-                products = products.Where(p => p.IdCategory == categoryId.Value).ToList();
-            // ✅ هذا يعرض المنتجات الأرخص من السعر المختار
-            if (maxPrice.HasValue)
-                products = products.Where(p => (p.SalePrice ?? p.Price) <= maxPrice.Value).ToList();
+            var products = (await _productRepo.GetFilteredAsync(
+     storeId,
+     string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
+     categoryId,
+     maxPrice
+ )).ToList();
             // ── جلب صور كل منتج وبناء JSON للـ slider ────────────
             var productsWithImages = new List<object>();
             foreach (var p in products)
@@ -153,7 +138,7 @@ namespace Waffy.Controllers
             {
                 Store = store,
                 Products = products,
-                TotalCount = totalBeforeFilter,
+                TotalCount = products.Count,
                 Search = search,
                 CategoryId = categoryId,
                 MaxPrice = maxPrice

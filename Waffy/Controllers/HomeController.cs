@@ -15,14 +15,18 @@ namespace Waffy.Controllers
         private readonly IStoreRepository _storeRepo;
         private readonly IPetLawRepository _lawRepo;
         private readonly INotificationRepository _notifRepo;
+        private readonly IProductRepository _productRepo;
+        private readonly IProductImageRepository _productImageRepo;
 
         public HomeController(
-            ILogger<HomeController> logger,
-            IComplaintRepository complaintRepo,
-            IClinicRepository clinicRepo,
-            IStoreRepository storeRepo,
-            IPetLawRepository lawRepo,
-            INotificationRepository notifRepo)
+     ILogger<HomeController> logger,
+     IComplaintRepository complaintRepo,
+     IClinicRepository clinicRepo,
+     IStoreRepository storeRepo,
+     IPetLawRepository lawRepo,
+     INotificationRepository notifRepo,
+     IProductRepository productRepo,
+     IProductImageRepository productImageRepo)
         {
             _logger = logger;
             _complaintRepo = complaintRepo;
@@ -30,6 +34,8 @@ namespace Waffy.Controllers
             _storeRepo = storeRepo;
             _lawRepo = lawRepo;
             _notifRepo = notifRepo;
+            _productRepo = productRepo;
+            _productImageRepo = productImageRepo;
         }
 
         public IActionResult Index()
@@ -41,16 +47,86 @@ namespace Waffy.Controllers
         {
             return View();
         }
-        public IActionResult Home_Before()
+        public async Task<IActionResult> Home_Before()
         {
+            var allStores = (await _storeRepo.GetAllAsync())
+     .Where(s => s.VerificationStatus == "Approved")
+     .ToList();
+            var featuredProducts = new List<object>();
+
+            foreach (var store in allStores.Take(10))
+            {
+                var products = (await _productRepo.GetByStoreIdAsync(store.IdStore))
+                    .Where(p => p.IsVisible && p.StockQuantity > 0)
+                    .Take(3).ToList();
+
+                foreach (var p in products)
+                {
+                    var imgs = (await _productImageRepo.GetByProductIdAsync(p.Id)).ToList();
+                    var img = imgs.FirstOrDefault(i => i.IsMain)?.ImageUrl
+                           ?? imgs.FirstOrDefault()?.ImageUrl ?? "";
+
+                    featuredProducts.Add(new
+                    {
+                        id = p.Id,
+                        name = p.Name,
+                        desc = p.Description?.Length > 80
+                                    ? p.Description[..80] + "…" : p.Description ?? "",
+                        price = p.Price,
+                        salePrice = p.SalePrice,
+                        imageUrl = img,
+                        storeName = store.Name,
+                        storeId = store.IdStore,
+                        petType = p.PetType ?? ""
+                    });
+                }
+            }
+
+            ViewBag.FeaturedProductsJson = System.Text.Json.JsonSerializer.Serialize(
+                featuredProducts.OrderBy(_ => Guid.NewGuid()).Take(20));
+
             return View();
         }
 
-        public IActionResult Home_After()
+        public async Task<IActionResult> Home_After()
         {
+            var allStores = (await _storeRepo.GetAllAsync())
+                .Where(s => s.VerificationStatus == "Approved").ToList();
+
+            var featuredProducts = new List<object>();
+            foreach (var store in allStores.Take(10))
+            {
+                var products = (await _productRepo.GetByStoreIdAsync(store.IdStore))
+                    .Where(p => p.IsVisible && p.StockQuantity > 0)
+                    .Take(3).ToList();
+
+                foreach (var p in products)
+                {
+                    var imgs = (await _productImageRepo.GetByProductIdAsync(p.Id)).ToList();
+                    var img = imgs.FirstOrDefault(i => i.IsMain)?.ImageUrl
+                            ?? imgs.FirstOrDefault()?.ImageUrl ?? "";
+
+                    featuredProducts.Add(new
+                    {
+                        id = p.Id,
+                        name = p.Name,
+                        desc = p.Description?.Length > 80
+                                    ? p.Description[..80] + "…" : p.Description ?? "",
+                        price = p.Price,
+                        salePrice = p.SalePrice,
+                        imageUrl = img,
+                        storeName = store.Name,
+                        storeId = store.IdStore,
+                        petType = p.PetType ?? ""
+                    });
+                }
+            }
+
+            ViewBag.FeaturedProductsJson = System.Text.Json.JsonSerializer.Serialize(
+                featuredProducts.OrderBy(_ => Guid.NewGuid()).Take(20));
+
             return View();
         }
-
         public IActionResult About()
         {
             return View();
@@ -127,7 +203,25 @@ namespace Waffy.Controllers
                 Priority = priority ?? "Medium",
                 CreatedAt = DateTime.UtcNow
             });
-
+            // إشعار لصاحب المتجر لو الشكوى عن متجر
+            if (targetType == "Store" && targetId.HasValue)
+            {
+                var targetStore = await _storeRepo.GetByIdAsync(targetId.Value);
+                if (targetStore != null)
+                {
+                    await _notifRepo.AddAsync(new Notification
+                    {
+                        IdUser = targetStore.OwnerUserId,
+                        Type = "NewComplaint",
+                        Title = "📢 New Complaint Received",
+                        Message = $"A customer submitted a complaint via support: \"{title}\"",
+                        IsRead = false,
+                        RelatedEntityType = "Store",
+                        RelatedEntityId = targetId.Value,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
             TempData["SupportSuccess"] = "✅ Your report was received successfully!";
             return RedirectToAction("Suport");
         }

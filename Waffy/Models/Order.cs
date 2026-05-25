@@ -15,9 +15,16 @@
         public decimal DeliveryFee { get; set; }
         public string? Notes { get; set; }
         public string? CancellationReason { get; set; }
+
+        // ── Delivery person (assigned when shipping) ──────────────
+        public string? DeliveryPersonName { get; set; }
+        public string? DeliveryPersonPhone { get; set; }
+
         public DateTime CreatedAt { get; set; }
 
-        // Extended — من JOIN
+        // Extended — from JOIN
         public string? StoreName { get; set; }
+        public int StoreOrderNumber { get; set; }
+
     }
 }

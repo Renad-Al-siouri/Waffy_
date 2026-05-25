@@ -9,5 +9,8 @@
         public string Status { get; set; } = "Pending";
         public DateTime? ExpiryDate { get; set; }
         public DateTime UploadedAt { get; set; } = DateTime.Now;
+        public string? AdminNote { get; set; }
+        public DateTime? ReviewedAt { get; set; }
+        public int? ReviewedByAdminId { get; set; }
     }
 }

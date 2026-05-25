@@ -26,5 +26,7 @@ namespace Waffy.Interfaces
         Task RemoveOutOfStockItemsAsync(int idCart);
         // في نهاية الـ interface
         Task ClearCartByStoreAsync(int idCart, int idStore);
+        Task<int> GetItemQuantityAsync(int cartId, int productId);
+        Task<CartItem?> GetItemByIdAsync(int itemId);
     }
 }

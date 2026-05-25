@@ -5,8 +5,9 @@
         public int IdPost { get; set; }
         public string? PostedByType { get; set; }   // "User" | "Store" | "Clinic"
         public int PostedById { get; set; }
-        public int IdPet { get; set; }              // ✅ int (NOT NULL)
+        public int? IdPet { get; set; }              // ✅ int (NOT NULL)
 
+        public string? StoreName { get; set; }   // ← new: cached store name
         public DateTime? BirthDate { get; set; }
         public string? PetName { get; set; }
         public string? AnimalType { get; set; }
@@ -34,5 +35,7 @@
         public string? PostCode { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public int Likes { get; set; }
+
+    
     }
 }

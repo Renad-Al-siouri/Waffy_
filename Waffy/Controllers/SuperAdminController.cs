@@ -33,6 +33,8 @@ namespace Waffy.Controllers
         private readonly IWalletRepository _walletRepo;
         private readonly IClinicRepository _clinicRepo;
         private readonly IPetRepository _petRepo;
+        private readonly IProductImageRepository _productImageRepo;
+        private readonly IClinicDocumentRepository _clinicDocumentRepo;
         public SuperAdminController(
             IUserRepository userRepo,
             IStoreRepository storeRepo,
@@ -56,6 +58,8 @@ namespace Waffy.Controllers
             IWalletRepository walletRepo,
             IClinicRepository clinicRepo,
             IPetRepository petRepo,
+            IProductImageRepository productImageRepo,
+            IClinicDocumentRepository clinicDocumentRepo,   // ← أضف
             IPendingPaymentRepository paymentRepo)  
         {
             _userRepo = userRepo;
@@ -81,6 +85,8 @@ namespace Waffy.Controllers
             _walletRepo = walletRepo;
             _clinicRepo = clinicRepo;
             _petRepo = petRepo;
+            _productImageRepo = productImageRepo;
+            _clinicDocumentRepo = clinicDocumentRepo;
         }
 
         // ── Guards ───────────────────────────────────────────────
@@ -401,47 +407,53 @@ namespace Waffy.Controllers
         {
             if (!IsAdmin()) return NotAdmin();
             SetAdminViewBag();
+            var allStores = (await _storeRepo.GetAllAsync()).ToList();
 
-            var stores = (await _storeRepo.GetAllAsync()).ToList();
+            int total = allStores.Count;
+            int active = allStores.Count(s => s.VerificationStatus == "Approved");
+            int pending = allStores.Count(s => s.VerificationStatus == "Pending");
+            int suspended = allStores.Count(s => s.VerificationStatus == "Suspended");
 
-            ViewBag.TotalStores = stores.Count;
-            ViewBag.ActiveStores = stores.Count(s => s.VerificationStatus == "Approved");
-            ViewBag.PendingStores = stores.Count(s => s.VerificationStatus == "Pending");
-            ViewBag.SuspendedStores = stores.Count(s => s.VerificationStatus == "Suspended");
-
-            var ownerIds = stores.Select(s => s.OwnerUserId).Distinct().ToList();
-            var owners = new Dictionary<int, string>();
-            foreach (var oid in ownerIds)
+            var list = new List<object>();
+            foreach (var s in allStores)
             {
-                var u = await _userRepo.GetByIdForAdminAsync(oid);
-                if (u != null) owners[oid] = u.FullName ?? "";
+                var owner = await _userRepo.GetByIdAsync(s.OwnerUserId);
+                var products = (await _productRepo.GetByStoreIdAsync(s.IdStore)).ToList();
+                var orders = (await _orderRepo.GetByStoreIdAsync(s.IdStore)).ToList();
+                var revenue = await _orderRepo.GetTotalRevenueByStoreAsync(s.IdStore);
+
+                var status = s.VerificationStatus switch
+                {
+                    "Approved" => "active",
+                    "Pending" => "pending",
+                    "Suspended" => "suspended",
+                    "Rejected" => "rejected",
+                    _ => "pending"
+                };
+
+                list.Add(new
+                {
+                    id = s.IdStore,
+                    name = s.Name ?? "—",
+                    owner = owner?.FullName ?? "—",
+                    email = owner?.Email ?? "—",
+                    phone = owner?.Phone ?? "—",
+                    city = s.City ?? "—",
+                    logoUrl = s.LogoUrl ?? "",
+                    products = products.Count,
+                    orders = orders.Count,
+                    revenue = revenue.Items + revenue.Delivery,
+                    rating = 0,
+                    status,
+                    joined = s.CreatedAt.ToString("MMM dd, yyyy")
+                });
             }
 
-            var storesJs = stores.Select(s => new
-            {
-                id = s.IdStore,
-                name = s.Name ?? "",
-                emoji = "🏪",
-                owner = owners.TryGetValue(s.OwnerUserId, out var on) ? on : "",
-                email = s.Email ?? "",
-                phone = s.Phone ?? "",
-                city = s.City ?? "",
-                model = "Subscription",
-                status = s.VerificationStatus == "Approved" ? "active"
-                        : s.VerificationStatus == "Pending" ? "pending"
-                        : s.VerificationStatus == "Suspended" ? "suspended"
-                        : "rejected",
-                products = 0,
-                orders = 0,
-                revenue = 0,
-                rating = s.Rating ?? 0,
-                joined = s.CreatedAt.ToString("yyyy-MM-dd"),
-                logoUrl = s.LogoUrl ?? ""
-            });
-
-            ViewBag.StoresJson = JsonSerializer.Serialize(storesJs);
-            if (TempData["SuccessMessage"] != null) ViewBag.Success = TempData["SuccessMessage"];
-            if (TempData["ErrorMessage"] != null) ViewBag.Error = TempData["ErrorMessage"];
+            ViewBag.TotalStores = total;
+            ViewBag.ActiveStores = active;
+            ViewBag.PendingStores = pending;
+            ViewBag.SuspendedStores = suspended;
+            ViewBag.StoresJson = JsonSerializer.Serialize(list);
 
             return View();
         }
@@ -453,123 +465,127 @@ namespace Waffy.Controllers
         {
             if (!IsAdmin()) return NotAdmin();
             SetAdminViewBag();
-
             var store = await _storeRepo.GetByIdAsync(id);
             if (store == null) return NotFound();
 
-            var owner = await _userRepo.GetByIdForAdminAsync(store.OwnerUserId);
+            var owner = await _userRepo.GetByIdAsync(store.OwnerUserId);
             var products = (await _productRepo.GetByStoreIdAsync(id)).ToList();
             var orders = (await _orderRepo.GetByStoreIdAsync(id)).ToList();
-            var docs = (await _docRepo.GetByStoreIdAsync(id)).ToList();
             var revenue = await _orderRepo.GetTotalRevenueByStoreAsync(id);
-            var customers = (await _orderRepo.GetCustomersByStoreAsync(id)).ToList();
+            var docs = (await _docRepo.GetByStoreIdAsync(id)).ToList();
 
-            // Orders with real totals from OrderItems (from v2)
-            var ordersJs = new List<object>();
-            foreach (var o in orders)
+            // ── Store Data ──
+            var status = store.VerificationStatus switch
             {
-                var items = (await _orderItemRepo.GetByOrderIdAsync(o.IdOrder)).ToList();
-                var orderTotal = items.Sum(i => i.Quantity * (i.SalePrice ?? i.UnitPrice));
-                ordersJs.Add(new
-                {
-                    id = o.OrderCode ?? o.IdOrder.ToString(),
-                    idOrder = o.IdOrder,
-                    cust = o.RecipientName ?? "—",
-                    phone = o.RecipientPhone ?? "",
-                    address = o.DeliveryAddress ?? "",
-                    total = orderTotal + o.DeliveryFee,
-                    deliveryFee = o.DeliveryFee,
-                    date = o.CreatedAt.ToString("dd MMM yyyy"),
-                    status = (o.Status ?? "pending").ToLower(),
-                    items = items.Select(i =>
-                        $"{i.ProductNameSnapshot ?? "Product"} × {i.Quantity}").ToList()
-                });
-            }
+                "Approved" => "active",
+                "Pending" => "pending",
+                "Suspended" => "suspended",
+                "Rejected" => "rejected",
+                _ => "pending"
+            };
 
             var storeData = new
             {
                 id = store.IdStore,
-                name = store.Name ?? "",
-                emoji = "🏪",
+                name = store.Name,
+                logoUrl = store.LogoUrl ?? "",
                 owner = owner?.FullName ?? "—",
-                email = store.Email ?? "",
-                phone = store.Phone ?? "",
-                city = store.City ?? "",
-                description = store.Description ?? "",
-                model = "Subscription",
-                status = store.VerificationStatus == "Approved" ? "active"
-                                  : store.VerificationStatus == "Pending" ? "pending"
-                                  : store.VerificationStatus == "Suspended" ? "suspended"
-                                  : "rejected",
-                joined = store.CreatedAt.ToString("yyyy-MM-dd"),
-                deliveryAvailable = store.DeliveryAvailable,
+                email = owner?.Email ?? "—",
+                phone = owner?.Phone ?? "—",
+                city = store.City ?? "—",
+                status,
+                joined = store.CreatedAt.ToString("MMM dd, yyyy"),
                 products = products.Count,
                 orders = orders.Count,
-                revenue,
-                rating = store.Rating ?? 0,
-                documents = new
-                {
-                    registration = docs.Any(d => d.DocumentType == "CommercialRegister"),
-                    license = docs.Any(d => d.DocumentType == "BusinessLicense"),
-                    trademark = docs.Any(d => d.DocumentType == "TrademarkCertificate"),
-                    tax = docs.Any(d => d.DocumentType == "AdditionalFile")
-                },
-                recentProducts = products.Take(3).Select(p => new
-                {
-                    name = p.Name ?? "",
-                    price = p.Price.ToString("F2") + " JD",
-                    status = p.StockQuantity == 0 ? "out" : p.IsVisible ? "active" : "hidden"
-                }),
-                recentOrders = orders.Take(3).Select(o => new
-                {
-                    id = o.OrderCode ?? o.IdOrder.ToString(),
-                    user = o.RecipientName ?? "—",
-                    amount = o.DeliveryFee.ToString("F2") + " JD",
-                    status = (o.Status ?? "pending").ToLower()
-                })
+                revenue = revenue.Items + revenue.Delivery,
+                rating = 0,
+                deliveryAvailable = store.DeliveryFee > 0,
+                description = store.Description ?? ""
             };
+
+            // ── Products ──
+            var productsList = new List<object>();
+            foreach (var p in products)
+            {
+                var imgs = (await _productImageRepo.GetByProductIdAsync(p.Id)).ToList();
+                var img = imgs.FirstOrDefault(i => i.IsMain)?.ImageUrl
+                        ?? imgs.FirstOrDefault()?.ImageUrl ?? "";
+
+                productsList.Add(new
+                {
+                    id = p.Id,
+                    name = p.Name,
+                    price = p.SalePrice ?? p.Price,
+                    stock = p.StockQuantity,
+                    status = !p.IsVisible ? "hidden" : p.StockQuantity == 0 ? "out" : "active",
+                    image = img,
+                    images = imgs.Select(i => i.ImageUrl).Where(u => !string.IsNullOrEmpty(u)).ToList()
+                });
+            }
+
+            // ── Orders ──
+            var ordersList = new List<object>();
+            foreach (var o in orders)
+            {
+                var customer = await _userRepo.GetByIdAsync(o.IdUser);
+                var orderItems = (await _orderItemRepo.GetByOrderIdAsync(o.IdOrder)).ToList();
+                var items = orderItems.Select(i => i.ProductNameSnapshot).ToList();
+                var itemsTotal = orderItems.Sum(i => i.LineTotal);
+
+                ordersList.Add(new
+                {
+                    id = o.IdOrder,
+                    orderCode = o.OrderCode ?? $"ORD-{o.IdOrder}",
+                    cust = customer?.FullName ?? "—",
+                    phone = customer?.Phone ?? "—",
+                    items,
+                    itemsTotal,
+                    deliveryFee = o.DeliveryFee,
+                    total = itemsTotal + o.DeliveryFee,
+                    date = o.CreatedAt.ToString("MMM dd, yyyy"),
+                    status = o.Status?.ToLower() ?? "pending"
+                });
+            }
+
+            // ── Documents ──
+            var docsList = docs.Select(d => new {
+                id = d.Id,
+                label = d.DocumentType ?? "Document",
+                fileUrl = d.FileUrl ?? "",
+                isImage = (d.FileUrl ?? "").Contains(".jpg") || (d.FileUrl ?? "").Contains(".png") || (d.FileUrl ?? "").Contains(".jpeg") || (d.FileUrl ?? "").Contains(".webp"),
+                status = d.Status?.ToLower() ?? "pending",
+                uploadedAt = d.UploadedAt.ToString("MMM dd, yyyy")
+            });
+
+            // ── Customers ──
+            var customerMap = orders
+                .Where(o => o.IdUser > 0)
+                .GroupBy(o => o.IdUser);
+
+            var customersList = new List<object>();
+            foreach (var grp in customerMap)
+            {
+                var cust = await _userRepo.GetByIdAsync(grp.Key);
+                var spent = grp.Sum(o => o.DeliveryFee);
+                var last = grp.Max(o => o.CreatedAt).ToString("MMM dd, yyyy");
+                customersList.Add(new
+                {
+                    name = cust?.FullName ?? "—",
+                    email = cust?.Email ?? "—",
+                    phone = cust?.Phone ?? "—",
+                    orders = grp.Count(),
+                    spent,
+                    last
+                });
+            }
 
             ViewBag.StoreId = id;
             ViewBag.StoreName = store.Name;
             ViewBag.StoreDataJson = JsonSerializer.Serialize(storeData);
-
-            ViewBag.ProductsJson = JsonSerializer.Serialize(products.Select(p => new
-            {
-                id = p.Id,
-                name = p.Name ?? "",
-                price = p.Price,
-                stock = p.StockQuantity,
-                image = p.ImageUrl ?? "",
-                status = p.StockQuantity == 0 ? "out" : p.IsVisible ? "active" : "hidden"
-            }));
-
-            ViewBag.OrdersJson = JsonSerializer.Serialize(ordersJs);
-
-            // Docs with labels and image detection (from v2)
-            ViewBag.DocsJson = JsonSerializer.Serialize(docs.Select(d => new
-            {
-                id = d.Id,
-                type = d.DocumentType ?? "",
-                label = MapDocLabel(d.DocumentType),
-                fileUrl = d.FileUrl ?? "",
-                status = (d.Status ?? "pending").ToLower(),
-                adminNote = d.AdminNote ?? "",
-                uploadedAt = d.UploadedAt.ToString("dd MMM yyyy"),
-                isImage = IsImageFile(d.FileUrl)
-            }));
-
-            // Customers (from v2)
-            ViewBag.CustomersJson = JsonSerializer.Serialize(customers.Select(c => new
-            {
-                name = c.FullName ?? "—",
-                email = c.Email ?? "—",
-                phone = c.Phone ?? "—",
-                orders = c.OrderCount,
-                spent = c.TotalSpent,
-                last = c.LastOrderDate?.ToString("dd MMM yyyy") ?? "—"
-            }));
-
-            if (TempData["SuccessMessage"] != null) ViewBag.Success = TempData["SuccessMessage"];
+            ViewBag.ProductsJson = JsonSerializer.Serialize(productsList);
+            ViewBag.OrdersJson = JsonSerializer.Serialize(ordersList);
+            ViewBag.DocsJson = JsonSerializer.Serialize(docsList);
+            ViewBag.CustomersJson = JsonSerializer.Serialize(customersList);
 
             return View();
         }
@@ -578,46 +594,84 @@ namespace Waffy.Controllers
         // ApproveStore — POST
         // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> ApproveStore(int storeId, string? from = null)
+        public async Task<IActionResult> ApproveStore(int storeId, string? from)
         {
-            if (!IsAdmin()) return NotAdmin();
-            await _storeRepo.UpdateVerificationAsync(storeId, "Approved");
             var store = await _storeRepo.GetByIdAsync(storeId);
-            if (store != null) await _userRepo.UpdateStatusAsync(store.OwnerUserId, "Active");
-            TempData["SuccessMessage"] = "✅ Store approved. The owner can now log in.";
+            if (store == null) return NotFound();
+
+            store.VerificationStatus = "Approved";
+            await _storeRepo.UpdateAsync(store);
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = store.OwnerUserId,
+                Type = "StoreApproved",
+                Title = "✅ Your Store Has Been Approved!",
+                Message = $"Congratulations! {store.Name} is now live on Waffy.",
+                IsRead = false,
+                RelatedEntityType = "Store",
+                RelatedEntityId = storeId,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            ViewBag.Success = $"✅ {store.Name} approved successfully.";
             return from == "details"
                 ? RedirectToAction("Details_S", new { id = storeId })
                 : RedirectToAction("Stores");
         }
 
-        // ════════════════════════════════════════════════════════
-        // RejectStore — POST
-        // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> RejectStore(
-            int storeId, string? reason = null, string? message = null, string? from = null)
+        public async Task<IActionResult> RejectStore(int storeId, string? reason, string? message, string? from)
         {
-            if (!IsAdmin()) return NotAdmin();
-            await _storeRepo.UpdateVerificationAsync(storeId, "Rejected");
-            TempData["SuccessMessage"] = "❌ Store registration rejected.";
+            var store = await _storeRepo.GetByIdAsync(storeId);
+            if (store == null) return NotFound();
+
+            store.VerificationStatus = "Rejected";
+            await _storeRepo.UpdateAsync(store);
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = store.OwnerUserId,
+                Type = "StoreRejected",
+                Title = "❌ Store Application Rejected",
+                Message = $"Your store \"{store.Name}\" was rejected. Reason: {reason}. {message}",
+                IsRead = false,
+                RelatedEntityType = "Store",
+                RelatedEntityId = storeId,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            ViewBag.Success = $"Store rejected.";
             return from == "details"
                 ? RedirectToAction("Details_S", new { id = storeId })
                 : RedirectToAction("Stores");
         }
+
 
         // ════════════════════════════════════════════════════════
         // SuspendStore — POST
         // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> SuspendStore(
-            int storeId, string? reason = null, string? duration = null,
-            string? message = null, string? from = null)
+        public async Task<IActionResult> SuspendStore(int storeId, string? reason, string? duration, string? message, string? from)
         {
-            if (!IsAdmin()) return NotAdmin();
-            await _storeRepo.UpdateVerificationAsync(storeId, "Suspended");
             var store = await _storeRepo.GetByIdAsync(storeId);
-            if (store != null) await _userRepo.UpdateStatusAsync(store.OwnerUserId, "Suspended");
-            TempData["SuccessMessage"] = "🔒 Store has been suspended.";
+            if (store == null) return NotFound();
+
+            store.VerificationStatus = "Suspended";
+            await _storeRepo.UpdateAsync(store);
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = store.OwnerUserId,
+                Type = "StoreSuspended",
+                Title = "🔒 Your Store Has Been Suspended",
+                Message = $"Store \"{store.Name}\" suspended for {duration}. Reason: {reason}. {message}",
+                IsRead = false,
+                RelatedEntityType = "Store",
+                RelatedEntityId = storeId,
+                CreatedAt = DateTime.UtcNow
+            });
+
             return from == "details"
                 ? RedirectToAction("Details_S", new { id = storeId })
                 : RedirectToAction("Stores");
@@ -627,13 +681,26 @@ namespace Waffy.Controllers
         // ReactivateStore — POST
         // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> ReactivateStore(int storeId, string? from = null)
+        public async Task<IActionResult> ReactivateStore(int storeId, string? from)
         {
-            if (!IsAdmin()) return NotAdmin();
-            await _storeRepo.UpdateVerificationAsync(storeId, "Approved");
             var store = await _storeRepo.GetByIdAsync(storeId);
-            if (store != null) await _userRepo.UpdateStatusAsync(store.OwnerUserId, "Active");
-            TempData["SuccessMessage"] = "✅ Store reactivated successfully.";
+            if (store == null) return NotFound();
+
+            store.VerificationStatus = "Approved";
+            await _storeRepo.UpdateAsync(store);
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = store.OwnerUserId,
+                Type = "StoreReactivated",
+                Title = "✅ Your Store Is Active Again",
+                Message = $"Your store \"{store.Name}\" has been reactivated.",
+                IsRead = false,
+                RelatedEntityType = "Store",
+                RelatedEntityId = storeId,
+                CreatedAt = DateTime.UtcNow
+            });
+
             return from == "details"
                 ? RedirectToAction("Details_S", new { id = storeId })
                 : RedirectToAction("Stores");
@@ -645,12 +712,48 @@ namespace Waffy.Controllers
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteStore(int storeId)
         {
-            if (!IsAdmin()) return NotAdmin();
             await _storeRepo.DeleteAsync(storeId);
-            TempData["SuccessMessage"] = "🗑 Store deleted successfully.";
             return RedirectToAction("Stores");
         }
 
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> WarnStore(int storeId, string warnType, string warnMessage)
+        {
+            var store = await _storeRepo.GetByIdAsync(storeId);
+            if (store == null) return Json(new { success = false });
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = store.OwnerUserId,
+                Type = "StoreWarning",
+                Title = $"⚠️ Warning: {warnType}",
+                Message = warnMessage,
+                IsRead = false,
+                RelatedEntityType = "Store",
+                RelatedEntityId = storeId,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            return Json(new { success = true });
+        }
+
+
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveDocument(int docId, int storeId)
+        {
+            var adminId = HttpContext.Session.GetInt32("UserId") ?? 0;
+            await _docRepo.UpdateStatusAsync(docId, "approved", null, adminId);
+            return RedirectToAction("Details_S", new { id = storeId });
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectDocument(int docId, int storeId)
+        {
+            var adminId = HttpContext.Session.GetInt32("UserId") ?? 0;
+            await _docRepo.UpdateStatusAsync(docId, "rejected", null, adminId);
+            return RedirectToAction("Details_S", new { id = storeId });
+        }
         // ════════════════════════════════════════════════════════
         // Analytics_S — GET (from v2: real data per store)
         // ════════════════════════════════════════════════════════
@@ -669,7 +772,10 @@ namespace Waffy.Controllers
             foreach (var s in stores)
             {
                 var storeOrders = (await _orderRepo.GetByStoreIdAsync(s.IdStore)).ToList();
-                var storeRevenue = await _orderRepo.GetTotalRevenueByStoreAsync(s.IdStore);
+                var revenue = await _orderRepo.GetTotalRevenueByStoreAsync(s.IdStore);
+                var storeRevenue = revenue.Items + revenue.Delivery;
+               
+
                 var storeProducts = (await _productRepo.GetByStoreIdAsync(s.IdStore)).ToList();
 
                 totalRevenue += storeRevenue;
@@ -687,7 +793,7 @@ namespace Waffy.Controllers
                     products = storeProducts.Count,
                     orders = storeOrders.Count,
                     revenue = storeRevenue,
-                    rating = s.Rating ?? 0m,
+                    rating = 0m,
                     status = s.VerificationStatus == "Approved" ? "active"
                              : s.VerificationStatus == "Pending" ? "pending"
                              : s.VerificationStatus == "Suspended" ? "suspended"
@@ -856,15 +962,31 @@ namespace Waffy.Controllers
 
             var complaints = (await _complaintRepo.GetAllByTargetTypeAsync("Store")).ToList();
 
+            // إضافة اسم المتجر واسم المشتكي من DB
+            foreach (var c in complaints)
+            {
+                if (c.TargetId.HasValue && string.IsNullOrEmpty(c.TargetName))
+                {
+                    var store = await _storeRepo.GetByIdAsync(c.TargetId.Value);
+                    c.TargetName = store?.Name;
+                }
+                if (c.IdUser.HasValue && c.IdUser > 0 && string.IsNullOrEmpty(c.ComplainantName))
+                {
+                    var user = await _userRepo.GetByIdAsync(c.IdUser.Value);
+                    c.ComplainantName = user?.FullName;
+                }
+            }
+
             ViewBag.Complaints = complaints;
             ViewBag.TotalComplaints = complaints.Count;
             ViewBag.OpenComplaints = complaints.Count(c => c.Status == "Open" || c.Status == "Pending");
+            ViewBag.InvestigatingCount = complaints.Count(c => c.Status == "Investigating");
             ViewBag.ResolvedComplaints = complaints.Count(c => c.Status == "Resolved");
 
             if (TempData["ComplaintSuccess"] != null) ViewBag.Success = TempData["ComplaintSuccess"];
-
             return View();
         }
+        
 
         // ════════════════════════════════════════════════════════
         // UpdateComplaintStatus — POST (shared for both)
@@ -1945,9 +2067,299 @@ namespace Waffy.Controllers
         // ════════════════════════════════════════════════════════
         // Stubs
         // ════════════════════════════════════════════════════════
-        public IActionResult Clinics() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
-        public IActionResult Details_C() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
-        public IActionResult Analytics_C() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
+        // ════════════════════════════════════════════════════════
+        // Clinics — GET
+        // ════════════════════════════════════════════════════════
+        public async Task<IActionResult> Clinics(string? search, string? statusFilter)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var allClinics = (await _clinicRepo.GetAllAsync()).ToList();
+
+            var vm = new ClinicManagementViewModel
+            {
+                TotalClinics = allClinics.Count,
+                ActiveClinics = allClinics.Count(c => c.VerificationStatus == "Approved"),
+                PendingClinics = allClinics.Count(c => c.VerificationStatus == "Pending"),
+                SuspendedClinics = allClinics.Count(c => c.VerificationStatus == "Suspended"),
+                NewThisMonth = await _clinicRepo.CountNewThisMonthAsync(),
+                StatusFilter = statusFilter,
+                SearchQuery = search
+            };
+
+            var rows = new List<ClinicRowDto>();
+            foreach (var c in allClinics)
+            {
+                if (!string.IsNullOrEmpty(statusFilter) && statusFilter != "All"
+                    && c.VerificationStatus != statusFilter) continue;
+
+                var owner = await _userRepo.GetByIdAsync(c.OwnerUserId);
+                var docs = (await _clinicDocumentRepo.GetByClinicIdAsync(c.IdClinic)).ToList();
+
+                var ownerName = owner?.FullName ?? "—";
+                var ownerEmail = owner?.Email ?? "—";
+                var ownerPhone = owner?.Phone ?? "—";
+
+                if (!string.IsNullOrWhiteSpace(search))
+                {
+                    var q = search.ToLower();
+                    if (!c.Name.ToLower().Contains(q) &&
+                        !ownerName.ToLower().Contains(q) &&
+                        !ownerEmail.ToLower().Contains(q) &&
+                        !(c.City ?? "").ToLower().Contains(q)) continue;
+                }
+
+                rows.Add(new ClinicRowDto
+                {
+                    IdClinic = c.IdClinic,
+                    Name = c.Name,
+                    OwnerName = ownerName,
+                    OwnerEmail = ownerEmail,
+                    OwnerPhone = ownerPhone,
+                    City = c.City,
+                    LogoUrl = c.LogoUrl,
+                    VerificationStatus = c.VerificationStatus,
+                    CreatedAt = c.CreatedAt,
+                    DocumentsCount = docs.Count(d => d.DocumentType != "Logo"),
+                    PendingDocsCount = docs.Count(d =>
+                        d.DocumentType != "Logo" &&
+                        (d.Status == "Pending" || d.Status == "pending"))
+                });
+            }
+
+            vm.Clinics = rows;
+
+            if (TempData["ClinicSuccess"] != null) ViewBag.Success = TempData["ClinicSuccess"];
+            if (TempData["ClinicError"] != null) ViewBag.Error = TempData["ClinicError"];
+
+            return View(vm);
+        }
+
+        // ════════════════════════════════════════════════════════
+        // Details_C — GET
+        // ════════════════════════════════════════════════════════
+        public async Task<IActionResult> Details_C(int id)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var clinic = await _clinicRepo.GetByIdAsync(id);
+            if (clinic == null) return NotFound();
+
+            var owner = await _userRepo.GetByIdAsync(clinic.OwnerUserId);
+            var docs = (await _clinicDocumentRepo.GetByClinicIdAsync(id)).ToList();
+
+            var vm = new ClinicDetailAdminViewModel
+            {
+                Clinic = clinic,
+                OwnerName = owner?.FullName ?? "—",
+                OwnerEmail = owner?.Email ?? "—",
+                OwnerPhone = owner?.Phone ?? "—",
+                OwnerId = clinic.OwnerUserId,
+                Documents = docs
+            };
+
+            if (TempData["ClinicSuccess"] != null) ViewBag.Success = TempData["ClinicSuccess"];
+            if (TempData["ClinicError"] != null) ViewBag.Error = TempData["ClinicError"];
+
+            return View(vm);
+        }
+
+        // ════════════════════════════════════════════════════════
+        // ApproveClinicDocument — POST
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveClinicDocument(int docId, int clinicId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            var adminId = HttpContext.Session.GetInt32("UserId") ?? 0;
+            await _clinicDocumentRepo.UpdateStatusAsync(docId, "approved", null, adminId);
+            TempData["ClinicSuccess"] = "✅ Document approved.";
+            return RedirectToAction("Details_C", new { id = clinicId });
+        }
+
+        // ════════════════════════════════════════════════════════
+        // RejectClinicDocument — POST
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectClinicDocument(int docId, int clinicId, string? adminNote)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            var adminId = HttpContext.Session.GetInt32("UserId") ?? 0;
+            await _clinicDocumentRepo.UpdateStatusAsync(docId, "rejected", adminNote, adminId);
+            TempData["ClinicError"] = "❌ Document rejected.";
+            return RedirectToAction("Details_C", new { id = clinicId });
+        }
+
+        // ════════════════════════════════════════════════════════
+        // ApproveClinic — POST
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveClinic(int clinicId, string? from)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            var clinic = await _clinicRepo.GetByIdAsync(clinicId);
+            if (clinic == null) return NotFound();
+
+            clinic.VerificationStatus = "Approved";
+            await _clinicRepo.UpdateAsync(clinic);
+
+            await _userRepo.UpdateStatusAsync(clinic.OwnerUserId, "Active");
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = clinic.OwnerUserId,
+                Type = "ClinicApproved",
+                Title = "✅ Your Clinic Has Been Approved!",
+                Message = $"Congratulations! {clinic.Name} is now live on Waffy. You can log in and start managing your clinic.",
+                IsRead = false,
+                RelatedEntityType = "Clinic",
+                RelatedEntityId = clinicId,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["ClinicSuccess"] = $"✅ {clinic.Name} approved successfully.";
+            return from == "details"
+                ? RedirectToAction("Details_C", new { id = clinicId })
+                : RedirectToAction("Clinics");
+        }
+
+        // ════════════════════════════════════════════════════════
+        // RejectClinic — POST
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectClinic(int clinicId, string? reason, string? message, string? from)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            var clinic = await _clinicRepo.GetByIdAsync(clinicId);
+            if (clinic == null) return NotFound();
+
+            clinic.VerificationStatus = "Rejected";
+            await _clinicRepo.UpdateAsync(clinic);
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = clinic.OwnerUserId,
+                Type = "ClinicRejected",
+                Title = "❌ Clinic Application Rejected",
+                Message = $"Your clinic \"{clinic.Name}\" was rejected. Reason: {reason}. {message}",
+                IsRead = false,
+                RelatedEntityType = "Clinic",
+                RelatedEntityId = clinicId,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["ClinicError"] = $"❌ {clinic.Name} rejected.";
+            return from == "details"
+                ? RedirectToAction("Details_C", new { id = clinicId })
+                : RedirectToAction("Clinics");
+        }
+
+        // ════════════════════════════════════════════════════════
+        // SuspendClinic — POST
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> SuspendClinic(
+            int clinicId, string? reason, string? duration, string? message, string? from)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            var clinic = await _clinicRepo.GetByIdAsync(clinicId);
+            if (clinic == null) return NotFound();
+
+            clinic.VerificationStatus = "Suspended";
+            await _clinicRepo.UpdateAsync(clinic);
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = clinic.OwnerUserId,
+                Type = "ClinicSuspended",
+                Title = "🔒 Your Clinic Has Been Suspended",
+                Message = $"Clinic \"{clinic.Name}\" was suspended{(duration != null ? $" for {duration}" : "")}. Reason: {reason}. {message}",
+                IsRead = false,
+                RelatedEntityType = "Clinic",
+                RelatedEntityId = clinicId,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["ClinicError"] = $"🔒 {clinic.Name} suspended.";
+            return from == "details"
+                ? RedirectToAction("Details_C", new { id = clinicId })
+                : RedirectToAction("Clinics");
+        }
+
+        // ════════════════════════════════════════════════════════
+        // ReactivateClinic — POST
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReactivateClinic(int clinicId, string? from)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            var clinic = await _clinicRepo.GetByIdAsync(clinicId);
+            if (clinic == null) return NotFound();
+
+            clinic.VerificationStatus = "Approved";
+            await _clinicRepo.UpdateAsync(clinic);
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = clinic.OwnerUserId,
+                Type = "ClinicReactivated",
+                Title = "✅ Your Clinic Is Active Again",
+                Message = $"Your clinic \"{clinic.Name}\" has been reactivated.",
+                IsRead = false,
+                RelatedEntityType = "Clinic",
+                RelatedEntityId = clinicId,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["ClinicSuccess"] = $"✅ {clinic.Name} reactivated.";
+            return from == "details"
+                ? RedirectToAction("Details_C", new { id = clinicId })
+                : RedirectToAction("Clinics");
+        }
+
+        // ════════════════════════════════════════════════════════
+        // DeleteClinic — POST
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteClinic(int clinicId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _clinicRepo.DeleteAsync(clinicId);
+            TempData["ClinicSuccess"] = "🗑 Clinic deleted.";
+            return RedirectToAction("Clinics");
+        }
+
+        // ════════════════════════════════════════════════════════
+        // WarnClinic — POST (JSON)
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> WarnClinic(int clinicId, string warnType, string warnMessage)
+        {
+            if (!IsAdmin()) return Json(new { success = false });
+
+            var clinic = await _clinicRepo.GetByIdAsync(clinicId);
+            if (clinic == null) return Json(new { success = false });
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = clinic.OwnerUserId,
+                Type = "ClinicWarning",
+                Title = $"⚠️ Warning: {warnType}",
+                Message = warnMessage,
+                IsRead = false,
+                RelatedEntityType = "Clinic",
+                RelatedEntityId = clinicId,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            return Json(new { success = true });
+        }
         public IActionResult Analytics_A() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Map() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Notifications() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }

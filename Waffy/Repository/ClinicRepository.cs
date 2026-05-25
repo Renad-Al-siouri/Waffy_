@@ -55,24 +55,24 @@ namespace Waffy.Repositories
         {
             using var connection = new SqlConnection(_ConnectionString);
             var sql = @"
-                UPDATE Clinic SET
-                    Name = @Name,
-                    ClinicType = @ClinicType,
-                    Phone = @Phone,
-                    Email = @Email,
-                    Description = @Description,
-                    City = @City,
-                    Area = @Area,
-                    Address = @Address,
-                    Latitude = @Latitude,
-                    Longitude = @Longitude,
-                    DefaultOpenTime = @DefaultOpenTime,
-                    DefaultCloseTime = @DefaultCloseTime,
-                    HasEmergency = @HasEmergency,
-                    LogoUrl = @LogoUrl,
-                    CoverImageUrl = @CoverImageUrl
-                WHERE IdClinic = @IdClinic";
-
+        UPDATE Clinic SET
+            Name               = @Name,
+            ClinicType         = @ClinicType,
+            Phone              = @Phone,
+            Email              = @Email,
+            Description        = @Description,
+            City               = @City,
+            Area               = @Area,
+            Address            = @Address,
+            Latitude           = @Latitude,
+            Longitude          = @Longitude,
+            DefaultOpenTime    = @DefaultOpenTime,
+            DefaultCloseTime   = @DefaultCloseTime,
+            HasEmergency       = @HasEmergency,
+            LogoUrl            = @LogoUrl,
+            CoverImageUrl      = @CoverImageUrl,
+            VerificationStatus = @VerificationStatus
+        WHERE IdClinic = @IdClinic";
             await connection.ExecuteAsync(sql, clinic);
         }
 
@@ -90,6 +90,27 @@ namespace Waffy.Repositories
             const string sql = "SELECT * FROM Clinic ORDER BY CreatedAt DESC";
             using var connection = new SqlConnection(_ConnectionString);
             return await connection.QueryAsync<Clinic>(sql);
+        }
+
+        // أضف هاي الـ methods داخل الـ class الموجود
+
+       
+
+        public async Task<int> CountByStatusAsync(string status)
+        {
+            using var connection = new SqlConnection(_ConnectionString);
+            return await connection.ExecuteScalarAsync<int>(
+                "SELECT COUNT(*) FROM Clinic WHERE VerificationStatus = @status",
+                new { status });
+        }
+
+        public async Task<int> CountNewThisMonthAsync()
+        {
+            using var connection = new SqlConnection(_ConnectionString);
+            return await connection.ExecuteScalarAsync<int>(@"
+        SELECT COUNT(*) FROM Clinic
+        WHERE MONTH(CreatedAt) = MONTH(GETUTCDATE())
+          AND YEAR(CreatedAt)  = YEAR(GETUTCDATE())");
         }
     }
 }

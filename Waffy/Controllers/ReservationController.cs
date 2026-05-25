@@ -98,8 +98,10 @@ namespace Waffy.Controllers
             }
 
             // ✅ 1 — نقل ملكية الحيوان
-            await _petRepo.TransferOwnershipAsync(post.IdPet, reservation.IdRequester);
-
+            // User posts have a Pet record → transfer ownership
+            // Store posts (IdPet = null) → skip, no pet record to transfer
+            if (post.IdPet.HasValue)
+                await _petRepo.TransferOwnershipAsync(post.IdPet.Value, reservation.IdRequester);
             // ✅ 2 — أغلق الإعلان
             await _adoptionRepo.ClosePostAsync(post.IdPost);
 

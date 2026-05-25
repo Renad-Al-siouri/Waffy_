@@ -93,5 +93,20 @@ namespace Waffy.Repository
         WHERE Id = @ProductId",
                 new { ProductId = productId, Quantity = quantity });
         }
+
+        public async Task<IEnumerable<Product>> GetFilteredAsync(
+    int storeId, string? search, int? categoryId, decimal? maxPrice)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<Product>(@"
+        SELECT * FROM Product
+        WHERE  IdStore    = @StoreId
+          AND  IsVisible  = 1
+          AND  (@Search   IS NULL OR Name LIKE '%' + @Search + '%'
+                          OR Description LIKE '%' + @Search + '%')
+          AND  (@CatId    IS NULL OR IdCategory = @CatId)
+          AND  (@MaxPrice IS NULL OR ISNULL(SalePrice, Price) <= @MaxPrice)",
+                new { StoreId = storeId, Search = search, CatId = categoryId, MaxPrice = maxPrice });
+        }
     }
 }

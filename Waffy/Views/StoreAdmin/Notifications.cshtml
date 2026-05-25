@@ -1,6 +1,9 @@
 ﻿@{
     Layout = null;
     ViewData["Title"] = "Waffy — Store Admin | Notifications";
+    var notifs = ViewBag.NotificationsJson as string ?? "[]";
+    var unread = (int)(ViewBag.UnreadCount ?? 0);
+    var total = (int)(ViewBag.TotalCount ?? 0);
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -12,17 +15,156 @@
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/waffy-theme.css">
     <link rel="stylesheet" href="~/css/waffy-store-compat.css">
+    <style>
+        .notif-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            transition: background .18s;
+            cursor: pointer;
+        }
+
+            .notif-item:last-child {
+                border-bottom: none;
+            }
+
+            .notif-item:hover {
+                background: var(--brand-ghost);
+            }
+
+            .notif-item.unread {
+                background: rgba(139,169,74,.06);
+            }
+
+                .notif-item.unread:hover {
+                    background: rgba(139,169,74,.12);
+                }
+
+        .notif-ico {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+            .notif-ico.order {
+                background: #e3f2fd;
+            }
+
+            .notif-ico.complaint {
+                background: #fff3e0;
+            }
+
+            .notif-ico.warning {
+                background: #fdecea;
+            }
+
+            .notif-ico.adoption {
+                background: #f3e5f5;
+            }
+
+            .notif-ico.store {
+                background: #e8f5e9;
+            }
+
+            .notif-ico.default {
+                background: var(--brand-xlight);
+            }
+
+        .notif-body {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notif-title {
+            font-weight: 800;
+            font-size: .88rem;
+            color: var(--text);
+            margin-bottom: 3px;
+        }
+
+        .notif-msg {
+            font-size: .80rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            line-height: 1.5;
+        }
+
+        .notif-time {
+            font-size: .72rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-top: 5px;
+            white-space: nowrap;
+        }
+
+        .notif-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--brand);
+            flex-shrink: 0;
+            margin-top: 6px;
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 6px;
+            padding: 14px 20px 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ftab {
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: .78rem;
+            font-weight: 800;
+            cursor: pointer;
+            border: 1.5px solid var(--border);
+            background: #fff;
+            color: var(--text-muted);
+            transition: .18s;
+        }
+
+            .ftab:hover {
+                border-color: var(--brand);
+                color: var(--brand-dark);
+            }
+
+            .ftab.active {
+                background: var(--brand-dark);
+                border-color: var(--brand-dark);
+                color: #fff;
+            }
+
+        .empty-notif {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+            .empty-notif .ico {
+                font-size: 3rem;
+                margin-bottom: 12px;
+            }
+    </style>
 </head>
 <body>
     <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
     <div class="wa-shell" id="waShell">
+
+        <!-- SIDEBAR -->
         <aside class="wa-sb" id="waSb">
             <div class="sb-logo">
                 <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
-                <div class="sb-wordmark">
-                    <div class="sb-wm-name">Waffy</div>
-                    <div class="sb-wm-tag">Store Admin</div>
-                </div>
+                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Store Admin</div></div>
             </div>
             <nav class="sb-nav">
                 <div class="sb-group sb-group-flat">
@@ -37,21 +179,19 @@
                     <a class="sb-row" href="@Url.Action("Products", "StoreAdmin")" data-tip="Products">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
                         <span class="sb-lbl">Products</span>
-                        <span class="sb-bdg bd-g" id="productsCountBadge">0</span>
                     </a>
                     <a class="sb-row" href="@Url.Action("Orders", "StoreAdmin")" data-tip="Orders">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /></svg></span>
                         <span class="sb-lbl">Orders</span>
-                        <span class="sb-bdg bd-y" id="ordersCountBadge">0</span>
                     </a>
                     <a class="sb-row" href="@Url.Action("Customers", "StoreAdmin")" data-tip="Customers">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
                         <span class="sb-lbl">Customers</span>
                     </a>
-                    <a class="sb-row" href="@Url.Action("Reviews", "StoreAdmin")" data-tip="Reviews">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></span>
-                        <span class="sb-lbl">Reviews</span>
-                        <span class="sb-bdg bd-r" id="reviewsCountBadge">0</span>
+                    <a class="sb-row" href="@Url.Action("Reviews", "StoreAdmin")" data-tip="Complaints">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg></span>
+                        <span class="sb-lbl">Complaints</span>
+                      
                     </a>
                 </div>
                 <div class="sb-hr"></div>
@@ -67,9 +207,9 @@
                     <a class="sb-row active" href="@Url.Action("Notifications", "StoreAdmin")" data-tip="Notifications">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
                         <span class="sb-lbl">Notifications</span>
-                        <span class="sb-bdg bd-r" id="notifCountBadge">0</span>
+                        
                     </a>
-                    <a class="sb-row" href="@Url.Action("Settings", "StoreAdmin")" data-tip="Settings">
+                    <a class="sb-row" href="@Url.Action("SettingsInfo", "StoreAdmin")" data-tip="Settings">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg></span>
                         <span class="sb-lbl">Store Settings</span>
                     </a>
@@ -81,86 +221,207 @@
             </nav>
             <div class="sb-foot">
                 <div class="sb-user-row">
-                    <div class="sb-av">M</div>
+                    <div class="sb-av">@ViewBag.OwnerInitial</div>
                     <div class="sb-user-info">
-                        <div class="sb-user-name">Mohammad Al-Omari</div>
-                        <div class="sb-user-role">Store Owner</div>
+                        <div class="sb-user-name">@ViewBag.OwnerName</div>
+                        <div class="sb-user-role">@ViewBag.StoreName</div>
                     </div>
                 </div>
-                <button class="sb-logout" onclick="alert('Sign out')" type="button">
+                <a class="sb-logout" href="@Url.Action("Logout", "Account")">
                     <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
                     <span class="sb-logout-lbl">Sign Out</span>
-                </button>
+                </a>
             </div>
         </aside>
+
+        <!-- TOPNAV -->
         <header class="wa-tn" id="waTn">
             <button class="tn-toggle" onclick="toggleSb()" type="button">
                 <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
             </button>
-            <nav class="tn-bread"><span>Store</span><span>/</span><b>Notifications</b></nav>
+            <nav class="tn-bread"><span>Management</span><span>/</span><b>Notifications</b></nav>
             <div class="tn-center">
                 <div class="tn-center-main">Notifications</div>
                 <div class="tn-center-sub">Store Admin Panel</div>
             </div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-               
                 <a class="tn-btn" href="@Url.Action("Notifications", "StoreAdmin")">
-                    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-                    <span class="tn-count" id="tnNotifCount">0</span>
+                    <svg class="ico" viewBox="0 0 24 24">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                    @if ((int)(ViewBag.NotifCount ?? 0) > 0)
+                    {
+                        <span class="tn-count">@ViewBag.NotifCount</span>
+                    }
                 </a>
+
                 <div class="tn-sep"></div>
                 <div class="tn-profile">
-                    <div class="tn-av">M</div>
-                    <div><div class="tn-pname">Mohammad Al-Omari</div><div class="tn-prole">Store Owner</div></div>
+                    <div class="tn-av">@ViewBag.OwnerInitial</div>
+                    <div>
+                        <div class="tn-pname">@ViewBag.OwnerName</div>
+                        <div class="tn-prole">@ViewBag.StoreName</div>
+                    </div>
                 </div>
             </div>
         </header>
+
+        <!-- MAIN -->
         <main class="wa-main" id="waMain">
             <section class="page-hero">
                 <div class="page-hero-text">
                     <h1>Notifications 🔔</h1>
-                    <p>Stay updated with all store activity, orders, reviews, and alerts.</p>
+                    <p>@total notification@(total != 1 ? "s" : "") total — <strong>@unread unread</strong></p>
                 </div>
                 <div class="page-hero-actions">
-                    <button class="btn btn-outline btn-sm" onclick="markNotificationsRead()">✓ Mark all read</button>
+                    @if (unread > 0)
+                    {
+                        <button class="btn btn-outline btn-sm" onclick="markAllRead()">✓ Mark all as read</button>
+                    }
                 </div>
             </section>
+
             <div class="page-body">
                 <div class="table-card">
-                    <div class="table-head-bar">
-                        <span class="table-head-title"><span id="notifUnreadText">0</span> unread notifications</span>
+                    <div class="filter-tabs">
+                        <span class="ftab active" onclick="filterNotifs('all',this)">All (@total)</span>
+                        <span class="ftab" onclick="filterNotifs('unread',this)">Unread (@unread)</span>
+                        <span class="ftab" onclick="filterNotifs('Order',this)">🛒 Orders</span>
+                        <span class="ftab" onclick="filterNotifs('Complaint',this)">📢 Complaints</span>
+                        
                     </div>
                     <div id="notifList"></div>
                 </div>
             </div>
         </main>
     </div>
-    <div id="toast">✅ Done!</div>
+
+    <div id="toast" style="display:none;position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--brand-dark);color:#fff;padding:12px 22px;border-radius:30px;font-weight:800;font-size:.86rem;font-family:'Nunito',sans-serif;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.15)"></div>
+
     <script>
+        // ── Sidebar ───────────────────────────────────────────────
         const shell=document.getElementById('waShell'),sb=document.getElementById('waSb'),ovl=document.getElementById('waOvl');
-        const mob=()=>window.innerWidth<=992;let mini=false;
+        const mob=()=>window.innerWidth<=992; let mini=false;
         function save(v){localStorage.setItem('wa_mini',v);}
-        function miniOn(){mini=true;shell.classList.add('mini');save('1');document.querySelectorAll('.sb-sub').forEach(s=>s.style.height='0px');}
-        function miniOff(){mini=false;shell.classList.remove('mini');save('0');document.querySelectorAll('.sb-sub.open').forEach(s=>{const i=s.querySelector('.sb-sub-inner');s.style.height=(i?i.scrollHeight:0)+'px';});}
+        function miniOn(){mini=true;shell.classList.add('mini');save('1');}
+        function miniOff(){mini=false;shell.classList.remove('mini');save('0');}
         function openMob(){sb.classList.add('mob-open');ovl.classList.add('show');document.body.style.overflow='hidden';}
         function closeMob(){sb.classList.remove('mob-open');ovl.classList.remove('show');document.body.style.overflow='';}
         function toggleSb(){if(mob()){sb.classList.contains('mob-open')?closeMob():openMob();}else{mini?miniOff():miniOn();}}
-        function toggleSidebar(){toggleSb();}
-        function closeSidebar(){closeMob();}
-        function markActive(){const p=location.pathname.split('/').pop();document.querySelectorAll('.sb-row[href]').forEach(el=>{if(el.getAttribute('href')===p)el.classList.add('active');});}
-        let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!mob()){closeMob();localStorage.getItem('wa_mini')==='1'?miniOn():miniOff();}else{shell.classList.remove('mini');mini=false;}},90);});
-        document.addEventListener('keydown',e=>{if(e.key==='['&&!e.ctrlKey&&!e.metaKey)toggleSb();if(e.key==='Escape')closeMob();});
-        let tx=0;
-        document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
-        document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(!mob())return;if(dx>55&&tx<28)openMob();if(dx<-55)closeMob();},{passive:true});
-        document.addEventListener('DOMContentLoaded',()=>{
-          if(!mob()&&localStorage.getItem('wa_mini')==='1')miniOn();
-          markActive();
-          const el=document.getElementById('tnNotifCount'),b=document.getElementById('notifCountBadge');
-          if(el&&b)el.textContent=b.textContent;
+        let rt; window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!mob()){closeMob();localStorage.getItem('wa_mini')==='1'?miniOn():miniOff();}else{shell.classList.remove('mini');mini=false;}},90);});
+        document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMob();});
+        function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',2400);}
+
+        // ── Data ──────────────────────────────────────────────────
+        const allNotifs = @Html.Raw(ViewBag.NotificationsJson ?? "[]");
+        let   currentFilter = 'all';
+
+        // ── Icon & color mapping ──────────────────────────────────
+        function getIcoClass(type) {
+            if (!type) return 'default';
+            const t = type.toLowerCase();
+            if (t.includes('order')) return 'order';
+            if (t.includes('complaint') || t.includes('warn')) return 'complaint';
+            if (t.includes('suspend') || t.includes('store')) return 'store';
+            if (t.includes('adopt')) return 'adoption';
+            if (t.includes('warn')) return 'warning';
+            return 'default';
+        }
+        function getIcoEmoji(type) {
+            if (!type) return '🔔';
+            const t = type.toLowerCase();
+            if (t.includes('neworder'))       return '🛒';
+            if (t.includes('ordercancel'))    return '❌';
+            if (t.includes('complaint'))      return '📢';
+            if (t.includes('warn'))           return '⚠️';
+            if (t.includes('suspend'))        return '🔒';
+            if (t.includes('reactivate') || t.includes('active')) return '✅';
+            if (t.includes('adopt'))          return '🐾';
+            if (t.includes('document'))       return '📋';
+            return '🔔';
+        }
+                function timeAgo(dateStr) {
+            if (!dateStr) return '';
+            // السيرفر يرسل UTC بدون Z — نضيفها عشان JS يقرأها صح
+            const utcStr = dateStr.endsWith('Z') || dateStr.includes('+')
+                           ? dateStr
+                           : dateStr + 'Z';
+            const diff = Math.floor((Date.now() - new Date(utcStr)) / 1000);
+            if (diff < 0)    return 'Just now';
+            if (diff < 60)   return 'Just now';
+            if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+            if (diff < 86400)return Math.floor(diff / 3600) + 'h ago';
+            if (diff < 604800) return Math.floor(diff / 86400) + 'd ago';
+            // أكثر من أسبوع — اعرض التاريخ كامل
+            return new Date(utcStr).toLocaleDateString('en-GB', {
+                day: '2-digit', month: 'short', year: 'numeric'
+            });
+        }
+
+        // ── Render ────────────────────────────────────────────────
+        function renderNotifs() {
+            let list = allNotifs;
+            if (currentFilter === 'unread') {
+                list = list.filter(n => !n.isRead);
+            } else if (currentFilter !== 'all') {
+                list = list.filter(n => (n.type || '').toLowerCase().includes(currentFilter.toLowerCase()));
+            }
+
+            const container = document.getElementById('notifList');
+            if (!list.length) {
+                container.innerHTML = '<div class="empty-notif"><div class="ico">🔔</div><div>No notifications here</div></div>';
+                return;
+            }
+
+            container.innerHTML = list.map(n => `
+                <div class="notif-item ${n.isRead ? '' : 'unread'}" onclick="markRead(${n.id}, this)">
+                    <div class="notif-ico ${getIcoClass(n.type)}">${getIcoEmoji(n.type)}</div>
+                    <div class="notif-body">
+                        <div class="notif-title">${n.title || ''}</div>
+                        <div class="notif-msg">${n.message || ''}</div>
+                        <div class="notif-time">${timeAgo(n.createdAt)}</div>
+                    </div>
+                    ${!n.isRead ? '<div class="notif-dot"></div>' : ''}
+                </div>`).join('');
+        }
+
+        function filterNotifs(f, el) {
+            currentFilter = f;
+            document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            renderNotifs();
+        }
+
+        // ── Mark read ─────────────────────────────────────────────
+        async function markRead(id, el) {
+            const n = allNotifs.find(x => x.id === id);
+            if (!n || n.isRead) return;
+            try {
+                await fetch('/StoreAdmin/MarkNotificationRead?id=' + id, { method: 'POST' });
+                n.isRead = true;
+                el.classList.remove('unread');
+                el.querySelector('.notif-dot')?.remove();
+            } catch(e) {}
+        }
+
+        async function markAllRead() {
+            try {
+                await fetch('/StoreAdmin/MarkAllNotificationsRead', { method: 'POST' });
+                allNotifs.forEach(n => n.isRead = true);
+                renderNotifs();
+                showToast('✅ All marked as read');
+                // hide badge
+                document.querySelector('.sb-bdg.bd-r')?.remove();
+            } catch(e) { showToast('❌ Network error'); }
+        }
+
+        // ── Init ──────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!mob() && localStorage.getItem('wa_mini') === '1') miniOn();
+            renderNotifs();
         });
     </script>
-    <script src="~/js/AdminStore.js"></script>
 </body>
 </html>

@@ -12,17 +12,29 @@ namespace Waffy.Repository
         public OrderRepository(IConfiguration cfg)
             => _conn = cfg.GetConnectionString("WaffyConnection")!;
 
+        // ─────────────────────────────────────────────────────────
         public async Task<int> CreateAsync(Order order)
         {
             using var conn = new SqlConnection(_conn);
+
+            var nextNumber = await conn.ExecuteScalarAsync<int>(@"
+        SELECT ISNULL(MAX(StoreOrderNumber), 0) + 1
+        FROM [Order]
+        WHERE IdStore = @IdStore",
+                new { order.IdStore });
+
+            order.StoreOrderNumber = nextNumber;
+
             return await conn.ExecuteScalarAsync<int>(@"
-                INSERT INTO [Order]
-                    (IdUser, IdStore, OrderCode, Status, PaymentMethod, PaymentStatus,
-                     RecipientName, RecipientPhone, DeliveryAddress, DeliveryFee, Notes, CreatedAt)
-                OUTPUT INSERTED.IdOrder
-                VALUES
-                    (@IdUser, @IdStore, @OrderCode, @Status, @PaymentMethod, @PaymentStatus,
-                     @RecipientName, @RecipientPhone, @DeliveryAddress, @DeliveryFee, @Notes, @CreatedAt)",
+        INSERT INTO [Order]
+            (IdUser, IdStore, OrderCode, Status, PaymentMethod, PaymentStatus,
+             RecipientName, RecipientPhone, DeliveryAddress, DeliveryFee,
+             Notes, CreatedAt, StoreOrderNumber)
+        OUTPUT INSERTED.IdOrder
+        VALUES
+            (@IdUser, @IdStore, @OrderCode, @Status, @PaymentMethod, @PaymentStatus,
+             @RecipientName, @RecipientPhone, @DeliveryAddress, @DeliveryFee,
+             @Notes, @CreatedAt, @StoreOrderNumber)",
                 order);
         }
 
@@ -57,16 +69,14 @@ namespace Waffy.Repository
                 new { IdOrder = idOrder });
         }
 
-        // أضف هذه الـ methods داخل الـ class الموجود
-
         public async Task<Order?> GetByIdAsync(int orderId)
         {
             using var conn = new SqlConnection(_conn);
             return await conn.QueryFirstOrDefaultAsync<Order>(@"
-        SELECT o.*, s.Name AS StoreName
-        FROM   [Order] o
-        LEFT JOIN Store s ON s.IdStore = o.IdStore
-        WHERE  o.IdOrder = @OrderId",
+                SELECT o.*, s.Name AS StoreName
+                FROM   [Order] o
+                LEFT JOIN Store s ON s.IdStore = o.IdStore
+                WHERE  o.IdOrder = @OrderId",
                 new { OrderId = orderId });
         }
 
@@ -74,27 +84,39 @@ namespace Waffy.Repository
         {
             using var conn = new SqlConnection(_conn);
             return await conn.QueryAsync<Order>(@"
-        SELECT o.*, s.Name AS StoreName
-        FROM   [Order] o
-        LEFT JOIN Store s ON s.IdStore = o.IdStore
-        WHERE  o.IdStore = @StoreId
-        ORDER  BY o.CreatedAt DESC",
+                SELECT o.*, s.Name AS StoreName
+                FROM   [Order] o
+                LEFT JOIN Store s ON s.IdStore = o.IdStore
+                WHERE  o.IdStore = @StoreId
+                ORDER  BY o.CreatedAt DESC",
                 new { StoreId = storeId });
         }
 
-        public async Task<decimal> GetTotalRevenueByStoreAsync(int storeId)
+        public async Task<(decimal Items, decimal Delivery)> GetTotalRevenueByStoreAsync(int storeId)
         {
             using var conn = new SqlConnection(_conn);
-            return await conn.ExecuteScalarAsync<decimal>(@"
-        SELECT ISNULL(SUM(oi.Quantity * ISNULL(oi.SalePrice, oi.UnitPrice)), 0)
-        FROM   OrderItem oi
-        INNER JOIN [Order] o ON o.IdOrder = oi.IdOrder
-        WHERE  o.IdStore = @StoreId
-          AND  o.Status != 'Cancelled'",
+            var result = await conn.QueryFirstOrDefaultAsync(@"
+        SELECT
+            ISNULL(SUM(sub.ItemsTotal), 0) AS Items,
+            ISNULL(SUM(sub.DeliveryFee),  0) AS Delivery
+        FROM (
+            SELECT
+                o.IdOrder,
+                SUM(oi.Quantity * ISNULL(oi.SalePrice, oi.UnitPrice)) AS ItemsTotal,
+                o.DeliveryFee
+            FROM [Order] o
+            INNER JOIN OrderItem oi ON oi.IdOrder = o.IdOrder
+            WHERE o.IdStore = @StoreId
+              AND o.Status  = 'Delivered'
+            GROUP BY o.IdOrder, o.DeliveryFee
+        ) sub",
                 new { StoreId = storeId });
-        }
 
-        
+            return (
+                Items: (decimal)(result?.Items ?? 0),
+                Delivery: (decimal)(result?.Delivery ?? 0)
+            );
+        }
 
         public async Task UpdateStatusAsync(int orderId, string status)
         {
@@ -104,27 +126,39 @@ namespace Waffy.Repository
                 new { OrderId = orderId, Status = status });
         }
 
+        /// <summary>
+        /// Sets Status = 'Shipped' and saves the delivery-person details.
+        /// </summary>
+        public async Task UpdateDeliveryPersonAsync(int orderId, string name, string phone)
+        {
+            using var conn = new SqlConnection(_conn);
+            await conn.ExecuteAsync(@"
+                UPDATE [Order]
+                SET    Status              = 'Shipped',
+                       DeliveryPersonName  = @Name,
+                       DeliveryPersonPhone = @Phone
+                WHERE  IdOrder = @OrderId",
+                new { OrderId = orderId, Name = name, Phone = phone });
+        }
+
         public async Task<IEnumerable<CustomerSummary>> GetCustomersByStoreAsync(int storeId)
         {
             using var conn = new SqlConnection(_conn);
             return await conn.QueryAsync<CustomerSummary>(@"
-        SELECT
-            u.FullName,
-            u.Email,
-            u.Phone,
-            COUNT(DISTINCT o.IdOrder)                                    AS OrderCount,
-            ISNULL(SUM(oi.Quantity * ISNULL(oi.SalePrice, oi.UnitPrice)), 0) AS TotalSpent,
-            MAX(o.CreatedAt)                                             AS LastOrderDate
-        FROM [Order] o
-        INNER JOIN Users     u  ON u.UserId   = o.IdUser
-        INNER JOIN OrderItem oi ON oi.IdOrder = o.IdOrder
-        WHERE o.IdStore = @StoreId
-        GROUP BY u.FullName, u.Email, u.Phone
-        ORDER BY TotalSpent DESC",
+                SELECT
+                    u.FullName,
+                    u.Email,
+                    u.Phone,
+                    COUNT(DISTINCT o.IdOrder)                                        AS OrderCount,
+                    ISNULL(SUM(oi.Quantity * ISNULL(oi.SalePrice, oi.UnitPrice)), 0) AS TotalSpent,
+                    MAX(o.CreatedAt)                                                 AS LastOrderDate
+                FROM   [Order]   o
+                INNER JOIN Users     u  ON u.UserId   = o.IdUser
+                INNER JOIN OrderItem oi ON oi.IdOrder = o.IdOrder
+                WHERE  o.IdStore = @StoreId
+                GROUP  BY u.FullName, u.Email, u.Phone
+                ORDER  BY TotalSpent DESC",
                 new { StoreId = storeId });
         }
-
-
-
     }
 }

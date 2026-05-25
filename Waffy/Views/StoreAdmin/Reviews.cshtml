@@ -1,6 +1,6 @@
 ﻿@{
     Layout = null;
-    ViewData["Title"] = "Waffy — Store Admin | Reviews";
+    ViewData["Title"] = "Waffy — Store Admin | Complaints";
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -37,21 +37,25 @@
                     <a class="sb-row" href="@Url.Action("Products", "StoreAdmin")" data-tip="Products">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
                         <span class="sb-lbl">Products</span>
-                        <span class="sb-bdg bd-g" id="productsCountBadge">0</span>
+                      
                     </a>
                     <a class="sb-row" href="@Url.Action("Orders", "StoreAdmin")" data-tip="Orders">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /></svg></span>
                         <span class="sb-lbl">Orders</span>
-                        <span class="sb-bdg bd-y" id="ordersCountBadge">0</span>
+                      
                     </a>
                     <a class="sb-row" href="@Url.Action("Customers", "StoreAdmin")" data-tip="Customers">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
                         <span class="sb-lbl">Customers</span>
                     </a>
-                    <a class="sb-row active" href="@Url.Action("Reviews", "StoreAdmin")" data-tip="Reviews">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg></span>
-                        <span class="sb-lbl">Reviews</span>
-                        <span class="sb-bdg bd-r" id="reviewsCountBadge">0</span>
+                    <a class="sb-row active" href="@Url.Action("Reviews", "StoreAdmin")" data-tip="Complaints">
+                        <span class="sb-icon">
+                            <svg class="ico" viewBox="0 0 24 24">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                            </svg>
+                        </span>
+                        <span class="sb-lbl">Complaints</span>
+                       
                     </a>
                 </div>
                 <div class="sb-hr"></div>
@@ -67,9 +71,9 @@
                     <a class="sb-row" href="@Url.Action("Notifications", "StoreAdmin")" data-tip="Notifications">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
                         <span class="sb-lbl">Notifications</span>
-                        <span class="sb-bdg bd-r" id="notifCountBadge">0</span>
+                        
                     </a>
-                    <a class="sb-row" href="@Url.Action("Settings", "StoreAdmin")" data-tip="Settings">
+                    <a class="sb-row" href="@Url.Action("SettingsInfo", "StoreAdmin")" data-tip="Settings">
                         <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg></span>
                         <span class="sb-lbl">Store Settings</span>
                     </a>
@@ -81,109 +85,126 @@
             </nav>
             <div class="sb-foot">
                 <div class="sb-user-row">
-                    <div class="sb-av">M</div>
+                    <div class="sb-av">@ViewBag.OwnerInitial</div>
                     <div class="sb-user-info">
-                        <div class="sb-user-name">Mohammad Al-Omari</div>
-                        <div class="sb-user-role">Store Owner</div>
+                        <div class="sb-user-name">@ViewBag.OwnerName</div>
+                        <div class="sb-user-role">@ViewBag.StoreName</div>
                     </div>
                 </div>
-                <button class="sb-logout" onclick="alert('Sign out')" type="button">
+                <a class="sb-logout" href="@Url.Action("Logout", "Account")">
                     <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
                     <span class="sb-logout-lbl">Sign Out</span>
-                </button>
+                </a>
             </div>
         </aside>
+
         <header class="wa-tn" id="waTn">
             <button class="tn-toggle" onclick="toggleSb()" type="button">
                 <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
             </button>
-            <nav class="tn-bread"><span>Store</span><span>/</span><b>Reviews</b></nav>
+            <nav class="tn-bread"><span>Store</span><span>/</span><b>Complaints</b></nav>
             <div class="tn-center">
-                <div class="tn-center-main">Reviews</div>
+                <div class="tn-center-main">Complaints</div>
                 <div class="tn-center-sub">Store Admin Panel</div>
             </div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-               
-               
                 <a class="tn-btn" href="@Url.Action("Notifications", "StoreAdmin")">
-                    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-                    <span class="tn-count" id="tnNotifCount">0</span>
+                    <svg class="ico" viewBox="0 0 24 24">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                    </svg>
+                    @if ((int)(ViewBag.NotifCount ?? 0) > 0)
+                    {
+                        <span class="tn-count">@ViewBag.NotifCount</span>
+                    }
                 </a>
                 <div class="tn-sep"></div>
                 <div class="tn-profile">
-                    <div class="tn-av">M</div>
-                    <div><div class="tn-pname">Mohammad Al-Omari</div><div class="tn-prole">Store Owner</div></div>
+                    <div class="tn-av">@ViewBag.OwnerInitial</div>
+                    <div>
+                        <div class="tn-pname">@ViewBag.OwnerName</div>
+                        <div class="tn-prole">@ViewBag.StoreName</div>
+                    </div>
                 </div>
             </div>
         </header>
+
         <main class="wa-main" id="waMain">
             <section class="page-hero">
                 <div class="page-hero-text">
-                    <h1>Reviews ⭐</h1>
-                    <p>Manage and respond to customer product reviews.</p>
-                </div>
-                <div class="page-hero-actions">
-                    <div style="display:flex;align-items:center;gap:.5rem;background:var(--brand-xlight);border:1px solid var(--brand-light);border-radius:12px;padding:8px 14px">
-                        <span style="color:#f59e0b;font-size:.9rem;letter-spacing:1px">★★★★☆</span>
-                        <strong style="color:var(--brand-dark);font-family:'Fredoka',sans-serif;font-size:1.1rem">4.2</strong>
-                        <span style="font-size:.76rem;color:var(--text-muted);font-weight:700">average</span>
-                    </div>
+                    <h1>Complaints 📢</h1>
+                    <p>View all complaints submitted about your store.</p>
                 </div>
             </section>
+
             <div class="page-body">
 
-                <div class="kpi-grid" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
-                    <div class="kpi-card c1">
-                        <div class="kpi-ico green">⭐</div>
-                        <div class="kpi-val" id="totalReviewsStat">0</div>
-                        <div class="kpi-label">Total Reviews</div>
+                <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px">
+                    <div class="kpi-card">
+                        <div class="kpi-ico">📢</div>
+                        <div class="kpi-val">@(ViewBag.TotalCount ?? 0)</div>
+                        <div class="kpi-label">Total</div>
                     </div>
-                    <div class="kpi-card c4">
-                        <div class="kpi-ico red">💬</div>
-                        <div class="kpi-val" id="pendingRepliesStat">0</div>
-                        <div class="kpi-label">Pending Replies</div>
+                    <div class="kpi-card c3">
+                        <div class="kpi-ico yellow">⏳</div>
+                        <div class="kpi-val">@(ViewBag.OpenCount ?? 0)</div>
+                        <div class="kpi-label">Open</div>
+                    </div>
+                    <div class="kpi-card c1">
+                        <div class="kpi-ico green">✅</div>
+                        <div class="kpi-val">@(ViewBag.ResolvedCount ?? 0)</div>
+                        <div class="kpi-label">Resolved</div>
                     </div>
                 </div>
 
                 <div class="table-card">
                     <div class="table-head-bar">
-                        <div class="search-wrap" style="flex:1;max-width:300px"><span>🔍</span><input id="reviewSearch" placeholder="Search reviews..."></div>
-                        <select class="sel-wrap" id="reviewRatingFilter" style="height:40px;width:auto;min-width:140px">
-                            <option value="all">All ratings</option>
-                            <option value="5">★★★★★</option>
-                            <option value="4">★★★★</option>
-                            <option value="3">★★★</option>
-                            <option value="2">★★</option>
-                            <option value="1">★</option>
+                        <div class="search-wrap" style="flex:1;max-width:300px">
+                            <span>🔍</span>
+                            <input id="compSearch" placeholder="Search complaints...">
+                        </div>
+                        <select class="sel-wrap" id="compStatusFilter" style="height:40px;min-width:140px">
+                            <option value="all">All statuses</option>
+                            <option value="open">Open</option>
+                            <option value="under review">Under Review</option>
+                            <option value="resolved">Resolved</option>
                         </select>
-                        <select class="sel-wrap" id="reviewReplyFilter" style="height:40px;width:auto;min-width:140px">
-                            <option value="all">All</option>
-                            <option value="not-replied">Not replied</option>
-                            <option value="replied">Replied</option>
+                        <select class="sel-wrap" id="compSourceFilter" style="height:40px;min-width:130px">
+                            <option value="all">All sources</option>
+                            <option value="User">From Users</option>
+                            <option value="Admin">From Admin</option>
                         </select>
                     </div>
-                    <div id="reviewsList"></div>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>From</th>
+                                    <th>Title</th>
+                                    <th>Priority</th>
+                                    <th>Source</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="complaintsBody"></tbody>
+                        </table>
+                    </div>
                 </div>
 
-                <!-- Reply Modal -->
-                <div class="overlay" id="replyModal">
-                    <div class="modal">
+                <div class="overlay" id="compModal">
+                    <div class="modal wide">
                         <div class="modal-hd">
-                            <div class="modal-title">💬 Reply to Review</div>
-                            <button class="modal-close" onclick="closeModal('replyModal')">✕</button>
+                            <div class="modal-title">📢 Complaint Details</div>
+                            <button class="modal-close" onclick="closeModal('compModal')">✕</button>
                         </div>
-                        <div class="modal-body" style="padding:0">
-                            <div class="modal-section">
-                                <div class="modal-section-title">Your Reply</div>
-                                <div class="form-field">
-                                    <textarea id="replyText" class="form-textarea" placeholder="Write a helpful and professional reply..." style="min-height:120px"></textarea>
-                                </div>
-                            </div>
-                        </div>
+                        <div class="modal-body" id="compModalBody"></div>
                         <div class="modal-ft">
-                            <button class="btn btn-outline" onclick="closeModal('replyModal')">Cancel</button>
-                            <button class="btn btn-primary" onclick="submitReply()">📤 Send Reply</button>
+                            <button class="btn btn-outline" onclick="closeModal('compModal')">Close</button>
+                            <div id="compModalActions" style="display:flex;gap:.5rem"></div>
                         </div>
                     </div>
                 </div>
@@ -192,30 +213,124 @@
         </main>
     </div>
     <div id="toast">✅ Done!</div>
+
     <script>
         const shell=document.getElementById('waShell'),sb=document.getElementById('waSb'),ovl=document.getElementById('waOvl');
-        const mob=()=>window.innerWidth<=992;let mini=false;
+        const mob=()=>window.innerWidth<=992; let mini=false;
         function save(v){localStorage.setItem('wa_mini',v);}
-        function miniOn(){mini=true;shell.classList.add('mini');save('1');document.querySelectorAll('.sb-sub').forEach(s=>s.style.height='0px');}
-        function miniOff(){mini=false;shell.classList.remove('mini');save('0');document.querySelectorAll('.sb-sub.open').forEach(s=>{const i=s.querySelector('.sb-sub-inner');s.style.height=(i?i.scrollHeight:0)+'px';});}
+        function miniOn(){mini=true;shell.classList.add('mini');save('1');}
+        function miniOff(){mini=false;shell.classList.remove('mini');save('0');}
         function openMob(){sb.classList.add('mob-open');ovl.classList.add('show');document.body.style.overflow='hidden';}
         function closeMob(){sb.classList.remove('mob-open');ovl.classList.remove('show');document.body.style.overflow='';}
         function toggleSb(){if(mob()){sb.classList.contains('mob-open')?closeMob():openMob();}else{mini?miniOff():miniOn();}}
-        function toggleSidebar(){toggleSb();}
-        function closeSidebar(){closeMob();}
-        function markActive(){const p=location.pathname.split('/').pop();document.querySelectorAll('.sb-row[href]').forEach(el=>{if(el.getAttribute('href')===p)el.classList.add('active');});}
+        function openModal(id){document.getElementById(id)?.classList.add('on');}
+        function closeModal(id){document.getElementById(id)?.classList.remove('on');}
+        function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='flex';setTimeout(()=>t.style.display='none',2400);}
         let rt;window.addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!mob()){closeMob();localStorage.getItem('wa_mini')==='1'?miniOn():miniOff();}else{shell.classList.remove('mini');mini=false;}},90);});
-        document.addEventListener('keydown',e=>{if(e.key==='['&&!e.ctrlKey&&!e.metaKey)toggleSb();if(e.key==='Escape')closeMob();});
-        let tx=0;
-        document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;},{passive:true});
-        document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-tx;if(!mob())return;if(dx>55&&tx<28)openMob();if(dx<-55)closeMob();},{passive:true});
+        document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMob();});
+        document.addEventListener('DOMContentLoaded',()=>{ if(!mob()&&localStorage.getItem('wa_mini')==='1') miniOn(); });
+
+        const allComplaints = @Html.Raw(ViewBag.ComplaintsJson ?? "[]");
+
+        function priorityBadge(p){
+            const m={High:'b-red',Urgent:'b-red',Medium:'b-ora',Low:'b-green'};
+            return `<span class="badge ${m[p]||'b-grey'}">${p}</span>`;
+        }
+        function statusBadge(s){
+            const c={open:'#f39c12','under review':'#3498db',resolved:'#27ae60'}[s]||'#999';
+            return `<span style="background:${c}20;color:${c};border:1px solid ${c}40;padding:3px 10px;border-radius:20px;font-size:.72rem;font-weight:800;text-transform:capitalize">${s}</span>`;
+        }
+
+        function renderComplaints(){
+            const q   = document.getElementById('compSearch').value.toLowerCase();
+            const st  = document.getElementById('compStatusFilter').value;
+            const src = document.getElementById('compSourceFilter').value;
+            let list  = allComplaints;
+            if(st  !== 'all') list = list.filter(c => c.status === st);
+            if(src !== 'all') list = list.filter(c => c.source === src);
+            if(q)             list = list.filter(c =>
+                (c.title+c.complainant+c.description).toLowerCase().includes(q));
+            const tbody = document.getElementById('complaintsBody');
+            if(!list.length){
+                tbody.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:30px">No complaints found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = list.map(c=>`
+                <tr>
+                    <td style="font-family:monospace;font-weight:900">#${c.id}</td>
+                    <td style="font-weight:700">${c.complainant}</td>
+                    <td style="font-size:.84rem">${c.title}</td>
+                    <td>${priorityBadge(c.priority)}</td>
+                    <td>
+                        <span style="font-size:.72rem;font-weight:800;padding:2px 8px;border-radius:10px;
+                            background:${c.source==='Admin'?'rgba(217,83,79,.1)':'rgba(52,152,219,.1)'};
+                            color:${c.source==='Admin'?'#c0392b':'#2980b9'}">
+                            ${c.source==='Admin'?'⚠️ Admin':'👤 User'}
+                        </span>
+                    </td>
+                    <td style="font-size:.78rem;color:var(--text-muted)">${c.date}</td>
+                    <td>${statusBadge(c.status)}</td>
+                    <td><button class="btn btn-outline btn-sm" onclick="openComplaint(${c.id})">View</button></td>
+                </tr>`).join('');
+        }
+
+        function openComplaint(id){
+            const c = allComplaints.find(x=>x.id===id);
+            if(!c) return;
+            document.getElementById('compModalBody').innerHTML=`
+                <div style="padding:20px">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+                        <div><div style="font-size:.72rem;color:var(--text-muted);font-weight:700">From</div>
+                             <div style="font-weight:700">${c.complainant}</div></div>
+                        <div><div style="font-size:.72rem;color:var(--text-muted);font-weight:700">Date</div>
+                             <div>${c.date}</div></div>
+                        <div><div style="font-size:.72rem;color:var(--text-muted);font-weight:700">Priority</div>
+                             <div style="margin-top:4px">${priorityBadge(c.priority)}</div></div>
+                        <div><div style="font-size:.72rem;color:var(--text-muted);font-weight:700">Source</div>
+                             <div style="font-weight:700;margin-top:4px">
+                                 ${c.source==='Admin'?'⚠️ Waffy Admin':'👤 Customer'}
+                             </div></div>
+                    </div>
+                    <div style="font-size:.78rem;font-weight:800;color:var(--brand-dark);margin-bottom:6px">Title:</div>
+                    <div style="font-weight:700;margin-bottom:14px">${c.title}</div>
+                    <div style="font-size:.78rem;font-weight:800;color:var(--brand-dark);margin-bottom:6px">Description:</div>
+                    <div style="background:var(--brand-ghost);border-radius:10px;padding:12px;font-size:.86rem;line-height:1.6;margin-bottom:14px">
+                        ${c.description||'—'}
+                    </div>
+                    <div>Status: ${statusBadge(c.status)}</div>
+                </div>`;
+            const actions=document.getElementById('compModalActions');
+            if(c.status==='open'){
+                actions.innerHTML=`<button class="btn btn-primary btn-sm" onclick="updateStatus(${c.id},'Under Review')">Mark Under Review</button>`;
+            } else if(c.status==='under review'){
+                actions.innerHTML=`<button class="btn btn-primary btn-sm" onclick="updateStatus(${c.id},'Resolved')">✅ Mark Resolved</button>`;
+            } else {
+                actions.innerHTML='';
+            }
+            openModal('compModal');
+        }
+
+        async function updateStatus(id,status){
+            const fd=new FormData();
+            fd.append('id',id); fd.append('status',status);
+            try{
+                const res=await fetch('/StoreAdmin/UpdateComplaintStatus',{method:'POST',body:fd});
+                const data=await res.json();
+                if(data.success){
+                    const c=allComplaints.find(x=>x.id===id);
+                    if(c) c.status=status.toLowerCase();
+                    closeModal('compModal'); renderComplaints();
+                    showToast('✅ Status updated to '+status);
+                }
+            } catch(e){ showToast('❌ Network error'); }
+        }
+
         document.addEventListener('DOMContentLoaded',()=>{
-          if(!mob()&&localStorage.getItem('wa_mini')==='1')miniOn();
-          markActive();
-          const el=document.getElementById('tnNotifCount'),b=document.getElementById('notifCountBadge');
-          if(el&&b)el.textContent=b.textContent;
+            renderComplaints();
+            document.getElementById('compSearch').addEventListener('input',renderComplaints);
+            document.getElementById('compStatusFilter').addEventListener('change',renderComplaints);
+            document.getElementById('compSourceFilter').addEventListener('change',renderComplaints);
         });
     </script>
-    <script src="~/js/AdminStore.js"></script>
 </body>
 </html>

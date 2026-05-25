@@ -8,5 +8,7 @@ namespace Waffy.Interfaces
         Task<IEnumerable<Complaint>> GetByUserIdAsync(int userId);
         Task<IEnumerable<Complaint>> GetAllByTargetTypeAsync(string targetType); 
         Task UpdateStatusAsync(int id, string status);
+
+        Task<IEnumerable<Complaint>> GetByStoreIdAsync(int storeId);
     }
 }

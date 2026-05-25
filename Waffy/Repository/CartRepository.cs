@@ -193,6 +193,21 @@ namespace Waffy.Repository
                 new { IdCart = idCart });
         }
 
+        public async Task<int> GetItemQuantityAsync(int cartId, int productId)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.ExecuteScalarAsync<int>(@"
+        SELECT ISNULL(Quantity, 0) FROM CartItem 
+        WHERE IdCart = @CartId AND IdProduct = @ProductId",
+                new { CartId = cartId, ProductId = productId });
+        }
 
+        public async Task<CartItem?> GetItemByIdAsync(int itemId)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryFirstOrDefaultAsync<CartItem>(
+                "SELECT * FROM CartItem WHERE Id = @Id",
+                new { Id = itemId });
+        }
     }
 }

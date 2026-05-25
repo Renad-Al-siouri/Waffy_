@@ -1,6 +1,8 @@
 ﻿@{
     string activeNav = ViewData["ActiveNav"]?.ToString() ?? "";
-    string pageTitle = ViewData["PageTitle"]?.ToString() ?? "Store Admin";
+    string pageTitle = ViewData["Title"]?.ToString()
+                       ?? ViewData["PageTitle"]?.ToString()
+                       ?? "Store Admin";
     string breadSection = ViewData["BreadSection"]?.ToString() ?? "Store";
     string breadPage = ViewData["BreadPage"]?.ToString() ?? pageTitle;
 }
@@ -52,6 +54,7 @@
 
                 <div class="sb-group">
                     <div class="sb-grp-hd">Store</div>
+
                     <a class="sb-row @(activeNav == "Products" ? "active" : "")"
                        href="@Url.Action("Products", "StoreAdmin")" data-tip="Products">
                         <span class="sb-icon">
@@ -62,7 +65,7 @@
                             </svg>
                         </span>
                         <span class="sb-lbl">Products</span>
-                        <span class="sb-bdg bd-g" id="productsCountBadge">0</span>
+                      
                     </a>
 
                     <a class="sb-row @(activeNav == "Orders" ? "active" : "")"
@@ -75,7 +78,7 @@
                             </svg>
                         </span>
                         <span class="sb-lbl">Orders</span>
-                        <span class="sb-bdg bd-y" id="ordersCountBadge">0</span>
+                       
                     </a>
 
                     <a class="sb-row @(activeNav == "Customers" ? "active" : "")"
@@ -91,14 +94,14 @@
                     </a>
 
                     <a class="sb-row @(activeNav == "Reviews" ? "active" : "")"
-                       href="@Url.Action("Reviews", "StoreAdmin")" data-tip="Reviews">
+                       href="@Url.Action("Reviews", "StoreAdmin")" data-tip="Complaints">
                         <span class="sb-icon">
                             <svg class="ico" viewBox="0 0 24 24">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                             </svg>
                         </span>
-                        <span class="sb-lbl">Reviews</span>
-                        <span class="sb-bdg bd-r" id="reviewsCountBadge">0</span>
+                        <span class="sb-lbl">Complaints</span>
+                      
                     </a>
                 </div>
 
@@ -120,6 +123,7 @@
 
                 <div class="sb-group">
                     <div class="sb-grp-hd">Management</div>
+
                     <a class="sb-row @(activeNav == "Notifications" ? "active" : "")"
                        href="@Url.Action("Notifications", "StoreAdmin")" data-tip="Notifications">
                         <span class="sb-icon">
@@ -129,7 +133,7 @@
                             </svg>
                         </span>
                         <span class="sb-lbl">Notifications</span>
-                        <span class="sb-bdg bd-r" id="notifCountBadge">0</span>
+                       
                     </a>
 
                     <a class="sb-row @(activeNav == "Settings" ? "active" : "")"
@@ -195,13 +199,15 @@
             </div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-               
                 <a class="tn-btn" href="@Url.Action("Notifications", "StoreAdmin")">
                     <svg class="ico" viewBox="0 0 24 24">
                         <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                         <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                     </svg>
-                    <span class="tn-count" id="tnNotifCount">0</span>
+                    @if ((int)(ViewBag.NotifCount ?? 0) > 0)
+                    {
+                        <span class="tn-count">@ViewBag.NotifCount</span>
+                    }
                 </a>
                 <div class="tn-sep"></div>
                 <div class="tn-profile">
@@ -219,55 +225,63 @@
             @RenderBody()
         </main>
 
-    </div><!-- wa-shell -->
+    </div><!-- /wa-shell -->
 
     <div id="toast">✅ Done!</div>
 
     <script>
-        // ── Sidebar JS ──
+        // ── Sidebar JS (layout-level, available to all pages) ──────────
         const shell = document.getElementById('waShell'),
               sb    = document.getElementById('waSb'),
               ovl   = document.getElementById('waOvl');
         const mob = () => window.innerWidth <= 992;
         let mini = false;
-        function save(v) { localStorage.setItem('wa_mini', v); }
+
+        function save(v)   { localStorage.setItem('wa_mini', v); }
         function miniOn()  { mini = true;  shell.classList.add('mini');    save('1'); }
         function miniOff() { mini = false; shell.classList.remove('mini'); save('0'); }
         function openMob()  { sb.classList.add('mob-open');    ovl.classList.add('show');    document.body.style.overflow = 'hidden'; }
         function closeMob() { sb.classList.remove('mob-open'); ovl.classList.remove('show'); document.body.style.overflow = ''; }
+
         function toggleSb() {
             if (mob()) { sb.classList.contains('mob-open') ? closeMob() : openMob(); }
-            else        { mini ? miniOff() : miniOn(); }
+            else       { mini ? miniOff() : miniOn(); }
         }
+
+        // Also available globally (used by some page-level modals)
         function openModal(id)  { document.getElementById(id)?.classList.add('on'); }
         function closeModal(id) { document.getElementById(id)?.classList.remove('on'); }
         function showToast(msg = '✅ Done!') {
             const t = document.getElementById('toast');
             if (!t) return;
-            t.textContent = msg;
-            t.style.display = 'flex';
+            t.textContent = msg; t.style.display = 'flex';
             setTimeout(() => { t.style.display = 'none'; }, 2200);
         }
 
-        let rt;
+        // Responsive behaviour
+        let _rt;
         window.addEventListener('resize', () => {
-            clearTimeout(rt);
-            rt = setTimeout(() => {
+            clearTimeout(_rt);
+            _rt = setTimeout(() => {
                 if (!mob()) { closeMob(); localStorage.getItem('wa_mini') === '1' ? miniOn() : miniOff(); }
                 else        { shell.classList.remove('mini'); mini = false; }
             }, 90);
         });
+
+        // Keyboard shortcuts
         document.addEventListener('keydown', e => {
             if (e.key === '[' && !e.ctrlKey && !e.metaKey) toggleSb();
             if (e.key === 'Escape') closeMob();
         });
-        let tx = 0;
-        document.addEventListener('touchstart', e => { tx = e.touches[0].clientX; }, { passive: true });
+
+        // Swipe gestures
+        let _tx = 0;
+        document.addEventListener('touchstart', e => { _tx = e.touches[0].clientX; }, { passive: true });
         document.addEventListener('touchend',   e => {
-            const dx = e.changedTouches[0].clientX - tx;
+            const dx = e.changedTouches[0].clientX - _tx;
             if (!mob()) return;
-            if (dx >  55 && tx < 28) openMob();
-            if (dx < -55)            closeMob();
+            if (dx >  55 && _tx < 28) openMob();
+            if (dx < -55)             closeMob();
         }, { passive: true });
 
         document.addEventListener('DOMContentLoaded', () => {

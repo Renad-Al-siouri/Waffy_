@@ -30,5 +30,7 @@ namespace Waffy.Interfaces
 
         // ✅ جديد — جلب المتاجر المعتمدة فقط (للعرض العام)
         Task<IEnumerable<Store>> GetApprovedStoresAsync();
+
+        Task<int?> GetOwnerUserIdAsync(int storeId);
     }
 }

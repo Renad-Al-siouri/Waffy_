@@ -135,6 +135,7 @@
                     <button class="category-btn" data-filter="adoption">Adoption</button>
                     <button class="category-btn" data-filter="warning">Warnings</button>
                     <button class="category-btn" data-filter="reward">Rewards</button>
+                    <button class="category-btn" data-filter="orders">Orders</button>
                     <button class="category-btn" data-filter="system">System</button>
                 </div>
                 <div class="actions-box">
@@ -179,6 +180,11 @@
                     "warning" => "fa-triangle-exclamation",
                     "adoption" => "fa-paw",
                     "reward" => "fa-trophy",
+                    "orderconfirmed" => "fa-circle-check",
+                    "ordershipped" => "fa-truck",
+                    "orderdelivered" => "fa-box-open",
+                    "ordercancelled" => "fa-circle-xmark",
+                    "orderstatusupdate" => "fa-bag-shopping",
                     _ => "fa-bell"
                 };
                 var filterType = notif.Type?.ToLower() switch
@@ -186,6 +192,11 @@
                     "warning" => "warning",
                     "adoption" => "adoption",
                     "reward" => "reward",
+                    "orderconfirmed" => "orders",
+                    "ordershipped" => "orders",
+                    "orderdelivered" => "orders",
+                    "ordercancelled" => "orders",
+                    "orderstatusupdate" => "orders",
                     _ => "system"
                 };
                 var searchText = $"{notif.Title} {notif.Message} {notif.Type}".ToLower();

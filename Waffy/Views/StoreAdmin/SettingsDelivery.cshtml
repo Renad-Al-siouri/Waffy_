@@ -195,6 +195,8 @@
                             <input type="hidden" name="deliveryAvailable" id="deliveryAvailableInput"
                                    value="@(Model.DeliveryAvailable ? "true" : "false")">
                         </div>
+
+                       
                     </div>
 
                     <div class="form-field full">
@@ -203,6 +205,12 @@
                                   style="min-height:70px">@Model.DeliveryAreas</textarea>
                     </div>
 
+                    <div class="form-field">
+                        <label class="form-label">Delivery Fee (JD)</label>
+                        <input type="number" name="deliveryFee" step="0.001" min="0"
+                               value="@(Model.DeliveryFee?.ToString("F3") ?? "0.000")"
+                               class="form-input" placeholder="0.000">
+                    </div>
                     <div class="form-field">
                         <label class="form-label">Opening Time</label>
                         <input class="form-input" name="openTime" type="time"

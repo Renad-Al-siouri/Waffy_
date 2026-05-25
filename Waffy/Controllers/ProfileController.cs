@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
 using Waffy.Interfaces;
 using Waffy.Models;
@@ -26,7 +27,7 @@ namespace Waffy.Controllers
         private readonly ILocationRepository _locationRepo;
         private readonly IRewardLogRepository _rewardLogRepo;
         private readonly INotificationRepository _notifRepo;
-
+        private readonly IProductImageRepository _productImageRepo;
         public ProfileController(
             IUserRepository userRepository,
             IPetRepository petRepo,
@@ -45,6 +46,7 @@ namespace Waffy.Controllers
             IPostFlagRepository flagRepo,
                 IRewardLogRepository rewardLogRepo,
                 INotificationRepository notifRepo,
+                IProductImageRepository productImageRepo,
             ILocationRepository locationRepo)
         {
             _userRepository = userRepository;
@@ -65,6 +67,7 @@ namespace Waffy.Controllers
             _locationRepo = locationRepo;
             _rewardLogRepo = rewardLogRepo;
             _notifRepo = notifRepo;
+            _productImageRepo = productImageRepo;
         }
 
         // ── helper: تجلب المستخدم من Session أو ترجع null ──
@@ -325,11 +328,17 @@ namespace Waffy.Controllers
 
             var storeIds = orders.Select(o => o.IdStore).Distinct().ToList();
             var stores = new Dictionary<int, string>();
+            var storeLogos = new Dictionary<int, string>();
+
             foreach (var id in storeIds)
             {
                 var s = await _storeRepo.GetByIdAsync(id);
                 stores[id] = s?.Name ?? "Store";
+                storeLogos[id] = s?.LogoUrl ?? "";
             }
+
+            ViewBag.StoreNames = stores;
+            ViewBag.StoreLogos = storeLogos;
 
             // ── Sidebar data ──────────────────────────────────────
             ViewBag.SidebarName = user?.FullName ?? "";
@@ -355,28 +364,40 @@ namespace Waffy.Controllers
         public async Task<IActionResult> OrderItems(int orderId)
         {
             var userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null) return Json(new { items = new List<object>(), total = "0.000" });
+            if (userId == null)
+                return Json(new { items = new List<object>(), total = "0.000" });
 
-            // تأكد أن الطلب ينتمي لهذا اليوزر
             var order = await _orderRepo.GetByIdAsync(orderId);
             if (order == null || order.IdUser != userId.Value)
                 return Json(new { items = new List<object>(), total = "0.000" });
 
-            var items = (await _orderItemRepo.GetByOrderIdAsync(orderId)).ToList();
-            var total = items.Sum(i => i.Quantity * (i.SalePrice ?? i.UnitPrice));
+            var rawItems = (await _orderItemRepo.GetByOrderIdAsync(orderId)).ToList();
+            var total = rawItems.Sum(i => i.Quantity * (i.SalePrice ?? i.UnitPrice));
 
-            return Json(new
+            var result = new List<object>();
+            foreach (var i in rawItems)
             {
-                items = items.Select(i => new
+                // جلب الصورة الرئيسية للمنتج
+                string image = "";
+                try
                 {
-                    name = i.ProductNameSnapshot,
-                    qty = i.Quantity,
-                    subtotal = (i.Quantity * (i.SalePrice ?? i.UnitPrice)).ToString("F3")
-                }),
-                total = total.ToString("F3")
-            });
-        }
+                    var imgs = (await _productImageRepo.GetByProductIdAsync(i.IdProduct)).ToList();
+                    image = imgs.FirstOrDefault(x => x.IsMain)?.ImageUrl
+                         ?? imgs.FirstOrDefault()?.ImageUrl ?? "";
+                }
+                catch { }
 
+                result.Add(new
+                {
+                    name = i.ProductNameSnapshot ?? "",
+                    qty = i.Quantity,
+                    subtotal = (i.Quantity * (i.SalePrice ?? i.UnitPrice)).ToString("F3"),
+                    image = image
+                });
+            }
+
+            return Json(new { items = result, total = total.ToString("F3") });
+        }
         // ════════════════════════════════════════════════════
         // ADOPTION ADS — GET
         // ════════════════════════════════════════════════════
@@ -976,6 +997,39 @@ namespace Waffy.Controllers
             }
 
             // ✅ رتّب حسب التاريخ — الأحدث أولاً
+            // ✅ Orders
+            var userOrders = (await _orderRepo.GetByUserIdAsync(user.UserId)).ToList();
+            var storeNames = new Dictionary<int, string>();
+            foreach (var storeId in userOrders.Select(o => o.IdStore).Distinct())
+            {
+                var s = await _storeRepo.GetByIdAsync(storeId);
+                storeNames[storeId] = s?.Name ?? "Store";
+            }
+            foreach (var order in userOrders)
+            {
+                // حدث إنشاء الطلب
+                events.Add(new TimelineEvent
+                {
+                    Icon = "🛒",
+                    Title = $"Order Placed — #{order.OrderCode}",
+                    Description = $"From {storeNames.GetValueOrDefault(order.IdStore, "Store")} · {order.DeliveryFee + (order.DeliveryFee > 0 ? order.DeliveryFee : 0):F3} JD",
+                    Date = order.CreatedAt,
+                    Color = "#5a9ecf"
+                });
+
+                // حدث الإلغاء إذا كان ملغياً
+                if (order.Status == "Cancelled")
+                {
+                    events.Add(new TimelineEvent
+                    {
+                        Icon = "❌",
+                        Title = $"Order Cancelled — #{order.OrderCode}",
+                        Description = $"Order from {storeNames.GetValueOrDefault(order.IdStore, "Store")} was cancelled",
+                        Date = order.CreatedAt.AddMinutes(1), // دقيقة بعد الإنشاء
+                        Color = "#e74c3c"
+                    });
+                }
+            }
             events = events.OrderByDescending(e => e.Date).ToList();
 
             return View(new WalletViewModel
@@ -1083,7 +1137,25 @@ namespace Waffy.Controllers
                 Priority = priority ?? "Medium",
                 CreatedAt = DateTime.UtcNow
             });
-
+            // إشعار لصاحب المتجر إذا كانت الشكوى عن متجر
+            if (targetType == "Store" && targetId.HasValue)
+            {
+                var targetStore = await _storeRepo.GetByIdAsync(targetId.Value);
+                if (targetStore != null)
+                {
+                    await _notifRepo.AddAsync(new Notification
+                    {
+                        IdUser = targetStore.OwnerUserId,
+                        Type = "NewComplaint",
+                        Title = "📢 New Complaint Received",
+                        Message = $"A customer submitted a complaint: \"{title}\"",
+                        IsRead = false,
+                        RelatedEntityType = "Store",
+                        RelatedEntityId = targetId.Value,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
             TempData["ComplaintSuccess"] = "✅ Your complaint was submitted successfully!";
             return RedirectToAction("Complaints");
         }
@@ -1171,6 +1243,46 @@ namespace Waffy.Controllers
                         .ToList()
                 })
             );
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelOrder(int orderId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login", "Account");
+
+            var order = await _orderRepo.GetByIdAsync(orderId);
+            if (order == null || order.IdUser != userId.Value)
+                return RedirectToAction("Orders");
+
+            // فقط يلغي إذا لم يتم شحنه بعد
+            var cancellableStatuses = new[] { "Pending", "Confirmed", "Preparing" };
+            if (!cancellableStatuses.Contains(order.Status))
+            {
+                TempData["OrderError"] = "Order cannot be cancelled after it has been shipped.";
+                return RedirectToAction("Orders");
+            }
+
+            await _orderRepo.UpdateStatusAsync(orderId, "Cancelled");
+
+            // إشعار للمتجر
+            var store = await _storeRepo.GetByIdAsync(order.IdStore);
+            if (store != null && store.OwnerUserId > 0)
+            {
+                await _notifRepo.AddAsync(new Notification
+                {
+                    IdUser = store.OwnerUserId,
+                    Type = "OrderCancelled",
+                    Title = "❌ Order Cancelled by Customer",
+                    Message = $"Order #{order.OrderCode} was cancelled by the customer before shipment.",
+                    IsRead = false,
+                    RelatedEntityType = "Order",
+                    RelatedEntityId = orderId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+            TempData["OrderSuccess"] = "Order cancelled successfully.";
+            return RedirectToAction("Orders");
         }
     }
 }

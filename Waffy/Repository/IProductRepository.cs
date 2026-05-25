@@ -13,5 +13,8 @@ namespace Waffy.Interfaces
         Task UpdateStockAsync(int id, int newQuantity);
 
         Task DeductStockAsync(int productId, int quantity);
+
+        Task<IEnumerable<Product>> GetFilteredAsync(
+    int storeId, string? search, int? categoryId, decimal? maxPrice);
     }
 }

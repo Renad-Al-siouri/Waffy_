@@ -4,7 +4,9 @@
     var safeModel = Model ?? new List<Waffy.Models.CartItem>();
     var subtotal = ViewBag.Subtotal != null ? (decimal)ViewBag.Subtotal : 0m;
     var byStore = safeModel.GroupBy(i => new { i.IdStore, i.StoreName }).ToList();
-    decimal total = subtotal;
+    var allFees = ViewBag.DeliveryFees as Dictionary<int, decimal>;   // ← جديد
+    var totalFees = allFees != null ? allFees.Values.Sum() : 0m;        // ← جديد
+    decimal total = subtotal + totalFees;                                // ← تعديل
 }
 
 <!DOCTYPE html>
@@ -248,8 +250,13 @@
                                         🏪 @(store.Key.StoreName ?? "Store")
                                     </div>
                                     <div style="display:flex;align-items:center;gap:14px">
+                                        @{
+                                            var fees = ViewBag.DeliveryFees as Dictionary<int, decimal>;
+                                            var fee = fees != null && fees.ContainsKey(store.Key.IdStore) ? fees[store.Key.IdStore] : 0m;
+                                        }
                                         <span style="font-size:.72rem;color:#8ab56b;font-weight:700">
-                                            <i class="fa-solid fa-truck"></i> Separate delivery
+                                            <i class="fa-solid fa-truck"></i>
+                                            @(fee > 0 ? fee.ToString("F3") + " JD delivery" : "Free delivery")
                                         </span>
                                         <span class="store-subtotal">@storeTotal.ToString("F3") JD</span>
                                     </div>
@@ -326,13 +333,15 @@
                                                 <div class="cart-item-meta">
                                                     <div class="qty-mini">
                                                         <button class="qty-mini-btn"
-                                                                onclick="changeQty(@item.Id, @item.Quantity, -1)"
+                                                                onclick="changeQty(@item.Id, -1)"
                                                                 type="button">
                                                             −
                                                         </button>
-                                                        <span class="qty-mini-value" id="qty-@item.Id">@item.Quantity</span>
+                                                        <span class="qty-mini-value"
+                                                              id="qty-@item.Id"
+                                                              data-price="@item.EffectivePrice.ToString("F3")">@item.Quantity</span>
                                                         <button class="qty-mini-btn"
-                                                                onclick="changeQty(@item.Id, @item.Quantity, 1)"
+                                                                onclick="changeQty(@item.Id, 1)"
                                                                 type="button">
                                                             +
                                                         </button>
@@ -388,11 +397,13 @@
                     @foreach (var store in byStore)
                     {
                         var st = store.Sum(i => i.Quantity * i.EffectivePrice);
-                        <div class="summary-line" style="font-size:.78rem">
-                            <span style="color:#6a9a3a;font-weight:800">
-                                🏪 @(store.Key.StoreName ?? "Store")
-                            </span>
-                            <strong>@st.ToString("F3") JD</strong>
+                        <div class="summary-line">
+                            <span>Delivery Fee</span>
+                            <strong>@(totalFees > 0 ? totalFees.ToString("F3") + " JD" : "Free")</strong>
+                        </div>
+                        <div class="summary-line total-line">
+                            <span>Total</span>
+                            <strong id="summaryTotal">@total.ToString("F3") JD</strong>
                         </div>
                     }
                     <hr style="border:none;border-top:1px dashed #e0ead0;margin:4px 0">
@@ -463,32 +474,38 @@
             t.classList.add('show');
             setTimeout(function() { t.classList.remove('show'); }, 2200);
         }
+                async function changeQty(itemId, delta) {
+            var qtyEl     = document.getElementById('qty-' + itemId);
+            var cur       = parseInt(qtyEl.textContent) || 1;
+            var unitPrice = parseFloat(qtyEl.dataset.price) || 0;
+            var newQ      = cur + delta;
 
-        async function changeQty(itemId, cur, delta) {
-            var newQ = cur + delta;
             if (newQ < 1) {
                 if (!confirm('Remove this item from cart?')) return;
                 removeItem(itemId);
                 return;
             }
+
             var fd = new FormData();
             fd.append('itemId', itemId);
             fd.append('quantity', newQ);
+
             var res  = await fetch('/Payment/UpdateQuantity', { method: 'POST', body: fd });
             var data = await res.json();
+
             if (data.success) {
-                document.getElementById('qty-' + itemId).textContent = newQ;
+                qtyEl.textContent = newQ;
                 var subEl = document.getElementById('sub-' + itemId);
-                if (subEl) {
-                    var unit = parseFloat(subEl.textContent.replace(' JD', '').trim()) / cur;
-                    subEl.textContent = (unit * newQ).toFixed(3) + ' JD';
-                }
+                if (subEl) subEl.textContent = (unitPrice * newQ).toFixed(3) + ' JD';
                 document.getElementById('summarySubtotal').textContent = data.subtotal + ' JD';
                 document.getElementById('summaryTotal').textContent    = data.subtotal + ' JD';
                 document.getElementById('summaryItems').textContent    = data.cartCount;
+            } else {
+                showToast(data.message || 'Cannot update quantity', false);
+                if (data.maxQty) qtyEl.textContent = data.maxQty;
             }
         }
-
+        
         async function removeItem(itemId) {
             var row = document.getElementById('row-' + itemId);
             if (row) row.style.opacity = '.3';

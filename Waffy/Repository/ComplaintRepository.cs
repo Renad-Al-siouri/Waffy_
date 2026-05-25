@@ -97,5 +97,19 @@ namespace Waffy.Repository
             using var conn = new SqlConnection(_connectionString);
             return await conn.QueryAsync<Complaint>(sql, new { TargetType = targetType });
         }
+
+        public async Task<IEnumerable<Complaint>> GetByStoreIdAsync(int storeId)
+        {
+            const string sql = @"
+        SELECT c.*, u.FullName AS ComplainantName
+        FROM   Complaint c
+        LEFT JOIN Users u ON u.UserId = c.IdUser
+        WHERE  c.TargetType = 'Store'
+          AND  c.TargetId   = @StoreId
+        ORDER  BY c.CreatedAt DESC";
+
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<Complaint>(sql, new { StoreId = storeId });
+        }
     }
 }

@@ -13,37 +13,53 @@ namespace Waffy.Controllers
         private readonly ICartRepository _cartRepo;          // ← أضف
         private readonly IProductRepository _productRepo;    // ← أضف
         private readonly IOrderRepository _orderRepo;
+        private readonly IStoreRepository _storeRepo;
+        private readonly INotificationRepository _notifRepo;
+        private readonly IUserRepository _userRepo;
         public PaymentController(
      IWalletRepository walletRepo,
      IDonationRepository donationRepo,
      IDonationAnimalRepository donationAnimalRepo,
      ICartRepository cartRepo,
      IProductRepository productRepo,
-     IOrderRepository orderRepo)   // ← أضف
+     IOrderRepository orderRepo,
+     INotificationRepository notifRepo,
+     IUserRepository userRepo,
+             IStoreRepository storeRepo)   
         {
             _walletRepo = walletRepo;
             _donationRepo = donationRepo;
             _donationAnimalRepo = donationAnimalRepo;
             _cartRepo = cartRepo;
             _productRepo = productRepo;
-            _orderRepo = orderRepo; // ← أضف
+            _orderRepo = orderRepo;
+            _storeRepo = storeRepo;
+            _notifRepo = notifRepo;
+            _userRepo = userRepo;
         }
         [HttpGet]
+        // Cart action — أضف جلب الديليفري في آخره قبل return View
         public async Task<IActionResult> Cart()
         {
             var userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null) return RedirectToAction("Login", "Account");
 
             var cart = await _cartRepo.GetOrCreateCartAsync(userId.Value);
-
-            // ✅ احذف أي منتج خلص مخزونه تلقائياً
             await _cartRepo.RemoveOutOfStockItemsAsync(cart.IdCart);
-
             var items = (await _cartRepo.GetCartItemsAsync(cart.IdCart)).ToList();
             var subtotal = items.Sum(i => i.Quantity * i.EffectivePrice);
 
+            // ── جلب سعر التوصيل لكل متجر ──
+            var deliveryFees = new Dictionary<int, decimal>();
+            foreach (var storeId in items.Select(i => i.IdStore).Distinct())
+            {
+                var s = await _storeRepo.GetByIdAsync(storeId);
+                deliveryFees[storeId] = (s?.DeliveryAvailable == true) ? (s.DeliveryFee ?? 0m) : 0m;
+            }
+
             ViewBag.CartId = cart.IdCart;
             ViewBag.Subtotal = subtotal;
+            ViewBag.DeliveryFees = deliveryFees;   // ← جديد
             return View(items);
         }
         // ══ Add to Cart (AJAX) ════════════════════════════════════════
@@ -53,12 +69,25 @@ namespace Waffy.Controllers
             var userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null)
                 return Json(new { success = false, message = "Please login first." });
-
             var product = await _productRepo.GetByIdAsync(productId);
             if (product == null || product.StockQuantity <= 0)
                 return Json(new { success = false, message = "Out of stock." });
 
+            if (quantity > product.StockQuantity)
+                return Json(new { success = false, message = $"Only {product.StockQuantity} unit(s) available." });
+
             var cart = await _cartRepo.GetOrCreateCartAsync(userId.Value);
+
+            // تحقق من الكمية الموجودة بالكارت مسبقاً
+            var currentInCart = await _cartRepo.GetItemQuantityAsync(cart.IdCart, productId);
+            if (currentInCart + quantity > product.StockQuantity)
+            {
+                var canAdd = product.StockQuantity - currentInCart;
+                if (canAdd <= 0)
+                    return Json(new { success = false, message = $"Max quantity ({product.StockQuantity}) already in cart." });
+                return Json(new { success = false, message = $"Only {canAdd} more unit(s) can be added." });
+            }
+
             await _cartRepo.AddOrUpdateItemAsync(cart.IdCart, productId, storeId, quantity);
             var count = await _cartRepo.GetCartCountAsync(cart.IdCart);
 
@@ -73,10 +102,25 @@ namespace Waffy.Controllers
             if (userId == null) return Json(new { success = false });
 
             if (quantity <= 0)
+            {
                 await _cartRepo.RemoveItemAsync(itemId);
+            }
             else
+            {
+                var item = await _cartRepo.GetItemByIdAsync(itemId);
+                if (item != null)
+                {
+                    var product = await _productRepo.GetByIdAsync(item.IdProduct);
+                    if (product != null && quantity > product.StockQuantity)
+                        return Json(new
+                        {
+                            success = false,
+                            message = $"Only {product.StockQuantity} unit(s) available.",
+                            maxQty = product.StockQuantity
+                        });
+                }
                 await _cartRepo.UpdateQuantityAsync(itemId, quantity);
-
+            }
             var cart = await _cartRepo.GetOrCreateCartAsync(userId.Value);
             var items = (await _cartRepo.GetCartItemsAsync(cart.IdCart)).ToList();
             var subtotal = items.Sum(i => i.Quantity * (i.SalePrice ?? i.UnitPrice));
@@ -121,19 +165,26 @@ namespace Waffy.Controllers
             var allItems = (await _cartRepo.GetCartItemsAsync(cart.IdCart)).ToList();
             var storeItems = allItems.Where(i => i.IdStore == storeId).ToList();
 
-            if (!storeItems.Any())
-                return RedirectToAction("Cart");
+            if (!storeItems.Any()) return RedirectToAction("Cart");
+
+            // جلب سعر التوصيل من المتجر
+            var store = await _storeRepo.GetByIdAsync(storeId);
+            var deliveryFee = (store?.DeliveryAvailable == true) ? (store.DeliveryFee ?? 0m) : 0m;
+
+            // جلب بيانات المستخدم من DB
+            var user = await _userRepo.GetByIdAsync(userId.Value);
 
             var vm = new CheckoutViewModel
             {
                 IdStore = storeId,
                 StoreName = storeItems.First().StoreName,
                 Items = storeItems,
-                DeliveryFee = 2m,
-                // Pre-fill من Session لو موجود
-                RecipientName = HttpContext.Session.GetString("FullName") ?? "",
-                RecipientPhone = HttpContext.Session.GetString("Phone") ?? "",
-                DeliveryAddress = HttpContext.Session.GetString("Address") ?? "",
+                DeliveryFee = deliveryFee,
+                RecipientName = user?.FullName ?? HttpContext.Session.GetString("FullName") ?? "",
+                RecipientPhone = user?.Phone ?? HttpContext.Session.GetString("Phone") ?? "",
+                DeliveryAddress = (user != null && !string.IsNullOrEmpty(user.AddressDetail))
+                                  ? $"{user.City}, {user.Area}, {user.AddressDetail}".Trim(',', ' ')
+                                  : HttpContext.Session.GetString("Address") ?? "",
             };
 
             if (TempData["CheckoutError"] is string err)
@@ -190,7 +241,8 @@ namespace Waffy.Controllers
 
             // ── إنشاء الطلب ──────────────────────────────────────────
             var orderCode = $"WAF-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..6].ToUpper()}";
-            var deliveryFee = 2m;
+            var store = await _storeRepo.GetByIdAsync(idStore);
+            var deliveryFee = (store?.DeliveryAvailable == true) ? (store.DeliveryFee ?? 0m) : 0m;   // ← ديناميكي
 
             var orderId = await _orderRepo.CreateAsync(new Order
             {
@@ -222,11 +274,62 @@ namespace Waffy.Controllers
                 });
 
                 // ✅ خصم الكمية من المنتج
+                // بعد هذا السطر:
                 await _productRepo.DeductStockAsync(item.IdProduct, item.Quantity);
+
+                // أضف:
+                var updatedProduct = await _productRepo.GetByIdAsync(item.IdProduct);
+                if (updatedProduct != null && store != null)
+                {
+                    if (updatedProduct.StockQuantity == 0)
+                    {
+                        await _notifRepo.AddAsync(new Notification
+                        {
+                            IdUser = store.OwnerUserId,
+                            Type = "OutOfStock",
+                            Title = "⚠️ Product Out of Stock",
+                            Message = $"\"{updatedProduct.Name}\" is now out of stock.",
+                            IsRead = false,
+                            RelatedEntityType = "Product",
+                            RelatedEntityId = updatedProduct.Id,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                    }
+                    else if (updatedProduct.StockQuantity <= 3)
+                    {
+                        await _notifRepo.AddAsync(new Notification
+                        {
+                            IdUser = store.OwnerUserId,
+                            Type = "LowStock",
+                            Title = "📦 Low Stock Alert",
+                            Message = $"\"{updatedProduct.Name}\" has only {updatedProduct.StockQuantity} unit(s) left.",
+                            IsRead = false,
+                            RelatedEntityType = "Product",
+                            RelatedEntityId = updatedProduct.Id,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
             }
 
             // ── تفريغ عناصر هذا المتجر من الكارت ────────────────────
             await _cartRepo.ClearCartByStoreAsync(cart.IdCart, idStore);
+            // إشعار لصاحب المتجر بطلب جديد
+            if (store != null)
+            {
+                await _notifRepo.AddAsync(new Notification
+                {
+                    IdUser = store.OwnerUserId,
+                    Type = "NewOrder",
+                    Title = "🛒 New Order Received!",
+                    Message = $"Order #{orderCode} from {recipientName} — {(storeItems.Sum(i => i.EffectivePrice * i.Quantity) + deliveryFee):F3} JD",
+                    IsRead = false,
+                    RelatedEntityType = "Order",
+                    RelatedEntityId = orderId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
 
             TempData["OrderCode"] = orderCode;
             TempData["StoreName"] = storeItems.First().StoreName;
