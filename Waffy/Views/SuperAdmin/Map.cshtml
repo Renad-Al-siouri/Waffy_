@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Waffy — Super Admin | Map Dashboard";
+    ViewData["Title"] = "Map Management — Waffy Admin";
     Layout = null;
 }
 <!DOCTYPE html>
@@ -8,9 +8,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"]</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         html, body {
             height: 100%;
@@ -22,1158 +22,1117 @@
             overflow: hidden;
         }
 
-        .map-shell {
+        /* ═══════════════════════════════════════════════════════
+                   SHELL
+                ═══════════════════════════════════════════════════════ */
+        .amap-shell {
             display: flex;
-            height: calc(100vh - var(--tn-h));
-            position: relative;
+            height: calc(100vh - var(--tn-h, 56px));
         }
 
-        .map-panel {
+        /* ═══════════════════════════════════════════════════════
+                   LEFT PANEL — fixed 320px
+                ═══════════════════════════════════════════════════════ */
+        .amap-left {
             width: 320px;
             flex-shrink: 0;
-            background: linear-gradient(180deg,var(--sb-bg) 0%,var(--sb-bg-2) 100%);
-            border-right: 1px solid var(--sb-border);
             display: flex;
             flex-direction: column;
+            background: #fff;
+            border-right: 1px solid #ece6df;
             overflow: hidden;
-            z-index: 200;
-            box-shadow: 4px 0 24px rgba(42,34,24,.14);
-            transition: width .3s cubic-bezier(.4,0,.2,1);
         }
 
-            .map-panel.collapsed {
-                width: 0;
-                overflow: hidden;
+        /* Tabs */
+        .left-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            border-bottom: 1px solid #ece6df;
+            flex-shrink: 0;
+        }
+
+        .lt {
+            padding: 13px 6px 11px;
+            border: none;
+            background: transparent;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .76rem;
+            font-weight: 600;
+            color: #9a8a78;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: color .18s;
+        }
+
+            .lt .lt-ico {
+                font-size: 1.05rem;
             }
 
-        .mp-header {
-            padding: 14px 16px;
-            border-bottom: 1px solid var(--sb-border);
-            background: rgba(255,255,255,.06);
+            .lt.active {
+                color: #1a1612;
+                border-bottom-color: #5a7a3e;
+                font-weight: 700;
+            }
+
+        .lt-badge {
+            background: #fee2e2;
+            color: #dc2626;
+            border-radius: 50px;
+            padding: 0 6px;
+            font-size: .63rem;
+            font-weight: 800;
+        }
+
+        .lt.active .lt-badge {
+            background: #e8f5d8;
+            color: #3d7a2a;
+        }
+
+        /* Search bar */
+        .left-search {
+            padding: 10px 14px;
+            border-bottom: 1px solid #ece6df;
+            flex-shrink: 0;
+        }
+
+        .ls-wrap {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: #f7f3ee;
+            border-radius: 10px;
+            padding: 0 12px;
+            height: 36px;
+        }
+
+            .ls-wrap input {
+                border: none;
+                outline: none;
+                background: transparent;
+                font-family: 'DM Sans', sans-serif;
+                font-size: .82rem;
+                color: #1a1612;
+                width: 100%;
+            }
+
+                .ls-wrap input::placeholder {
+                    color: #bab0a4;
+                }
+
+        /* Sections */
+        .left-sec {
+            display: none;
+            flex: 1;
+            overflow: hidden;
+            flex-direction: column;
+        }
+
+            .left-sec.active {
+                display: flex;
+            }
+
+        .ls-sub-hd {
             display: flex;
             align-items: center;
             justify-content: space-between;
+            padding: 10px 14px 6px;
             flex-shrink: 0;
         }
 
-        .mp-title {
-            font-family: 'Fredoka',sans-serif;
-            font-size: .95rem;
-            font-weight: 700;
-            color: #f2f7ea;
-        }
-
-        .mp-coord {
-            font-size: .65rem;
-            color: rgba(242,247,234,.62);
-            font-weight: 700;
-        }
-
-        .mp-tabs {
-            display: grid;
-            grid-template-columns: repeat(3,1fr);
-            gap: 4px;
-            padding: 8px 10px;
-            border-bottom: 1px solid var(--sb-border);
-            flex-shrink: 0;
-            background: rgba(0,0,0,.06);
-        }
-
-        .mp-tab {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2px;
-            padding: 8px 4px;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: .18s;
-            border: 1px solid transparent;
-            background: rgba(255,255,255,.06);
-            font-size: .6rem;
+        .ls-sub-title {
+            font-size: .68rem;
             font-weight: 800;
-            color: rgba(242,247,234,.7);
-            text-align: center;
+            color: #9a8a78;
+            letter-spacing: .9px;
+            text-transform: uppercase;
         }
 
-            .mp-tab span {
-                font-size: 1rem;
-                display: block;
+        .ls-add-btn {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: none;
+            background: #1a1612;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .7rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity .18s;
+        }
+
+            .ls-add-btn:hover {
+                opacity: .85;
             }
 
-            .mp-tab:hover {
-                background: rgba(255,255,255,.12);
-                color: #f2f7ea;
-            }
-
-            .mp-tab.active {
-                background: #fff7ea;
-                color: var(--brand-dark);
-                border-color: rgba(139,169,74,.28);
-                box-shadow: 0 4px 12px rgba(62,56,38,.14);
-            }
-
-        .mp-body {
+        .ls-list {
             flex: 1;
             overflow-y: auto;
-            overflow-x: hidden;
             scrollbar-width: thin;
-            scrollbar-color: rgba(255,255,255,.1) transparent;
+            scrollbar-color: #e0d8d0 transparent;
         }
 
-            .mp-body::-webkit-scrollbar {
-                width: 3px;
-            }
-
-            .mp-body::-webkit-scrollbar-thumb {
-                background: rgba(255,255,255,.12);
-                border-radius: 99px;
-            }
-
-        .mp-section {
-            display: none;
-        }
-
-            .mp-section.active {
-                display: block;
-            }
-
-        .mp-section-hd {
-            font-size: .62rem;
-            font-weight: 900;
-            letter-spacing: 1.2px;
-            text-transform: uppercase;
-            color: rgba(242,247,234,.56);
-            padding: 10px 14px 4px;
-        }
-
-        .layer-row {
+        /* Place row */
+        .prow {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 10px 12px;
-            margin: 3px 8px;
-            border-radius: 12px;
+            gap: 11px;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f5f0eb;
             cursor: pointer;
-            background: rgba(255,255,255,.06);
-            border: 1px solid rgba(255,255,255,.08);
-            transition: .18s;
+            transition: background .14s;
         }
 
-            .layer-row:hover {
-                background: rgba(255,255,255,.12);
-                border-color: rgba(255,255,255,.16);
-                transform: translateY(-1px);
+            .prow:hover {
+                background: #faf7f3;
             }
 
-        .layer-left {
+            .prow.selected {
+                background: #f0f7e8;
+            }
+
+        .prow-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 11px;
+            overflow: hidden;
+            flex-shrink: 0;
             display: flex;
             align-items: center;
-            gap: 10px;
+            justify-content: center;
+            font-size: 1rem;
         }
 
-        .layer-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            flex-shrink: 0;
+            .prow-img img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .prow-body {
+            flex: 1;
+            min-width: 0;
         }
 
-        .layer-name {
-            font-size: .82rem;
-            font-weight: 800;
-            color: #f2f7ea;
+        .prow-name {
+            font-size: .83rem;
+            font-weight: 600;
+            color: #1a1612;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
-        .layer-count {
-            font-size: .68rem;
-            color: rgba(242,247,234,.62);
+        .prow-sub {
+            font-size: .7rem;
+            color: #9a8a78;
+            font-weight: 500;
             margin-top: 1px;
         }
 
-        .tog {
-            width: 32px;
-            height: 16px;
-            background: rgba(255,255,255,.18);
-            border-radius: 9px;
-            position: relative;
+        .prow-acts {
+            display: flex;
+            gap: 5px;
             flex-shrink: 0;
-            transition: background .22s;
+        }
+
+        .prow-btn {
+            width: 26px;
+            height: 26px;
+            border-radius: 7px;
+            border: none;
+            background: #f0ebe4;
+            color: #9a8a78;
+            font-size: .7rem;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            transition: .15s;
+        }
+
+            .prow-btn:hover {
+                background: #e8e0d8;
+                color: #1a1612;
+            }
+
+            .prow-btn.del:hover {
+                background: #fce8e8;
+                color: #dc2626;
+            }
+
+            .prow-btn.edit:hover {
+                background: #e8f5d8;
+                color: #3d7a2a;
+            }
+
+        /* Danger rows */
+        .drow {
+            padding: 11px 14px;
+            border-bottom: 1px solid #f5f0eb;
+            cursor: pointer;
+            transition: background .14s;
+        }
+
+            .drow:hover {
+                background: #faf7f3;
+            }
+
+        .drow-hd {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 5px;
+        }
+
+        .drow-name {
+            font-size: .83rem;
+            font-weight: 700;
+            color: #1a1612;
+        }
+
+        .drow-sev {
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: .65rem;
+            font-weight: 800;
+        }
+
+        .sev-High {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .sev-Medium {
+            background: #fff3e0;
+            color: #b45309;
+        }
+
+        .sev-Low {
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+
+        .drow-meta {
+            font-size: .71rem;
+            color: #9a8a78;
+            font-weight: 500;
+        }
+
+        .drow-code {
+            font-family: monospace;
+            font-size: .66rem;
+            color: #b0a090;
+            margin-top: 3px;
+        }
+
+        .drow-btns {
+            display: flex;
+            gap: 6px;
+            margin-top: 7px;
+        }
+
+        .drow-btn {
+            padding: 3px 9px;
+            border-radius: 20px;
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .68rem;
+            font-weight: 700;
             cursor: pointer;
         }
 
-            .tog.on {
-                background: var(--brand);
+            .drow-btn.review {
+                background: #fff3e0;
+                color: #b45309;
             }
 
-            .tog::after {
-                content: '';
-                position: absolute;
-                top: 2px;
-                left: 2px;
-                width: 12px;
-                height: 12px;
-                background: #fff;
-                border-radius: 50%;
-                transition: transform .22s;
-                box-shadow: 0 1px 3px rgba(0,0,0,.18);
+            .drow-btn.resolve {
+                background: #f0fdf4;
+                color: #16a34a;
             }
 
-            .tog.on::after {
-                transform: translateX(16px);
+            .drow-btn.fake {
+                background: #f5f0eb;
+                color: #9a8a78;
             }
 
-        .stat-grid {
+        /* Stats */
+        .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            padding: 12px;
+            gap: 10px;
+            padding: 14px;
         }
 
-        .stat-card {
-            background: rgba(255,255,255,.08);
-            border: 1px solid rgba(255,255,255,.12);
-            border-radius: 12px;
-            padding: 12px;
-            transition: .18s;
+        .stat-box {
+            background: #f7f3ee;
+            border-radius: 14px;
+            padding: 14px;
+            text-align: center;
         }
 
-            .stat-card:hover {
-                background: rgba(255,255,255,.13);
-                transform: translateY(-1px);
-            }
-
-        .stat-val {
-            font-family: 'Fredoka',sans-serif;
-            font-size: 1.4rem;
-            font-weight: 700;
+        .stat-num {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
             line-height: 1;
-            color: #f2f7ea;
         }
 
         .stat-lbl {
             font-size: .68rem;
-            color: rgba(242,247,234,.62);
+            color: #9a8a78;
+            font-weight: 600;
             margin-top: 4px;
         }
 
-        .stat-card.c-green .stat-val {
-            color: #a8d96a;
-        }
-
-        .stat-card.c-red .stat-val {
-            color: #f09090;
-        }
-
-        .stat-card.c-yellow .stat-val {
-            color: #e8c96e;
-        }
-
-        .stat-card.c-blue .stat-val {
-            color: #8ac7f0;
-        }
-
-        .stat-card.c-purple .stat-val {
-            color: #c4b0f0;
-        }
-
-        .stat-card.c-orange .stat-val {
-            color: #f0b880;
-        }
-
-        .mp-divider {
-            padding: 6px 14px 2px;
-            font-size: .62rem;
-            font-weight: 900;
-            letter-spacing: 1.1px;
-            text-transform: uppercase;
-            color: rgba(242,247,234,.5);
-            border-bottom: 1px solid rgba(255,255,255,.08);
-            margin-bottom: 2px;
-        }
-
-        .bar-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 7px 14px;
-        }
-
-        .bar-lbl {
-            font-size: .78rem;
-            font-weight: 700;
-            color: rgba(242,247,234,.82);
-            min-width: 64px;
-        }
-
-        .bar-track {
-            flex: 1;
-            height: 5px;
-            background: rgba(255,255,255,.12);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .bar-fill {
-            height: 100%;
-            border-radius: 3px;
-            background: linear-gradient(90deg,var(--brand),var(--brand-dark));
-        }
-
-        .bar-num {
-            font-size: .72rem;
-            font-weight: 800;
-            color: var(--brand-light);
-            min-width: 14px;
-            text-align: right;
-        }
-
-        .alert-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 10px 14px;
-            border-bottom: 1px solid rgba(255,255,255,.07);
-            cursor: pointer;
-            transition: .15s;
-        }
-
-            .alert-item:hover {
-                background: rgba(255,255,255,.07);
-            }
-
-        .alert-ico {
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
-            display: grid;
-            place-items: center;
-            font-size: .9rem;
-            flex-shrink: 0;
-        }
-
-        .alert-title {
+        /* Empty state */
+        .ls-empty {
+            padding: 28px 16px;
+            text-align: center;
+            color: #b0a090;
             font-size: .8rem;
-            font-weight: 800;
-            color: #f2f7ea;
-            line-height: 1.3;
         }
 
-        .alert-sub {
-            font-size: .7rem;
-            color: rgba(242,247,234,.62);
-            margin-top: 2px;
-        }
-
-        .alert-time {
-            font-size: .63rem;
-            color: rgba(242,247,234,.44);
-            margin-top: 2px;
-        }
-
-        .map-toggle {
-            position: absolute;
-            top: 50%;
-            left: 320px;
-            transform: translateY(-50%);
-            width: 18px;
-            height: 44px;
-            background: #fff;
-            border: 1px solid var(--border);
-            border-left: none;
-            border-radius: 0 8px 8px 0;
-            display: grid;
-            place-items: center;
-            cursor: pointer;
-            z-index: 220;
-            color: var(--text-muted);
-            font-size: .72rem;
-            box-shadow: 3px 0 10px rgba(0,0,0,.06);
-            transition: left .3s cubic-bezier(.4,0,.2,1),background .18s;
-        }
-
-            .map-toggle:hover {
-                background: var(--brand-ghost);
-                color: var(--brand-dark);
-            }
-
-            .map-toggle.collapsed {
-                left: 0;
-                border-left: 1px solid var(--border);
-                border-radius: 0 8px 8px 0;
-            }
-
-        .map-area {
+        /* ═══════════════════════════════════════════════════════
+                   MAP AREA
+                ═══════════════════════════════════════════════════════ */
+        .amap-map {
             flex: 1;
             position: relative;
-            background: linear-gradient(135deg,#e8ddd2 0%,#f0e7df 50%,#e8ddd2 100%);
-            overflow: hidden;
         }
 
-        .map-grid {
-            position: absolute;
-            inset: 0;
-            background-image: linear-gradient(rgba(180,162,142,.28) 1px,transparent 1px),linear-gradient(90deg,rgba(180,162,142,.28) 1px,transparent 1px);
-            background-size: 48px 48px;
-            pointer-events: none;
+        #adminMap {
+            width: 100%;
+            height: 100%;
         }
 
-        .road {
-            position: absolute;
-            background: rgba(160,140,118,.45);
-            border-radius: 2px;
-        }
-
-            .road.h {
-                height: 4px;
-            }
-
-            .road.v {
-                width: 4px;
-            }
-
-            .road.hm {
-                height: 8px;
-            }
-
-            .road.vm {
-                width: 8px;
-            }
-
-        .area-lbl {
-            position: absolute;
-            font-size: .62rem;
-            font-weight: 900;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: rgba(120,100,82,.38);
-            pointer-events: none;
-        }
-
-        .heat-blob {
-            position: absolute;
-            border-radius: 50%;
-            pointer-events: none;
-            filter: blur(32px);
-            opacity: 0;
-            transition: opacity .4s;
-        }
-
-            .heat-blob.show {
-                opacity: .35;
-            }
-
-        .marker {
-            position: absolute;
-            transform: translate(-50%,-100%);
-            cursor: pointer;
-            z-index: 150;
-            transition: transform .18s;
-        }
-
-            .marker:hover {
-                transform: translate(-50%,-100%) scale(1.22);
-                z-index: 160;
-            }
-
-        .m-pin {
-            width: 32px;
-            height: 36px;
-            border-radius: 50% 50% 50% 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: .9rem;
-            border: 2px solid rgba(255,255,255,.75);
-            box-shadow: 0 3px 12px rgba(80,60,40,.18);
-            transform: rotate(-45deg);
-        }
-
-            .m-pin span {
-                transform: rotate(45deg);
-                display: block;
-            }
-
-        .m-lbl {
-            position: absolute;
-            bottom: -18px;
-            left: 50%;
-            transform: translateX(-50%);
-            white-space: nowrap;
-            font-size: .58rem;
-            font-weight: 800;
-            color: var(--text);
-            background: rgba(255,255,255,.9);
-            padding: 1px 5px;
-            border-radius: 4px;
-            border: 1px solid var(--border);
-        }
-
-        .m-pulse {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%,-50%);
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-            pointer-events: none;
-        }
-
-        @@keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(217,83,79,.32);
-            }
-
-            70% {
-                box-shadow: 0 0 0 14px rgba(217,83,79,0);
-            }
-
-            100% {
-                box-shadow: 0 0 0 0 rgba(217,83,79,0);
-            }
-        }
-
-        .radius-circle {
-            position: absolute;
-            border-radius: 50%;
-            pointer-events: none;
-            border: 2px dashed;
-            transform: translate(-50%,-50%);
-            display: none;
-            transition: opacity .3s;
-        }
-
-        .map-search-wrap {
+        /* Adding mode banner */
+        .add-banner {
             position: absolute;
             top: 14px;
             left: 50%;
             transform: translateX(-50%);
-            width: 300px;
-            z-index: 200;
-        }
-
-        .map-search-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #fff;
-            border: 1.5px solid var(--border);
-            border-radius: 14px;
-            padding: 8px 14px;
-            box-shadow: var(--shadow);
-            transition: .18s;
-        }
-
-            .map-search-box:focus-within {
-                border-color: var(--brand);
-                box-shadow: 0 0 0 3px rgba(139,169,74,.12);
-            }
-
-            .map-search-box input {
-                border: none;
-                outline: none;
-                background: transparent;
-                font-family: 'Nunito',sans-serif;
-                font-size: .84rem;
-                color: var(--text);
-                width: 100%;
-            }
-
-                .map-search-box input::placeholder {
-                    color: var(--text-muted);
-                }
-
-        #searchResults {
-            display: none;
-            margin-top: 5px;
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: var(--shadow);
-        }
-
-        .sr-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 9px 14px;
-            cursor: pointer;
-            font-size: .82rem;
-            border-bottom: 1px solid var(--border);
-            transition: background .14s;
-        }
-
-            .sr-item:last-child {
-                border-bottom: none;
-            }
-
-            .sr-item:hover {
-                background: var(--brand-ghost);
-            }
-
-            .sr-item strong {
-                color: var(--brand-dark);
-            }
-
-            .sr-item small {
-                font-size: .7rem;
-                color: var(--text-muted);
-            }
-
-        .map-toolbar {
-            position: absolute;
-            top: 14px;
-            right: 14px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            z-index: 200;
-        }
-
-        .tb {
-            width: 36px;
-            height: 36px;
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            display: grid;
-            place-items: center;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: .18s;
-            color: var(--text-muted);
-            box-shadow: var(--shadow);
-        }
-
-            .tb:hover {
-                background: var(--brand-ghost);
-                border-color: var(--brand);
-                color: var(--brand-dark);
-            }
-
-            .tb.on {
-                background: var(--brand-ghost);
-                border-color: var(--brand);
-                color: var(--brand-dark);
-            }
-
-        .add-bar {
-            position: absolute;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg,var(--brand),var(--brand-dark));
+            background: #1a1612;
             color: #fff;
-            padding: 10px 22px;
-            border-radius: var(--pill);
-            font-size: .84rem;
-            font-weight: 800;
-            z-index: 300;
+            padding: 11px 24px;
+            border-radius: 50px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .82rem;
+            font-weight: 700;
+            z-index: 400;
             display: none;
             align-items: center;
-            gap: 10px;
-            box-shadow: 0 4px 16px rgba(95,116,48,.35);
+            gap: 12px;
+            box-shadow: 0 8px 28px rgba(0,0,0,.25);
             white-space: nowrap;
+            animation: slideDown .3s ease;
         }
 
-            .add-bar.show {
+            .add-banner.show {
                 display: flex;
             }
 
-            .add-bar button {
-                background: rgba(255,255,255,.18);
+            .add-banner .cancel-btn {
+                background: rgba(255,255,255,.15);
                 border: none;
                 color: #fff;
-                font-family: 'Nunito',sans-serif;
+                font-family: 'DM Sans', sans-serif;
                 font-size: .78rem;
-                font-weight: 800;
-                padding: 4px 10px;
-                border-radius: var(--pill);
+                font-weight: 700;
+                padding: 5px 14px;
+                border-radius: 50px;
                 cursor: pointer;
             }
 
-                .add-bar button:hover {
-                    background: rgba(255,255,255,.28);
+                .add-banner .cancel-btn:hover {
+                    background: rgba(255,255,255,.25);
                 }
 
-        .api-banner {
-            position: absolute;
-            top: 70px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--warning-soft);
-            border: 1px solid rgba(226,163,58,.3);
-            border-radius: 12px;
-            padding: 8px 16px;
-            z-index: 200;
-            font-size: .76rem;
-            color: #9b6000;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: var(--shadow);
-            white-space: nowrap;
+        @@keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
         }
 
-            .api-banner button {
-                background: none;
-                border: none;
-                color: #9b6000;
-                cursor: pointer;
-                font-size: .9rem;
-                opacity: .7;
-            }
-
-                .api-banner button:hover {
-                    opacity: 1;
-                }
-
+        /* Legend */
         .map-legend {
             position: absolute;
-            bottom: 14px;
-            right: 14px;
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: var(--r-lg);
-            padding: 12px 14px;
-            z-index: 200;
-            min-width: 155px;
-            box-shadow: var(--shadow);
+            bottom: 16px;
+            right: 16px;
+            background: rgba(255,255,255,.95);
+            border-radius: 16px;
+            padding: 12px 16px;
+            z-index: 300;
+            box-shadow: 0 6px 24px rgba(0,0,0,.12);
         }
 
-        .legend-title {
-            font-size: .62rem;
-            font-weight: 900;
-            color: var(--text-muted);
+        .lg-hd {
+            font-size: .6rem;
+            font-weight: 800;
+            color: #9a8a78;
             letter-spacing: 1px;
             text-transform: uppercase;
             margin-bottom: 8px;
         }
 
-        .legend-item {
+        .lg-row {
             display: flex;
             align-items: center;
             gap: 7px;
-            margin-bottom: 5px;
             font-size: .72rem;
-            color: var(--text-muted);
+            font-weight: 600;
+            color: #1a1612;
+            margin-bottom: 5px;
         }
 
-        .legend-dot {
+            .lg-row:last-child {
+                margin-bottom: 0;
+            }
+
+        .lg-dot {
             width: 9px;
             height: 9px;
             border-radius: 50%;
+        }
+
+        /* Map marker styles */
+        .am-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .am-pin {
+            width: 40px;
+            height: 40px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2.5px solid rgba(255,255,255,.9);
+            box-shadow: 0 6px 20px rgba(0,0,0,.22);
+            overflow: hidden;
+            transition: transform .18s;
+        }
+
+            .am-pin span {
+                transform: rotate(45deg);
+                display: block;
+                font-size: .95rem;
+            }
+
+            .am-pin img {
+                transform: rotate(45deg);
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .am-tail {
+            width: 0;
+            height: 0;
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 10px solid;
+            margin: -2px auto 0;
+        }
+
+        .am-shadow {
+            width: 14px;
+            height: 5px;
+            background: rgba(0,0,0,.14);
+            border-radius: 50%;
+            filter: blur(2px);
+            margin-top: 1px;
+        }
+
+        /* ═══════════════════════════════════════════════════════
+                   RIGHT PANEL — form + detail (slides in/out)
+                ═══════════════════════════════════════════════════════ */
+        .right-panel {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 380px;
+            background: #fff;
+            border-left: 1px solid #ece6df;
+            display: flex;
+            flex-direction: column;
+            z-index: 500;
+            transform: translateX(100%);
+            transition: transform .32s cubic-bezier(.4,0,.2,1);
+            box-shadow: -8px 0 32px rgba(0,0,0,.1);
+        }
+
+            .right-panel.open {
+                transform: translateX(0);
+            }
+
+        .rp-hd {
+            display: flex;
+            align-items: center;
+            padding: 16px 20px 14px;
+            border-bottom: 1px solid #ece6df;
             flex-shrink: 0;
         }
 
-        .map-popup {
-            position: absolute;
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: var(--r-lg);
-            padding: 14px 16px;
-            width: 252px;
-            box-shadow: var(--shadow);
-            z-index: 250;
-            display: none;
+        .rp-title {
+            font-family: 'Syne', sans-serif;
+            font-size: .95rem;
+            font-weight: 800;
+            color: #1a1612;
+            flex: 1;
         }
 
-        .popup-hd {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 10px;
-        }
-
-        .popup-title {
-            font-size: .86rem;
-            font-weight: 900;
-            color: var(--brand-dark);
-        }
-
-        .popup-close {
-            width: 22px;
-            height: 22px;
-            border-radius: 6px;
+        .rp-close {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
             border: none;
-            background: var(--surface-2);
-            color: var(--text-muted);
+            background: #f0ebe4;
+            color: #9a8a78;
             cursor: pointer;
-            font-size: .78rem;
             display: grid;
             place-items: center;
-            transition: .14s;
-        }
-
-            .popup-close:hover {
-                background: var(--danger-soft);
-                color: var(--danger);
-            }
-
-        .popup-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 5px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: .76rem;
-        }
-
-            .popup-row:last-child {
-                border-bottom: none;
-            }
-
-        .popup-key {
-            color: var(--text-muted);
-            font-weight: 700;
-        }
-
-        .popup-val {
-            font-weight: 900;
-            color: var(--text);
-        }
-
-        .popup-actions {
-            display: flex;
-            gap: 5px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-
-            .popup-actions .btn {
-                font-size: .7rem;
-                padding: 5px 10px;
-                border-radius: 8px;
-            }
-
-            .popup-actions .btn-success {
-                background: var(--success-soft);
-                color: var(--success);
-                border: 1px solid rgba(47,158,95,.2);
-            }
-
-                .popup-actions .btn-success:hover {
-                    background: var(--success);
-                    color: #fff;
-                }
-
-            .popup-actions .btn-danger {
-                background: var(--danger-soft);
-                color: var(--danger);
-                border: 1px solid rgba(217,83,79,.2);
-            }
-
-                .popup-actions .btn-danger:hover {
-                    background: var(--danger);
-                    color: #fff;
-                }
-
-            .popup-actions .btn-warning {
-                background: var(--warning-soft);
-                color: #9b6000;
-                border: 1px solid rgba(226,163,58,.2);
-            }
-
-            .popup-actions .btn-outline {
-                background: #fff;
-                color: var(--brand-dark);
-                border: 1px solid var(--border);
-            }
-
-                .popup-actions .btn-outline:hover {
-                    background: var(--brand-ghost);
-                    border-color: var(--brand);
-                }
-
-        .confirm-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(38,31,23,.4);
-            backdrop-filter: blur(5px);
-            z-index: 1400;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-
-            .confirm-overlay.show {
-                display: flex;
-            }
-
-        .confirm-box {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: var(--r-xl);
-            padding: 28px;
-            width: 340px;
-            text-align: center;
-            box-shadow: var(--shadow-lg);
-        }
-
-        .confirm-ico {
-            font-size: 2.5rem;
-            margin-bottom: 12px;
-            display: block;
-        }
-
-        .confirm-title {
-            font-family: 'Fredoka',sans-serif;
-            font-size: 1.05rem;
-            font-weight: 700;
-            color: var(--brand-dark);
-            margin-bottom: 6px;
-        }
-
-        .confirm-sub {
             font-size: .82rem;
-            color: var(--text-muted);
-            line-height: 1.6;
-            margin-bottom: 20px;
+            transition: .15s;
         }
 
-        .confirm-btns {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
+            .rp-close:hover {
+                background: #e8e0d8;
+            }
+
+        .rp-body {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #e0d8d0 transparent;
         }
 
-        .loc-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(38,31,23,.4);
-            backdrop-filter: blur(5px);
-            z-index: 1350;
-            display: none;
-            align-items: center;
-            justify-content: center;
+        /* ── TYPE SELECTOR ─────────────────────────────────────── */
+        .type-selector {
             padding: 20px;
         }
 
-            .loc-overlay.show {
-                display: flex;
-            }
-
-        .loc-modal {
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            border-radius: var(--r-xl);
-            width: 100%;
-            max-width: 400px;
-            max-height: 88vh;
-            overflow-y: auto;
-            box-shadow: var(--shadow-lg);
-        }
-
-        .loc-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            background: #fff;
-            z-index: 1;
-        }
-
-        .loc-head-title {
-            font-family: 'Fredoka',sans-serif;
-            font-size: 1rem;
+        .ts-label {
+            font-size: .76rem;
             font-weight: 700;
-            color: var(--brand-dark);
-        }
-
-        .loc-body {
-            padding: 18px;
-        }
-
-        .loc-foot {
-            padding: 12px 18px;
-            border-top: 1px solid var(--border);
-            display: flex;
-            gap: 8px;
-        }
-
-        .loc-type-grid {
-            display: grid;
-            grid-template-columns: repeat(4,1fr);
-            gap: 6px;
+            color: #9a8a78;
+            letter-spacing: .8px;
+            text-transform: uppercase;
             margin-bottom: 14px;
         }
 
-        .loc-type-btn {
-            padding: 10px 4px;
-            border: 1.5px solid var(--border);
-            border-radius: 10px;
+        .ts-cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .ts-card {
+            padding: 16px 8px;
+            border: 2px solid #ece6df;
+            border-radius: 16px;
+            background: #fff;
+            cursor: pointer;
+            text-align: center;
+            transition: all .18s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .ts-card:hover {
+                border-color: #7fa85a;
+                background: #f4faea;
+            }
+
+            .ts-card.selected {
+                border-color: #5a7a3e;
+                background: #f0f7e8;
+            }
+
+            .ts-card .ts-ico {
+                font-size: 1.8rem;
+            }
+
+            .ts-card .ts-name {
+                font-family: 'Syne', sans-serif;
+                font-size: .78rem;
+                font-weight: 700;
+                color: #1a1612;
+            }
+
+            .ts-card .ts-desc {
+                font-size: .65rem;
+                color: #9a8a78;
+                font-weight: 500;
+                line-height: 1.4;
+            }
+
+            .ts-card.selected .ts-name {
+                color: #3d7a2a;
+            }
+
+        .ts-next-btn {
+            margin-top: 16px;
+            width: 100%;
+            padding: 13px;
+            background: #1a1612;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .84rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity .18s;
+        }
+
+            .ts-next-btn:hover {
+                opacity: .88;
+            }
+
+            .ts-next-btn:disabled {
+                opacity: .4;
+                cursor: not-allowed;
+            }
+
+        /* ── DETAILS FORM ──────────────────────────────────────── */
+        .details-form {
+            padding: 0 20px 24px;
+        }
+
+        /* Coord display */
+        .coord-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f0f7e8;
+            border: 1px solid #c4d9a8;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin: 16px 0 14px;
+            font-size: .78rem;
+            font-weight: 700;
+            color: #3d7a2a;
+        }
+
+            .coord-pill.empty {
+                background: #fff3e0;
+                border-color: #f5d6a8;
+                color: #b45309;
+            }
+
+        /* Image upload */
+        .img-upload-area {
+            border: 2px dashed #d8d0c8;
+            border-radius: 14px;
+            padding: 20px;
             text-align: center;
             cursor: pointer;
-            transition: .18s;
-            background: #fff;
+            transition: all .18s;
+            margin-bottom: 14px;
+            position: relative;
+            overflow: hidden;
         }
 
-            .loc-type-btn:hover {
-                border-color: var(--brand);
-                background: var(--brand-ghost);
+            .img-upload-area:hover {
+                border-color: #7fa85a;
+                background: #f9fdf5;
             }
 
-            .loc-type-btn.active {
-                border-color: var(--brand);
-                background: var(--brand-ghost);
+            .img-upload-area.has-img {
+                padding: 0;
+                border-style: solid;
+                border-color: #c4d9a8;
             }
 
-        .loc-type-ico {
-            font-size: 1.2rem;
-            display: block;
-            margin-bottom: 3px;
+        .img-preview {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 12px;
+            display: none;
         }
 
-        .loc-type-lbl {
-            font-size: .62rem;
-            font-weight: 800;
-            color: var(--text-muted);
-        }
-
-        .loc-type-btn.active .loc-type-lbl {
-            color: var(--brand-dark);
-        }
-
-        .loc-coord-note {
-            background: var(--brand-xlight);
-            border: 1px solid rgba(139,169,74,.2);
-            border-radius: 10px;
-            padding: 8px 12px;
-            font-size: .76rem;
-            color: var(--brand-dark);
-            font-weight: 800;
-            margin-bottom: 12px;
+        .img-placeholder {
             display: flex;
+            flex-direction: column;
             align-items: center;
             gap: 6px;
         }
 
-        .field {
-            display: grid;
-            gap: 5px;
-            margin-bottom: 11px;
-        }
-
-            .field label {
-                font-size: .76rem;
-                font-weight: 900;
-                color: var(--brand-dark);
+            .img-placeholder .ico {
+                font-size: 1.6rem;
             }
 
-            .field input, .field select, .field textarea {
-                width: 100%;
-                min-height: 40px;
-                border: 1.5px solid var(--border);
-                border-radius: 10px;
-                background: #fff;
-                color: var(--text);
-                padding: 0 12px;
-                outline: none;
-                font-size: .84rem;
-                font-weight: 700;
-                font-family: 'Nunito',sans-serif;
-                transition: .18s;
+            .img-placeholder p {
+                font-size: .78rem;
+                color: #9a8a78;
+                font-weight: 500;
+                margin: 0;
             }
 
-            .field textarea {
-                padding: 10px 12px;
-                min-height: 80px;
-                resize: vertical;
+            .img-placeholder span {
+                font-size: .68rem;
+                color: #b0a090;
             }
 
-                .field input:focus, .field select:focus, .field textarea:focus {
-                    border-color: var(--brand);
-                    box-shadow: 0 0 0 3px rgba(139,169,74,.12);
-                }
-
-        .placing-pin {
+        .img-change-overlay {
             position: absolute;
-            pointer-events: none;
-            z-index: 280;
-            transform: translate(-50%,-100%);
-        }
-
-        .panel-overlay {
-            display: none;
-            position: fixed;
             inset: 0;
-            background: rgba(38,31,23,.4);
-            backdrop-filter: blur(4px);
-            z-index: 180;
+            background: rgba(0,0,0,.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: .78rem;
+            font-weight: 700;
+            border-radius: 12px;
         }
 
-            .panel-overlay.show {
-                display: block;
-            }
-
-        @@keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(10px)
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0)
-            }
+        .img-upload-area.has-img:hover .img-change-overlay {
+            display: flex;
         }
 
-        @@media(max-width:992px) {
-            .map-panel {
-                position: absolute;
-                left: 0;
-                top: 0;
+        #imgFile {
+            display: none;
+        }
+
+        /* Form fields */
+        .f-group {
+            margin-bottom: 13px;
+        }
+
+        .f-label {
+            display: block;
+            font-size: .74rem;
+            font-weight: 700;
+            color: #3d7a2a;
+            margin-bottom: 5px;
+        }
+
+            .f-label .req {
+                color: #dc2626;
+            }
+
+        .f-input, .f-select, .f-textarea {
+            width: 100%;
+            border: 1.5px solid #ddd5cb;
+            border-radius: 11px;
+            padding: 10px 13px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .84rem;
+            font-weight: 500;
+            color: #1a1612;
+            outline: none;
+            box-sizing: border-box;
+            transition: .18s;
+        }
+
+            .f-input:focus, .f-select:focus, .f-textarea:focus {
+                border-color: #5a7a3e;
+                box-shadow: 0 0 0 3px rgba(90,122,62,.1);
+            }
+
+        .f-textarea {
+            resize: vertical;
+            min-height: 80px;
+            padding-top: 10px;
+        }
+
+        .f-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* Section separator */
+        .f-sep {
+            font-size: .68rem;
+            font-weight: 800;
+            color: #9a8a78;
+            letter-spacing: .9px;
+            text-transform: uppercase;
+            padding: 12px 0 8px;
+            border-top: 1px solid #f0ebe4;
+            margin-top: 8px;
+        }
+
+        /* Save button */
+        .f-save-btn {
+            width: 100%;
+            padding: 13px;
+            background: #1a1612;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .85rem;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: opacity .18s;
+        }
+
+            .f-save-btn:hover {
+                opacity: .88;
+            }
+
+        .f-back-btn {
+            width: 100%;
+            padding: 11px;
+            margin-top: 8px;
+            border: 1.5px solid #ddd5cb;
+            border-radius: 12px;
+            background: #fff;
+            color: #9a8a78;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* ── DETAIL VIEW ───────────────────────────────────────── */
+        .detail-view {
+            padding: 0 20px 24px;
+        }
+
+        .dv-photo {
+            width: calc(100% + 40px);
+            margin: 0 -20px;
+            height: 160px;
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #e8f5d8, #c4d9a8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            flex-shrink: 0;
+        }
+
+            .dv-photo img {
+                width: 100%;
                 height: 100%;
-                width: 300px;
-                max-width: 84vw;
-                z-index: 190;
+                object-fit: cover;
             }
 
-                .map-panel.collapsed {
-                    width: 0;
+        .dv-name {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: #1a1612;
+            margin: 16px 0 4px;
+        }
+
+        .dv-type-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: .72rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+        }
+
+        .dv-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid #f0ebe4;
+            font-size: .8rem;
+        }
+
+            .dv-row:last-of-type {
+                border-bottom: none;
+            }
+
+        .dv-ico {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            display: grid;
+            place-items: center;
+            font-size: .85rem;
+            flex-shrink: 0;
+            background: #f7f3ee;
+        }
+
+        .dv-key {
+            color: #9a8a78;
+            font-weight: 500;
+            min-width: 72px;
+        }
+
+        .dv-val {
+            font-weight: 600;
+            color: #1a1612;
+            flex: 1;
+            line-height: 1.5;
+        }
+
+        .dv-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+
+        .dv-btn {
+            flex: 1;
+            min-width: calc(50% - 4px);
+            padding: 10px;
+            border-radius: 12px;
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .76rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            transition: .15s;
+            text-decoration: none;
+        }
+
+            .dv-btn.primary {
+                background: #1a1612;
+                color: #fff;
+            }
+
+                .dv-btn.primary:hover {
+                    opacity: .88;
+                    color: #fff;
                 }
 
-            .map-toggle {
-                left: 0 !important;
+            .dv-btn.edit {
+                background: #f0f7e8;
+                color: #3d7a2a;
             }
 
-                .map-toggle.open {
-                    left: 300px !important;
+                .dv-btn.edit:hover {
+                    background: #e4f0d8;
                 }
 
-            .map-search-wrap {
-                width: calc(100vw - 110px);
-                left: 14px;
-                transform: none;
+            .dv-btn.danger {
+                background: #fee2e2;
+                color: #dc2626;
             }
 
-            .map-legend {
-                max-width: 160px;
+                .dv-btn.danger:hover {
+                    background: #fcd0d0;
+                }
+
+            .dv-btn.hide {
+                background: #f5f0eb;
+                color: #9a8a78;
+            }
+
+        /* Danger badge in detail */
+        .dv-danger-bar {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 10px 13px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-size: .8rem;
+            font-weight: 700;
+        }
+
+        /* ═══════════════════════════════════════════════════════
+                   TOAST
+                ═══════════════════════════════════════════════════════ */
+        #toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: #1a1612;
+            color: #fff;
+            padding: 11px 24px;
+            border-radius: 50px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .82rem;
+            font-weight: 600;
+            z-index: 9999;
+            opacity: 0;
+            transition: all .3s;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+            #toast.show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+
+        /* Leaflet */
+        .leaflet-control-zoom {
+            border: none !important;
+        }
+
+            .leaflet-control-zoom a {
+                background: #fff !important;
+                border: none !important;
+                box-shadow: 0 3px 12px rgba(0,0,0,.1) !important;
+                color: #1a1612 !important;
+                width: 34px !important;
+                height: 34px !important;
+                line-height: 34px !important;
+            }
+
+                .leaflet-control-zoom a:first-child {
+                    border-radius: 10px 10px 0 0 !important;
+                }
+
+                .leaflet-control-zoom a:last-child {
+                    border-radius: 0 0 10px 10px !important;
+                }
+
+        @@media (max-width: 1024px) {
+            .amap-left {
+                display: none;
             }
         }
 
-        @@media(max-width:600px) {
-            .map-popup {
-                width: calc(100vw - 28px);
+        @@media (max-width: 768px) {
+            .right-panel {
+                width: 100%;
+                border-radius: 24px 24px 0 0;
+                top: auto;
+                bottom: 0;
+                height: 85vh;
+                border-left: none;
+                transform: translateY(100%);
             }
 
-            .confirm-box {
-                width: calc(100vw - 24px);
-            }
-
-            .loc-modal {
-                max-width: calc(100vw - 20px);
-            }
-
-            .loc-type-grid {
-                grid-template-columns: repeat(2,1fr);
-            }
+                .right-panel.open {
+                    transform: translateY(0);
+                }
         }
     </style>
 </head>
@@ -1181,7 +1140,7 @@
     <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
     <div class="wa-shell" id="waShell">
 
-        <!-- SIDEBAR -->
+        <!-- ══ SIDEBAR ════════════════════════════════════════════ -->
         <aside class="wa-sb" id="waSb">
             <div class="sb-logo">
                 <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
@@ -1189,81 +1148,21 @@
             </div>
             <nav class="sb-nav">
                 <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard" data-tip="Dashboard">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
-                        <span class="sb-lbl">Dashboard</span>
-                    </a>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span><span class="sb-lbl">Dashboard</span></a>
                 </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Management</div>
+                    <div><button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span><span class="sb-lbl">Users</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-users"><div class="sb-sub-inner"><a class="sb-child" asp-controller="SuperAdmin" asp-action="Users"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a></div></div></div>
+                    <div><button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span><span class="sb-lbl">Clinics</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-clinics"><div class="sb-sub-inner"><a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a></div></div></div>
+                    <div><button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span><span class="sb-lbl">Shop</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-shop"><div class="sb-sub-inner"><a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a></div></div></div>
                     <div>
-                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span>
-                            <span class="sb-lbl">Users</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-users">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Users"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
-                            <span class="sb-lbl">Clinics</span><span class="sb-bdg bd-y">4</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-clinics">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_C"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
-                            <span class="sb-lbl">Shop</span><span class="sb-bdg bd-r">3</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-shop">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_S"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_S"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
-                            <span class="sb-lbl">Adoption</span><span class="sb-bdg bd-y">5</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-adopt">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Listings"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span><span class="sb-bdg bd-y sb-child-bdg">5</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span><span class="sb-bdg bd-r sb-child-bdg">3</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Adopted_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_A"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
-                            <span class="sb-lbl">Reports</span><span class="sb-bdg bd-y">8</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
+                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span><span class="sb-lbl">Reports</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button>
                         <div class="sb-sub" id="g-rep">
                             <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span><span class="sb-bdg bd-y sb-child-bdg">8</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span><span class="sb-bdg bd-g sb-child-bdg">5</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span><span class="sb-bdg bd-r sb-child-bdg">4</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span></a>
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span></a>
                                 <a class="sb-child" asp-controller="SuperAdmin" asp-action="Donations"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="System_Complaints">
-                                    <span class="sb-dot"></span>
-                                    <span class="sb-child-lbl">System Complaints</span>
-                                </a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Laws_Regulations"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
                             </div>
                         </div>
                     </div>
@@ -1271,334 +1170,704 @@
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Tools</div>
-                    <a class="sb-row active" asp-controller="SuperAdmin" asp-action="Map">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /><line x1="8" y1="2" x2="8" y2="18" /><line x1="16" y1="6" x2="16" y2="22" /></svg></span>
-                        <span class="sb-lbl">Map</span>
-                    </a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
-                        <span class="sb-lbl">Notifications</span><span class="sb-bdg bd-r">12</span>
-                    </a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="RewardLog">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24">
-                                <path d="M20 12V22H4V12" />
-                                <path d="M22 7H2v5h20V7z" />
-                                <path d="M12 22V7" />
-                            </svg>
-                        </span>
-                        <span class="sb-lbl">Reward Log</span>
-                    </a>
+                    <a class="sb-row active" asp-controller="SuperAdmin" asp-action="Map"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /><line x1="8" y1="2" x2="8" y2="18" /><line x1="16" y1="6" x2="16" y2="22" /></svg></span><span class="sb-lbl">Map</span></a>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span><span class="sb-lbl">Notifications</span></a>
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="RewardLog"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20 12V22H4V12" /><path d="M22 7H2v5h20V7z" /><path d="M12 22V7" /></svg></span><span class="sb-lbl">Reward Log</span></a>
                 </div>
             </nav>
             <div class="sb-foot">
-                <div class="sb-user-row"><div class="sb-av">DC</div><div class="sb-user-info"><div class="sb-user-name">Daniel Carter</div><div class="sb-user-role">Operations Director</div></div></div>
-                <button class="sb-logout" onclick="alert('Sign out')" type="button"><svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg><span class="sb-logout-lbl">Sign Out</span></button>
+                <div class="sb-user-row"><div class="sb-av">@(ViewBag.AdminInitials ?? "AD")</div><div class="sb-user-info"><div class="sb-user-name">@(ViewBag.AdminName ?? "Admin")</div><div class="sb-user-role">Super Admin</div></div></div>
+                <a class="sb-logout" asp-controller="Account" asp-action="Logout"><svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg><span class="sb-logout-lbl">Sign Out</span></a>
             </div>
         </aside>
 
-        <!-- TOPNAV -->
+        <!-- ══ TOPNAV ══════════════════════════════════════════════ -->
         <header class="wa-tn" id="waTn">
             <button class="tn-toggle" onclick="toggleSb()" type="button"><svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg></button>
-            <nav class="tn-bread"><span>Tools</span><span>/</span><b>Map Dashboard</b></nav>
-            <div class="tn-center"><div class="tn-center-main">Map Dashboard</div><div class="tn-center-sub">🇯🇴 Jordan — Amman</div></div>
+            <nav class="tn-bread"><span>Tools</span><span>/</span><b>Map Management</b></nav>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-                <button class="tn-btn" type="button" id="addLocBtn" onclick="toggleAddMode()" title="Add Location">📍</button>
-                <a class="tn-btn" asp-controller="SuperAdmin" asp-action="Notifications"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg><span class="tn-count">12</span></a>
-                <a class="tn-btn" href="#"><svg class="ico" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg><span class="tn-dot dot-g"></span></a>
-                <div class="tn-sep"></div>
-                <div class="tn-profile" onclick="alert('Profile')"><div class="tn-av">DC</div><div><div class="tn-pname">Daniel Carter</div><div class="tn-prole">Operations Director</div></div></div>
+                <button class="tn-btn" onclick="startAddMode()" style="gap:6px;font-weight:700">📍 Add Marker</button>
+                <a class="tn-btn" asp-controller="SuperAdmin" asp-action="Notifications"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></a>
+                <div class="tn-profile"><div class="tn-av">@(ViewBag.AdminInitials ?? "AD")</div><div><div class="tn-pname">@(ViewBag.AdminName ?? "Admin")</div><div class="tn-prole">Super Admin</div></div></div>
             </div>
         </header>
 
-        <!-- MAIN -->
+        <!-- ══ MAIN ════════════════════════════════════════════════ -->
         <main class="wa-main" id="waMain">
-            <div class="map-shell">
-                <div class="panel-overlay" id="panelOverlay" onclick="closeMapPanel()"></div>
+            <div class="amap-shell">
 
-                <div class="map-panel" id="mapPanel">
-                    <div class="mp-header">
-                        <div class="mp-title">🗺 Map Dashboard</div>
-                        <div style="display:flex;align-items:center;gap:8px;">
-                            <span class="mp-coord" id="coordDisplay">📍 —</span>
-                            <button onclick="closeMapPanel()" style="display:none;width:28px;height:28px;border:1px solid rgba(255,255,255,.2);border-radius:8px;background:rgba(255,255,255,.08);color:#f2f7ea;cursor:pointer;font-size:.8rem;" id="panelCloseBtn">✕</button>
+                <!-- ══ LEFT PANEL ════════════════════════════════ -->
+                <div class="amap-left">
+                    <div class="left-tabs">
+                        <button class="lt active" id="lt-places" onclick="switchTab('places')">
+                            <span class="lt-ico">📍</span>Places
+                        </button>
+                        <button class="lt" id="lt-danger" onclick="switchTab('danger')">
+                            <span class="lt-ico">🚨</span>Reports
+                            <span class="lt-badge" id="dangerBadge">0</span>
+                        </button>
+                        <button class="lt" id="lt-stats" onclick="switchTab('stats')">
+                            <span class="lt-ico">📊</span>Stats
+                        </button>
+                    </div>
+                    <div class="left-search">
+                        <div class="ls-wrap">
+                            <svg style="width:14px;color:#bab0a4;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+                            <input type="text" placeholder="Search places…" oninput="filterList(this.value)" />
                         </div>
                     </div>
-                    <div class="mp-tabs">
-                        <div class="mp-tab active" onclick="switchPanel('layers',this)"><span>🔵</span>Layers</div>
-                        <div class="mp-tab" onclick="switchPanel('stats',this)"><span>📊</span>Stats</div>
-                        <div class="mp-tab" onclick="switchPanel('alerts',this)"><span>🚨</span>Alerts</div>
+
+                    <!-- Places tab -->
+                    <div class="left-sec active" id="sec-places">
+                        <div class="ls-sub-hd">
+                            <div class="ls-sub-title">🏥 Clinics <span id="clinicCnt" style="font-weight:500"></span></div>
+                        </div>
+                        <div class="ls-list" id="clinicList" style="max-height:150px;border-bottom:1px solid #f0ebe4"></div>
+
+                        <div class="ls-sub-hd" style="border-top:1px solid #f0ebe4">
+                            <div class="ls-sub-title">🛍️ Stores <span id="storeCnt" style="font-weight:500"></span></div>
+                        </div>
+                        <div class="ls-list" id="storeList" style="max-height:150px;border-bottom:1px solid #f0ebe4"></div>
+
+                        <div class="ls-sub-hd" style="border-top:1px solid #f0ebe4">
+                            <div class="ls-sub-title">📍 My Markers <span id="markerCnt" style="font-weight:500"></span></div>
+                            <button class="ls-add-btn" onclick="startAddMode()">＋ Add</button>
+                        </div>
+                        <div class="ls-list" id="markerList" style="flex:1"></div>
                     </div>
-                    <div class="mp-body">
-                        <div class="mp-section active" id="panel-layers">
-                            <div class="mp-section-hd">Services</div>
-                            <div class="layer-row" onclick="toggleLayer('clinics',this)"><div class="layer-left"><div class="layer-dot" style="background:#00d4aa"></div><div><div class="layer-name">🏥 Veterinary Clinics</div><div class="layer-count">12 Registered</div></div></div><div class="tog on" id="tog-clinics"></div></div>
-                            <div class="layer-row" onclick="toggleLayer('stores',this)"><div class="layer-left"><div class="layer-dot" style="background:#a78bfa"></div><div><div class="layer-name">🏪 Pet Stores</div><div class="layer-count">8 Registered</div></div></div><div class="tog on" id="tog-stores"></div></div>
-                            <div class="mp-section-hd">Animals</div>
-                            <div class="layer-row" onclick="toggleLayer('lost',this)"><div class="layer-left"><div class="layer-dot" style="background:#ff4d6d"></div><div><div class="layer-name">🔍 Lost Animals</div><div class="layer-count">8 Active Reports</div></div></div><div class="tog on" id="tog-lost"></div></div>
-                            <div class="layer-row" onclick="toggleLayer('found',this)"><div class="layer-left"><div class="layer-dot" style="background:#4da6ff"></div><div><div class="layer-name">✅ Found Animals</div><div class="layer-count">5 Confirmed</div></div></div><div class="tog on" id="tog-found"></div></div>
-                            <div class="layer-row" onclick="toggleLayer('adoption',this)"><div class="layer-left"><div class="layer-dot" style="background:#ffd93d"></div><div><div class="layer-name">🐾 For Adoption</div><div class="layer-count">89 Listings</div></div></div><div class="tog on" id="tog-adoption"></div></div>
-                            <div class="layer-row" onclick="toggleLayer('danger',this)"><div class="layer-left"><div class="layer-dot" style="background:#ff9f43"></div><div><div class="layer-name">🚨 Dangerous Animals</div><div class="layer-count">4 Open Reports</div></div></div><div class="tog on" id="tog-danger"></div></div>
-                            <div class="layer-row" onclick="toggleLayer('donation',this)"><div class="layer-left"><div class="layer-dot" style="background:#f472b6"></div><div><div class="layer-name">❤️ Donation Requests</div><div class="layer-count">3 Animals in Need</div></div></div><div class="tog on" id="tog-donation"></div></div>
-                            <div class="mp-section-hd">Places</div>
-                            <div class="layer-row" onclick="toggleLayer('petfriendly',this)"><div class="layer-left"><div class="layer-dot" style="background:#4ade80"></div><div><div class="layer-name">🌳 Pet-Friendly Places</div><div class="layer-count">5 Registered</div></div></div><div class="tog on" id="tog-petfriendly"></div></div>
-                            <div class="mp-section-hd">Analysis</div>
-                            <div class="layer-row" onclick="toggleHeatmap(this)"><div class="layer-left"><div class="layer-dot" style="background:linear-gradient(135deg,#ff4d6d,#ffd93d);border-radius:3px;"></div><div><div class="layer-name">🌡 Heatmap — Loss Areas</div><div class="layer-count">Shows danger zones</div></div></div><div class="tog" id="tog-heatmap"></div></div>
-                            <div class="layer-row" onclick="toggleRadius(this)"><div class="layer-left"><div class="layer-dot" style="background:var(--brand);border-radius:2px;transform:rotate(45deg);"></div><div><div class="layer-name">⭕ Service Radius</div><div class="layer-count">Click on clinic/store</div></div></div><div class="tog" id="tog-radius"></div></div>
+
+                    <!-- Danger tab -->
+                    <div class="left-sec" id="sec-danger">
+                        <div class="ls-sub-hd">
+                            <div class="ls-sub-title">Active Reports</div>
+                            <a href="/SuperAdmin/Dangerous_Animals" style="font-size:.7rem;font-weight:700;color:#7fa85a;text-decoration:none">View All →</a>
                         </div>
-                        <div class="mp-section" id="panel-stats">
-                            <div class="stat-grid">
-                                <div class="stat-card c-green"><div class="stat-val">12</div><div class="stat-lbl">Active Clinics</div></div>
-                                <div class="stat-card c-purple"><div class="stat-val">8</div><div class="stat-lbl">Active Stores</div></div>
-                                <div class="stat-card c-red"><div class="stat-val">8</div><div class="stat-lbl">Lost Animals</div></div>
-                                <div class="stat-card c-orange"><div class="stat-val">4</div><div class="stat-lbl">Danger Reports</div></div>
-                                <div class="stat-card c-yellow"><div class="stat-val">89</div><div class="stat-lbl">For Adoption</div></div>
-                                <div class="stat-card c-blue"><div class="stat-val">5</div><div class="stat-lbl">Pet-Friendly Places</div></div>
-                                <div class="stat-card" style="grid-column:1/-1;"><div class="stat-val" style="color:#f472b6;">3</div><div class="stat-lbl">❤️ Donation Requests</div></div>
-                            </div>
-                            <div class="mp-divider">Most Active Areas</div>
-                            <div id="areaStats"></div>
-                            <div class="mp-divider" style="margin-top:4px;">Lost Animals by Type</div>
-                            <div style="padding:10px 14px;" id="typeStats"></div>
-                        </div>
-                        <div class="mp-section" id="panel-alerts">
-                            <div class="mp-divider">🔴 Urgent</div>
-                            <div id="alertsHigh"></div>
-                            <div class="mp-divider" style="margin-top:4px;">🟠 Needs Follow-up</div>
-                            <div id="alertsMed"></div>
-                        </div>
+                        <div class="ls-list" id="dangerList" style="flex:1"></div>
+                    </div>
+
+                    <!-- Stats tab -->
+                    <div class="left-sec" id="sec-stats" style="padding:0;overflow-y:auto">
+                        <div class="stats-grid" id="statsGrid"></div>
+                        <div id="statsExtra" style="padding:0 14px 14px"></div>
                     </div>
                 </div>
 
-                <div class="map-toggle" id="mapToggle" onclick="toggleMapPanel()">‹</div>
+                <!-- ══ MAP ═══════════════════════════════════════ -->
+                <div class="amap-map">
+                    <div id="adminMap"></div>
 
-                <div class="map-area" id="mapContainer" onclick="handleMapClick(event)">
-                    <div class="map-grid"></div>
-                    <div class="road h" style="top:30%;left:0;right:0;"></div>
-                    <div class="road h" style="top:55%;left:0;right:0;"></div>
-                    <div class="road h" style="top:75%;left:0;right:0;"></div>
-                    <div class="road v" style="left:25%;top:0;bottom:0;"></div>
-                    <div class="road v" style="left:50%;top:0;bottom:0;"></div>
-                    <div class="road v" style="left:75%;top:0;bottom:0;"></div>
-                    <div class="road hm" style="top:42%;left:0;right:0;"></div>
-                    <div class="road vm" style="left:38%;top:0;bottom:0;"></div>
-                    <div class="area-lbl" style="top:22%;right:18%;">Jubaiha</div>
-                    <div class="area-lbl" style="top:48%;right:52%;">Rabieh</div>
-                    <div class="area-lbl" style="top:62%;right:22%;">Gardens</div>
-                    <div class="area-lbl" style="top:35%;right:68%;">Tlaa Al Ali</div>
-                    <div class="area-lbl" style="top:20%;right:60%;">Sweileh</div>
-                    <div class="heat-blob" id="heat1" style="width:180px;height:180px;background:radial-gradient(circle,#ff4d6d,transparent);top:25%;right:15%;margin-top:-90px;margin-right:-90px;"></div>
-                    <div class="heat-blob" id="heat2" style="width:140px;height:140px;background:radial-gradient(circle,#ffd93d,transparent);top:50%;right:45%;margin-top:-70px;margin-right:-70px;"></div>
-                    <div class="heat-blob" id="heat3" style="width:120px;height:120px;background:radial-gradient(circle,#ff9f43,transparent);top:68%;right:30%;margin-top:-60px;margin-right:-60px;"></div>
-                    <div class="heat-blob" id="heat4" style="width:100px;height:100px;background:radial-gradient(circle,#ff4d6d,transparent);top:35%;right:65%;margin-top:-50px;margin-right:-50px;"></div>
-                    <div id="markersContainer"></div>
-                    <div id="radiiContainer"></div>
-                    <div class="api-banner" id="apiBanner">
-                        🔑 Add <code style="background:rgba(155,96,0,.1);padding:1px 6px;border-radius:4px;">Google Maps API Key</code> to enable live map
-                        <button onclick="document.getElementById('apiBanner').style.display='none'">✕</button>
+                    <div class="add-banner" id="addBanner">
+                        📍 Click anywhere on the map to place your marker
+                        <button class="cancel-btn" onclick="cancelAddMode()">✕ Cancel</button>
                     </div>
-                    <div class="map-search-wrap">
-                        <div class="map-search-box">
-                            <span style="color:var(--text-muted);">🔍</span>
-                            <input placeholder="Search clinics, animals, areas..." id="mapSearch" oninput="handleSearch(this.value)" />
-                            <span id="searchClear" style="cursor:pointer;color:var(--text-muted);display:none;" onclick="clearSearch()">✕</span>
-                        </div>
-                        <div id="searchResults"></div>
-                    </div>
-                    <div class="map-toolbar">
-                        <div class="tb" onclick="zoomIn()" title="Zoom In">＋</div>
-                        <div class="tb" onclick="zoomOut()" title="Zoom Out">－</div>
-                        <div class="tb" onclick="resetView()" title="Reset">⊙</div>
-                        <div style="height:1px;background:var(--border);margin:2px 0;"></div>
-                        <div class="tb" onclick="toggleFullscreen()" title="Fullscreen">⛶</div>
-                        <div class="tb" onclick="exportMap()" title="Export">📤</div>
-                    </div>
-                    <div class="add-bar" id="addBar">
-                        <span>📍 Click on the map to place a pin</span>
-                        <button onclick="cancelAddMode()">✕ Cancel</button>
-                    </div>
-                    <div class="map-popup" id="mapPopup">
-                        <div class="popup-hd"><div class="popup-title" id="popupTitle">—</div><button class="popup-close" onclick="closePopup()">✕</button></div>
-                        <div id="popupBody"></div>
-                        <div class="popup-actions" id="popupActions"></div>
-                    </div>
+
                     <div class="map-legend">
-                        <div class="legend-title">Map Legend</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:#00d4aa;"></div>Veterinary Clinic</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:#a78bfa;"></div>Pet Store</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:#ff4d6d;"></div>Lost Animal</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:#4da6ff;"></div>Found Animal</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:#ffd93d;"></div>For Adoption</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:#ff9f43;"></div>Danger Report</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:#f472b6;"></div>Donation</div>
-                        <div class="legend-item"><div class="legend-dot" style="background:#4ade80;"></div>Pet-Friendly</div>
+                        <div class="lg-hd">Legend</div>
+                        <div class="lg-row"><div class="lg-dot" style="background:#00c896"></div>Clinic</div>
+                        <div class="lg-row"><div class="lg-dot" style="background:#8b5cf6"></div>Store</div>
+                        <div class="lg-row"><div class="lg-dot" style="background:#f59e0b"></div>Pet-Friendly</div>
+                        <div class="lg-row"><div class="lg-dot" style="background:#10b981"></div>Park</div>
+                        <div class="lg-row"><div class="lg-dot" style="background:#ef4444"></div>Danger Report</div>
+                    </div>
+
+                    <!-- ══ RIGHT PANEL ══════════════════════════ -->
+                    <div class="right-panel" id="rightPanel">
+                        <div class="rp-hd">
+                            <div class="rp-title" id="rpTitle">Add New Marker</div>
+                            <button class="rp-close" onclick="closeRightPanel()">✕</button>
+                        </div>
+                        <div class="rp-body" id="rpBody"></div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- CONFIRM DIALOG -->
-    <div class="confirm-overlay" id="confirmOverlay">
-        <div class="confirm-box">
-            <span class="confirm-ico" id="confirmIco">⚠️</span>
-            <div class="confirm-title" id="confirmTitle">Confirm Action</div>
-            <div class="confirm-sub" id="confirmSub">Are you sure?</div>
-            <div class="confirm-btns">
-                <button class="btn btn-outline" onclick="closeConfirm()">Cancel</button>
-                <button class="btn btn-danger" id="confirmOkBtn" onclick="execConfirm()">Confirm</button>
-            </div>
-        </div>
-    </div>
+    <div id="toast"></div>
+    @Html.AntiForgeryToken()
 
-    <!-- ADD LOCATION MODAL -->
-    <div class="loc-overlay" id="locOverlay">
-        <div class="loc-modal">
-            <div class="loc-head">
-                <div class="loc-head-title" id="locTitle">📍 Add New Location</div>
-                <button class="dp-close" onclick="closeLocModal()">✕</button>
-            </div>
-            <div class="loc-body">
-                <div class="loc-type-grid" id="locTypeGrid">
-                    <div class="loc-type-btn active" onclick="selLocType(this,'clinics')"><span class="loc-type-ico">🏥</span><span class="loc-type-lbl">Clinic</span></div>
-                    <div class="loc-type-btn" onclick="selLocType(this,'stores')"><span class="loc-type-ico">🏪</span><span class="loc-type-lbl">Store</span></div>
-                    <div class="loc-type-btn" onclick="selLocType(this,'petfriendly')"><span class="loc-type-ico">🌳</span><span class="loc-type-lbl">Pet-Friendly</span></div>
-                    <div class="loc-type-btn" onclick="selLocType(this,'danger')"><span class="loc-type-ico">🚨</span><span class="loc-type-lbl">Danger</span></div>
-                </div>
-                <div class="loc-coord-note" id="locCoordNote">📍 Click on the map to select a location first</div>
-                <div class="field"><label>Name *</label><input type="text" id="locName" placeholder="e.g. Al Amanah Veterinary Clinic" /></div>
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                    <div class="field"><label>City *</label><select id="locCity"><option>Amman</option><option>Zarqa</option><option>Irbid</option><option>Aqaba</option><option>Salt</option></select></div>
-                    <div class="field"><label>Area</label><input type="text" id="locArea" placeholder="e.g. Jubaiha" /></div>
-                </div>
-                <div id="locExtraFields"></div>
-                <div class="field"><label>Notes</label><textarea id="locNotes" placeholder="Additional notes..."></textarea></div>
-            </div>
-            <div class="loc-foot">
-                <button class="btn btn-primary" onclick="saveLocation()" style="flex:1;justify-content:center;">💾 Save Location</button>
-                <button class="btn btn-outline" onclick="closeLocModal()">Cancel</button>
-            </div>
-        </div>
-    </div>
-
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="~/js/Waffy-Shell.js"></script>
     <script>
-        const mapData={
-          clinics:[{id:'c1',name:'Al Amanah Veterinary Clinic',city:'Amman',area:'Jubaiha',status:'active',rating:4.5,x:18,y:28,radius:5},{id:'c2',name:'Al Rahma Veterinary Clinic',city:'Amman',area:'Rabieh',status:'active',rating:4.2,x:45,y:50,radius:3},{id:'c3',name:'Animal Medical Center',city:'Amman',area:'Gardens',status:'active',rating:4.8,x:28,y:65,radius:7},{id:'c4',name:'Sahl Clinic',city:'Amman',area:'Sweileh',status:'active',rating:3.9,x:62,y:22,radius:4}],
-          stores:[{id:'s1',name:'Animal Friends Store',city:'Amman',area:"Tla' Al-Ali",status:'active',x:70,y:38,radius:4},{id:'s2',name:'Pet Care Pharmacy',city:'Amman',area:'Jubaiha',status:'active',x:22,y:42,radius:3},{id:'s3',name:'Colorful Birds Store',city:'Amman',area:'Rabieh',status:'active',x:50,y:60,radius:3}],
-          lost:[{id:'l1',name:'Bobby',type:'🐕 Dog',breed:'Husky',city:'Amman',area:'Jubaiha',date:'10/3',reward:25,x:15,y:25},{id:'l2',name:'Mishmish',type:'🐈 Cat',breed:'Persian',city:'Amman',area:'Rabieh',date:'8/3',reward:10,x:48,y:48},{id:'l3',name:'Rio',type:'🐦 Bird',breed:'Parrot',city:'Amman',area:'Sweileh',date:'9/3',reward:0,x:65,y:20},{id:'l4',name:'Max',type:'🐕 Dog',breed:'Labrador',city:'Amman',area:'Gardens',date:'5/3',reward:50,x:25,y:70}],
-          found:[{id:'f1',name:'Golden Dog',type:'🐕 Dog',city:'Amman',area:'Jubaiha',date:'12/3',finder:'Karim',x:20,y:32},{id:'f2',name:'Black Cat',type:'🐈 Cat',city:'Amman',area:'Rabieh',date:'11/3',finder:'Reem',x:43,y:55}],
-          adoption:[{id:'a1',name:'Soso',type:'🐈 Cat',city:'Amman',area:'Gardens',x:30,y:68},{id:'a2',name:'Falafel',type:'🐈 Cat',city:'Amman',area:'Jubaiha',x:12,y:38},{id:'a3',name:'Coco',type:'🐦 Bird',city:'Amman',area:"Tla' Al-Ali",x:72,y:42}],
-          danger:[{id:'d1',type:'Aggressive',animal:'🐕 Dog',city:'Amman',area:'Jubaiha',sev:'high',x:17,y:22},{id:'d2',type:'Injured',animal:'🐈 Cat',city:'Amman',area:'Rabieh',sev:'med',x:42,y:53},{id:'d3',type:'Stray',animal:'🐕 Dog',city:'Amman',area:'Sweileh',sev:'low',x:68,y:18}],
-          donation:[{id:'dn1',name:'Rex',need:'💊 Fracture Treatment',goal:150,raised:80,x:55,y:35},{id:'dn2',name:'Luna',need:'🍖 Food',goal:50,raised:32,x:35,y:62}],
-          petfriendly:[{id:'pf1',name:'Al Hussein Park',subtype:'park',subtypeAr:'🌳 Park',city:'Amman',area:'Rabieh',rating:4.6,allowedPets:['Dogs','Cats'],hours:'7AM–10PM',notes:'Off-leash dog area',x:38,y:30},{id:'pf2',name:'Barker Café',subtype:'cafe',subtypeAr:'☕ Café',city:'Amman',area:'Jubaiha',rating:4.8,allowedPets:['Dogs','Cats'],hours:'9AM–11PM',notes:'Pets welcome inside',x:20,y:55},{id:'pf3',name:'Paws Dog Park',subtype:'dogpark',subtypeAr:'🐕 Dog Park',city:'Amman',area:'Sweileh',rating:4.9,allowedPets:['Dogs'],hours:'6AM–9PM',notes:'Fenced dog-only area',x:60,y:40},{id:'pf4',name:'Green Valley Hotel',subtype:'hotel',subtypeAr:'🏨 Hotel',city:'Amman',area:'Gardens',rating:4.3,allowedPets:['Dogs','Cats'],hours:'24 Hours',notes:'Pets up to 10kg allowed',x:32,y:72}]
-        };
-        const layerColors={clinics:'#00d4aa',stores:'#a78bfa',lost:'#ff4d6d',found:'#4da6ff',adoption:'#ffd93d',danger:'#ff9f43',donation:'#f472b6',petfriendly:'#4ade80'};
-        const layerIcons={clinics:'🏥',stores:'🏪',lost:'🔍',found:'✅',adoption:'🐾',danger:'🚨',donation:'❤️',petfriendly:'🌳'};
-        const layerState={clinics:true,stores:true,lost:true,found:true,adoption:true,danger:true,donation:true,petfriendly:true};
-        let heatmapOn=false,radiusOn=false,addModeOn=false,pendingCoord=null,editingItem=null,editingLayer=null,confirmCallback=null,selectedLocType='clinics',mapScale=1,mapPanelOpen=true;
+        // ════════════════════════════════════════════════════════════════
+        // STATE
+        // ════════════════════════════════════════════════════════════════
+        let map, addMode = false, editingId = null;
+        let pendingLat = null, pendingLng = null;
+        let allData = { clinics:[], stores:[], dangerReports:[], adminMarkers:[] };
+        let leafMarkers = [], panelSearch = '';
+        let selectedType = null;
 
-        function renderMarkers(){
-          const c=document.getElementById('markersContainer');if(!c)return;c.innerHTML='';
-          Object.entries(mapData).forEach(([layer,items])=>{
-            if(!layerState[layer])return;
-            const color=layerColors[layer],icon=layerIcons[layer];
-            items.forEach(item=>{
-              const m=document.createElement('div');m.className='marker';m.style.cssText=`left:${item.x}%;top:${item.y}%`;
-              m.innerHTML=`${layer==='danger'?`<div class="m-pulse" style="background:${color}20;box-shadow:0 0 0 0 ${color}50;"></div>`:''}
-                <div class="m-pin" style="background:${color}22;border-color:${color}"><span>${icon}</span></div>
-                <div class="m-lbl">${item.name||item.type||item.animal||''}</div>`;
-              m.onclick=(e)=>{e.stopPropagation();showPopup(item,layer,e.clientX,e.clientY);};
-              c.appendChild(m);
+        const COLORS = { clinic:'#00c896', store:'#8b5cf6', danger:'#ef4444', petfriendly:'#f59e0b', playground:'#f59e0b', park:'#10b981' };
+        const EMOJIS = { clinic:'🏥', store:'🛍️', danger:'🚨', petfriendly:'🌳', playground:'🎡', park:'🌲' };
+        const LABELS = { clinic:'Clinic', store:'Store', danger:'Danger Report', petfriendly:'Pet-Friendly', playground:'Playground', park:'Park' };
+
+        // ════════════════════════════════════════════════════════════════
+        // MAP INIT
+        // ════════════════════════════════════════════════════════════════
+        function initMap() {
+            map = L.map('adminMap', { zoomControl: false })
+                   .setView([31.9539, 35.9106], 13);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+            map.on('click', function(e) {
+                if (!addMode) { closeRightPanel(); return; }
+                pendingLat = e.latlng.lat.toFixed(6);
+                pendingLng = e.latlng.lng.toFixed(6);
+                openAddPanel();
             });
-          });
         }
 
-        function showPopup(item,layer,cx,cy){
-          const popup=document.getElementById('mapPopup');
-          const rect=document.getElementById('mapContainer').getBoundingClientRect();
-          let left=cx-rect.left+10,top=cy-rect.top-10;
-          if(left+260>rect.width)left=cx-rect.left-270;
-          if(top+300>rect.height)top=cy-rect.top-290;
-          popup.style.left=`${Math.max(10,left)}px`;popup.style.top=`${Math.max(10,top)}px`;
-          let title='',rows=[],actions=[];
-          if(layer==='clinics'){title=`🏥 ${item.name}`;rows=[['Area',item.area],['Rating',`⭐ ${item.rating}`],['Radius',`${item.radius} km`],['Status','<span class="badge badge-success">Active</span>']];actions=[`<button class="btn btn-outline" onclick="showRadius(mapData.clinics.find(i=>i.id==='${item.id}'))">⭕ Radius</button>`,`<button class="btn btn-outline" onclick="openEdit(mapData.clinics.find(i=>i.id==='${item.id}'),'clinics')">✏️ Edit</button>`,`<button class="btn btn-warning" onclick="confirmDeactivate(mapData.clinics.find(i=>i.id==='${item.id}'),'clinics')">⏸</button>`,`<button class="btn btn-danger" onclick="confirmDelete(mapData.clinics.find(i=>i.id==='${item.id}'),'clinics')">🗑</button>`];}
-          else if(layer==='stores'){title=`🏪 ${item.name}`;rows=[['Area',item.area],['Delivery Radius',`${item.radius} km`],['Status','<span class="badge badge-success">Active</span>']];actions=[`<button class="btn btn-outline" onclick="showRadius(mapData.stores.find(i=>i.id==='${item.id}'))">⭕ Radius</button>`,`<button class="btn btn-outline" onclick="openEdit(mapData.stores.find(i=>i.id==='${item.id}'),'stores')">✏️ Edit</button>`,`<button class="btn btn-danger" onclick="confirmDelete(mapData.stores.find(i=>i.id==='${item.id}'),'stores')">🗑</button>`];}
-          else if(layer==='lost'){title=`🔍 Lost: ${item.name}`;rows=[['Type',item.type],['Breed',item.breed],['Area',item.area],['Date Lost',item.date],['Reward',item.reward?`${item.reward} JD`:'—']];actions=[`<button class="btn btn-success">✓ Found</button>`,`<button class="btn btn-danger" onclick="confirmDelete(mapData.lost.find(i=>i.id==='${item.id}'),'lost')">🗑</button>`];}
-          else if(layer==='found'){title=`✅ ${item.name}`;rows=[['Type',item.type],['Area',item.area],['Found By',item.finder],['Date',item.date]];actions=[`<button class="btn btn-danger" onclick="confirmDelete(mapData.found.find(i=>i.id==='${item.id}'),'found')">🗑</button>`];}
-          else if(layer==='adoption'){title=`🐾 ${item.name} — Adoption`;rows=[['Type',item.type],['Area',item.area],['Status','<span class="badge badge-info">Available</span>']];actions=[`<button class="btn btn-primary">View Listing</button>`,`<button class="btn btn-danger" onclick="confirmDelete(mapData.adoption.find(i=>i.id==='${item.id}'),'adoption')">🗑</button>`];}
-          else if(layer==='danger'){title=`🚨 ${item.type} Report`;const sb=item.sev==='high'?'<span class="badge badge-danger">🔴 High</span>':item.sev==='med'?'<span class="badge badge-warning">🟠 Medium</span>':'<span class="badge badge-success">🟢 Low</span>';rows=[['Animal',item.animal],['Area',item.area],['Severity',sb]];actions=[`<button class="btn btn-danger">📨 Notify</button>`,`<button class="btn btn-success" onclick="confirmDelete(mapData.danger.find(i=>i.id==='${item.id}'),'danger')">✅ Close</button>`,`<button class="btn btn-outline" onclick="confirmFake(mapData.danger.find(i=>i.id==='${item.id}'),'danger')">🚫 Fake</button>`];}
-          else if(layer==='donation'){const pct=Math.round(item.raised/item.goal*100);title=`❤️ ${item.name}`;rows=[['Need',item.need],['Goal',`${item.goal} JD`],['Raised',`${item.raised} JD`],['Progress',`<div style="background:var(--border);border-radius:3px;height:4px;width:80px;"><div style="width:${pct}%;height:100%;background:var(--success);border-radius:3px;"></div></div>`]];actions=[`<button class="btn btn-primary">💰 Donate</button>`,`<button class="btn btn-danger" onclick="confirmDelete(mapData.donation.find(i=>i.id==='${item.id}'),'donation')">🗑</button>`];}
-          else if(layer==='petfriendly'){const ico={park:'🌳',cafe:'☕',dogpark:'🐕',hotel:'🏨'}[item.subtype]||'📍';title=`${ico} ${item.name}`;rows=[['Type',item.subtypeAr],['Area',item.area],['Hours',item.hours||'—'],['Rating',`⭐ ${item.rating}`],['Pets',Array.isArray(item.allowedPets)?item.allowedPets.join(', '):item.allowedPets||'—']];if(item.notes)rows.push(['Notes',item.notes]);actions=[`<button class="btn btn-outline" onclick="openEdit(mapData.petfriendly.find(i=>i.id==='${item.id}'),'petfriendly')">✏️ Edit</button>`,`<button class="btn btn-danger" onclick="confirmDelete(mapData.petfriendly.find(i=>i.id==='${item.id}'),'petfriendly')">🗑</button>`];}
-          document.getElementById('popupTitle').innerHTML=title;
-          document.getElementById('popupBody').innerHTML=rows.map(([k,v])=>`<div class="popup-row"><span class="popup-key">${k}</span><span class="popup-val">${v}</span></div>`).join('');
-          document.getElementById('popupActions').innerHTML=actions.join('');
-          popup.style.display='block';
+        // ════════════════════════════════════════════════════════════════
+        // FETCH DATA
+        // ════════════════════════════════════════════════════════════════
+        async function fetchData() {
+            const res = await fetch('/Map/GetMapData');
+            allData   = await res.json();
+            renderAll();
         }
-        function closePopup(){document.getElementById('mapPopup').style.display='none';}
 
-        function showRadius(item){
-          if(!radiusOn)return;
-          const c=document.getElementById('radiiContainer');
-          const ex=document.getElementById(`rad-${item.id}`);if(ex){ex.remove();return;}
-          const mapEl=document.getElementById('mapContainer');
-          const pxPerKm=mapEl.offsetWidth*0.028;const size=item.radius*pxPerKm*2;
-          const lk=item.id?.startsWith('c')?'clinics':'stores';
-          const div=document.createElement('div');div.id=`rad-${item.id}`;div.className='radius-circle';
-          div.style.cssText=`width:${size}px;height:${size}px;left:${item.x}%;top:${item.y}%;border-color:${layerColors[lk]};background:${layerColors[lk]}10;display:block;`;
-          c.appendChild(div);
+        function renderAll() {
+            renderMapMarkers();
+            renderClinics();
+            renderStores();
+            renderMarkers();
+            renderDanger();
+            renderStats();
+            document.getElementById('dangerBadge').textContent = allData.dangerReports?.length ?? 0;
         }
-        function toggleLayer(layer){layerState[layer]=!layerState[layer];document.getElementById(`tog-${layer}`)?.classList.toggle('on',layerState[layer]);renderMarkers();}
-        function toggleHeatmap(){heatmapOn=!heatmapOn;document.getElementById('tog-heatmap').classList.toggle('on',heatmapOn);['heat1','heat2','heat3','heat4'].forEach(id=>document.getElementById(id).classList.toggle('show',heatmapOn));}
-        function toggleRadius(){radiusOn=!radiusOn;document.getElementById('tog-radius').classList.toggle('on',radiusOn);if(!radiusOn)document.getElementById('radiiContainer').innerHTML='';}
-        function switchPanel(name,btn){document.querySelectorAll('.mp-tab').forEach(t=>t.classList.remove('active'));document.querySelectorAll('.mp-section').forEach(s=>s.classList.remove('active'));if(btn)btn.classList.add('active');document.getElementById(`panel-${name}`)?.classList.add('active');}
-        function toggleMapPanel(){const panel=document.getElementById('mapPanel');const toggle=document.getElementById('mapToggle');const overlay=document.getElementById('panelOverlay');mapPanelOpen=!mapPanelOpen;panel.classList.toggle('collapsed',!mapPanelOpen);toggle.textContent=mapPanelOpen?'‹':'›';toggle.classList.toggle('collapsed',!mapPanelOpen);if(window.innerWidth<=992){overlay.classList.toggle('show',mapPanelOpen);document.getElementById('panelCloseBtn').style.display=mapPanelOpen?'block':'none';}}
-        function closeMapPanel(){const panel=document.getElementById('mapPanel');const toggle=document.getElementById('mapToggle');const overlay=document.getElementById('panelOverlay');mapPanelOpen=false;panel.classList.add('collapsed');toggle.textContent='›';toggle.classList.add('collapsed');overlay.classList.remove('show');}
-        function zoomIn(){mapScale=Math.min(2,mapScale+.15);document.getElementById('markersContainer').style.transform=`scale(${mapScale})`;}
-        function zoomOut(){mapScale=Math.max(.5,mapScale-.15);document.getElementById('markersContainer').style.transform=`scale(${mapScale})`;}
-        function resetView(){mapScale=1;document.getElementById('markersContainer').style.transform='scale(1)';closePopup();}
-        function toggleFullscreen(){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();}
-        function exportMap(){toast('Map export coming soon!','success');}
-        function handleSearch(q){const results=document.getElementById('searchResults');const clear=document.getElementById('searchClear');clear.style.display=q.trim()?'block':'none';if(!q.trim()){results.style.display='none';return;}const all=[...mapData.clinics,...mapData.stores,...mapData.lost,...mapData.found].map(i=>({...i,layer:i.id?.startsWith('c')?'clinics':i.id?.startsWith('s')?'stores':i.id?.startsWith('l')?'lost':'found'}));const filtered=all.filter(i=>(i.name||'').toLowerCase().includes(q.toLowerCase())||(i.area||'').toLowerCase().includes(q.toLowerCase()));if(!filtered.length){results.style.display='none';return;}results.innerHTML=filtered.slice(0,5).map(i=>`<div class="sr-item" onclick="selectSearchResult('${i.id}','${i.layer}')"><span>${layerIcons[i.layer]}</span><div><strong>${i.name||i.type}</strong><br/><small>📍 ${i.area}</small></div></div>`).join('');results.style.display='block';}
-        function selectSearchResult(id,layer){document.getElementById('searchResults').style.display='none';const item=mapData[layer]?.find(i=>i.id===id);if(!item)return;const rect=document.getElementById('mapContainer').getBoundingClientRect();showPopup(item,layer,rect.left+item.x/100*rect.width,rect.top+item.y/100*rect.height);}
-        function clearSearch(){document.getElementById('mapSearch').value='';document.getElementById('searchResults').style.display='none';document.getElementById('searchClear').style.display='none';}
-        function toggleAddMode(){addModeOn=!addModeOn;document.getElementById('addLocBtn').classList.toggle('on',addModeOn);document.getElementById('addBar').classList.toggle('show',addModeOn);document.getElementById('mapContainer').style.cursor=addModeOn?'crosshair':'default';if(!addModeOn){pendingCoord=null;const pp=document.getElementById('placingPin');if(pp)pp.remove();}closePopup();}
-        function cancelAddMode(){addModeOn=false;document.getElementById('addLocBtn').classList.remove('on');document.getElementById('addBar').classList.remove('show');document.getElementById('mapContainer').style.cursor='default';pendingCoord=null;const pp=document.getElementById('placingPin');if(pp)pp.remove();}
-        function handleMapClick(e){
-          const mapBg=e.target===document.getElementById('mapContainer')||e.target.classList.contains('map-grid')||e.target.classList.contains('road')||e.target.classList.contains('area-lbl')||e.target.classList.contains('heat-blob');
-          if(addModeOn&&mapBg){
-            const rect=document.getElementById('mapContainer').getBoundingClientRect();
-            const xPct=((e.clientX-rect.left)/rect.width*100).toFixed(1);const yPct=((e.clientY-rect.top)/rect.height*100).toFixed(1);
-            pendingCoord={x:parseFloat(xPct),y:parseFloat(yPct)};
-            let pp=document.getElementById('placingPin');
-            if(!pp){pp=document.createElement('div');pp.id='placingPin';pp.className='placing-pin';pp.innerHTML=`<div style="width:30px;height:34px;border-radius:50% 50% 50% 0;background:rgba(139,169,74,.2);border:2px dashed var(--brand);display:flex;align-items:center;justify-content:center;transform:rotate(-45deg);"><span style="transform:rotate(45deg);">📍</span></div>`;document.getElementById('mapContainer').appendChild(pp);}
-            pp.style.left=`${xPct}%`;pp.style.top=`${yPct}%`;
-            document.getElementById('locCoordNote').textContent=`✅ Selected: ${xPct}%, ${yPct}%`;
-            document.getElementById('locTitle').textContent='📍 Add New Location';
-            editingItem=null;editingLayer=null;document.getElementById('locName').value='';document.getElementById('locArea').value='';
-            updateExtraFields(selectedLocType);document.getElementById('locOverlay').classList.add('show');return;
-          }
-          if(mapBg)closePopup();
+
+        // ════════════════════════════════════════════════════════════════
+        // MAP MARKERS
+        // ════════════════════════════════════════════════════════════════
+        function renderMapMarkers() {
+            leafMarkers.forEach(m => m.remove());
+            leafMarkers = [];
+            addMarkerSet(allData.clinics,       'clinic');
+            addMarkerSet(allData.stores,        'store');
+            addMarkerSet(allData.adminMarkers,  'adminMarker');
+            addMarkerSet(allData.dangerReports, 'danger');
         }
-        document.getElementById('mapContainer').addEventListener('mousemove',(e)=>{const rect=document.getElementById('mapContainer').getBoundingClientRect();const x=((e.clientX-rect.left)/rect.width*100).toFixed(1);const y=((e.clientY-rect.top)/rect.height*100).toFixed(1);document.getElementById('coordDisplay').textContent=`📍 ${x}%, ${y}%`;});
-        function selLocType(btn,type){document.querySelectorAll('.loc-type-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');selectedLocType=type;updateExtraFields(type);}
-        function updateExtraFields(type){const el=document.getElementById('locExtraFields');if(type==='clinics'){el.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div class="field"><label>Rating</label><input type="number" id="locRating" min="1" max="5" step="0.1" placeholder="4.5"/></div><div class="field"><label>Radius (km)</label><input type="number" id="locRadius" min="1" max="20" placeholder="5"/></div></div>`;}else if(type==='stores'){el.innerHTML=`<div class="field"><label>Delivery Radius (km)</label><input type="number" id="locRadius" min="1" max="20" placeholder="3"/></div>`;}else{el.innerHTML='';}if(editingItem)fillEdit(type,editingItem);}
-        function fillEdit(type,item){if(type==='clinics'){const r=document.getElementById('locRating');const rd=document.getElementById('locRadius');if(r)r.value=item.rating||'';if(rd)rd.value=item.radius||'';}else if(type==='stores'){const rd=document.getElementById('locRadius');if(rd)rd.value=item.radius||'';}}
-        function openEdit(item,layer){editingItem=item;editingLayer=layer;document.getElementById('locTitle').textContent='✏️ Edit Location';document.getElementById('locName').value=item.name||'';document.getElementById('locCity').value=item.city||'Amman';document.getElementById('locArea').value=item.area||'';document.getElementById('locNotes').value=item.notes||'';document.getElementById('locCoordNote').textContent=`📍 Current: ${item.x}%, ${item.y}%`;selectedLocType=layer;document.querySelectorAll('.loc-type-btn').forEach((b,i)=>{const map=['clinics','stores','petfriendly','danger'];b.classList.toggle('active',map[i]===layer);});updateExtraFields(layer);document.getElementById('locOverlay').classList.add('show');}
-        function closeLocModal(){document.getElementById('locOverlay').classList.remove('show');if(!editingItem)cancelAddMode();editingItem=null;editingLayer=null;}
-        function saveLocation(){const name=document.getElementById('locName').value.trim();if(!name){document.getElementById('locName').style.borderColor='var(--danger)';return;}const coord=pendingCoord||(editingItem?{x:editingItem.x,y:editingItem.y}:{x:50,y:50});const city=document.getElementById('locCity').value;const area=document.getElementById('locArea').value.trim();const notes=document.getElementById('locNotes').value.trim();if(editingItem){Object.assign(editingItem,{name,city,area,notes});if(selectedLocType==='clinics'){editingItem.rating=parseFloat(document.getElementById('locRating')?.value)||editingItem.rating;editingItem.radius=parseInt(document.getElementById('locRadius')?.value)||editingItem.radius;}else if(selectedLocType==='stores'){editingItem.radius=parseInt(document.getElementById('locRadius')?.value)||editingItem.radius;}toast('Location updated.','success');}else{const newId=selectedLocType[0]+Date.now();const newItem={id:newId,name,city,area,x:coord.x,y:coord.y,status:'active',notes};if(selectedLocType==='clinics'){newItem.rating=parseFloat(document.getElementById('locRating')?.value)||4.0;newItem.radius=parseInt(document.getElementById('locRadius')?.value)||3;}else if(selectedLocType==='stores'){newItem.radius=parseInt(document.getElementById('locRadius')?.value)||3;}else if(selectedLocType==='danger'){newItem.type='Stray';newItem.animal='🐕 Dog';newItem.sev='low';}mapData[selectedLocType].push(newItem);toast('Location added.','success');}renderMarkers();closeLocModal();cancelAddMode();}
-        function confirmDelete(item,layer){confirmCallback=()=>{const idx=mapData[layer].findIndex(i=>i.id===item.id);if(idx>-1)mapData[layer].splice(idx,1);renderMarkers();closePopup();toast('Deleted.','danger');};showConfirm('🗑','Delete Item',`Delete "${item.name||item.type||item.animal}"? Cannot be undone.`,'btn btn-danger','Delete');}
-        function confirmDeactivate(item,layer){confirmCallback=()=>{item.status='inactive';renderMarkers();closePopup();toast('Deactivated.','warning');};showConfirm('⏸','Deactivate',`Deactivate "${item.name||item.type}"?`,'btn btn-warning','Deactivate');}
-        function confirmFake(item,layer){confirmCallback=()=>{const idx=mapData[layer].findIndex(i=>i.id===item.id);if(idx>-1)mapData[layer].splice(idx,1);renderMarkers();closePopup();toast('Marked as fake.','warning');};showConfirm('🚫','Fake Report',`Mark "${item.name||item.type||item.animal}" as fake?`,'btn btn-warning','Yes, Mark as Fake');}
-        function showConfirm(ico,title,sub,btnCls,btnLbl){document.getElementById('confirmIco').textContent=ico;document.getElementById('confirmTitle').textContent=title;document.getElementById('confirmSub').textContent=sub;const btn=document.getElementById('confirmOkBtn');btn.className=btnCls;btn.textContent=btnLbl;document.getElementById('confirmOverlay').classList.add('show');}
-        function closeConfirm(){document.getElementById('confirmOverlay').classList.remove('show');confirmCallback=null;}
-        function execConfirm(){const cb=confirmCallback;closeConfirm();if(cb)cb();}
-        function renderStats(){const areas=[{name:'Jubaiha',count:8,pct:100},{name:'Rabieh',count:5,pct:62},{name:'Gardens',count:4,pct:50},{name:'Sweileh',count:3,pct:37},{name:"Tla' Al-Ali",count:2,pct:25}];document.getElementById('areaStats').innerHTML=areas.map(a=>`<div class="bar-item"><span class="bar-lbl">${a.name}</span><div class="bar-track"><div class="bar-fill" style="width:${a.pct}%"></div></div><span class="bar-num">${a.count}</span></div>`).join('');const types=[{name:'🐕 Dogs',count:5,pct:62},{name:'🐈 Cats',count:2,pct:25},{name:'🐦 Birds',count:1,pct:13}];document.getElementById('typeStats').innerHTML=types.map(t=>`<div class="bar-item"><span class="bar-lbl">${t.name}</span><div class="bar-track"><div class="bar-fill" style="width:${t.pct}%;background:var(--brand-light);"></div></div><span class="bar-num">${t.count}</span></div>`).join('');}
-        function renderAlerts(){const hi=[{ico:'🚨',bg:'rgba(217,83,79,.12)',title:'Aggressive Dog — Jubaiha',sub:'Attacking pedestrians near the school',time:'20 min ago'},{ico:'🆘',bg:'rgba(217,83,79,.12)',title:'Urgent Rescue — Jubaiha',sub:'Injured dog on main road',time:'35 min ago'}];const med=[{ico:'🔍',bg:'rgba(226,163,58,.12)',title:'Lost: Bobby (Husky)',sub:'Jubaiha — Reward 25 JD',time:'1 hour ago'},{ico:'🐈',bg:'rgba(47,158,95,.12)',title:'Found: Black Cat — Rabieh',sub:'Found report submitted',time:'2 hours ago'},{ico:'❤️',bg:'rgba(217,83,79,.12)',title:'Donation: Rex',sub:'Needs 70 JD more',time:'3 hours ago'}];document.getElementById('alertsHigh').innerHTML=hi.map(a=>`<div class="alert-item"><div class="alert-ico" style="background:${a.bg}">${a.ico}</div><div style="flex:1;"><div class="alert-title">${a.title}</div><div class="alert-sub">${a.sub}</div><div class="alert-time">${a.time}</div></div></div>`).join('');document.getElementById('alertsMed').innerHTML=med.map(a=>`<div class="alert-item"><div class="alert-ico" style="background:${a.bg}">${a.ico}</div><div style="flex:1;"><div class="alert-title">${a.title}</div><div class="alert-sub">${a.sub}</div><div class="alert-time">${a.time}</div></div></div>`).join('');}
-        function toast(msg,type='success'){const bg={success:'var(--success-soft)',danger:'var(--danger-soft)',warning:'var(--warning-soft)'};const col={success:'var(--success)',danger:'var(--danger)',warning:'#9b6000'};const t=document.createElement('div');t.style.cssText=`position:fixed;bottom:24px;right:24px;z-index:9999;padding:14px 20px;border-radius:14px;background:${bg[type]};border:1px solid ${col[type]}40;color:${col[type]};font-weight:800;font-size:.86rem;font-family:'Nunito',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.12);max-width:320px;`;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);}
-        document.addEventListener('click',e=>{if(!e.target.closest('.map-search-wrap'))document.getElementById('searchResults').style.display='none';});
-        document.addEventListener('keydown',e=>{if(e.key==='Escape'){closePopup();closeConfirm();closeLocModal();}});
-        renderMarkers();renderStats();renderAlerts();
+
+        function addMarkerSet(places, type) {
+            (places || []).forEach(p => {
+                const color = COLORS[p.markerType || type] || '#7fa85a';
+                const emoji = EMOJIS[p.markerType || type] || '📍';
+                const imgContent = p.image || p.logo
+                    ? `<img src="${p.image || p.logo}" alt="" />`
+                    : `<span>${emoji}</span>`;
+
+                const icon = L.divIcon({
+                    className: '',
+                    html: `<div class="am-wrap">
+                             <div class="am-pin" style="background:${color}">${imgContent}</div>
+                             <div class="am-tail" style="border-top-color:${color}"></div>
+                             <div class="am-shadow"></div>
+                           </div>`,
+                    iconSize  : [40, 52],
+                    iconAnchor: [20, 52]
+                });
+
+                const m = L.marker([p.lat, p.lng], { icon }).addTo(map);
+                m.on('click', e => { L.DomEvent.stopPropagation(e); openDetailPanel(p, p.markerType || type); });
+                leafMarkers.push(m);
+            });
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // LEFT PANEL LISTS
+        // ════════════════════════════════════════════════════════════════
+        function renderClinics() {
+            const items = (allData.clinics || []).filter(bySearch);
+            document.getElementById('clinicCnt').textContent = `(${items.length})`;
+            document.getElementById('clinicList').innerHTML = items.map(p => readonlyRow(p, 'clinic')).join('') ||
+                emptyState('No clinics on map — add Latitude/Longitude in clinic settings');
+        }
+        function renderStores() {
+            const items = (allData.stores || []).filter(bySearch);
+            document.getElementById('storeCnt').textContent = `(${items.length})`;
+            document.getElementById('storeList').innerHTML = items.map(p => readonlyRow(p, 'store')).join('') ||
+                emptyState('No stores on map — add Latitude/Longitude in store settings');
+        }
+        function renderMarkers() {
+            const items = (allData.adminMarkers || []).filter(bySearch);
+            document.getElementById('markerCnt').textContent = `(${items.length})`;
+            document.getElementById('markerList').innerHTML = items.map(p => editableRow(p)).join('') ||
+                emptyState('No markers yet — click "+ Add" to start');
+        }
+        function renderDanger() {
+            const items = (allData.dangerReports || []).filter(bySearch);
+            document.getElementById('dangerList').innerHTML = items.map(d => dangerRow(d)).join('') ||
+                emptyState('No active danger reports 🎉');
+        }
+        function renderStats() {
+            const c = allData.clinics?.length??0, s = allData.stores?.length??0;
+            const d = allData.dangerReports?.length??0, m = allData.adminMarkers?.length??0;
+            document.getElementById('statsGrid').innerHTML =
+                statCard('🏥','Clinics',c,'#00c896') + statCard('🛍️','Stores',s,'#8b5cf6') +
+                statCard('🚨','Danger',d,'#ef4444') + statCard('📍','Markers',m,'#f59e0b');
+        }
+
+        function statCard(ico, lbl, val, color) {
+            return `<div class="stat-box"><div class="stat-num" style="color:${color}">${val}</div><div style="font-size:1.2rem;margin:4px 0">${ico}</div><div class="stat-lbl">${lbl}</div></div>`;
+        }
+
+        function readonlyRow(p, type) {
+            const color = COLORS[type], emoji = EMOJIS[type];
+            const img   = (p.logo || p.image)
+                ? `<div class="prow-img"><img src="${p.logo||p.image}" /></div>`
+                : `<div class="prow-img" style="background:${color}15;color:${color}">${emoji}</div>`;
+            return `<div class="prow" onclick="flyTo(${p.lat},${p.lng})">
+                ${img}
+                <div class="prow-body">
+                    <div class="prow-name">${p.name}</div>
+                    <div class="prow-sub">📍 ${[p.city,p.area].filter(Boolean).join(', ')||'—'}</div>
+                </div>
+                <span style="font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px;background:${color}15;color:${color}">Live</span>
+            </div>`;
+        }
+
+        function editableRow(p) {
+            const color = COLORS[p.markerType] || '#f59e0b';
+            const emoji = EMOJIS[p.markerType] || '📍';
+            const img   = (p.image || p.logo)
+                ? `<div class="prow-img"><img src="${p.image||p.logo}" /></div>`
+                : `<div class="prow-img" style="background:${color}15;color:${color}">${emoji}</div>`;
+            return `<div class="prow" onclick="flyAndDetail(${p.lat},${p.lng},'${p.markerType}',${JSON.stringify(p).replace(/"/g,"'")})">
+                ${img}
+                <div class="prow-body">
+                    <div class="prow-name">${p.name}</div>
+                    <div class="prow-sub">📍 ${[p.city,p.area].filter(Boolean).join(', ')||'—'}</div>
+                </div>
+                <div class="prow-acts">
+                    <button class="prow-btn edit" title="Edit" onclick="event.stopPropagation();openEditPanel(${p.id})">✏️</button>
+                    <button class="prow-btn del"  title="Delete" onclick="event.stopPropagation();confirmDelete(${p.id},'${p.name.replace(/'/g,'')}')">🗑</button>
+                </div>
+            </div>`;
+        }
+
+        function dangerRow(d) {
+            const sev = d.severity || 'Medium';
+            return `<div class="drow" onclick="flyAndDetail(${d.lat},${d.lng},'danger',${JSON.stringify(d).replace(/"/g,"'")})">
+                <div class="drow-hd">
+                    <div class="drow-name">${d.animalType} — ${d.name?.split('—')[1]?.trim()||''}</div>
+                    <span class="drow-sev sev-${sev}">${sev}</span>
+                </div>
+                <div class="drow-meta">📍 ${[d.city,d.area].filter(Boolean).join(', ')} &nbsp;·&nbsp; ${d.status}</div>
+                ${d.reportCode ? `<div class="drow-code">${d.reportCode}</div>` : ''}
+                <div class="drow-btns">
+                    ${d.status!=='Under Review' ? `<button class="drow-btn review"  onclick="event.stopPropagation();updateDanger(${d.id},'Under Review')">🔍 Review</button>` : ''}
+                    ${d.status!=='Resolved'     ? `<button class="drow-btn resolve" onclick="event.stopPropagation();updateDanger(${d.id},'Resolved')">✅ Resolve</button>` : ''}
+                    <button class="drow-btn fake" onclick="event.stopPropagation();updateDanger(${d.id},'Resolved')">🚫 Fake</button>
+                </div>
+            </div>`;
+        }
+
+        function emptyState(msg) {
+            return `<div class="ls-empty">${msg}</div>`;
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // TAB SWITCHING
+        // ════════════════════════════════════════════════════════════════
+        function switchTab(tab) {
+            ['places','danger','stats'].forEach(t => {
+                document.getElementById(`lt-${t}`).classList.toggle('active', t===tab);
+                document.getElementById(`sec-${t}`).classList.toggle('active', t===tab);
+            });
+        }
+
+        function filterList(q) {
+            panelSearch = q.toLowerCase();
+            renderClinics(); renderStores(); renderMarkers(); renderDanger();
+        }
+        function bySearch(p) {
+            if (!panelSearch) return true;
+            return (p.name||'').toLowerCase().includes(panelSearch) ||
+                   (p.city||'').toLowerCase().includes(panelSearch) ||
+                   (p.area||'').toLowerCase().includes(panelSearch);
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // ADD MODE
+        // ════════════════════════════════════════════════════════════════
+        function startAddMode() {
+            addMode = true;
+            editingId = null;
+            pendingLat = null; pendingLng = null;
+            document.getElementById('addBanner').classList.add('show');
+            document.getElementById('adminMap').style.cursor = 'crosshair';
+            closeRightPanel();
+        }
+
+        function cancelAddMode() {
+            addMode = false;
+            document.getElementById('addBanner').classList.remove('show');
+            document.getElementById('adminMap').style.cursor = '';
+            selectedType = null;
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // RIGHT PANEL — TYPE SELECTOR then FORM
+        // ════════════════════════════════════════════════════════════════
+        function openAddPanel() {
+            // Reset
+            selectedType = null;
+            document.getElementById('rpTitle').textContent = 'Choose Place Type';
+            document.getElementById('rpBody').innerHTML = typeSelectorHtml();
+            openRightPanel();
+            cancelAddMode();   // exit adding mode cursor
+        }
+
+        function typeSelectorHtml() {
+            const types = [
+                { key:'petfriendly', ico:'🌳', name:'Pet-Friendly', desc:'Park, café, or any pet-welcoming place' },
+                { key:'playground',  ico:'🎡', name:'Playground',   desc:'Pet playground or play area' },
+                { key:'park',        ico:'🌲', name:'Park / Garden', desc:'Public park or outdoor space' }
+            ];
+            return `<div class="type-selector">
+                <div class="ts-label">What are you adding?</div>
+                <div class="ts-cards">
+                    ${types.map(t => `
+                    <div class="ts-card" id="tc-${t.key}" onclick="selectType('${t.key}')">
+                        <div class="ts-ico">${t.ico}</div>
+                        <div class="ts-name">${t.name}</div>
+                        <div class="ts-desc">${t.desc}</div>
+                    </div>`).join('')}
+                </div>
+                <button class="ts-next-btn" id="tsNext" disabled onclick="showAddForm()">
+                    Continue →
+                </button>
+            </div>`;
+        }
+
+        function selectType(type) {
+            selectedType = type;
+            document.querySelectorAll('.ts-card').forEach(c => c.classList.remove('selected'));
+            document.getElementById('tc-' + type)?.classList.add('selected');
+            document.getElementById('tsNext').disabled = false;
+        }
+
+        function showAddForm(prefill) {
+            const coordLabel = pendingLat
+                ? `✅ ${parseFloat(pendingLat).toFixed(5)}, ${parseFloat(pendingLng).toFixed(5)}`
+                : '⚠️ No location set — go back and click on map';
+            const isEmpty = !pendingLat;
+
+            document.getElementById('rpTitle').textContent = editingId ? 'Edit Marker' : 'Add Marker Details';
+            document.getElementById('rpBody').innerHTML = buildForm(prefill, coordLabel, isEmpty);
+
+            // Preview existing image
+            if (prefill?.imageUrl) {
+                document.getElementById('imgPreview').src = prefill.imageUrl;
+                document.getElementById('imgPreview').style.display = 'block';
+                document.getElementById('imgPlaceholder').style.display = 'none';
+                document.getElementById('imgArea').classList.add('has-img');
+            }
+        }
+
+        function buildForm(pf, coordLabel, isEmpty) {
+            return `<div class="details-form">
+                <div class="coord-pill ${isEmpty ? 'empty' : ''}" id="coordPill">
+                    <span>${isEmpty ? '⚠️' : '📍'}</span>
+                    <span>${coordLabel}</span>
+                    ${editingId ? '<button onclick="repin()" style="margin-left:auto;font-size:.7rem;font-weight:700;border:none;background:transparent;color:#5a7a3e;cursor:pointer">📍 Move Pin</button>' : ''}
+                </div>
+
+                <div class="f-sep">📷 Place Photo</div>
+                <div class="img-upload-area" id="imgArea" onclick="document.getElementById('imgFile').click()">
+                    <div class="img-placeholder" id="imgPlaceholder">
+                        <div class="ico">📷</div>
+                        <p>Click to upload photo</p>
+                        <span>JPG, PNG — max 5MB</span>
+                    </div>
+                    <img id="imgPreview" class="img-preview" alt="" />
+                    <div class="img-change-overlay">🔄 Change Photo</div>
+                </div>
+                <input type="file" id="imgFile" accept="image/*" onchange="previewImg(this)" />
+
+                <div class="f-sep">📋 Basic Info</div>
+                <div class="f-group">
+                    <label class="f-label">Place Name <span class="req">*</span></label>
+                    <input class="f-input" id="fLabel" type="text" placeholder="e.g. Al Hussein Park" value="${pf?.label||''}" />
+                </div>
+                <div class="f-grid-2">
+                    <div class="f-group">
+                        <label class="f-label">City</label>
+                        <input class="f-input" id="fCity" type="text" placeholder="Amman" value="${pf?.city||''}" />
+                    </div>
+                    <div class="f-group">
+                        <label class="f-label">Area</label>
+                        <input class="f-input" id="fArea" type="text" placeholder="Rabieh" value="${pf?.area||''}" />
+                    </div>
+                </div>
+
+                <div class="f-sep">📞 Contact & Hours</div>
+                <div class="f-group">
+                    <label class="f-label">Phone Number</label>
+                    <input class="f-input" id="fPhone" type="tel" placeholder="+962 79 123 4567" value="${pf?.phone||pf?.workingHours&&''||''}" />
+                </div>
+                <div class="f-group">
+                    <label class="f-label">Working Hours</label>
+                    <input class="f-input" id="fHours" type="text" placeholder="Daily 9AM–10PM / Closed Friday" value="${pf?.hours||pf?.workingHours||''}" />
+                </div>
+                <div class="f-group">
+                    <label class="f-label">Website</label>
+                    <input class="f-input" id="fWebsite" type="url" placeholder="https://example.com" value="${pf?.website||''}" />
+                </div>
+
+                <div class="f-sep">📝 Description</div>
+                <div class="f-group">
+                    <label class="f-label">Description</label>
+                    <textarea class="f-textarea" id="fDesc" placeholder="Tell users about this place — what makes it special for pet owners?">${pf?.description||''}</textarea>
+                </div>
+                <div class="f-group">
+                    <label class="f-label">Admin Notes (internal)</label>
+                    <textarea class="f-textarea" id="fNotes" placeholder="Internal notes — not shown to users" style="min-height:60px">${pf?.notes||''}</textarea>
+                </div>
+
+                <input type="hidden" id="fLat" value="${pendingLat||pf?.lat||''}" />
+                <input type="hidden" id="fLng" value="${pendingLng||pf?.lng||''}" />
+
+                <button class="f-save-btn" onclick="saveMarker()">
+                    💾 ${editingId ? 'Save Changes' : 'Add to Map'}
+                </button>
+                ${!editingId ? `<button class="f-back-btn" onclick="backToTypeSelector()">← Back</button>` : ''}
+            </div>`;
+        }
+
+        function backToTypeSelector() {
+            selectedType = null;
+            document.getElementById('rpTitle').textContent = 'Choose Place Type';
+            document.getElementById('rpBody').innerHTML = typeSelectorHtml();
+        }
+
+        function previewImg(input) {
+            if (!input.files?.[0]) return;
+            const r = new FileReader();
+            r.onload = e => {
+                document.getElementById('imgPreview').src = e.target.result;
+                document.getElementById('imgPreview').style.display = 'block';
+                document.getElementById('imgPlaceholder').style.display = 'none';
+                document.getElementById('imgArea').classList.add('has-img');
+            };
+            r.readAsDataURL(input.files[0]);
+        }
+
+        function repin() {
+            startAddMode();
+            showToast('Click on the map to move the pin');
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // EDIT
+        // ════════════════════════════════════════════════════════════════
+        async function openEditPanel(id) {
+            editingId = id;
+            const res  = await fetch(`/Map/GetMarkerById?id=${id}`);
+            const data = await res.json();
+            if (!data.success) { showToast('⚠️ Could not load marker'); return; }
+
+            selectedType = data.markerType;
+            pendingLat   = String(data.lat);
+            pendingLng   = String(data.lng);
+
+            document.getElementById('rpTitle').textContent = 'Edit Marker';
+            document.getElementById('rpBody').innerHTML = buildForm(data,
+                `📍 ${parseFloat(data.lat).toFixed(5)}, ${parseFloat(data.lng).toFixed(5)}`, false);
+
+            // Show existing image
+            if (data.imageUrl) {
+                document.getElementById('imgPreview').src = data.imageUrl;
+                document.getElementById('imgPreview').style.display = 'block';
+                document.getElementById('imgPlaceholder').style.display = 'none';
+                document.getElementById('imgArea').classList.add('has-img');
+            }
+
+            openRightPanel();
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // SAVE
+        // ════════════════════════════════════════════════════════════════
+        async function saveMarker() {
+            const label = document.getElementById('fLabel')?.value.trim();
+            const lat   = document.getElementById('fLat')?.value;
+            const lng   = document.getElementById('fLng')?.value;
+
+            if (!label) { document.getElementById('fLabel').style.borderColor = '#dc2626'; return; }
+            if (!lat)   { showToast('⚠️ Location not set — go back and click on the map'); return; }
+
+            const formData = new FormData();
+            formData.append('markerType',  selectedType || 'petfriendly');
+            formData.append('label',       label);
+            formData.append('latitude',    lat);
+            formData.append('longitude',   lng);
+            formData.append('city',        document.getElementById('fCity')?.value  || '');
+            formData.append('area',        document.getElementById('fArea')?.value  || '');
+            formData.append('phone',       document.getElementById('fPhone')?.value || '');
+            formData.append('workingHours',document.getElementById('fHours')?.value || '');
+            formData.append('description', document.getElementById('fDesc')?.value  || '');
+            formData.append('website',     document.getElementById('fWebsite')?.value || '');
+            formData.append('notes',       document.getElementById('fNotes')?.value || '');
+            formData.append('__RequestVerificationToken', getToken());
+
+            const imgFile = document.getElementById('imgFile')?.files?.[0];
+            if (imgFile) formData.append('image', imgFile);
+
+            const url = editingId
+                ? `/Map/EditAdminMarker`
+                : `/Map/AddAdminMarker`;
+
+            if (editingId) formData.append('id', editingId);
+
+            const res  = await fetch(url, { method: 'POST', body: formData });
+            const data = await res.json();
+
+            if (data.success) {
+                closeRightPanel();
+                await fetchData();
+                // Fly to the new/edited marker
+                map.setView([parseFloat(lat), parseFloat(lng)], 16, { animate: true });
+                showToast(editingId ? '✅ Marker updated!' : '✅ Marker added to map!');
+                editingId = null;
+            } else {
+                showToast('⚠️ ' + (data.message || 'Error saving'));
+            }
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // DETAIL PANEL
+        // ════════════════════════════════════════════════════════════════
+        function openDetailPanel(p, type) {
+            editingId = null;
+            const color = COLORS[p.markerType || type] || '#7fa85a';
+            const emoji = EMOJIS[p.markerType || type] || '📍';
+            const label = LABELS[p.markerType || type] || type;
+
+            document.getElementById('rpTitle').textContent = label + ' Details';
+
+            const photoHtml = (p.image || p.logo)
+                ? `<img src="${p.image||p.logo}" alt="${p.name}" />`
+                : `<span>${emoji}</span>`;
+
+            const rows = [];
+            if (p.city||p.area) rows.push(dRow('📍','Location',[p.city,p.area].filter(Boolean).join(', ')));
+            if (p.phone)         rows.push(dRow('📞','Phone',`<a href="tel:${p.phone}" style="color:#5a7a3e">${p.phone}</a>`));
+            if (p.hours)         rows.push(dRow('🕐','Hours',p.hours));
+            if (p.description)   rows.push(dRow('📝','About',p.description));
+            if (p.website)       rows.push(dRow('🌐','Website',`<a href="${p.website}" target="_blank" style="color:#5a7a3e">${p.website}</a>`));
+            if (p.notes)         rows.push(dRow('🗒️','Notes',p.notes));
+            if (p.reportCode)    rows.push(dRow('🔖','Code',`<code style="font-size:.72rem">${p.reportCode}</code>`));
+            if (p.severity)      rows.push(dRow('⚠️','Severity',`<strong class="sev-${p.severity}">${p.severity}</strong>`));
+            if (p.hasEmergency)  rows.push(dRow('🚑','Emergency','<strong style="color:#16a34a">24/7 Available</strong>'));
+
+            const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`;
+
+            // Danger-specific bar
+            const dangerBar = type === 'danger' ? `
+                <div class="dv-danger-bar sev-${p.severity||'Medium'}">
+                    <span>${p.severity==='High'?'🔴':p.severity==='Low'?'🟢':'🟠'}</span>
+                    <span>${p.severity} Severity — ${p.status}</span>
+                </div>` : '';
+
+            // Actions
+            let actions = `<a class="dv-btn primary" href="${mapsUrl}" target="_blank">🧭 Directions</a>`;
+            if (type !== 'clinic' && type !== 'store' && type !== 'danger') {
+                actions += `<button class="dv-btn edit" onclick="openEditPanel(${p.id})">✏️ Edit</button>`;
+                actions += `<button class="dv-btn danger" onclick="confirmDelete(${p.id},'${(p.name||'').replace(/'/g,'')}')">🗑 Delete</button>`;
+                actions += `<button class="dv-btn hide" onclick="toggleHide(${p.id},this)">👁 Hide</button>`;
+            }
+            if (type === 'danger') {
+                if (p.status !== 'Resolved') actions += `<button class="dv-btn edit" onclick="updateDanger(${p.id},'Resolved')">✅ Resolve</button>`;
+                actions += `<a class="dv-btn hide" href="/SuperAdmin/Dangerous_Animals">📋 Full Report</a>`;
+            }
+            if (type === 'clinic') actions += `<a class="dv-btn edit" href="/SuperAdmin/Clinics">⚙️ Manage</a>`;
+            if (type === 'store')  actions += `<a class="dv-btn edit" href="/SuperAdmin/Stores">⚙️ Manage</a>`;
+
+            document.getElementById('rpBody').innerHTML = `<div class="detail-view">
+                <div class="dv-photo">${photoHtml}</div>
+                <div class="dv-name">${p.name}</div>
+                <span class="dv-type-badge" style="background:${color}18;color:${color}">${label}</span>
+                ${dangerBar}
+                ${rows.join('')}
+                <div class="dv-actions">${actions}</div>
+            </div>`;
+
+            openRightPanel();
+        }
+
+        function dRow(ico, key, val) {
+            return `<div class="dv-row"><div class="dv-ico">${ico}</div><span class="dv-key">${key}</span><span class="dv-val">${val}</span></div>`;
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // API CALLS
+        // ════════════════════════════════════════════════════════════════
+        async function confirmDelete(id, name) {
+            if (!confirm(`Delete "${name}"?`)) return;
+            const form = new URLSearchParams({ id, __RequestVerificationToken: getToken() });
+            await fetch('/Map/DeleteAdminMarker', { method:'POST', body:form });
+            closeRightPanel();
+            await fetchData();
+            showToast('🗑 Marker deleted');
+        }
+
+        async function toggleHide(id, btn) {
+            const form = new URLSearchParams({ id, status:'Hidden', __RequestVerificationToken: getToken() });
+            await fetch('/Map/ToggleAdminMarker', { method:'POST', body:form });
+            closeRightPanel();
+            await fetchData();
+            showToast('👁 Marker hidden');
+        }
+
+        async function updateDanger(id, status) {
+            const form = new URLSearchParams({ reportId:id, status, __RequestVerificationToken: getToken() });
+            await fetch('/SuperAdmin/UpdateDangerStatus', { method:'POST', body:form });
+            await fetchData();
+            showToast(status==='Resolved' ? '✅ Report resolved' : '🔍 Under review');
+        }
+
+        // ════════════════════════════════════════════════════════════════
+        // PANEL HELPERS
+        // ════════════════════════════════════════════════════════════════
+        function openRightPanel() {
+            document.getElementById('rightPanel').classList.add('open');
+        }
+        function closeRightPanel() {
+            document.getElementById('rightPanel').classList.remove('open');
+            editingId = null;
+        }
+        function flyTo(lat, lng) {
+            map.setView([lat, lng], 16, { animate: true });
+        }
+        function flyAndDetail(lat, lng, type, p) {
+            map.setView([lat, lng], 16, { animate: true });
+            if (typeof p === 'string') p = JSON.parse(p.replace(/'/g, '"'));
+            openDetailPanel(p, type);
+        }
+
+        function getToken() {
+            return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.classList.add('show');
+            clearTimeout(t._t);
+            t._t = setTimeout(() => t.classList.remove('show'), 2800);
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') { cancelAddMode(); closeRightPanel(); }
+        });
+
+        // ════════════════════════════════════════════════════════════════
+        // BOOT
+        // ════════════════════════════════════════════════════════════════
+        document.addEventListener('DOMContentLoaded', () => { initMap(); fetchData(); });
     </script>
 </body>
 </html>

@@ -54,6 +54,7 @@ builder.Services.AddScoped<IReservationRepository, ReservationRepository>();
 builder.Services.AddScoped<IFoundPetClaimRepository, FoundPetClaimRepository>();
 builder.Services.AddScoped<IWalletRepository, WalletRepository>();
 builder.Services.AddScoped<IDonationRepository, DonationRepository>();
+builder.Services.AddScoped<IAdminMapMarkerRepository, AdminMapMarkerRepository>();
 builder.Services.AddScoped<IDangerousAnimalReportRepository, DangerousAnimalReportRepository>();
 builder.Services.AddScoped<IComplaintRepository, ComplaintRepository>();
 builder.Services.AddScoped<IDonationAnimalRepository, DonationAnimalRepository>();

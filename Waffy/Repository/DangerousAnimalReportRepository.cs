@@ -15,68 +15,136 @@ namespace Waffy.Repository
                 ?? throw new Exception("WaffyConnection not found");
         }
 
-        // ✅ بدون IDENTITY → MAX(IdDangReport)+1
-        public async Task<int> CreateAsync(DangerousAnimalReport report)
+        private SqlConnection NewConn() => new(_connectionString);
+
+        // ════════════════════════════════════════════════════════
+        // CREATE — تم إصلاحه: الجدول صار IDENTITY لا نحتاج MAX+1
+        // ════════════════════════════════════════════════════════
+        public async Task<int> CreateAsync(DangerousAnimalReport r)
         {
             const string sql = @"
-        INSERT INTO DangerousAnimalReport
-            (IdDangReport, IdUser, AnimalType, ProblemType, Severity,
-             Description, City, Area, LocationText, Latitude, Longitude,
-             Status, ReportCode, CreatedAt)
-        SELECT ISNULL(MAX(IdDangReport), 0) + 1,
-               @IdUser, @AnimalType, @ProblemType, @Severity,
-               @Description, @City, @Area, @LocationText, @Latitude, @Longitude,
-               @Status, @ReportCode, @CreatedAt
-        FROM DangerousAnimalReport;
-        SELECT ISNULL(MAX(IdDangReport), 0) FROM DangerousAnimalReport;";
+                INSERT INTO DangerousAnimalReport
+                    (IdUser, AnimalType, ProblemType, Severity,
+                     Description, City, Area, LocationText,
+                     Latitude, Longitude, Status, ReportCode, CreatedAt)
+                VALUES
+                    (@IdUser, @AnimalType, @ProblemType, @Severity,
+                     @Description, @City, @Area, @LocationText,
+                     @Latitude, @Longitude, @Status, @ReportCode, @CreatedAt);
+                SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
-            using var conn = new SqlConnection(_connectionString);
+            using var conn = NewConn();
             return await conn.ExecuteScalarAsync<int>(sql, new
             {
-                report.IdUser,
-                report.AnimalType,
-                report.ProblemType,
-                report.Severity,
-                report.Description,
-                report.City,
-                report.Area,
-                report.LocationText,
-                report.Latitude,
-                report.Longitude,
-                report.Status,
-                report.ReportCode,
-                report.CreatedAt
+                r.IdUser,
+                r.AnimalType,
+                r.ProblemType,
+                r.Severity,
+                r.Description,
+                r.City,
+                r.Area,
+                r.LocationText,
+                r.Latitude,
+                r.Longitude,
+                r.Status,
+                r.ReportCode,
+                r.CreatedAt
             });
         }
 
+        // ════════════════════════════════════════════════════════
+        // GET ALL — للأدمن (مع اسم المبلّغ)
+        // ════════════════════════════════════════════════════════
+        public async Task<IEnumerable<DangerousAnimalReport>> GetAllAsync()
+        {
+            const string sql = @"
+                SELECT d.*,
+                       u.FullName AS ReporterName,
+                       u.Phone    AS ReporterPhone
+                FROM   DangerousAnimalReport d
+                LEFT JOIN Users u ON u.UserId = d.IdUser
+                ORDER BY d.CreatedAt DESC";
+
+            using var conn = NewConn();
+            return await conn.QueryAsync<DangerousAnimalReport>(sql);
+        }
+
+        // ════════════════════════════════════════════════════════
+        // GET BY USER — للبروفايل (My Danger Reports)
+        // ════════════════════════════════════════════════════════
         public async Task<IEnumerable<DangerousAnimalReport>> GetByUserIdAsync(int userId)
         {
             const string sql = @"
                 SELECT * FROM DangerousAnimalReport
-                WHERE IdUser = @UserId
+                WHERE  IdUser = @userId
                 ORDER BY CreatedAt DESC";
 
-            using var conn = new SqlConnection(_connectionString);
-            return await conn.QueryAsync<DangerousAnimalReport>(sql, new { UserId = userId });
+            using var conn = NewConn();
+            return await conn.QueryAsync<DangerousAnimalReport>(sql, new { userId });
         }
 
-        public async Task<IEnumerable<DangerousAnimalReport>> GetAllAsync()
-        {
-            const string sql = @"
-        SELECT * FROM DangerousAnimalReport
-        ORDER BY CreatedAt DESC";
-            using var conn = new SqlConnection(_connectionString);
-            return await conn.QueryAsync<DangerousAnimalReport>(sql);
-        }
-
+        // ════════════════════════════════════════════════════════
+        // UPDATE STATUS
+        // ════════════════════════════════════════════════════════
         public async Task UpdateStatusAsync(int id, string status)
         {
             const string sql = @"
-        UPDATE DangerousAnimalReport
-        SET Status = @Status
-        WHERE IdDangReport = @Id";
-            using var conn = new SqlConnection(_connectionString);
-            await conn.ExecuteAsync(sql, new { Id = id, Status = status });
+                UPDATE DangerousAnimalReport
+                SET    Status = @status
+                WHERE  IdDangReport = @id";
+
+            using var conn = NewConn();
+            await conn.ExecuteAsync(sql, new { id, status });
+        }
+
+        // ════════════════════════════════════════════════════════
+        // GET ACTIVE FOR MAP — فقط اللي عندهم إحداثيات وغير Resolved
+        // ════════════════════════════════════════════════════════
+        public async Task<IEnumerable<DangerousAnimalReport>> GetActiveForMapAsync()
+        {
+            const string sql = @"
+                SELECT IdDangReport, AnimalType, ProblemType, Severity,
+                       City, Area, Latitude, Longitude,
+                       Status, ReportCode, CreatedAt
+                FROM   DangerousAnimalReport
+                WHERE  Status    != 'Resolved'
+                  AND  Latitude  IS NOT NULL
+                  AND  Longitude IS NOT NULL
+                ORDER BY CreatedAt DESC";
+
+            using var conn = NewConn();
+            return await conn.QueryAsync<DangerousAnimalReport>(sql);
+        }
+
+        // ════════════════════════════════════════════════════════
+        // GET BY ID — تفاصيل بلاغ واحد
+        // ════════════════════════════════════════════════════════
+        public async Task<DangerousAnimalReport?> GetByIdAsync(int idDangReport)
+        {
+            const string sql = @"
+                SELECT d.*,
+                       u.FullName AS ReporterName,
+                       u.Phone    AS ReporterPhone
+                FROM   DangerousAnimalReport d
+                LEFT JOIN Users u ON u.UserId = d.IdUser
+                WHERE  d.IdDangReport = @idDangReport";
+
+            using var conn = NewConn();
+            return await conn.QueryFirstOrDefaultAsync<DangerousAnimalReport>(
+                sql, new { idDangReport });
+        }
+
+        // ════════════════════════════════════════════════════════
+        // DELETE
+        // ════════════════════════════════════════════════════════
+        public async Task DeleteAsync(int idDangReport)
+        {
+            const string sql = @"
+                DELETE FROM DangerousAnimalReport
+                WHERE  IdDangReport = @idDangReport";
+
+            using var conn = NewConn();
+            await conn.ExecuteAsync(sql, new { idDangReport });
         }
     }
 }

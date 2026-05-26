@@ -1,7 +1,4 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@{
     Layout = null;
 }
 <!DOCTYPE html>
@@ -9,172 +6,1376 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Map & Nearby Services - Waffy</title>
-
-    <link rel="stylesheet" href="~/css/gps.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Explore — Waffy Map</title>
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --sage: #7fa85a;
+            --sage-d: #5a7a3e;
+            --sage-l: #c4d9a8;
+            --sand: #f5efe6;
+            --ink: #1a1612;
+            --muted: #8a7b6c;
+            --white: #ffffff;
+            --glass: rgba(255,255,255,0.85);
+            --r: 18px;
+        }
+
+        html, body {
+            height: 100%;
+            font-family: 'DM Sans', sans-serif;
+            background: var(--ink);
+            overflow: hidden;
+        }
+
+        /* ══════════════════════════════════════════
+                   FULL SCREEN MAP
+                ══════════════════════════════════════════ */
+        #map {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+
+        /* ══════════════════════════════════════════
+                   TOP BAR — glass floating
+                ══════════════════════════════════════════ */
+        .top-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 800;
+            padding: 14px 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(180deg, rgba(26,22,18,0.72) 0%, transparent 100%);
+        }
+
+        /* Logo */
+        .tb-logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.5px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+            .tb-logo span {
+                color: var(--sage-l);
+            }
+
+        /* Mode toggle */
+        .mode-pill {
+            display: flex;
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 50px;
+            padding: 4px;
+            flex-shrink: 0;
+        }
+
+        .mp-btn {
+            padding: 7px 16px;
+            border-radius: 50px;
+            border: none;
+            background: transparent;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .78rem;
+            font-weight: 600;
+            color: rgba(255,255,255,.7);
+            cursor: pointer;
+            transition: all .25s ease;
+            white-space: nowrap;
+        }
+
+            .mp-btn.active {
+                background: var(--white);
+                color: var(--ink);
+                box-shadow: 0 4px 16px rgba(0,0,0,.25);
+            }
+
+        /* Search */
+        .search-pill {
+            flex: 1;
+            min-width: 0;
+            max-width: 380px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.12);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 50px;
+            padding: 0 18px;
+            height: 44px;
+            transition: all .2s;
+        }
+
+            .search-pill:focus-within {
+                background: rgba(255,255,255,0.22);
+                border-color: rgba(255,255,255,.4);
+            }
+
+            .search-pill input {
+                border: none;
+                outline: none;
+                background: transparent;
+                font-family: 'DM Sans', sans-serif;
+                font-size: .84rem;
+                font-weight: 500;
+                color: #fff;
+                width: 100%;
+            }
+
+                .search-pill input::placeholder {
+                    color: rgba(255,255,255,.5);
+                }
+
+            .search-pill i {
+                color: rgba(255,255,255,.5);
+                font-size: .82rem;
+            }
+
+        /* Icon buttons */
+        .tb-icon-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,.18);
+            background: rgba(255,255,255,.12);
+            backdrop-filter: blur(16px);
+            color: #fff;
+            font-size: .9rem;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+            transition: all .2s;
+        }
+
+            .tb-icon-btn:hover {
+                background: rgba(255,255,255,.25);
+                border-color: rgba(255,255,255,.4);
+            }
+
+            .tb-icon-btn.active-loc {
+                background: var(--sage);
+                border-color: var(--sage-l);
+            }
+
+        /* ══════════════════════════════════════════
+                   NEARBY DRAWER
+                ══════════════════════════════════════════ */
+        .nearby-btn {
+            position: fixed;
+            bottom: 32px;
+            left: 20px;
+            z-index: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--white);
+            border: none;
+            border-radius: 50px;
+            padding: 13px 22px;
+            font-family: 'Syne', sans-serif;
+            font-size: .84rem;
+            font-weight: 700;
+            color: var(--ink);
+            cursor: pointer;
+            box-shadow: 0 8px 32px rgba(0,0,0,.22);
+            transition: transform .2s, box-shadow .2s;
+        }
+
+            .nearby-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 12px 36px rgba(0,0,0,.28);
+            }
+
+        .nb-count {
+            background: var(--sage);
+            color: #fff;
+            border-radius: 50px;
+            padding: 2px 8px;
+            font-size: .72rem;
+            font-weight: 700;
+        }
+
+        .nearby-drawer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 360px;
+            max-height: 72vh;
+            background: var(--white);
+            border-radius: 24px 24px 0 0;
+            z-index: 900;
+            display: flex;
+            flex-direction: column;
+            transform: translateY(100%);
+            transition: transform .38s cubic-bezier(.4,0,.2,1);
+            box-shadow: 0 -12px 48px rgba(0,0,0,.2);
+        }
+
+            .nearby-drawer.open {
+                transform: translateY(0);
+            }
+
+        .nd-handle {
+            width: 40px;
+            height: 4px;
+            background: #e0d8d0;
+            border-radius: 2px;
+            margin: 14px auto 0;
+            flex-shrink: 0;
+        }
+
+        .nd-hd {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px 12px;
+            flex-shrink: 0;
+        }
+
+        .nd-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .nd-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            background: #f0ebe4;
+            color: var(--muted);
+            font-size: .8rem;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+        }
+
+        /* Filter chips */
+        .nd-chips {
+            display: flex;
+            gap: 8px;
+            padding: 0 20px 12px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            flex-shrink: 0;
+        }
+
+            .nd-chips::-webkit-scrollbar {
+                display: none;
+            }
+
+        .chip {
+            padding: 6px 14px;
+            border-radius: 50px;
+            border: 1.5px solid #e8e0d8;
+            background: #fff;
+            font-size: .74rem;
+            font-weight: 600;
+            color: var(--muted);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all .18s;
+        }
+
+            .chip.active {
+                background: var(--ink);
+                border-color: var(--ink);
+                color: #fff;
+            }
+
+        /* Place list */
+        #nearbyList {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 16px 24px;
+            scrollbar-width: thin;
+            scrollbar-color: #e0d8d0 transparent;
+        }
+
+        .place-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: background .15s;
+            margin-bottom: 4px;
+        }
+
+            .place-card:hover {
+                background: #f8f4ef;
+            }
+
+        .pc-img {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            object-fit: cover;
+            flex-shrink: 0;
+            background: linear-gradient(135deg, var(--sage-l), var(--sage));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            overflow: hidden;
+        }
+
+            .pc-img img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 14px;
+            }
+
+        .pc-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .pc-name {
+            font-family: 'Syne', sans-serif;
+            font-size: .88rem;
+            font-weight: 700;
+            color: var(--ink);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pc-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+
+        .pc-type {
+            font-size: .7rem;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 50px;
+        }
+
+        .pc-dist {
+            font-size: .7rem;
+            font-weight: 500;
+            color: var(--muted);
+        }
+
+        .pc-open {
+            background: #e8f5e0;
+            color: #3d7a2a;
+        }
+
+        .pc-closed {
+            background: #fce8e8;
+            color: #c0392b;
+        }
+
+        .pc-arrow {
+            color: var(--muted);
+            font-size: .7rem;
+            flex-shrink: 0;
+        }
+
+        /* ══════════════════════════════════════════
+                   PLACE POPUP CARD (slides from right)
+                ══════════════════════════════════════════ */
+        .place-popup {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            width: 320px;
+            background: var(--white);
+            border-radius: 24px;
+            z-index: 850;
+            box-shadow: 0 16px 56px rgba(0,0,0,.22);
+            overflow: hidden;
+            transform: translateX(360px) scale(0.95);
+            opacity: 0;
+            transition: transform .32s cubic-bezier(.4,0,.2,1), opacity .32s ease;
+            pointer-events: none;
+        }
+
+            .place-popup.open {
+                transform: translateX(0) scale(1);
+                opacity: 1;
+                pointer-events: all;
+            }
+
+        .pp-photo {
+            height: 160px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pp-photo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pp-photo-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .pp-close {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.9);
+            border: none;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            font-size: .8rem;
+            color: var(--ink);
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+        }
+
+        .pp-type-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            padding: 5px 12px;
+            border-radius: 50px;
+            font-size: .7rem;
+            font-weight: 700;
+            backdrop-filter: blur(8px);
+        }
+
+        .pp-body {
+            padding: 18px;
+        }
+
+        .pp-name {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: var(--ink);
+            margin-bottom: 4px;
+        }
+
+        .pp-address {
+            font-size: .78rem;
+            color: var(--muted);
+            font-weight: 500;
+            margin-bottom: 14px;
+        }
+
+        .pp-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 0;
+            border-bottom: 1px solid #f0ebe4;
+            font-size: .8rem;
+        }
+
+            .pp-row:last-of-type {
+                border-bottom: none;
+            }
+
+        .pp-row-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            font-size: .85rem;
+            flex-shrink: 0;
+        }
+
+        .pp-row-label {
+            font-weight: 500;
+            color: var(--muted);
+        }
+
+        .pp-row-val {
+            font-weight: 700;
+            color: var(--ink);
+            margin-left: auto;
+        }
+
+        .open-badge {
+            color: #3d7a2a;
+            font-weight: 700;
+        }
+
+        .close-badge {
+            color: #c0392b;
+            font-weight: 700;
+        }
+
+        .pp-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .pp-btn {
+            flex: 1;
+            padding: 11px;
+            border-radius: 14px;
+            border: none;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .8rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            transition: all .18s;
+            text-decoration: none;
+        }
+
+        .pp-btn-primary {
+            background: var(--ink);
+            color: #fff;
+        }
+
+            .pp-btn-primary:hover {
+                background: #2d2820;
+            }
+
+        .pp-btn-sec {
+            background: #f0ebe4;
+            color: var(--ink);
+        }
+
+            .pp-btn-sec:hover {
+                background: #e8e0d8;
+            }
+
+        /* Danger report popup extras */
+        .pp-danger-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            font-size: .8rem;
+            font-weight: 700;
+        }
+
+        .sev-high {
+            background: #fee2e2;
+            color: #dc2626;
+        }
+
+        .sev-medium {
+            background: #fff3e0;
+            color: #b45309;
+        }
+
+        .sev-low {
+            background: #f0fdf4;
+            color: #16a34a;
+        }
+
+        /* ══════════════════════════════════════════
+                   MAP MARKERS
+                ══════════════════════════════════════════ */
+        .custom-marker {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .cm-pin {
+            width: 44px;
+            height: 44px;
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            border: 3px solid rgba(255,255,255,.9);
+            box-shadow: 0 6px 20px rgba(0,0,0,.25);
+            overflow: hidden;
+            transition: transform .18s;
+        }
+
+            .cm-pin span {
+                transform: rotate(45deg);
+                display: block;
+            }
+
+            .cm-pin img {
+                transform: rotate(45deg);
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 50%;
+            }
+
+        .cm-shadow {
+            width: 14px;
+            height: 5px;
+            background: rgba(0,0,0,.18);
+            border-radius: 50%;
+            margin-top: -2px;
+            filter: blur(2px);
+        }
+
+        /* User dot */
+        .user-dot-wrap {
+            position: relative;
+        }
+
+        .user-dot {
+            width: 18px;
+            height: 18px;
+            background: #3b82f6;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 12px rgba(59,130,246,.5);
+        }
+
+        .user-ring {
+            position: absolute;
+            inset: -10px;
+            border: 2px solid rgba(59,130,246,.3);
+            border-radius: 50%;
+            animation: ring 2.5s ease-out infinite;
+        }
+
+        .user-ring-2 {
+            position: absolute;
+            inset: -18px;
+            border: 1.5px solid rgba(59,130,246,.15);
+            border-radius: 50%;
+            animation: ring 2.5s ease-out infinite .4s;
+        }
+
+        @@keyframes ring {
+            0% {
+                transform: scale(.6);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1.4);
+                opacity: 0;
+            }
+        }
+
+        /* Status pill */
+        #statusPill {
+            position: fixed;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26,22,18,.85);
+            backdrop-filter: blur(12px);
+            color: #fff;
+            border-radius: 50px;
+            padding: 8px 18px;
+            font-size: .76rem;
+            font-weight: 600;
+            z-index: 700;
+            white-space: nowrap;
+            transition: opacity .4s;
+            pointer-events: none;
+        }
+
+            #statusPill.hidden {
+                opacity: 0;
+            }
+
+        /* Legend */
+        .legend-card {
+            position: fixed;
+            bottom: 32px;
+            right: 20px;
+            background: rgba(255,255,255,.92);
+            backdrop-filter: blur(12px);
+            border-radius: 18px;
+            padding: 14px 18px;
+            z-index: 700;
+            box-shadow: 0 8px 32px rgba(0,0,0,.14);
+        }
+
+        .lc-title {
+            font-family: 'Syne', sans-serif;
+            font-size: .7rem;
+            font-weight: 700;
+            color: var(--muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .lc-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: .75rem;
+            font-weight: 600;
+            color: var(--ink);
+            margin-bottom: 6px;
+        }
+
+            .lc-item:last-child {
+                margin-bottom: 0;
+            }
+
+        .lc-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* ══════════════════════════════════════════
+                   MOBILE
+                ══════════════════════════════════════════ */
+        @@media (max-width: 768px) {
+            .top-bar {
+                padding: 12px 14px;
+                gap: 8px;
+            }
+
+            .tb-logo {
+                font-size: 1.1rem;
+            }
+
+            .mp-btn {
+                padding: 6px 12px;
+                font-size: .72rem;
+            }
+
+            .search-pill {
+                max-width: none;
+            }
+
+            .nearby-drawer {
+                width: 100%;
+                border-radius: 24px 24px 0 0;
+            }
+
+            .place-popup {
+                top: auto;
+                bottom: 0;
+                right: 0;
+                left: 0;
+                width: 100%;
+                border-radius: 24px 24px 0 0;
+                transform: translateY(100%);
+            }
+
+                .place-popup.open {
+                    transform: translateY(0);
+                }
+
+            .legend-card {
+                display: none;
+            }
+        }
+
+        /* Leaflet overrides */
+        .leaflet-control-zoom {
+            border: none !important;
+        }
+
+            .leaflet-control-zoom a {
+                width: 36px !important;
+                height: 36px !important;
+                line-height: 36px !important;
+                font-size: .9rem !important;
+                background: rgba(255,255,255,.92) !important;
+                backdrop-filter: blur(8px);
+                border: none !important;
+                box-shadow: 0 4px 14px rgba(0,0,0,.12) !important;
+                color: var(--ink) !important;
+                font-weight: 700 !important;
+            }
+
+                .leaflet-control-zoom a:first-child {
+                    border-radius: 12px 12px 0 0 !important;
+                    margin-bottom: 2px;
+                }
+
+                .leaflet-control-zoom a:last-child {
+                    border-radius: 0 0 12px 12px !important;
+                }
+
+        .leaflet-attribution-flag {
+            display: none !important;
+        }
+
+        /* Overlay when drawer open */
+        .drawer-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.3);
+            z-index: 890;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .3s;
+        }
+
+            .drawer-overlay.show {
+                opacity: 1;
+                pointer-events: all;
+            }
+
+        /* No results */
+        .nb-empty {
+            padding: 32px 20px;
+            text-align: center;
+            color: var(--muted);
+        }
+
+            .nb-empty .nb-emoji {
+                font-size: 2.5rem;
+                margin-bottom: 12px;
+            }
+
+            .nb-empty p {
+                font-size: .84rem;
+                font-weight: 500;
+            }
+    </style>
 </head>
 <body>
 
-    <div class="top-hero-area">
-        <div class="top-hero-shell">
-            <header class="topbar">
-                <div class="header-shell">
-                    <nav class="navbar">
+    <!-- Full screen map -->
+    <div id="map"></div>
 
-                        <div class="left-nav desktop-nav desktop-links">
-                            <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
-                            <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
-                            <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
-                            <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
-                            <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
+    <!-- ══ Top Bar ═════════════════════════════════════════════ -->
+    <div class="top-bar">
+        <div class="tb-logo">waffy<span>.</span></div>
 
-                        </div>
+        <div class="mode-pill">
+            <button class="mp-btn active" id="modePet" onclick="setMode('pet')">
+                🐾 Pet World
+            </button>
+            <button class="mp-btn" id="modeFull" onclick="setMode('full')">
+                🗺️ Full Map
+            </button>
+        </div>
 
-                        <div class="logo-center">
-                            <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
-                        </div>
+        <div class="search-pill">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Search clinics, stores, parks…"
+                   oninput="handleSearch(this.value)" />
+        </div>
 
-                        <div class="right-nav">
-                            <div class="desktop-nav desktop-links desktop-right-links">
+        <button class="tb-icon-btn" id="locBtn" onclick="goToUser()" title="My Location">
+            <i class="fa-solid fa-location-crosshairs"></i>
+        </button>
 
+        <button class="tb-icon-btn" onclick="toggleNearby()" title="Nearby Places">
+            <i class="fa-solid fa-list"></i>
+        </button>
+    </div>
 
+    <!-- ══ Nearby Drawer ═══════════════════════════════════════ -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="closeNearby()"></div>
 
-                                <div class="services-dropdown" id="servicesDropdown">
-                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services
-                                        <span class="dropdown-arrow">▼</span>
-                                    </button>
-
-                                    <div class="dropdown-menu" id="servicesMenu">
-                                        <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
-                                        <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
-                                        <a asp-controller="Pet" asp-action="Adapt" class="dropdown-link">Adoption</a>
-                                        <a asp-controller="Pet" asp-action="Lost" class="dropdown-link">Lost Pets</a>
-                                        <a asp-controller="Map" asp-action="Gps" class="dropdown-link">Map</a>
-                                        <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
-                                        <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
-                                        <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
-                                        <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
-                                        <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
-                                    </div>
-                                </div>
-
-                                <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
-
-                            </div>
-
-                            <div class="nav-actions">
-                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
-                                    <i class="fa-solid fa-cart-shopping"></i>
-                                </a>
-
-                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon" aria-label="Notifications">
-                                    <i class="fa-solid fa-bell"></i>
-                                </a>
-
-                                <a asp-controller="Account" asp-action="Profile" class="profile-btn" aria-label="Profile">
-                                    <img src="../Images/user.jpg" alt="Profile">
-                                </a>
-                                <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
-                            </div>
-
-                            <div class="mobile-nav-wrap">
-                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
-                                <div class="nav-links" id="navLinks">
-                                    <div class="mobile-menu-logo">
-                                        <img src="../Images/logo.png" alt="Waffy Logo">
-                                    </div>
-
-                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
-                                    <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
-                                    <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
-                                    <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
-                                    <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-                                    <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
-
-                                    <div class="mobile-services-block" id="mobileServicesBlock">
-                                        <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
-                                            <span>Services</span>
-                                            <span class="dropdown-arrow">▼</span>
-                                        </button>
-
-                                        <div class="mobile-services-menu" id="mobileServicesMenu">
-
-                                            <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
-                                            <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
-                                            <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
-                                            <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
-                                            <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
-                                        </div>
-                                    </div>
-
-                                    <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
-                                    <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
-                                </div>
-                            </div>
-                        </div>
-
-                    </nav>
-                </div>
-            </header>
+    <div class="nearby-drawer" id="nearbyDrawer">
+        <div class="nd-handle"></div>
+        <div class="nd-hd">
+            <div class="nd-title">Nearby Places <span id="nearbyCount" style="color:var(--muted);font-size:.8rem;font-weight:500"></span></div>
+            <button class="nd-close" onclick="closeNearby()">✕</button>
+        </div>
+        <div class="nd-chips">
+            <button class="chip active" data-filter="all" onclick="filterChip(this,'all')">All</button>
+            <button class="chip" data-filter="clinic" onclick="filterChip(this,'clinic')">🏥 Clinics</button>
+            <button class="chip" data-filter="store" onclick="filterChip(this,'store')">🛍️ Stores</button>
+            <button class="chip" data-filter="petfriendly" onclick="filterChip(this,'petfriendly')">🌳 Parks</button>
+            <button class="chip" data-filter="danger" onclick="filterChip(this,'danger')">🚨 Danger</button>
+        </div>
+        <div id="nearbyList">
+            <div class="nb-empty">
+                <div class="nb-emoji">📡</div>
+                <p>Getting your location…</p>
+            </div>
         </div>
     </div>
 
-    <main class="container gps-page">
-        <section class="gps-top fade-up">
-            <h1>Find Nearby Services</h1>
-            <p>Discover nearby clinics, stores, and playgrounds around you.</p>
-        </section>
+    <!-- Nearby FAB -->
+    <button class="nearby-btn" id="nearbyFab" onclick="toggleNearby()">
+        <i class="fa-solid fa-map-marker-alt"></i>
+        Nearby
+        <span class="nb-count" id="fabCount">0</span>
+    </button>
 
-        <section class="gps-toolbar fade-up">
-            <div class="search-wrap">
-                <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-                <input id="searchInput"
-                       type="text"
-                       placeholder="Search clinics, stores, or playgrounds..." />
-            </div>
+    <!-- ══ Place Popup ═════════════════════════════════════════ -->
+    <div class="place-popup" id="placePopup">
+        <div id="ppInner"></div>
+    </div>
 
+    <!-- Status pill -->
+    <div id="statusPill" class="hidden">📡 Locating…</div>
 
-        </section>
-
-        <section class="category-tabs fade-up">
-            <button class="tab-btn active" data-filter="all">👁 All</button>
-            <button class="tab-btn" data-filter="clinic">🏥 Clinics</button>
-            <button class="tab-btn" data-filter="store">🛍 Stores</button>
-            <button class="tab-btn" data-filter="playground">🎡 Playgrounds</button>
-        </section>
-
-        <section class="map-layout fade-up">
-            <div class="map-shell big-map-shell">
-                <div id="mainMap"></div>
-            </div>
-        </section>
-    </main>
-
-    <footer class="footer">
-        <div class="footer-links">
-            <a href="about.html">About Us</a>
-            <span>|</span>
-            <a href="about.html">Contact</a>
-            <span>|</span>
-            <a href="faq.html">FAQ</a>
-            <span>|</span>
-            <div class="social-inline">
-                <span>f</span>
-                <span>🐦</span>
-                <span>◎</span>
-            </div>
-        </div>
-        <div>© 2026 Waffy, all rights reserved.</div>
-    </footer>
-
-    <div id="toast" class="toast"></div>
+    <!-- Legend -->
+    <div class="legend-card">
+        <div class="lc-title">Map Legend</div>
+        <div class="lc-item"><div class="lc-dot" style="background:#00c896"></div>Veterinary Clinic</div>
+        <div class="lc-item"><div class="lc-dot" style="background:#8b5cf6"></div>Pet Store</div>
+        <div class="lc-item"><div class="lc-dot" style="background:#f59e0b"></div>Pet-Friendly Place</div>
+        <div class="lc-item"><div class="lc-dot" style="background:#ef4444"></div>Danger Report</div>
+        <div class="lc-item"><div class="lc-dot" style="background:#3b82f6"></div>You</div>
+    </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="~/js/gps.js"></script>
+    <script>
+        (function() {
+            'use strict';
+
+            // ── Config ──────────────────────────────────────────────
+            const DEFAULT_LAT = 31.9539, DEFAULT_LNG = 35.9106;
+
+            const TILES = {
+                pet : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+                full: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            };
+
+            const COLORS = {
+                clinic      : '#00c896',
+                store       : '#8b5cf6',
+                petfriendly : '#f59e0b',
+                playground  : '#f59e0b',
+                park        : '#f59e0b',
+                danger      : '#ef4444'
+            };
+
+            const EMOJIS = {
+                clinic      : '🏥',
+                store       : '🛍️',
+                petfriendly : '🌳',
+                playground  : '🎡',
+                park        : '🌲',
+                danger      : '🚨'
+            };
+
+            const LABELS = {
+                clinic      : 'Veterinary Clinic',
+                store       : 'Pet Store',
+                petfriendly : 'Pet-Friendly',
+                playground  : 'Playground',
+                park        : 'Park',
+                danger      : 'Danger Report'
+            };
+
+            // ── State ───────────────────────────────────────────────
+            let map, tileLayer, userMarker, userCircle;
+            let userLat = null, userLng = null;
+            let allPlaces   = [];
+            let leafMarkers = [];
+            let mode        = 'pet';
+            let chipFilter  = 'all';
+            let searchQuery = '';
+            let activePopupPlace = null;
+
+            // ── Map init ────────────────────────────────────────────
+            map = L.map('map', {
+                zoomControl    : true,
+                attributionControl: false,
+                zoomAnimation  : true
+            }).setView([DEFAULT_LAT, DEFAULT_LNG], 14);
+
+            L.control.attribution({ prefix: '<a href="https://leafletjs.com">Leaflet</a> | © <a href="https://www.openstreetmap.org">OSM</a>', position: 'bottomright' }).addTo(map);
+            L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+            tileLayer = L.tileLayer(TILES.pet, { maxZoom: 19 }).addTo(map);
+
+            map.on('click', function(e) {
+                if (!e.originalEvent.target.classList.contains('cm-pin') &&
+                    !e.originalEvent.target.closest('.cm-pin'))
+                    closePopup();
+            });
+
+            // ── Geolocation ─────────────────────────────────────────
+            function startTracking() {
+                if (!navigator.geolocation) { showStatus('⚠️ No geolocation', 3000); return; }
+                showStatus('📡 Locating…', 0);
+
+                navigator.geolocation.watchPosition(
+                    onPosition, onGeoError,
+                    { enableHighAccuracy: true, maximumAge: 4000, timeout: 14000 }
+                );
+            }
+
+            function onPosition(pos) {
+                const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+                const first = userLat === null;
+                userLat = lat; userLng = lng;
+
+                if (userCircle) {
+                    userCircle.setLatLng([lat, lng]).setRadius(accuracy);
+                } else {
+                    userCircle = L.circle([lat, lng], {
+                        radius: accuracy, color: '#3b82f6',
+                        fillColor: '#3b82f6', fillOpacity: .06, weight: 1.5
+                    }).addTo(map);
+                }
+
+                if (userMarker) {
+                    userMarker.setLatLng([lat, lng]);
+                } else {
+                    const icon = L.divIcon({
+                        className: '',
+                        html: `<div class="user-dot-wrap">
+                                 <div class="user-dot"></div>
+                                 <div class="user-ring"></div>
+                                 <div class="user-ring-2"></div>
+                               </div>`,
+                        iconSize  : [18, 18],
+                        iconAnchor: [9, 9]
+                    });
+                    userMarker = L.marker([lat, lng], { icon, zIndexOffset: 2000 }).addTo(map);
+                }
+
+                if (first) {
+                    map.setView([lat, lng], 15, { animate: true });
+                    document.getElementById('locBtn').classList.add('active-loc');
+                }
+
+                showStatus(`📍 Accuracy: ~${Math.round(accuracy)}m`, 3500);
+                renderNearbyList();
+            }
+
+            function onGeoError() {
+                showStatus('📍 Using Amman as default', 3000);
+            }
+
+            // ── Fetch data ───────────────────────────────────────────
+            async function fetchData() {
+                try {
+                    const res  = await fetch('/Map/GetMapData');
+                    const data = await res.json();
+
+                    allPlaces = [
+                        ...(data.clinics       || []).map(p => ({ ...p, type: 'clinic' })),
+                        ...(data.stores        || []).map(p => ({ ...p, type: 'store'  })),
+                        ...(data.adminMarkers  || []).map(p => ({ ...p, type: p.markerType || 'petfriendly' })),
+                        ...(data.dangerReports || []).map(p => ({ ...p, type: 'danger' }))
+                    ];
+
+                    renderMarkers();
+                    renderNearbyList();
+                    document.getElementById('fabCount').textContent = visiblePlaces().length;
+                } catch(e) {
+                    console.warn('Data error:', e);
+                    showStatus('⚠️ Could not load map data', 4000);
+                }
+            }
+
+            // ── Filter ───────────────────────────────────────────────
+            function visiblePlaces() {
+                return allPlaces.filter(p => {
+                    const modeOk  = mode === 'full' || p.type !== 'danger';
+                    const chipOk  = chipFilter === 'all' || p.type === chipFilter ||
+                                    (chipFilter === 'petfriendly' && ['petfriendly','playground','park'].includes(p.type));
+                    const searchOk = !searchQuery ||
+                        (p.name || '').toLowerCase().includes(searchQuery) ||
+                        (p.city || '').toLowerCase().includes(searchQuery) ||
+                        (p.area || '').toLowerCase().includes(searchQuery);
+                    return modeOk && chipOk && searchOk && p.lat && p.lng;
+                });
+            }
+
+            // ── Render markers ────────────────────────────────────────
+            function renderMarkers() {
+                leafMarkers.forEach(m => m.remove());
+                leafMarkers = [];
+
+                visiblePlaces().forEach(p => {
+                    const color = COLORS[p.type] || '#97ad4d';
+                    const emoji = EMOJIS[p.type] || '📍';
+                    const logo  = p.logo || '';
+
+                    const innerHtml = logo
+                        ? `<img src="${logo}" alt="" />`
+                        : `<span>${emoji}</span>`;
+
+                    const icon = L.divIcon({
+                        className : '',
+                        html      : `<div class="custom-marker">
+                                       <div class="cm-pin" style="background:${color}">
+                                         ${innerHtml}
+                                       </div>
+                                       <div class="cm-shadow"></div>
+                                     </div>`,
+                        iconSize  : [44, 52],
+                        iconAnchor: [22, 52]
+                    });
+
+                    const m = L.marker([p.lat, p.lng], { icon }).addTo(map);
+                    m.on('click', (e) => {
+                        L.DomEvent.stopPropagation(e);
+                        openPopup(p);
+                    });
+                    leafMarkers.push(m);
+                });
+
+                document.getElementById('fabCount').textContent = visiblePlaces().length;
+            }
+
+            // ── Nearby list ───────────────────────────────────────────
+            function renderNearbyList() {
+                const list = document.getElementById('nearbyList');
+                let places = visiblePlaces().map(p => ({
+                    ...p,
+                    dist: (userLat && userLng) ? haversine(userLat, userLng, p.lat, p.lng) : null
+                }));
+
+                if (userLat) places.sort((a, b) => (a.dist||999) - (b.dist||999));
+
+                document.getElementById('nearbyCount').textContent =
+                    `— ${places.length} place${places.length!==1?'s':''}`;
+
+                if (!places.length) {
+                    list.innerHTML = `<div class="nb-empty"><div class="nb-emoji">🗺️</div><p>No places match your filter</p></div>`;
+                    return;
+                }
+
+                list.innerHTML = places.slice(0, 30).map(p => {
+                    const color = COLORS[p.type] || '#97ad4d';
+                    const emoji = EMOJIS[p.type] || '📍';
+                    const label = LABELS[p.type] || p.type;
+                    const dist  = p.dist !== null ? fmtDist(p.dist) : '';
+                    const openInfo = getOpenStatus(p);
+
+                    const imgHtml = p.logo
+                        ? `<div class="pc-img"><img src="${p.logo}" alt="" /></div>`
+                        : `<div class="pc-img" style="background:linear-gradient(135deg,${color}44,${color}88)">${emoji}</div>`;
+
+                    return `
+                      <div class="place-card" onclick="focusAndOpen(${p.lat},${p.lng},${JSON.stringify(p).replace(/"/g,'&quot;')})">
+                        ${imgHtml}
+                        <div class="pc-info">
+                          <div class="pc-name">${p.name}</div>
+                          <div class="pc-meta">
+                            <span class="pc-type" style="background:${color}18;color:${color}">${label}</span>
+                            ${dist ? `<span class="pc-dist">📏 ${dist}</span>` : ''}
+                            ${openInfo ? `<span class="pc-type ${openInfo.cls}">${openInfo.label}</span>` : ''}
+                          </div>
+                        </div>
+                        <i class="fa-solid fa-chevron-right pc-arrow"></i>
+                      </div>`;
+                }).join('');
+            }
+
+            // ── Popup ────────────────────────────────────────────────
+            function openPopup(p) {
+                activePopupPlace = p;
+                const color = COLORS[p.type] || '#97ad4d';
+                const emoji = EMOJIS[p.type] || '📍';
+                const label = LABELS[p.type] || p.type;
+                const dist  = (userLat && userLng) ? haversine(userLat, userLng, p.lat, p.lng) : null;
+                const openInfo = getOpenStatus(p);
+                const mapsUrl  = `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`;
+
+                // Photo section
+                const photoHtml = p.logo
+                    ? `<img class="pp-photo-img" src="${p.logo}" alt="${p.name}" />`
+                    : `<div class="pp-photo-placeholder" style="background:linear-gradient(135deg,${color}22,${color}44)">${emoji}</div>`;
+
+                // Rows
+                const rows = [];
+                if (p.city || p.area) rows.push(`
+                    <div class="pp-row">
+                      <div class="pp-row-icon" style="background:${color}15">📍</div>
+                      <span class="pp-row-label">${[p.city, p.area].filter(Boolean).join(', ')}</span>
+                    </div>`);
+                if (dist !== null) rows.push(`
+                    <div class="pp-row">
+                      <div class="pp-row-icon" style="background:#f0f4ff">📏</div>
+                      <span class="pp-row-label">Distance</span>
+                      <span class="pp-row-val">${fmtDist(dist)} from you</span>
+                    </div>`);
+                if (p.phone) rows.push(`
+                    <div class="pp-row">
+                      <div class="pp-row-icon" style="background:#f0fff4">📞</div>
+                      <span class="pp-row-label">${p.phone}</span>
+                      <a href="tel:${p.phone}" class="pp-row-val" style="color:var(--sage-d)">Call</a>
+                    </div>`);
+                if (p.hours) rows.push(`
+                    <div class="pp-row">
+                      <div class="pp-row-icon" style="background:#fff7ed">🕐</div>
+                      <span class="pp-row-label">${p.hours}</span>
+                      ${openInfo ? `<span class="${openInfo.cls}">${openInfo.label}</span>` : ''}
+                    </div>`);
+                if (p.hasEmergency) rows.push(`
+                    <div class="pp-row">
+                      <div class="pp-row-icon" style="background:#fef2f2">🚑</div>
+                      <span class="pp-row-label">Emergency Service</span>
+                      <span class="pp-row-val open-badge">24/7</span>
+                    </div>`);
+                if (p.notes) rows.push(`
+                    <div class="pp-row">
+                      <div class="pp-row-icon" style="background:#f8fafc">📝</div>
+                      <span class="pp-row-label" style="flex:1">${p.notes}</span>
+                    </div>`);
+
+                // Danger extras
+                const dangerBar = p.type === 'danger' ? `
+                    <div class="pp-danger-bar sev-${(p.severity||'medium').toLowerCase()}">
+                      <span>${p.severity === 'High' ? '🔴' : p.severity === 'Medium' ? '🟠' : '🟢'}</span>
+                      <span>${p.severity} Severity — ${p.status}</span>
+                      ${p.reportCode ? `<code style="margin-left:auto;font-size:.7rem">${p.reportCode}</code>` : ''}
+                    </div>` : '';
+
+                document.getElementById('ppInner').innerHTML = `
+                  <div class="pp-photo">
+                    ${photoHtml}
+                    <button class="pp-close" onclick="closePopup()">✕</button>
+                    <div class="pp-type-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">
+                      ${label}
+                    </div>
+                  </div>
+                  <div class="pp-body">
+                    ${dangerBar}
+                    <div class="pp-name">${p.name}</div>
+                    ${p.city ? `<div class="pp-address">📍 ${[p.city, p.area].filter(Boolean).join(', ')}</div>` : ''}
+                    ${rows.join('')}
+                    <div class="pp-actions">
+                      <a class="pp-btn pp-btn-primary" href="${mapsUrl}" target="_blank">
+                        <i class="fa-solid fa-diamond-turn-right"></i> Directions
+                      </a>
+                      ${p.phone ? `<a class="pp-btn pp-btn-sec" href="tel:${p.phone}">
+                        <i class="fa-solid fa-phone"></i> Call
+                      </a>` : ''}
+                    </div>
+                  </div>`;
+
+                document.getElementById('placePopup').classList.add('open');
+            }
+
+            window.closePopup = function() {
+                document.getElementById('placePopup').classList.remove('open');
+                activePopupPlace = null;
+            };
+
+            // Focus + open popup (from nearby list)
+            window.focusAndOpen = function(lat, lng, p) {
+                map.setView([lat, lng], 17, { animate: true });
+                openPopup(typeof p === 'string' ? JSON.parse(p) : p);
+                closeNearby();
+            };
+
+            // ── Mode toggle ───────────────────────────────────────────
+            window.setMode = function(newMode) {
+                mode = newMode;
+                document.getElementById('modePet').classList.toggle('active', newMode === 'pet');
+                document.getElementById('modeFull').classList.toggle('active', newMode === 'full');
+
+                tileLayer.setUrl(TILES[newMode]);
+                renderMarkers();
+                renderNearbyList();
+            };
+
+            // ── Chip filter ───────────────────────────────────────────
+            window.filterChip = function(btn, filter) {
+                document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+                btn.classList.add('active');
+                chipFilter = filter;
+                renderMarkers();
+                renderNearbyList();
+            };
+
+            // ── Search ────────────────────────────────────────────────
+            window.handleSearch = function(val) {
+                searchQuery = val.trim().toLowerCase();
+                renderMarkers();
+                renderNearbyList();
+            };
+
+            // ── Nearby drawer ─────────────────────────────────────────
+            window.toggleNearby = function() {
+                const d = document.getElementById('nearbyDrawer');
+                const o = document.getElementById('drawerOverlay');
+                const isOpen = d.classList.contains('open');
+                d.classList.toggle('open', !isOpen);
+                o.classList.toggle('show', !isOpen);
+            };
+
+            window.closeNearby = function() {
+                document.getElementById('nearbyDrawer').classList.remove('open');
+                document.getElementById('drawerOverlay').classList.remove('show');
+            };
+
+            // ── Go to user ────────────────────────────────────────────
+            window.goToUser = function() {
+                if (userLat && userLng) map.setView([userLat, userLng], 16, { animate: true });
+                else showStatus('📡 Still locating…', 2500);
+            };
+
+            // ── Helpers ───────────────────────────────────────────────
+            function haversine(lat1, lon1, lat2, lon2) {
+                const R = 6371, d2r = Math.PI / 180;
+                const dLat = (lat2 - lat1) * d2r, dLon = (lon2 - lon1) * d2r;
+                const a = Math.sin(dLat/2)**2 + Math.cos(lat1*d2r) * Math.cos(lat2*d2r) * Math.sin(dLon/2)**2;
+                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            }
+
+            function fmtDist(km) {
+                return km < 1 ? `${Math.round(km*1000)} m` : `${km.toFixed(1)} km`;
+            }
+
+            function getOpenStatus(p) {
+                if (!p.hours) return null;
+                // Simple open/closed based on current time vs hours string
+                const now = new Date();
+                const h   = now.getHours();
+                // Very basic: if hours contains current hour range
+                // Real impl would parse the hours field
+                return null; // let backend provide isOpen flag for accuracy
+            }
+
+            function showStatus(msg, duration) {
+                const el = document.getElementById('statusPill');
+                el.textContent = msg;
+                el.classList.remove('hidden');
+                if (duration > 0) {
+                    clearTimeout(el._t);
+                    el._t = setTimeout(() => el.classList.add('hidden'), duration);
+                }
+            }
+
+            // ── Boot ──────────────────────────────────────────────────
+            startTracking();
+            fetchData();
+
+        })();
+    </script>
 </body>
 </html>
