@@ -719,7 +719,9 @@ namespace Waffy.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> SettingsInfo(string name, string? description, string? storeType)
+        public async Task<IActionResult> SettingsInfo(
+     string name, string? description, string? storeType,
+     string? openTime, string? closeTime)
         {
             if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
             var store = await GetCurrentStore();
@@ -728,6 +730,11 @@ namespace Waffy.Controllers
             store.Name = name;
             store.Description = description;
             store.StoreType = storeType;
+            store.OpenTime = string.IsNullOrEmpty(openTime) ? null
+                                : TimeSpan.TryParse(openTime, out var ot) ? ot : null;
+            store.CloseTime = string.IsNullOrEmpty(closeTime) ? null
+                                : TimeSpan.TryParse(closeTime, out var ct) ? ct : null;
+
             await _storeRepo.UpdateAsync(store);
             TempData["Success"] = "✅ Store information saved.";
             return RedirectToAction("SettingsInfo");

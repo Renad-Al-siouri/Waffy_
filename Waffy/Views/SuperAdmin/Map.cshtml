@@ -22,85 +22,113 @@
             overflow: hidden;
         }
 
-        /* ═══════════════════════════════════════════════════════
-                   SHELL
-                ═══════════════════════════════════════════════════════ */
+        /* ══════════════════════════════════════════════════════
+                   SHELL — flex row on desktop, column on mobile
+                ══════════════════════════════════════════════════════ */
         .amap-shell {
             display: flex;
+            flex-direction: row;
             height: calc(100vh - var(--tn-h, 56px));
+            position: relative;
+            /* NO overflow:hidden here — it clips the tablet overlay panel */
         }
 
-        /* ═══════════════════════════════════════════════════════
-                   LEFT PANEL — fixed 320px
-                ═══════════════════════════════════════════════════════ */
-        .amap-left {
-            width: 320px;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            background: #fff;
-            border-right: 1px solid #ece6df;
+        /* Only the map area clips its content */
+        .amap-map {
             overflow: hidden;
         }
 
-        /* Tabs */
-        .left-tabs {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            border-bottom: 1px solid #ece6df;
+        /* ══════════════════════════════════════════════════════
+                   LEFT PANEL
+                ══════════════════════════════════════════════════════ */
+        .amap-left {
+            width: 300px;
             flex-shrink: 0;
-        }
-
-        .lt {
-            padding: 13px 6px 11px;
-            border: none;
-            background: transparent;
-            font-family: 'DM Sans', sans-serif;
-            font-size: .76rem;
-            font-weight: 600;
-            color: #9a8a78;
-            cursor: pointer;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 3px;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -1px;
-            transition: color .18s;
+            background: #faf8f5;
+            border-right: 1px solid #e8e0d8;
+            overflow: hidden;
+            z-index: 10;
         }
 
-            .lt .lt-ico {
-                font-size: 1.05rem;
-            }
-
-            .lt.active {
-                color: #1a1612;
-                border-bottom-color: #5a7a3e;
-                font-weight: 700;
-            }
-
-        .lt-badge {
-            background: #fee2e2;
-            color: #dc2626;
-            border-radius: 50px;
-            padding: 0 6px;
-            font-size: .63rem;
-            font-weight: 800;
-        }
-
-        .lt.active .lt-badge {
-            background: #e8f5d8;
-            color: #3d7a2a;
-        }
-
-        /* Search bar */
-        .left-search {
-            padding: 10px 14px;
-            border-bottom: 1px solid #ece6df;
+        /* Panel header */
+        .panel-hd {
+            padding: 14px 16px 12px;
+            background: #fff;
+            border-bottom: 1px solid #e8e0d8;
             flex-shrink: 0;
         }
 
-        .ls-wrap {
+        .panel-hd-title {
+            font-family: 'Syne', sans-serif;
+            font-size: .88rem;
+            font-weight: 800;
+            color: #1a1612;
+            margin-bottom: 10px;
+        }
+
+        /* Filter pills */
+        .filter-pills {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding-bottom: 2px;
+        }
+
+            .filter-pills::-webkit-scrollbar {
+                display: none;
+            }
+
+        .fp {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 11px;
+            border-radius: 20px;
+            border: 1.5px solid #e8e0d8;
+            background: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .72rem;
+            font-weight: 700;
+            color: #9a8a78;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all .18s;
+        }
+
+            .fp:hover {
+                border-color: #b0a090;
+                color: #1a1612;
+            }
+
+            .fp.active {
+                background: #1a1612;
+                border-color: #1a1612;
+                color: #fff;
+            }
+
+        .fp-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .fp.active .fp-dot {
+            background: rgba(255,255,255,.55);
+        }
+
+        /* Search */
+        .panel-search {
+            padding: 10px 14px;
+            border-bottom: 1px solid #e8e0d8;
+            background: #fff;
+            flex-shrink: 0;
+        }
+
+        .ps-wrap {
             display: flex;
             align-items: center;
             gap: 7px;
@@ -110,7 +138,7 @@
             height: 36px;
         }
 
-            .ls-wrap input {
+            .ps-wrap input {
                 border: none;
                 outline: none;
                 background: transparent;
@@ -120,39 +148,90 @@
                 width: 100%;
             }
 
-                .ls-wrap input::placeholder {
-                    color: #bab0a4;
+                .ps-wrap input::placeholder {
+                    color: #c0b0a0;
                 }
 
+        /* Tabs */
+        .panel-tabs {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            border-bottom: 1px solid #e8e0d8;
+            background: #fff;
+            flex-shrink: 0;
+        }
+
+        .pt {
+            padding: 10px 6px 8px;
+            border: none;
+            background: transparent;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .72rem;
+            font-weight: 600;
+            color: #9a8a78;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: color .15s;
+        }
+
+            .pt .pt-ico {
+                font-size: .95rem;
+            }
+
+            .pt.active {
+                color: #1a1612;
+                border-bottom-color: #5a7a3e;
+                font-weight: 700;
+            }
+
+        .pt-cnt {
+            background: #fee2e2;
+            color: #dc2626;
+            border-radius: 50px;
+            padding: 0 5px;
+            font-size: .6rem;
+            font-weight: 800;
+        }
+
+        .pt.active .pt-cnt {
+            background: #e8f5d8;
+            color: #3d7a2a;
+        }
+
         /* Sections */
-        .left-sec {
+        .panel-sec {
             display: none;
             flex: 1;
             overflow: hidden;
             flex-direction: column;
         }
 
-            .left-sec.active {
+            .panel-sec.active {
                 display: flex;
             }
 
-        .ls-sub-hd {
+        .sec-label {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 10px 14px 6px;
+            padding: 8px 14px 5px;
             flex-shrink: 0;
         }
 
-        .ls-sub-title {
-            font-size: .68rem;
-            font-weight: 800;
-            color: #9a8a78;
-            letter-spacing: .9px;
+        .sec-label-text {
+            font-size: .65rem;
+            font-weight: 900;
+            color: #b0a090;
+            letter-spacing: 1px;
             text-transform: uppercase;
         }
 
-        .ls-add-btn {
+        .sec-add-btn {
             display: flex;
             align-items: center;
             gap: 4px;
@@ -162,18 +241,17 @@
             background: #1a1612;
             color: #fff;
             font-family: 'DM Sans', sans-serif;
-            font-size: .7rem;
+            font-size: .68rem;
             font-weight: 700;
             cursor: pointer;
-            transition: opacity .18s;
+            transition: opacity .15s;
         }
 
-            .ls-add-btn:hover {
-                opacity: .85;
+            .sec-add-btn:hover {
+                opacity: .82;
             }
 
-        .ls-list {
-            flex: 1;
+        .sec-list {
             overflow-y: auto;
             scrollbar-width: thin;
             scrollbar-color: #e0d8d0 transparent;
@@ -183,31 +261,27 @@
         .prow {
             display: flex;
             align-items: center;
-            gap: 11px;
+            gap: 10px;
             padding: 10px 14px;
-            border-bottom: 1px solid #f5f0eb;
+            border-bottom: 1px solid #f2ede8;
             cursor: pointer;
             transition: background .14s;
         }
 
             .prow:hover {
-                background: #faf7f3;
-            }
-
-            .prow.selected {
-                background: #f0f7e8;
+                background: #f0ede9;
             }
 
         .prow-img {
-            width: 40px;
-            height: 40px;
-            border-radius: 11px;
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
             overflow: hidden;
             flex-shrink: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1rem;
+            font-size: .95rem;
         }
 
             .prow-img img {
@@ -222,8 +296,8 @@
         }
 
         .prow-name {
-            font-size: .83rem;
-            font-weight: 600;
+            font-size: .82rem;
+            font-weight: 700;
             color: #1a1612;
             white-space: nowrap;
             overflow: hidden;
@@ -231,15 +305,28 @@
         }
 
         .prow-sub {
-            font-size: .7rem;
-            color: #9a8a78;
+            font-size: .68rem;
+            color: #b0a090;
             font-weight: 500;
             margin-top: 1px;
         }
 
+        .prow-source {
+            font-size: .62rem;
+            font-weight: 800;
+            padding: 1px 7px;
+            border-radius: 20px;
+            flex-shrink: 0;
+        }
+
+        .source-reg {
+            background: #f0f0ff;
+            color: #6b46c1;
+        }
+
         .prow-acts {
             display: flex;
-            gap: 5px;
+            gap: 4px;
             flex-shrink: 0;
         }
 
@@ -250,11 +337,11 @@
             border: none;
             background: #f0ebe4;
             color: #9a8a78;
-            font-size: .7rem;
+            font-size: .68rem;
             cursor: pointer;
             display: grid;
             place-items: center;
-            transition: .15s;
+            transition: .14s;
         }
 
             .prow-btn:hover {
@@ -272,35 +359,35 @@
                 color: #3d7a2a;
             }
 
-        /* Danger rows */
+        /* Danger row */
         .drow {
-            padding: 11px 14px;
-            border-bottom: 1px solid #f5f0eb;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f2ede8;
             cursor: pointer;
             transition: background .14s;
         }
 
             .drow:hover {
-                background: #faf7f3;
+                background: #f0ede9;
             }
 
         .drow-hd {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         .drow-name {
-            font-size: .83rem;
+            font-size: .8rem;
             font-weight: 700;
             color: #1a1612;
         }
 
         .drow-sev {
-            padding: 2px 8px;
+            padding: 2px 7px;
             border-radius: 20px;
-            font-size: .65rem;
+            font-size: .64rem;
             font-weight: 800;
         }
 
@@ -320,30 +407,29 @@
         }
 
         .drow-meta {
-            font-size: .71rem;
-            color: #9a8a78;
-            font-weight: 500;
+            font-size: .68rem;
+            color: #b0a090;
         }
 
         .drow-code {
             font-family: monospace;
-            font-size: .66rem;
-            color: #b0a090;
-            margin-top: 3px;
+            font-size: .64rem;
+            color: #c0b0a0;
+            margin-top: 2px;
         }
 
         .drow-btns {
             display: flex;
-            gap: 6px;
-            margin-top: 7px;
+            gap: 5px;
+            margin-top: 6px;
         }
 
         .drow-btn {
-            padding: 3px 9px;
+            padding: 3px 8px;
             border-radius: 20px;
             border: none;
             font-family: 'DM Sans', sans-serif;
-            font-size: .68rem;
+            font-size: .66rem;
             font-weight: 700;
             cursor: pointer;
         }
@@ -364,48 +450,61 @@
             }
 
         /* Stats */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            padding: 14px;
+        .stats-wrap {
+            padding: 12px;
+            overflow-y: auto;
+            flex: 1;
         }
 
-        .stat-box {
-            background: #f7f3ee;
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border: 1px solid #e8e0d8;
             border-radius: 14px;
-            padding: 14px;
+            padding: 14px 12px;
             text-align: center;
         }
 
         .stat-num {
             font-family: 'Syne', sans-serif;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
             font-weight: 800;
             line-height: 1;
         }
 
+        .stat-ico {
+            font-size: 1.1rem;
+            margin: 4px 0;
+        }
+
         .stat-lbl {
-            font-size: .68rem;
-            color: #9a8a78;
-            font-weight: 600;
-            margin-top: 4px;
-        }
-
-        /* Empty state */
-        .ls-empty {
-            padding: 28px 16px;
-            text-align: center;
+            font-size: .67rem;
             color: #b0a090;
-            font-size: .8rem;
+            font-weight: 700;
         }
 
-        /* ═══════════════════════════════════════════════════════
+        .empty-state {
+            padding: 24px 14px;
+            text-align: center;
+            color: #c0b0a0;
+            font-size: .78rem;
+            line-height: 1.6;
+        }
+
+        /* ══════════════════════════════════════════════════════
                    MAP AREA
-                ═══════════════════════════════════════════════════════ */
+                ══════════════════════════════════════════════════════ */
         .amap-map {
             flex: 1;
             position: relative;
+            overflow: hidden;
+            min-width: 0;
         }
 
         #adminMap {
@@ -413,15 +512,16 @@
             height: 100%;
         }
 
-        /* Adding mode banner */
+        /* Add mode banner */
         .add-banner {
             position: absolute;
-            top: 14px;
+            top: 16px;
             left: 50%;
             transform: translateX(-50%);
-            background: #1a1612;
+            background: rgba(26,22,18,.92);
+            backdrop-filter: blur(12px);
             color: #fff;
-            padding: 11px 24px;
+            padding: 12px 22px;
             border-radius: 50px;
             font-family: 'DM Sans', sans-serif;
             font-size: .82rem;
@@ -429,9 +529,10 @@
             z-index: 400;
             display: none;
             align-items: center;
-            gap: 12px;
-            box-shadow: 0 8px 28px rgba(0,0,0,.25);
+            gap: 14px;
+            box-shadow: 0 8px 32px rgba(0,0,0,.28);
             white-space: nowrap;
+            border: 1px solid rgba(255,255,255,.12);
             animation: slideDown .3s ease;
         }
 
@@ -439,32 +540,107 @@
                 display: flex;
             }
 
-            .add-banner .cancel-btn {
-                background: rgba(255,255,255,.15);
-                border: none;
-                color: #fff;
-                font-family: 'DM Sans', sans-serif;
-                font-size: .78rem;
-                font-weight: 700;
-                padding: 5px 14px;
-                border-radius: 50px;
-                cursor: pointer;
+        .ab-pulse {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #7fa85a;
+            box-shadow: 0 0 0 0 rgba(127,168,90,.6);
+            animation: abPulse 1.5s infinite;
+        }
+
+        @@keyframes abPulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(127,168,90,.6)
             }
 
-                .add-banner .cancel-btn:hover {
-                    background: rgba(255,255,255,.25);
-                }
+            70% {
+                box-shadow: 0 0 0 8px rgba(127,168,90,0)
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(127,168,90,0)
+            }
+        }
+
+        .cancel-btn {
+            background: rgba(255,255,255,.14);
+            border: none;
+            color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .76rem;
+            font-weight: 700;
+            padding: 5px 13px;
+            border-radius: 50px;
+            cursor: pointer;
+        }
+
+            .cancel-btn:hover {
+                background: rgba(255,255,255,.22);
+            }
 
         @@keyframes slideDown {
             from {
                 opacity: 0;
-                transform: translateX(-50%) translateY(-10px);
+                transform: translateX(-50%) translateY(-12px)
             }
 
             to {
                 opacity: 1;
-                transform: translateX(-50%) translateY(0);
+                transform: translateX(-50%) translateY(0)
             }
+        }
+
+        /* ── SVG PIN MARKERS ─────────────────────────────── */
+        .am-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .am-body {
+            width: 36px;
+            height: 44px;
+            position: relative;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,.25));
+            transition: filter .18s, transform .18s;
+        }
+
+        .am-wrap:hover .am-body {
+            filter: drop-shadow(0 6px 14px rgba(0,0,0,.35));
+            transform: translateY(-3px);
+        }
+
+        .am-svg {
+            width: 36px;
+            height: 44px;
+        }
+
+        .am-icon {
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .am-icon svg {
+                width: 14px;
+                height: 14px;
+            }
+
+        .am-shadow-dot {
+            width: 12px;
+            height: 4px;
+            background: rgba(0,0,0,.18);
+            border-radius: 50%;
+            filter: blur(2px);
+            margin-top: -2px;
         }
 
         /* Legend */
@@ -472,7 +648,8 @@
             position: absolute;
             bottom: 16px;
             right: 16px;
-            background: rgba(255,255,255,.95);
+            background: rgba(255,255,255,.96);
+            border: 1px solid rgba(200,190,178,.3);
             border-radius: 16px;
             padding: 12px 16px;
             z-index: 300;
@@ -480,10 +657,10 @@
         }
 
         .lg-hd {
-            font-size: .6rem;
-            font-weight: 800;
-            color: #9a8a78;
-            letter-spacing: 1px;
+            font-size: .59rem;
+            font-weight: 900;
+            color: #b0a090;
+            letter-spacing: 1.1px;
             text-transform: uppercase;
             margin-bottom: 8px;
         }
@@ -492,8 +669,8 @@
             display: flex;
             align-items: center;
             gap: 7px;
-            font-size: .72rem;
-            font-weight: 600;
+            font-size: .71rem;
+            font-weight: 700;
             color: #1a1612;
             margin-bottom: 5px;
         }
@@ -508,75 +685,77 @@
             border-radius: 50%;
         }
 
-        /* Map marker styles */
-        .am-wrap {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        /* ══════════════════════════════════════════════════════
+                   TABLET PANEL TOGGLE (overlay mode)
+                ══════════════════════════════════════════════════════ */
+        .panel-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(26,22,18,.4);
+            backdrop-filter: blur(3px);
+            z-index: 150;
         }
 
-        .am-pin {
-            width: 40px;
-            height: 40px;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            display: flex;
+            .panel-overlay.show {
+                display: block;
+            }
+
+        /* Thin tab button on the map edge */
+        .panel-tab-btn {
+            display: none;
+            position: absolute;
+            top: 50%;
+            right: auto;
+            left: 0;
+            transform: translateY(-50%);
+            z-index: 200;
+            width: 22px;
+            height: 52px;
+            background: #fff;
+            border: 1px solid #e8e0d8;
+            border-left: none;
+            border-radius: 0 10px 10px 0;
+            cursor: pointer;
             align-items: center;
             justify-content: center;
-            border: 2.5px solid rgba(255,255,255,.9);
-            box-shadow: 0 6px 20px rgba(0,0,0,.22);
-            overflow: hidden;
-            transition: transform .18s;
+            box-shadow: 3px 0 12px rgba(0,0,0,.1);
+            transition: background .18s;
+            color: #9a8a78;
         }
 
-            .am-pin span {
-                transform: rotate(45deg);
-                display: block;
-                font-size: .95rem;
+            .panel-tab-btn:hover {
+                background: #f5f1ec;
+                color: #1a1612;
             }
 
-            .am-pin img {
-                transform: rotate(45deg);
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
+            .panel-tab-btn svg {
+                width: 12px;
+                height: 12px;
+                transition: transform .3s;
             }
 
-        .am-tail {
-            width: 0;
-            height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-top: 10px solid;
-            margin: -2px auto 0;
-        }
+            .panel-tab-btn.open svg {
+                transform: rotate(180deg);
+            }
 
-        .am-shadow {
-            width: 14px;
-            height: 5px;
-            background: rgba(0,0,0,.14);
-            border-radius: 50%;
-            filter: blur(2px);
-            margin-top: 1px;
-        }
-
-        /* ═══════════════════════════════════════════════════════
-                   RIGHT PANEL — form + detail (slides in/out)
-                ═══════════════════════════════════════════════════════ */
+        /* ══════════════════════════════════════════════════════
+                   RIGHT PANEL
+                ══════════════════════════════════════════════════════ */
         .right-panel {
             position: absolute;
             top: 0;
             right: 0;
             bottom: 0;
-            width: 380px;
+            width: 390px;
             background: #fff;
-            border-left: 1px solid #ece6df;
+            border-left: 1px solid #e8e0d8;
             display: flex;
             flex-direction: column;
             z-index: 500;
             transform: translateX(100%);
             transition: transform .32s cubic-bezier(.4,0,.2,1);
-            box-shadow: -8px 0 32px rgba(0,0,0,.1);
+            box-shadow: -10px 0 40px rgba(0,0,0,.1);
         }
 
             .right-panel.open {
@@ -586,10 +765,36 @@
         .rp-hd {
             display: flex;
             align-items: center;
+            gap: 12px;
             padding: 16px 20px 14px;
-            border-bottom: 1px solid #ece6df;
+            border-bottom: 1px solid #e8e0d8;
+            flex-shrink: 0;
+            background: #fff;
+        }
+
+        .rp-back {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: none;
+            background: #f0ebe4;
+            color: #9a8a78;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: .8rem;
+            transition: .14s;
             flex-shrink: 0;
         }
+
+            .rp-back.show {
+                display: flex;
+            }
+
+            .rp-back:hover {
+                background: #e8e0d8;
+            }
 
         .rp-title {
             font-family: 'Syne', sans-serif;
@@ -600,8 +805,8 @@
         }
 
         .rp-close {
-            width: 32px;
-            height: 32px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             border: none;
             background: #f0ebe4;
@@ -609,8 +814,9 @@
             cursor: pointer;
             display: grid;
             place-items: center;
-            font-size: .82rem;
-            transition: .15s;
+            font-size: .8rem;
+            flex-shrink: 0;
+            transition: .14s;
         }
 
             .rp-close:hover {
@@ -624,191 +830,295 @@
             scrollbar-color: #e0d8d0 transparent;
         }
 
-        /* ── TYPE SELECTOR ─────────────────────────────────────── */
-        .type-selector {
-            padding: 20px;
+        /* Type selector */
+        .type-sel {
+            padding: 24px 20px 20px;
         }
 
-        .ts-label {
-            font-size: .76rem;
-            font-weight: 700;
-            color: #9a8a78;
-            letter-spacing: .8px;
+        .type-sel-lbl {
+            font-size: .68rem;
+            font-weight: 900;
+            color: #b0a090;
+            letter-spacing: 1px;
             text-transform: uppercase;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
 
-        .ts-cards {
+        .type-cards {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(3,1fr);
             gap: 10px;
+            margin-bottom: 20px;
         }
 
-        .ts-card {
-            padding: 16px 8px;
-            border: 2px solid #ece6df;
-            border-radius: 16px;
+        .tc {
+            padding: 20px 8px 16px;
+            border: 2px solid #e8e0d8;
+            border-radius: 18px;
             background: #fff;
             cursor: pointer;
             text-align: center;
-            transition: all .18s;
+            transition: all .2s;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 8px;
-        }
-
-            .ts-card:hover {
-                border-color: #7fa85a;
-                background: #f4faea;
-            }
-
-            .ts-card.selected {
-                border-color: #5a7a3e;
-                background: #f0f7e8;
-            }
-
-            .ts-card .ts-ico {
-                font-size: 1.8rem;
-            }
-
-            .ts-card .ts-name {
-                font-family: 'Syne', sans-serif;
-                font-size: .78rem;
-                font-weight: 700;
-                color: #1a1612;
-            }
-
-            .ts-card .ts-desc {
-                font-size: .65rem;
-                color: #9a8a78;
-                font-weight: 500;
-                line-height: 1.4;
-            }
-
-            .ts-card.selected .ts-name {
-                color: #3d7a2a;
-            }
-
-        .ts-next-btn {
-            margin-top: 16px;
-            width: 100%;
-            padding: 13px;
-            background: #1a1612;
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: .84rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: opacity .18s;
-        }
-
-            .ts-next-btn:hover {
-                opacity: .88;
-            }
-
-            .ts-next-btn:disabled {
-                opacity: .4;
-                cursor: not-allowed;
-            }
-
-        /* ── DETAILS FORM ──────────────────────────────────────── */
-        .details-form {
-            padding: 0 20px 24px;
-        }
-
-        /* Coord display */
-        .coord-pill {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #f0f7e8;
-            border: 1px solid #c4d9a8;
-            border-radius: 12px;
-            padding: 10px 14px;
-            margin: 16px 0 14px;
-            font-size: .78rem;
-            font-weight: 700;
-            color: #3d7a2a;
-        }
-
-            .coord-pill.empty {
-                background: #fff3e0;
-                border-color: #f5d6a8;
-                color: #b45309;
-            }
-
-        /* Image upload */
-        .img-upload-area {
-            border: 2px dashed #d8d0c8;
-            border-radius: 14px;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all .18s;
-            margin-bottom: 14px;
+            gap: 10px;
             position: relative;
             overflow: hidden;
         }
 
-            .img-upload-area:hover {
-                border-color: #7fa85a;
-                background: #f9fdf5;
+            .tc::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                opacity: 0;
+                transition: opacity .2s;
             }
 
-            .img-upload-area.has-img {
+            .tc:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(0,0,0,.1);
+            }
+
+            .tc.selected {
+                transform: translateY(-2px);
+            }
+
+            .tc[data-type="clinic"]::before {
+                background: linear-gradient(135deg,#e6faf5,#c8f5ea);
+            }
+
+            .tc[data-type="store"]::before {
+                background: linear-gradient(135deg,#f3f0ff,#e8dfff);
+            }
+
+            .tc[data-type="petfriendly"]::before {
+                background: linear-gradient(135deg,#f0f7e8,#e0f0c8);
+            }
+
+            .tc[data-type="clinic"]:hover::before, .tc[data-type="clinic"].selected::before {
+                opacity: 1;
+            }
+
+            .tc[data-type="store"]:hover::before, .tc[data-type="store"].selected::before {
+                opacity: 1;
+            }
+
+            .tc[data-type="petfriendly"]:hover::before, .tc[data-type="petfriendly"].selected::before {
+                opacity: 1;
+            }
+
+            .tc[data-type="clinic"].selected, .tc[data-type="clinic"]:hover {
+                border-color: #00c896;
+                box-shadow: 0 6px 20px rgba(0,200,150,.18);
+            }
+
+            .tc[data-type="store"].selected, .tc[data-type="store"]:hover {
+                border-color: #8b5cf6;
+                box-shadow: 0 6px 20px rgba(139,92,246,.18);
+            }
+
+            .tc[data-type="petfriendly"].selected, .tc[data-type="petfriendly"]:hover {
+                border-color: #7fa85a;
+                box-shadow: 0 6px 20px rgba(127,168,90,.18);
+            }
+
+        .tc-ico-wrap {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tc[data-type="clinic"] .tc-ico-wrap {
+            background: rgba(0,200,150,.12);
+        }
+
+        .tc[data-type="store"] .tc-ico-wrap {
+            background: rgba(139,92,246,.12);
+        }
+
+        .tc[data-type="petfriendly"] .tc-ico-wrap {
+            background: rgba(127,168,90,.12);
+        }
+
+        .tc-name {
+            font-family: 'Syne', sans-serif;
+            font-size: .8rem;
+            font-weight: 700;
+            color: #1a1612;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tc-desc {
+            font-size: .64rem;
+            color: #b0a090;
+            font-weight: 500;
+            line-height: 1.4;
+            position: relative;
+            z-index: 1;
+        }
+
+        .tc-check {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1a1612;
+            color: #fff;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: .62rem;
+            font-weight: 900;
+            z-index: 2;
+        }
+
+        .tc.selected .tc-check {
+            display: flex;
+        }
+
+        .tc-continue {
+            width: 100%;
+            padding: 14px;
+            background: #1a1612;
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .86rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: opacity .18s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+            .tc-continue:hover {
+                opacity: .88;
+            }
+
+            .tc-continue:disabled {
+                opacity: .35;
+                cursor: not-allowed;
+            }
+
+        /* Form */
+        .add-form {
+            padding: 0 20px 28px;
+        }
+
+        .loc-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 12px;
+            margin: 16px 0 14px;
+            font-size: .78rem;
+            font-weight: 700;
+        }
+
+            .loc-pill.ok {
+                background: #f0f7e8;
+                border: 1px solid #c4d9a8;
+                color: #3d7a2a;
+            }
+
+            .loc-pill.empty {
+                background: #fff7ed;
+                border: 1px solid #fcd9a8;
+                color: #b45309;
+            }
+
+        .loc-pill-repin {
+            margin-left: auto;
+            font-size: .7rem;
+            font-weight: 700;
+            color: #5a7a3e;
+            background: none;
+            border: none;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .photo-upload {
+            border: 2px dashed #d8d0c8;
+            border-radius: 16px;
+            padding: 24px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .2s;
+            margin-bottom: 16px;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .photo-upload:hover {
+                border-color: #7fa85a;
+                background: #fafdf6;
+            }
+
+            .photo-upload.filled {
                 padding: 0;
                 border-style: solid;
                 border-color: #c4d9a8;
             }
 
-        .img-preview {
+        .pu-preview {
             width: 100%;
-            height: 140px;
+            height: 150px;
             object-fit: cover;
-            border-radius: 12px;
+            border-radius: 14px;
             display: none;
         }
 
-        .img-placeholder {
+        .pu-placeholder {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 6px;
         }
 
-            .img-placeholder .ico {
-                font-size: 1.6rem;
-            }
+        .pu-ico {
+            font-size: 2rem;
+        }
 
-            .img-placeholder p {
-                font-size: .78rem;
-                color: #9a8a78;
-                font-weight: 500;
-                margin: 0;
-            }
+        .pu-lbl {
+            font-size: .8rem;
+            font-weight: 700;
+            color: #9a8a78;
+        }
 
-            .img-placeholder span {
-                font-size: .68rem;
-                color: #b0a090;
-            }
+        .pu-sub {
+            font-size: .68rem;
+            color: #c0b0a0;
+        }
 
-        .img-change-overlay {
+        .pu-hover {
             position: absolute;
             inset: 0;
-            background: rgba(0,0,0,.5);
+            background: rgba(0,0,0,.52);
             display: none;
             align-items: center;
             justify-content: center;
             color: #fff;
             font-size: .78rem;
             font-weight: 700;
-            border-radius: 12px;
+            border-radius: 14px;
         }
 
-        .img-upload-area.has-img:hover .img-change-overlay {
+        .photo-upload.filled:hover .pu-hover {
             display: flex;
         }
 
@@ -816,24 +1126,38 @@
             display: none;
         }
 
-        /* Form fields */
-        .f-group {
-            margin-bottom: 13px;
+        .form-section {
+            font-size: .65rem;
+            font-weight: 900;
+            color: #b0a090;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            padding: 14px 0 8px;
+            border-top: 1px solid #f0ebe4;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
 
-        .f-label {
+        .fg {
+            margin-bottom: 12px;
+        }
+
+        .fl {
             display: block;
-            font-size: .74rem;
+            font-size: .73rem;
             font-weight: 700;
-            color: #3d7a2a;
+            color: #5a7a3e;
             margin-bottom: 5px;
         }
 
-            .f-label .req {
+            .fl .req {
                 color: #dc2626;
+                margin-left: 1px;
             }
 
-        .f-input, .f-select, .f-textarea {
+        .fi, .fta {
             width: 100%;
             border: 1.5px solid #ddd5cb;
             border-radius: 11px;
@@ -845,62 +1169,51 @@
             outline: none;
             box-sizing: border-box;
             transition: .18s;
+            background: #fff;
         }
 
-            .f-input:focus, .f-select:focus, .f-textarea:focus {
+            .fi:focus, .fta:focus {
                 border-color: #5a7a3e;
-                box-shadow: 0 0 0 3px rgba(90,122,62,.1);
+                box-shadow: 0 0 0 3px rgba(90,122,62,.09);
             }
 
-        .f-textarea {
+        .fta {
             resize: vertical;
-            min-height: 80px;
+            min-height: 82px;
             padding-top: 10px;
         }
 
-        .f-grid-2 {
+        .fg-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
 
-        /* Section separator */
-        .f-sep {
-            font-size: .68rem;
-            font-weight: 800;
-            color: #9a8a78;
-            letter-spacing: .9px;
-            text-transform: uppercase;
-            padding: 12px 0 8px;
-            border-top: 1px solid #f0ebe4;
-            margin-top: 8px;
-        }
-
-        /* Save button */
-        .f-save-btn {
+        .save-btn {
             width: 100%;
-            padding: 13px;
+            padding: 14px;
             background: #1a1612;
             color: #fff;
             border: none;
-            border-radius: 12px;
+            border-radius: 13px;
             font-family: 'DM Sans', sans-serif;
-            font-size: .85rem;
+            font-size: .86rem;
             font-weight: 700;
             cursor: pointer;
-            margin-top: 8px;
+            margin-top: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
-            transition: opacity .18s;
+            gap: 9px;
+            transition: all .2s;
+            box-shadow: 0 4px 16px rgba(26,22,18,.2);
         }
 
-            .f-save-btn:hover {
+            .save-btn:hover {
                 opacity: .88;
             }
 
-        .f-back-btn {
+        .back-btn {
             width: 100%;
             padding: 11px;
             margin-top: 8px;
@@ -914,22 +1227,24 @@
             cursor: pointer;
         }
 
-        /* ── DETAIL VIEW ───────────────────────────────────────── */
+            .back-btn:hover {
+                background: #f7f3ee;
+                color: #1a1612;
+            }
+
+        /* Detail view */
         .detail-view {
-            padding: 0 20px 24px;
+            padding-bottom: 28px;
         }
 
         .dv-photo {
-            width: calc(100% + 40px);
-            margin: 0 -20px;
-            height: 160px;
+            width: 100%;
+            height: 170px;
             position: relative;
             overflow: hidden;
-            background: linear-gradient(135deg, #e8f5d8, #c4d9a8);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3rem;
             flex-shrink: 0;
         }
 
@@ -939,27 +1254,40 @@
                 object-fit: cover;
             }
 
+        .dv-photo-ph {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+        }
+
+        .dv-content {
+            padding: 18px 20px 0;
+        }
+
         .dv-name {
             font-family: 'Syne', sans-serif;
             font-size: 1.1rem;
             font-weight: 800;
             color: #1a1612;
-            margin: 16px 0 4px;
+            margin-bottom: 5px;
         }
 
-        .dv-type-badge {
+        .dv-badge {
             display: inline-block;
             padding: 4px 12px;
             border-radius: 20px;
             font-size: .72rem;
             font-weight: 700;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
         }
 
         .dv-row {
             display: flex;
             align-items: flex-start;
-            gap: 10px;
+            gap: 11px;
             padding: 9px 0;
             border-bottom: 1px solid #f0ebe4;
             font-size: .8rem;
@@ -970,33 +1298,38 @@
             }
 
         .dv-ico {
-            width: 30px;
-            height: 30px;
-            border-radius: 9px;
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: #f7f3ee;
             display: grid;
             place-items: center;
-            font-size: .85rem;
+            font-size: .84rem;
             flex-shrink: 0;
-            background: #f7f3ee;
         }
 
         .dv-key {
-            color: #9a8a78;
-            font-weight: 500;
-            min-width: 72px;
+            color: #b0a090;
+            font-weight: 600;
+            min-width: 70px;
         }
 
         .dv-val {
-            font-weight: 600;
+            font-weight: 700;
             color: #1a1612;
             flex: 1;
             line-height: 1.5;
         }
 
+            .dv-val a {
+                color: #5a7a3e;
+                text-decoration: none;
+            }
+
         .dv-actions {
             display: flex;
             gap: 8px;
-            margin-top: 16px;
+            padding: 16px 20px 0;
             flex-wrap: wrap;
         }
 
@@ -1007,7 +1340,7 @@
             border-radius: 12px;
             border: none;
             font-family: 'DM Sans', sans-serif;
-            font-size: .76rem;
+            font-size: .74rem;
             font-weight: 700;
             cursor: pointer;
             display: flex;
@@ -1037,12 +1370,12 @@
                     background: #e4f0d8;
                 }
 
-            .dv-btn.danger {
+            .dv-btn.del {
                 background: #fee2e2;
                 color: #dc2626;
             }
 
-                .dv-btn.danger:hover {
+                .dv-btn.del:hover {
                     background: #fcd0d0;
                 }
 
@@ -1051,21 +1384,18 @@
                 color: #9a8a78;
             }
 
-        /* Danger badge in detail */
         .dv-danger-bar {
             display: flex;
             align-items: center;
             gap: 9px;
-            padding: 10px 13px;
+            padding: 10px 14px;
             border-radius: 12px;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
             font-size: .8rem;
             font-weight: 700;
         }
 
-        /* ═══════════════════════════════════════════════════════
-                   TOAST
-                ═══════════════════════════════════════════════════════ */
+        /* Toast */
         #toast {
             position: fixed;
             bottom: 24px;
@@ -1113,26 +1443,182 @@
                     border-radius: 0 0 10px 10px !important;
                 }
 
-        @@media (max-width: 1024px) {
+        /* ══════════════════════════════════════════════════════
+                   FIX 1 — App sidebar must always be above map (Leaflet has high z-index)
+                ══════════════════════════════════════════════════════ */
+        .wa-sb {
+            z-index: 3000 !important;
+        }
+
+        .wa-overlay {
+            z-index: 2999 !important;
+        }
+
+        /* ══════════════════════════════════════════════════════
+                   RESPONSIVE
+                   • Desktop  >1100px  : panel 300px + map — side by side
+                   • Tablet   768-1100px: panel 240px + map — side by side (always visible)
+                   • Mobile   <768px   : stacked — map 50% top, panel 50% bottom
+                ══════════════════════════════════════════════════════ */
+
+        /* ── TABLET (768px – 1100px) ────────────────────────
+                   Panel stays IN the flow at 240px — always visible.
+                   No overlay, no toggle button needed.
+                ───────────────────────────────────────────────────── */
+        @@media (min-width: 768px) and (max-width: 1100px) {
             .amap-left {
-                display: none;
+                width: 240px;
+                /* stays in normal flow — no position:fixed */
+                position: relative;
+                transform: none !important;
+                box-shadow: none;
+                flex-shrink: 0;
+            }
+            /* Hide tablet-only overlay/toggle (not needed in this mode) */
+            .panel-tab-btn {
+                display: none !important;
+            }
+
+            .panel-overlay {
+                display: none !important;
+            }
+            /* Compact text slightly */
+            .panel-hd-title {
+                font-size: .82rem;
+            }
+
+            .fp {
+                padding: 5px 9px;
+                font-size: .7rem;
+            }
+
+            .sec-label-text {
+                font-size: .6rem;
+            }
+
+            .prow-name {
+                font-size: .78rem;
+            }
+            /* Right panel narrower */
+            .right-panel {
+                width: 320px;
             }
         }
 
-        @@media (max-width: 768px) {
+        /* ── MOBILE (<768px) : STACKED ──────────────────────
+                   Map fills top half, panel fills bottom half.
+                   Everything visible, no overlap possible.
+                ───────────────────────────────────────────────────── */
+        @@media (max-width: 767px) {
+            .amap-shell {
+                flex-direction: column;
+                height: calc(100vh - var(--tn-h, 56px));
+            }
+            /* Map: top 50% */
+            .amap-map {
+                height: 50%;
+                flex-shrink: 0;
+                order: 1;
+                min-height: 0;
+            }
+            /* Panel: bottom 50% — always visible in flow */
+            .amap-left {
+                width: 100% !important;
+                height: 50% !important;
+                flex-shrink: 0;
+                order: 2;
+                border-right: none;
+                border-top: 2px solid #e8e0d8;
+                position: relative !important;
+                transform: none !important;
+                box-shadow: none !important;
+                min-height: 0;
+            }
+            /* Right detail panel: slides up from bottom as fixed sheet */
             .right-panel {
-                width: 100%;
-                border-radius: 24px 24px 0 0;
-                top: auto;
+                position: fixed;
                 bottom: 0;
-                height: 85vh;
+                left: 0;
+                right: 0;
+                width: 100%;
+                height: 80vh;
+                top: auto;
                 border-left: none;
+                border-radius: 20px 20px 0 0;
                 transform: translateY(100%);
+                z-index: 3100; /* above everything including sidebar */
             }
 
                 .right-panel.open {
                     transform: translateY(0);
                 }
+            /* Hide elements that don't fit */
+            .map-legend {
+                display: none;
+            }
+
+            .panel-tab-btn, .panel-overlay {
+                display: none !important;
+            }
+            /* Compact sizes */
+            .fp {
+                padding: 5px 8px;
+                font-size: .67rem;
+            }
+
+            .panel-hd {
+                padding: 9px 12px 8px;
+            }
+
+            .panel-hd-title {
+                font-size: .8rem;
+                margin-bottom: 7px;
+            }
+
+            #clinicList {
+                max-height: 88px !important;
+            }
+
+            #storeList {
+                max-height: 88px !important;
+            }
+
+            .stat-num {
+                font-size: 1.3rem;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .amap-map {
+                height: 45% !important;
+            }
+
+            .amap-left {
+                height: 55% !important;
+            }
+
+            .fg-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .tc-desc {
+                display: none;
+            }
+
+            .tc {
+                padding: 11px 5px 9px;
+                gap: 6px;
+            }
+
+            .tc-ico-wrap {
+                width: 36px;
+                height: 36px;
+                font-size: 1.2rem;
+            }
+
+            .tc-name {
+                font-size: .72rem;
+            }
         }
     </style>
 </head>
@@ -1140,7 +1626,7 @@
     <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
     <div class="wa-shell" id="waShell">
 
-        <!-- ══ SIDEBAR ════════════════════════════════════════════ -->
+        <!-- SIDEBAR (app sidebar) -->
         <aside class="wa-sb" id="waSb">
             <div class="sb-logo">
                 <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
@@ -1181,84 +1667,102 @@
             </div>
         </aside>
 
-        <!-- ══ TOPNAV ══════════════════════════════════════════════ -->
+        <!-- TOPNAV -->
         <header class="wa-tn" id="waTn">
             <button class="tn-toggle" onclick="toggleSb()" type="button"><svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg></button>
             <nav class="tn-bread"><span>Tools</span><span>/</span><b>Map Management</b></nav>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-                <button class="tn-btn" onclick="startAddMode()" style="gap:6px;font-weight:700">📍 Add Marker</button>
+                <button onclick="startAddMode()"
+                        style="display:flex;align-items:center;gap:9px;padding:9px 20px 9px 14px;border:none;border-radius:50px;background:linear-gradient(135deg,#5a7a3e,#3d5a2a);color:#fff;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:800;cursor:pointer;box-shadow:0 4px 18px rgba(58,100,38,.38);transition:all .2s"
+                        onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+                    <svg viewBox="0 0 24 24" fill="none" style="width:18px;height:18px" stroke="currentColor" stroke-width="2.2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" /><circle cx="12" cy="9" r="2.5" fill="currentColor" stroke="none" /></svg>
+                    Add Location
+                </button>
                 <a class="tn-btn" asp-controller="SuperAdmin" asp-action="Notifications"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></a>
                 <div class="tn-profile"><div class="tn-av">@(ViewBag.AdminInitials ?? "AD")</div><div><div class="tn-pname">@(ViewBag.AdminName ?? "Admin")</div><div class="tn-prole">Super Admin</div></div></div>
             </div>
         </header>
 
-        <!-- ══ MAIN ════════════════════════════════════════════════ -->
+        <!-- MAIN -->
         <main class="wa-main" id="waMain">
-            <div class="amap-shell">
+            <div class="amap-shell" id="amapShell">
 
-                <!-- ══ LEFT PANEL ════════════════════════════════ -->
-                <div class="amap-left">
-                    <div class="left-tabs">
-                        <button class="lt active" id="lt-places" onclick="switchTab('places')">
-                            <span class="lt-ico">📍</span>Places
-                        </button>
-                        <button class="lt" id="lt-danger" onclick="switchTab('danger')">
-                            <span class="lt-ico">🚨</span>Reports
-                            <span class="lt-badge" id="dangerBadge">0</span>
-                        </button>
-                        <button class="lt" id="lt-stats" onclick="switchTab('stats')">
-                            <span class="lt-ico">📊</span>Stats
-                        </button>
+                <!-- Tablet overlay (not used on mobile) -->
+                <div class="panel-overlay" id="panelOverlay" onclick="closePanelOverlay()"></div>
+
+                <!-- LEFT PANEL -->
+                <div class="amap-left" id="amapLeft">
+                    <div class="panel-hd">
+                        <div class="panel-hd-title">🗺️ Map Overview</div>
+                        <div class="filter-pills">
+                            <button class="fp active" data-f="all" onclick="applyFilter(this,'all')"><svg style="width:10px;height:10px;opacity:.6" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" /></svg>All</button>
+                            <button class="fp" data-f="clinic" onclick="applyFilter(this,'clinic')"><span class="fp-dot" style="background:#00c896"></span>Clinics</button>
+                            <button class="fp" data-f="store" onclick="applyFilter(this,'store')"><span class="fp-dot" style="background:#8b5cf6"></span>Stores</button>
+                            <button class="fp" data-f="friendly" onclick="applyFilter(this,'friendly')"><span class="fp-dot" style="background:#7fa85a"></span>Places</button>
+                            <button class="fp" data-f="danger" onclick="applyFilter(this,'danger')"><span class="fp-dot" style="background:#ef4444"></span>Reports</button>
+                        </div>
                     </div>
-                    <div class="left-search">
-                        <div class="ls-wrap">
-                            <svg style="width:14px;color:#bab0a4;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+                    <div class="panel-search">
+                        <div class="ps-wrap">
+                            <svg style="width:13px;color:#c0b0a0;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
                             <input type="text" placeholder="Search places…" oninput="filterList(this.value)" />
                         </div>
                     </div>
-
-                    <!-- Places tab -->
-                    <div class="left-sec active" id="sec-places">
-                        <div class="ls-sub-hd">
-                            <div class="ls-sub-title">🏥 Clinics <span id="clinicCnt" style="font-weight:500"></span></div>
-                        </div>
-                        <div class="ls-list" id="clinicList" style="max-height:150px;border-bottom:1px solid #f0ebe4"></div>
-
-                        <div class="ls-sub-hd" style="border-top:1px solid #f0ebe4">
-                            <div class="ls-sub-title">🛍️ Stores <span id="storeCnt" style="font-weight:500"></span></div>
-                        </div>
-                        <div class="ls-list" id="storeList" style="max-height:150px;border-bottom:1px solid #f0ebe4"></div>
-
-                        <div class="ls-sub-hd" style="border-top:1px solid #f0ebe4">
-                            <div class="ls-sub-title">📍 My Markers <span id="markerCnt" style="font-weight:500"></span></div>
-                            <button class="ls-add-btn" onclick="startAddMode()">＋ Add</button>
-                        </div>
-                        <div class="ls-list" id="markerList" style="flex:1"></div>
+                    <div class="panel-tabs">
+                        <button class="pt active" id="pt-places" onclick="switchTab('places')"><span class="pt-ico">📍</span>Places</button>
+                        <button class="pt" id="pt-danger" onclick="switchTab('danger')"><span class="pt-ico">🚨</span>Reports<span class="pt-cnt" id="dangerBadge">0</span></button>
+                        <button class="pt" id="pt-stats" onclick="switchTab('stats')"><span class="pt-ico">📊</span>Stats</button>
                     </div>
 
-                    <!-- Danger tab -->
-                    <div class="left-sec" id="sec-danger">
-                        <div class="ls-sub-hd">
-                            <div class="ls-sub-title">Active Reports</div>
-                            <a href="/SuperAdmin/Dangerous_Animals" style="font-size:.7rem;font-weight:700;color:#7fa85a;text-decoration:none">View All →</a>
+                    <!-- PLACES -->
+                    <div class="panel-sec active" id="sec-places">
+                        <div class="sec-label" style="padding-top:10px">
+                            <div class="sec-label-text">🏥 Clinics <span id="clinicCnt" style="font-weight:500"></span></div>
+                            <button class="sec-add-btn" onclick="startAddModeFor('clinic')">＋ Add</button>
                         </div>
-                        <div class="ls-list" id="dangerList" style="flex:1"></div>
+                        <div class="sec-list" id="clinicList" style="max-height:160px;border-bottom:1px solid #f0ebe4"></div>
+                        <div class="sec-label" style="border-top:1px solid #f0ebe4;padding-top:8px">
+                            <div class="sec-label-text">🛍️ Stores <span id="storeCnt" style="font-weight:500"></span></div>
+                            <button class="sec-add-btn" onclick="startAddModeFor('store')">＋ Add</button>
+                        </div>
+                        <div class="sec-list" id="storeList" style="max-height:160px;border-bottom:1px solid #f0ebe4"></div>
+                        <div class="sec-label" style="border-top:1px solid #f0ebe4;padding-top:8px">
+                            <div class="sec-label-text">🌳 Pet-Friendly Places <span id="friendlyCnt" style="font-weight:500"></span></div>
+                            <button class="sec-add-btn" onclick="startAddModeFor('petfriendly')">＋ Add</button>
+                        </div>
+                        <div class="sec-list" id="friendlyList" style="flex:1"></div>
                     </div>
 
-                    <!-- Stats tab -->
-                    <div class="left-sec" id="sec-stats" style="padding:0;overflow-y:auto">
-                        <div class="stats-grid" id="statsGrid"></div>
-                        <div id="statsExtra" style="padding:0 14px 14px"></div>
+                    <!-- DANGER -->
+                    <div class="panel-sec" id="sec-danger">
+                        <div class="sec-label" style="padding-top:10px">
+                            <div class="sec-label-text">Active Reports</div>
+                            <a href="/SuperAdmin/Dangerous_Animals" style="font-size:.68rem;font-weight:700;color:#7fa85a;text-decoration:none">View All →</a>
+                        </div>
+                        <div class="sec-list" id="dangerList" style="flex:1"></div>
+                    </div>
+
+                    <!-- STATS -->
+                    <div class="panel-sec" id="sec-stats">
+                        <div class="stats-wrap"><div class="stat-grid" id="statsGrid"></div><div id="statsExtra"></div></div>
                     </div>
                 </div>
 
-                <!-- ══ MAP ═══════════════════════════════════════ -->
+                <!-- MAP -->
                 <div class="amap-map">
+                    <!-- Tablet: thin tab to open/close panel -->
+                    <div class="panel-tab-btn" id="panelTabBtn" onclick="toggleTabletPanel()">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <polyline points="15 18 9 12 15 6" />
+                        </svg>
+                    </div>
+
                     <div id="adminMap"></div>
 
                     <div class="add-banner" id="addBanner">
-                        📍 Click anywhere on the map to place your marker
+                        <div class="ab-pulse"></div>
+                        Click on the map to pin your location
                         <button class="cancel-btn" onclick="cancelAddMode()">✕ Cancel</button>
                     </div>
 
@@ -1266,16 +1770,17 @@
                         <div class="lg-hd">Legend</div>
                         <div class="lg-row"><div class="lg-dot" style="background:#00c896"></div>Clinic</div>
                         <div class="lg-row"><div class="lg-dot" style="background:#8b5cf6"></div>Store</div>
-                        <div class="lg-row"><div class="lg-dot" style="background:#f59e0b"></div>Pet-Friendly</div>
+                        <div class="lg-row"><div class="lg-dot" style="background:#7fa85a"></div>Pet-Friendly</div>
                         <div class="lg-row"><div class="lg-dot" style="background:#10b981"></div>Park</div>
-                        <div class="lg-row"><div class="lg-dot" style="background:#ef4444"></div>Danger Report</div>
+                        <div class="lg-row"><div class="lg-dot" style="background:#ef4444"></div>Danger</div>
                     </div>
 
-                    <!-- ══ RIGHT PANEL ══════════════════════════ -->
+                    <!-- RIGHT PANEL -->
                     <div class="right-panel" id="rightPanel">
                         <div class="rp-hd">
-                            <div class="rp-title" id="rpTitle">Add New Marker</div>
-                            <button class="rp-close" onclick="closeRightPanel()">✕</button>
+                            <button class="rp-back" id="rpBack" onclick="rpGoBack()">←</button>
+                            <div class="rp-title" id="rpTitle">Add Location</div>
+                            <button class="rp-close" onclick="closeRP()">✕</button>
                         </div>
                         <div class="rp-body" id="rpBody"></div>
                     </div>
@@ -1290,584 +1795,493 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="~/js/Waffy-Shell.js"></script>
     <script>
-        // ════════════════════════════════════════════════════════════════
-        // STATE
-        // ════════════════════════════════════════════════════════════════
+        /* ════════════════════════════════════════════════════════════
+           STATE
+        ════════════════════════════════════════════════════════════ */
         let map, addMode = false, editingId = null;
         let pendingLat = null, pendingLng = null;
         let allData = { clinics:[], stores:[], dangerReports:[], adminMarkers:[] };
-        let leafMarkers = [], panelSearch = '';
-        let selectedType = null;
+        let leafMarkers = [], panelSearch = '', panelFilter = 'all';
+        let selectedType = null, presetType = null;
+        let tabletPanelOpen = false;
 
-        const COLORS = { clinic:'#00c896', store:'#8b5cf6', danger:'#ef4444', petfriendly:'#f59e0b', playground:'#f59e0b', park:'#10b981' };
+        const COLORS = {
+            clinic:'#00c896', store:'#8b5cf6', danger:'#ef4444',
+            petfriendly:'#7fa85a', playground:'#f59e0b', park:'#10b981'
+        };
         const EMOJIS = { clinic:'🏥', store:'🛍️', danger:'🚨', petfriendly:'🌳', playground:'🎡', park:'🌲' };
         const LABELS = { clinic:'Clinic', store:'Store', danger:'Danger Report', petfriendly:'Pet-Friendly', playground:'Playground', park:'Park' };
 
-        // ════════════════════════════════════════════════════════════════
-        // MAP INIT
-        // ════════════════════════════════════════════════════════════════
+        const PIN_ICONS = {
+            clinic:`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+            store:`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>`,
+            danger:`<svg viewBox="0 0 24 24" stroke="none"><path fill="rgba(255,255,255,0.9)" d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13" stroke="#c00" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17" r="1" fill="#c00"/></svg>`,
+            petfriendly:`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M12 21s-8-5-8-12a8 8 0 0 1 16 0c0 7-8 12-8 12z"/></svg>`,
+            playground:`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="7" r="3.5"/><path d="M5 21l3.5-7m7 7L12 14m-3.5 7h7"/></svg>`,
+            park:`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L7 9H3l5 6H5l7 7 7-7h-3l5-6h-4z"/></svg>`
+        };
+
+        /* ════════════════════════════════════════════════════════════
+           MAP INIT
+        ════════════════════════════════════════════════════════════ */
         function initMap() {
             map = L.map('adminMap', { zoomControl: false })
                    .setView([31.9539, 35.9106], 13);
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
-            L.control.zoom({ position: 'bottomright' }).addTo(map);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom:19 }).addTo(map);
+            L.control.zoom({ position:'bottomright' }).addTo(map);
 
             map.on('click', function(e) {
-                if (!addMode) { closeRightPanel(); return; }
+                if (!addMode) { closeRP(); return; }
                 pendingLat = e.latlng.lat.toFixed(6);
                 pendingLng = e.latlng.lng.toFixed(6);
-                openAddPanel();
+                if (presetType) {
+                    selectedType = presetType; presetType = null;
+                    cancelAddMode(); showAddForm(null);
+                } else {
+                    showTypeSelector();
+                }
             });
         }
 
-        // ════════════════════════════════════════════════════════════════
-        // FETCH DATA
-        // ════════════════════════════════════════════════════════════════
+        /* ════════════════════════════════════════════════════════════
+           FETCH
+        ════════════════════════════════════════════════════════════ */
         async function fetchData() {
-            const res = await fetch('/Map/GetMapData');
-            allData   = await res.json();
-            renderAll();
+            try {
+                const res = await fetch('/Map/GetMapData');
+                allData   = await res.json();
+                renderAll();
+            } catch(e) { showToast('⚠️ Could not load data'); }
         }
 
         function renderAll() {
             renderMapMarkers();
-            renderClinics();
-            renderStores();
-            renderMarkers();
-            renderDanger();
-            renderStats();
+            renderClinics(); renderStores(); renderFriendly(); renderDanger(); renderStats();
             document.getElementById('dangerBadge').textContent = allData.dangerReports?.length ?? 0;
         }
 
-        // ════════════════════════════════════════════════════════════════
-        // MAP MARKERS
-        // ════════════════════════════════════════════════════════════════
-        function renderMapMarkers() {
-            leafMarkers.forEach(m => m.remove());
-            leafMarkers = [];
-            addMarkerSet(allData.clinics,       'clinic');
-            addMarkerSet(allData.stores,        'store');
-            addMarkerSet(allData.adminMarkers,  'adminMarker');
-            addMarkerSet(allData.dangerReports, 'danger');
-        }
-
-        function addMarkerSet(places, type) {
-            (places || []).forEach(p => {
-                const color = COLORS[p.markerType || type] || '#7fa85a';
-                const emoji = EMOJIS[p.markerType || type] || '📍';
-                const imgContent = p.image || p.logo
-                    ? `<img src="${p.image || p.logo}" alt="" />`
-                    : `<span>${emoji}</span>`;
-
-                const icon = L.divIcon({
-                    className: '',
-                    html: `<div class="am-wrap">
-                             <div class="am-pin" style="background:${color}">${imgContent}</div>
-                             <div class="am-tail" style="border-top-color:${color}"></div>
-                             <div class="am-shadow"></div>
-                           </div>`,
-                    iconSize  : [40, 52],
-                    iconAnchor: [20, 52]
-                });
-
-                const m = L.marker([p.lat, p.lng], { icon }).addTo(map);
-                m.on('click', e => { L.DomEvent.stopPropagation(e); openDetailPanel(p, p.markerType || type); });
-                leafMarkers.push(m);
+        /* ════════════════════════════════════════════════════════════
+           MAP MARKERS — ★ Tag _src on every set
+        ════════════════════════════════════════════════════════════ */
+        function buildPin(type) {
+            const color = COLORS[type] || '#7fa85a';
+            const icon  = PIN_ICONS[type] || PIN_ICONS.petfriendly;
+            return L.divIcon({
+                className: '',
+                html: `<div class="am-wrap">
+                         <div class="am-body">
+                           <svg class="am-svg" viewBox="0 0 36 44" xmlns="http://www.w3.org/2000/svg">
+                             <path d="M18 2C10.27 2 4 8.27 4 16c0 10.4 13.05 24.57 13.62 25.18a.53.53 0 0 0 .78 0C18.95 40.57 32 26.4 32 16 32 8.27 25.73 2 18 2z"
+                                   fill="${color}" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
+                             <circle cx="18" cy="16" r="9" fill="rgba(0,0,0,.1)"/>
+                           </svg>
+                           <div class="am-icon">${icon}</div>
+                         </div>
+                         <div class="am-shadow-dot"></div>
+                       </div>`,
+                iconSize: [36,48], iconAnchor: [18,48]
             });
         }
 
-        // ════════════════════════════════════════════════════════════════
-        // LEFT PANEL LISTS
-        // ════════════════════════════════════════════════════════════════
+        function renderMapMarkers() {
+            leafMarkers.forEach(m => m.remove());
+            leafMarkers = [];
+
+            const show = t => {
+                if (panelFilter === 'all')      return true;
+                if (panelFilter === 'clinic')   return t === 'clinic';
+                if (panelFilter === 'store')    return t === 'store';
+                if (panelFilter === 'friendly') return ['petfriendly','playground','park'].includes(t);
+                if (panelFilter === 'danger')   return t === 'danger';
+                return true;
+            };
+
+            // ★ Tag each set with _src so detail panel knows edit/delete eligibility
+            const addSet = (places, defaultType, src) => (places||[]).forEach(p => {
+                const t = p.markerType || defaultType;
+                if (!show(t)) return;
+                const tagged = {...p, _src: src};
+                const m = L.marker([p.lat, p.lng], { icon: buildPin(t) }).addTo(map);
+                m.on('click', e => { L.DomEvent.stopPropagation(e); openDetail(tagged, t); });
+                leafMarkers.push(m);
+            });
+
+            addSet(allData.clinics,       'clinic',  'reg');
+            addSet(allData.stores,        'store',   'reg');
+            addSet(allData.adminMarkers,  null,      'admin');   // ← admin-added
+            addSet(allData.dangerReports, 'danger',  'danger');  // ← danger = never editable
+        }
+
+        /* ════════════════════════════════════════════════════════════
+           PANEL LISTS — merge adminMarkers into correct section
+        ════════════════════════════════════════════════════════════ */
+        function getClinicItems() {
+            const reg   = (allData.clinics||[]).map(p  => ({...p, _src:'reg',   _type:'clinic'}));
+            const admin = (allData.adminMarkers||[]).filter(m => m.markerType==='clinic')
+                          .map(p => ({...p, _src:'admin', _type:'clinic', name:p.name||p.label||'—'}));
+            return [...reg, ...admin].filter(bySearch);
+        }
+        function getStoreItems() {
+            const reg   = (allData.stores||[]).map(p  => ({...p, _src:'reg',   _type:'store'}));
+            const admin = (allData.adminMarkers||[]).filter(m => m.markerType==='store')
+                          .map(p => ({...p, _src:'admin', _type:'store', name:p.name||p.label||'—'}));
+            return [...reg, ...admin].filter(bySearch);
+        }
+        function getFriendlyItems() {
+            return (allData.adminMarkers||[])
+                .filter(m => ['petfriendly','playground','park'].includes(m.markerType))
+                .map(p => ({...p, _src:'admin', _type:p.markerType, name:p.name||p.label||'—'}))
+                .filter(bySearch);
+        }
+
         function renderClinics() {
-            const items = (allData.clinics || []).filter(bySearch);
+            const items = getClinicItems();
             document.getElementById('clinicCnt').textContent = `(${items.length})`;
-            document.getElementById('clinicList').innerHTML = items.map(p => readonlyRow(p, 'clinic')).join('') ||
-                emptyState('No clinics on map — add Latitude/Longitude in clinic settings');
+            document.getElementById('clinicList').innerHTML = items.map(p => placeRow(p,'clinic')).join('') ||
+                `<div class="empty-state">No clinics on map yet.</div>`;
         }
         function renderStores() {
-            const items = (allData.stores || []).filter(bySearch);
+            const items = getStoreItems();
             document.getElementById('storeCnt').textContent = `(${items.length})`;
-            document.getElementById('storeList').innerHTML = items.map(p => readonlyRow(p, 'store')).join('') ||
-                emptyState('No stores on map — add Latitude/Longitude in store settings');
+            document.getElementById('storeList').innerHTML = items.map(p => placeRow(p,'store')).join('') ||
+                `<div class="empty-state">No stores on map yet.</div>`;
         }
-        function renderMarkers() {
-            const items = (allData.adminMarkers || []).filter(bySearch);
-            document.getElementById('markerCnt').textContent = `(${items.length})`;
-            document.getElementById('markerList').innerHTML = items.map(p => editableRow(p)).join('') ||
-                emptyState('No markers yet — click "+ Add" to start');
+        function renderFriendly() {
+            const items = getFriendlyItems();
+            document.getElementById('friendlyCnt').textContent = `(${items.length})`;
+            document.getElementById('friendlyList').innerHTML = items.map(p => placeRow(p,p._type)).join('') ||
+                `<div class="empty-state">No pet-friendly places yet.<br>Click "+ Add" to start.</div>`;
         }
         function renderDanger() {
-            const items = (allData.dangerReports || []).filter(bySearch);
+            const items = (allData.dangerReports||[]).filter(bySearch);
             document.getElementById('dangerList').innerHTML = items.map(d => dangerRow(d)).join('') ||
-                emptyState('No active danger reports 🎉');
+                `<div class="empty-state">No active danger reports 🎉</div>`;
         }
         function renderStats() {
-            const c = allData.clinics?.length??0, s = allData.stores?.length??0;
-            const d = allData.dangerReports?.length??0, m = allData.adminMarkers?.length??0;
+            const c=getClinicItems().length, s=getStoreItems().length;
+            const f=getFriendlyItems().length, d=(allData.dangerReports||[]).length;
+            const total=c+s+f+d;
             document.getElementById('statsGrid').innerHTML =
-                statCard('🏥','Clinics',c,'#00c896') + statCard('🛍️','Stores',s,'#8b5cf6') +
-                statCard('🚨','Danger',d,'#ef4444') + statCard('📍','Markers',m,'#f59e0b');
+                sc('🏥','Clinics',c,'#00c896')+sc('🛍️','Stores',s,'#8b5cf6')+
+                sc('🌳','Places',f,'#7fa85a')+sc('🚨','Reports',d,'#ef4444');
+            document.getElementById('statsExtra').innerHTML=`
+                <div style="background:#fff;border:1px solid #e8e0d8;border-radius:14px;padding:14px">
+                    <div style="font-size:.63rem;font-weight:900;color:#b0a090;letter-spacing:1px;text-transform:uppercase;margin-bottom:12px">Distribution</div>
+                    ${bar('Clinics',c,total,'#00c896')}${bar('Stores',s,total,'#8b5cf6')}
+                    ${bar('Places',f,total,'#7fa85a')}${bar('Reports',d,total,'#ef4444')}
+                </div>`;
         }
+        function sc(ico,lbl,val,col){return`<div class="stat-card"><div class="stat-num" style="color:${col}">${val}</div><div class="stat-ico">${ico}</div><div class="stat-lbl">${lbl}</div></div>`;}
+        function bar(lbl,val,total,col){const p=total>0?Math.round(val/total*100):0;return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:.74rem"><span style="min-width:60px;font-weight:700;color:#1a1612">${lbl}</span><div style="flex:1;height:4px;background:#f0ebe4;border-radius:3px;overflow:hidden"><div style="width:${p}%;height:100%;background:${col};border-radius:3px"></div></div><span style="color:#b0a090;font-weight:700;min-width:22px;text-align:right">${val}</span></div>`;}
 
-        function statCard(ico, lbl, val, color) {
-            return `<div class="stat-box"><div class="stat-num" style="color:${color}">${val}</div><div style="font-size:1.2rem;margin:4px 0">${ico}</div><div class="stat-lbl">${lbl}</div></div>`;
-        }
-
-        function readonlyRow(p, type) {
-            const color = COLORS[type], emoji = EMOJIS[type];
-            const img   = (p.logo || p.image)
-                ? `<div class="prow-img"><img src="${p.logo||p.image}" /></div>`
-                : `<div class="prow-img" style="background:${color}15;color:${color}">${emoji}</div>`;
-            return `<div class="prow" onclick="flyTo(${p.lat},${p.lng})">
+        /* ── Row renderers ── */
+        function placeRow(p, type) {
+            const col = COLORS[type]||'#7fa85a', emo = EMOJIS[type]||'📍';
+            const img = (p.logo||p.image)
+                ? `<div class="prow-img"><img src="${p.logo||p.image}"/></div>`
+                : `<div class="prow-img" style="background:${col}14;color:${col}">${emo}</div>`;
+            const right = p._src==='admin'
+                ? `<div class="prow-acts">
+                       <button class="prow-btn edit" title="Edit"   onclick="event.stopPropagation();openEdit(${p.id})">✏️</button>
+                       <button class="prow-btn del"  title="Delete" onclick="event.stopPropagation();confirmDel(${p.id},'${(p.name||'').replace(/'/g,'')}')">🗑</button>
+                   </div>`
+                : `<span class="prow-source source-reg">Registered</span>`;
+                    const _k = storeRow(p);
+            return `<div class="prow" onclick="rowClick('${_k}','${type}')">
                 ${img}
                 <div class="prow-body">
-                    <div class="prow-name">${p.name}</div>
+                    <div class="prow-name">${p.name||'—'}</div>
                     <div class="prow-sub">📍 ${[p.city,p.area].filter(Boolean).join(', ')||'—'}</div>
                 </div>
-                <span style="font-size:.65rem;font-weight:700;padding:2px 7px;border-radius:20px;background:${color}15;color:${color}">Live</span>
+                ${right}
             </div>`;
         }
 
-        function editableRow(p) {
-            const color = COLORS[p.markerType] || '#f59e0b';
-            const emoji = EMOJIS[p.markerType] || '📍';
-            const img   = (p.image || p.logo)
-                ? `<div class="prow-img"><img src="${p.image||p.logo}" /></div>`
-                : `<div class="prow-img" style="background:${color}15;color:${color}">${emoji}</div>`;
-            return `<div class="prow" onclick="flyAndDetail(${p.lat},${p.lng},'${p.markerType}',${JSON.stringify(p).replace(/"/g,"'")})">
-                ${img}
-                <div class="prow-body">
-                    <div class="prow-name">${p.name}</div>
-                    <div class="prow-sub">📍 ${[p.city,p.area].filter(Boolean).join(', ')||'—'}</div>
-                </div>
-                <div class="prow-acts">
-                    <button class="prow-btn edit" title="Edit" onclick="event.stopPropagation();openEditPanel(${p.id})">✏️</button>
-                    <button class="prow-btn del"  title="Delete" onclick="event.stopPropagation();confirmDelete(${p.id},'${p.name.replace(/'/g,'')}')">🗑</button>
-                </div>
-            </div>`;
-        }
-
+        // ★ Danger rows: NO edit button, only review/resolve/fake + fly to location
         function dangerRow(d) {
-            const sev = d.severity || 'Medium';
-            return `<div class="drow" onclick="flyAndDetail(${d.lat},${d.lng},'danger',${JSON.stringify(d).replace(/"/g,"'")})">
+            const sev = d.severity||'Medium';
+                    const _dk = storeRow(d);
+            return `<div class="drow" onclick="rowClick('${_dk}','danger')">
                 <div class="drow-hd">
-                    <div class="drow-name">${d.animalType} — ${d.name?.split('—')[1]?.trim()||''}</div>
+                    <div class="drow-name">${d.animalType} — ${(d.name||'').split('—')[1]?.trim()||''}</div>
                     <span class="drow-sev sev-${sev}">${sev}</span>
                 </div>
-                <div class="drow-meta">📍 ${[d.city,d.area].filter(Boolean).join(', ')} &nbsp;·&nbsp; ${d.status}</div>
-                ${d.reportCode ? `<div class="drow-code">${d.reportCode}</div>` : ''}
+                <div class="drow-meta">📍 ${[d.city,d.area].filter(Boolean).join(', ')} · ${d.status}</div>
+                ${d.reportCode?`<div class="drow-code">${d.reportCode}</div>`:''}
                 <div class="drow-btns">
-                    ${d.status!=='Under Review' ? `<button class="drow-btn review"  onclick="event.stopPropagation();updateDanger(${d.id},'Under Review')">🔍 Review</button>` : ''}
-                    ${d.status!=='Resolved'     ? `<button class="drow-btn resolve" onclick="event.stopPropagation();updateDanger(${d.id},'Resolved')">✅ Resolve</button>` : ''}
-                    <button class="drow-btn fake" onclick="event.stopPropagation();updateDanger(${d.id},'Resolved')">🚫 Fake</button>
+                    ${d.status!=='Under Review'?`<button class="drow-btn review"  onclick="event.stopPropagation();updDanger(${d.id},'Under Review')">🔍 Review</button>`:''}
+                    ${d.status!=='Resolved'    ?`<button class="drow-btn resolve" onclick="event.stopPropagation();updDanger(${d.id},'Resolved')">✅ Resolve</button>`:''}
+                    <button class="drow-btn fake" onclick="event.stopPropagation();updDanger(${d.id},'Resolved')">🚫 Fake</button>
                 </div>
             </div>`;
         }
 
-        function emptyState(msg) {
-            return `<div class="ls-empty">${msg}</div>`;
+        /* ★ DATA STORE — avoids inline JSON serialization bugs */
+        const _rowStore = new Map();
+        let _rowKey = 0;
+        function storeRow(p) {
+            const key = 'r' + (_rowKey++);
+            _rowStore.set(key, p);
+            return key;
         }
 
-        // ════════════════════════════════════════════════════════════════
-        // TAB SWITCHING
-        // ════════════════════════════════════════════════════════════════
+        /* ★ Click on row: fly map + open detail */
+        function rowClick(key, type) {
+            const p = _rowStore.get(key);
+            if (!p) return;
+            closePanelOverlay();
+            map.setView([p.lat, p.lng], 16, { animate: true });
+            setTimeout(() => openDetail(p, type), 150);
+        }
+
+        /* ════════════════════════════════════════════════════════════
+           PANEL TOGGLE — tablet panel is always visible now (no toggle needed)
+           closePanelOverlay kept as no-op for rowClick compatibility
+        ════════════════════════════════════════════════════════════ */
+        function toggleTabletPanel() { /* panel always visible on tablet */ }
+        function openTabletPanel()   { /* no-op */ }
+        function closePanelOverlay() { /* no-op — panel stays visible */ }
+
+
+        /* ════════════════════════════════════════════════════════════
+           FILTER / SEARCH / TABS
+        ════════════════════════════════════════════════════════════ */
+        function applyFilter(btn, f) {
+            panelFilter = f;
+            document.querySelectorAll('.fp').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            renderMapMarkers();
+        }
+        function filterList(q) {
+            panelSearch = q.toLowerCase();
+            renderClinics(); renderStores(); renderFriendly(); renderDanger();
+        }
+        function bySearch(p) {
+            if (!panelSearch) return true;
+            return (p.name||p.label||'').toLowerCase().includes(panelSearch)||
+                   (p.city||'').toLowerCase().includes(panelSearch)||
+                   (p.area||'').toLowerCase().includes(panelSearch);
+        }
         function switchTab(tab) {
             ['places','danger','stats'].forEach(t => {
-                document.getElementById(`lt-${t}`).classList.toggle('active', t===tab);
+                document.getElementById(`pt-${t}`).classList.toggle('active', t===tab);
                 document.getElementById(`sec-${t}`).classList.toggle('active', t===tab);
             });
         }
 
-        function filterList(q) {
-            panelSearch = q.toLowerCase();
-            renderClinics(); renderStores(); renderMarkers(); renderDanger();
-        }
-        function bySearch(p) {
-            if (!panelSearch) return true;
-            return (p.name||'').toLowerCase().includes(panelSearch) ||
-                   (p.city||'').toLowerCase().includes(panelSearch) ||
-                   (p.area||'').toLowerCase().includes(panelSearch);
-        }
-
-        // ════════════════════════════════════════════════════════════════
-        // ADD MODE
-        // ════════════════════════════════════════════════════════════════
+        /* ════════════════════════════════════════════════════════════
+           ADD MODE
+        ════════════════════════════════════════════════════════════ */
         function startAddMode() {
-            addMode = true;
-            editingId = null;
-            pendingLat = null; pendingLng = null;
+            presetType=null; addMode=true; editingId=null; pendingLat=null; pendingLng=null;
             document.getElementById('addBanner').classList.add('show');
-            document.getElementById('adminMap').style.cursor = 'crosshair';
-            closeRightPanel();
+            document.getElementById('adminMap').style.cursor='crosshair';
+            closeRP();
         }
-
+        function startAddModeFor(type) {
+            presetType=type; addMode=true; editingId=null; pendingLat=null; pendingLng=null;
+            document.getElementById('addBanner').classList.add('show');
+            document.getElementById('adminMap').style.cursor='crosshair';
+            closeRP();
+        }
         function cancelAddMode() {
-            addMode = false;
+            addMode=false; presetType=null;
             document.getElementById('addBanner').classList.remove('show');
-            document.getElementById('adminMap').style.cursor = '';
-            selectedType = null;
+            document.getElementById('adminMap').style.cursor='';
         }
 
-        // ════════════════════════════════════════════════════════════════
-        // RIGHT PANEL — TYPE SELECTOR then FORM
-        // ════════════════════════════════════════════════════════════════
-        function openAddPanel() {
-            // Reset
-            selectedType = null;
-            document.getElementById('rpTitle').textContent = 'Choose Place Type';
-            document.getElementById('rpBody').innerHTML = typeSelectorHtml();
-            openRightPanel();
-            cancelAddMode();   // exit adding mode cursor
-        }
-
-        function typeSelectorHtml() {
-            const types = [
-                { key:'petfriendly', ico:'🌳', name:'Pet-Friendly', desc:'Park, café, or any pet-welcoming place' },
-                { key:'playground',  ico:'🎡', name:'Playground',   desc:'Pet playground or play area' },
-                { key:'park',        ico:'🌲', name:'Park / Garden', desc:'Public park or outdoor space' }
-            ];
-            return `<div class="type-selector">
-                <div class="ts-label">What are you adding?</div>
-                <div class="ts-cards">
-                    ${types.map(t => `
-                    <div class="ts-card" id="tc-${t.key}" onclick="selectType('${t.key}')">
-                        <div class="ts-ico">${t.ico}</div>
-                        <div class="ts-name">${t.name}</div>
-                        <div class="ts-desc">${t.desc}</div>
-                    </div>`).join('')}
+        /* ════════════════════════════════════════════════════════════
+           TYPE SELECTOR
+        ════════════════════════════════════════════════════════════ */
+        function showTypeSelector() {
+            cancelAddMode(); selectedType=null;
+            setRP('Choose Location Type',false);
+            document.getElementById('rpBody').innerHTML=`
+            <div class="type-sel">
+                <div class="type-sel-lbl">What type of location are you adding?</div>
+                <div class="type-cards">
+                    <div class="tc" id="tc-clinic"      data-type="clinic"      onclick="pickType('clinic')"><div class="tc-check">✓</div><div class="tc-ico-wrap">🏥</div><div class="tc-name">Clinic</div><div class="tc-desc">Vet clinic or animal hospital</div></div>
+                    <div class="tc" id="tc-store"       data-type="store"       onclick="pickType('store')"><div class="tc-check">✓</div><div class="tc-ico-wrap">🛍️</div><div class="tc-name">Store</div><div class="tc-desc">Pet supply shop or pharmacy</div></div>
+                    <div class="tc" id="tc-petfriendly" data-type="petfriendly" onclick="pickType('petfriendly')"><div class="tc-check">✓</div><div class="tc-ico-wrap">🌳</div><div class="tc-name">Pet Place</div><div class="tc-desc">Park, café, playground & more</div></div>
                 </div>
-                <button class="ts-next-btn" id="tsNext" disabled onclick="showAddForm()">
-                    Continue →
+                <button class="tc-continue" id="tcContinue" disabled onclick="showAddForm(null)">
+                    <svg viewBox="0 0 24 24" fill="none" style="width:17px;height:17px" stroke="currentColor" stroke-width="2.2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5" fill="currentColor" stroke="none"/></svg>
+                    Continue — Fill in Details
                 </button>
             </div>`;
+            openRP();
+        }
+        function pickType(type) {
+            selectedType=type;
+            document.querySelectorAll('.tc').forEach(c=>c.classList.remove('selected'));
+            document.getElementById('tc-'+type)?.classList.add('selected');
+            document.getElementById('tcContinue').disabled=false;
         }
 
-        function selectType(type) {
-            selectedType = type;
-            document.querySelectorAll('.ts-card').forEach(c => c.classList.remove('selected'));
-            document.getElementById('tc-' + type)?.classList.add('selected');
-            document.getElementById('tsNext').disabled = false;
-        }
-
-        function showAddForm(prefill) {
-            const coordLabel = pendingLat
-                ? `✅ ${parseFloat(pendingLat).toFixed(5)}, ${parseFloat(pendingLng).toFixed(5)}`
-                : '⚠️ No location set — go back and click on map';
-            const isEmpty = !pendingLat;
-
-            document.getElementById('rpTitle').textContent = editingId ? 'Edit Marker' : 'Add Marker Details';
-            document.getElementById('rpBody').innerHTML = buildForm(prefill, coordLabel, isEmpty);
-
-            // Preview existing image
-            if (prefill?.imageUrl) {
-                document.getElementById('imgPreview').src = prefill.imageUrl;
-                document.getElementById('imgPreview').style.display = 'block';
-                document.getElementById('imgPlaceholder').style.display = 'none';
-                document.getElementById('imgArea').classList.add('has-img');
-            }
-        }
-
-        function buildForm(pf, coordLabel, isEmpty) {
-            return `<div class="details-form">
-                <div class="coord-pill ${isEmpty ? 'empty' : ''}" id="coordPill">
-                    <span>${isEmpty ? '⚠️' : '📍'}</span>
-                    <span>${coordLabel}</span>
-                    ${editingId ? '<button onclick="repin()" style="margin-left:auto;font-size:.7rem;font-weight:700;border:none;background:transparent;color:#5a7a3e;cursor:pointer">📍 Move Pin</button>' : ''}
+        /* ════════════════════════════════════════════════════════════
+           FORM
+        ════════════════════════════════════════════════════════════ */
+        function showAddForm(pf) {
+            const coordOk = !!(pendingLat||pf?.lat);
+            const coordTxt = coordOk
+                ? `✅ ${parseFloat(pendingLat||pf?.lat).toFixed(5)}, ${parseFloat(pendingLng||pf?.lng).toFixed(5)}`
+                : '⚠️ Location not set — go back and click on map';
+            const tl={clinic:'Clinic',store:'Store',petfriendly:'Pet Place'}[selectedType]||'Location';
+            setRP(editingId?`Edit ${tl}`:`Add ${tl} Details`,!editingId);
+            document.getElementById('rpBody').innerHTML=`
+            <div class="add-form">
+                <div class="loc-pill ${coordOk?'ok':'empty'}"><span>${coordOk?'📍':'⚠️'}</span><span>${coordTxt}</span>${editingId?'<button class="loc-pill-repin" onclick="repin()">Move Pin</button>':''}</div>
+                <div class="form-section">📷 Place Photo</div>
+                <div class="photo-upload" id="imgArea" onclick="document.getElementById('imgFile').click()">
+                    <div class="pu-placeholder" id="imgPH"><div class="pu-ico">📷</div><div class="pu-lbl">Click to upload a photo</div><div class="pu-sub">JPG or PNG — Max 5MB</div></div>
+                    <img id="imgPrev" class="pu-preview" alt="" /><div class="pu-hover">🔄 Change Photo</div>
                 </div>
-
-                <div class="f-sep">📷 Place Photo</div>
-                <div class="img-upload-area" id="imgArea" onclick="document.getElementById('imgFile').click()">
-                    <div class="img-placeholder" id="imgPlaceholder">
-                        <div class="ico">📷</div>
-                        <p>Click to upload photo</p>
-                        <span>JPG, PNG — max 5MB</span>
-                    </div>
-                    <img id="imgPreview" class="img-preview" alt="" />
-                    <div class="img-change-overlay">🔄 Change Photo</div>
-                </div>
-                <input type="file" id="imgFile" accept="image/*" onchange="previewImg(this)" />
-
-                <div class="f-sep">📋 Basic Info</div>
-                <div class="f-group">
-                    <label class="f-label">Place Name <span class="req">*</span></label>
-                    <input class="f-input" id="fLabel" type="text" placeholder="e.g. Al Hussein Park" value="${pf?.label||''}" />
-                </div>
-                <div class="f-grid-2">
-                    <div class="f-group">
-                        <label class="f-label">City</label>
-                        <input class="f-input" id="fCity" type="text" placeholder="Amman" value="${pf?.city||''}" />
-                    </div>
-                    <div class="f-group">
-                        <label class="f-label">Area</label>
-                        <input class="f-input" id="fArea" type="text" placeholder="Rabieh" value="${pf?.area||''}" />
-                    </div>
-                </div>
-
-                <div class="f-sep">📞 Contact & Hours</div>
-                <div class="f-group">
-                    <label class="f-label">Phone Number</label>
-                    <input class="f-input" id="fPhone" type="tel" placeholder="+962 79 123 4567" value="${pf?.phone||pf?.workingHours&&''||''}" />
-                </div>
-                <div class="f-group">
-                    <label class="f-label">Working Hours</label>
-                    <input class="f-input" id="fHours" type="text" placeholder="Daily 9AM–10PM / Closed Friday" value="${pf?.hours||pf?.workingHours||''}" />
-                </div>
-                <div class="f-group">
-                    <label class="f-label">Website</label>
-                    <input class="f-input" id="fWebsite" type="url" placeholder="https://example.com" value="${pf?.website||''}" />
-                </div>
-
-                <div class="f-sep">📝 Description</div>
-                <div class="f-group">
-                    <label class="f-label">Description</label>
-                    <textarea class="f-textarea" id="fDesc" placeholder="Tell users about this place — what makes it special for pet owners?">${pf?.description||''}</textarea>
-                </div>
-                <div class="f-group">
-                    <label class="f-label">Admin Notes (internal)</label>
-                    <textarea class="f-textarea" id="fNotes" placeholder="Internal notes — not shown to users" style="min-height:60px">${pf?.notes||''}</textarea>
-                </div>
-
+                <input type="file" id="imgFile" accept="image/*" onchange="prevImg(this)" />
+                <div class="form-section">📋 Basic Information</div>
+                <div class="fg"><label class="fl">Name <span class="req">*</span></label><input class="fi" id="fLabel" type="text" placeholder="e.g. Al Amanah Clinic" value="${pf?.label||pf?.name||''}" /></div>
+                <div class="fg-2"><div class="fg"><label class="fl">City</label><input class="fi" id="fCity" type="text" placeholder="Amman" value="${pf?.city||''}" /></div><div class="fg"><label class="fl">Area</label><input class="fi" id="fArea" type="text" placeholder="Jubaiha" value="${pf?.area||''}" /></div></div>
+                <div class="form-section">📞 Contact & Hours</div>
+                <div class="fg"><label class="fl">Phone Number</label><input class="fi" id="fPhone" type="tel" placeholder="+962 79 123 4567" value="${pf?.phone||''}" /></div>
+                <div class="fg"><label class="fl">Working Hours</label><input class="fi" id="fHours" type="text" placeholder="Daily 9AM – 10PM" value="${pf?.hours||pf?.workingHours||''}" /></div>
+                <div class="fg"><label class="fl">Website</label><input class="fi" id="fWeb" type="url" placeholder="https://example.com" value="${pf?.website||''}" /></div>
+                <div class="form-section">📝 Description & Notes</div>
+                <div class="fg"><label class="fl">Description</label><textarea class="fta" id="fDesc" placeholder="What makes this place special?">${pf?.description||''}</textarea></div>
+                <div class="fg"><label class="fl">Admin Notes <span style="font-weight:500;color:#b0a090">(internal)</span></label><textarea class="fta" id="fNotes" placeholder="Private notes…" style="min-height:60px">${pf?.notes||''}</textarea></div>
                 <input type="hidden" id="fLat" value="${pendingLat||pf?.lat||''}" />
                 <input type="hidden" id="fLng" value="${pendingLng||pf?.lng||''}" />
-
-                <button class="f-save-btn" onclick="saveMarker()">
-                    💾 ${editingId ? 'Save Changes' : 'Add to Map'}
+                <button class="save-btn" onclick="saveMarker()">
+                    <svg viewBox="0 0 24 24" fill="none" style="width:16px;height:16px" stroke="currentColor" stroke-width="2.2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    ${editingId?'Save Changes':'Add to Map'}
                 </button>
-                ${!editingId ? `<button class="f-back-btn" onclick="backToTypeSelector()">← Back</button>` : ''}
+                ${!editingId?`<button class="back-btn" onclick="showTypeSelector()">← Back to type selection</button>`:''}
             </div>`;
+            if (pf?.imageUrl) {
+                document.getElementById('imgPrev').src=pf.imageUrl;document.getElementById('imgPrev').style.display='block';
+                document.getElementById('imgPH').style.display='none';document.getElementById('imgArea').classList.add('filled');
+            }
+            openRP();
         }
-
-        function backToTypeSelector() {
-            selectedType = null;
-            document.getElementById('rpTitle').textContent = 'Choose Place Type';
-            document.getElementById('rpBody').innerHTML = typeSelectorHtml();
-        }
-
-        function previewImg(input) {
+        function prevImg(input) {
             if (!input.files?.[0]) return;
-            const r = new FileReader();
-            r.onload = e => {
-                document.getElementById('imgPreview').src = e.target.result;
-                document.getElementById('imgPreview').style.display = 'block';
-                document.getElementById('imgPlaceholder').style.display = 'none';
-                document.getElementById('imgArea').classList.add('has-img');
-            };
+            const r=new FileReader();
+            r.onload=e=>{document.getElementById('imgPrev').src=e.target.result;document.getElementById('imgPrev').style.display='block';document.getElementById('imgPH').style.display='none';document.getElementById('imgArea').classList.add('filled');};
             r.readAsDataURL(input.files[0]);
         }
+        function repin() { startAddMode(); showToast('Click on map to move the pin'); }
 
-        function repin() {
-            startAddMode();
-            showToast('Click on the map to move the pin');
+        /* ════════════════════════════════════════════════════════════
+           EDIT
+        ════════════════════════════════════════════════════════════ */
+        async function openEdit(id) {
+            editingId=id;
+            const res=await fetch(`/Map/GetMarkerById?id=${id}`);
+            const data=await res.json();
+            if(!data.success){showToast('⚠️ Could not load');return;}
+            selectedType=data.markerType;pendingLat=String(data.lat);pendingLng=String(data.lng);
+            showAddForm(data);
         }
 
-        // ════════════════════════════════════════════════════════════════
-        // EDIT
-        // ════════════════════════════════════════════════════════════════
-        async function openEditPanel(id) {
-            editingId = id;
-            const res  = await fetch(`/Map/GetMarkerById?id=${id}`);
-            const data = await res.json();
-            if (!data.success) { showToast('⚠️ Could not load marker'); return; }
-
-            selectedType = data.markerType;
-            pendingLat   = String(data.lat);
-            pendingLng   = String(data.lng);
-
-            document.getElementById('rpTitle').textContent = 'Edit Marker';
-            document.getElementById('rpBody').innerHTML = buildForm(data,
-                `📍 ${parseFloat(data.lat).toFixed(5)}, ${parseFloat(data.lng).toFixed(5)}`, false);
-
-            // Show existing image
-            if (data.imageUrl) {
-                document.getElementById('imgPreview').src = data.imageUrl;
-                document.getElementById('imgPreview').style.display = 'block';
-                document.getElementById('imgPlaceholder').style.display = 'none';
-                document.getElementById('imgArea').classList.add('has-img');
-            }
-
-            openRightPanel();
-        }
-
-        // ════════════════════════════════════════════════════════════════
-        // SAVE
-        // ════════════════════════════════════════════════════════════════
+        /* ════════════════════════════════════════════════════════════
+           SAVE
+        ════════════════════════════════════════════════════════════ */
         async function saveMarker() {
-            const label = document.getElementById('fLabel')?.value.trim();
-            const lat   = document.getElementById('fLat')?.value;
-            const lng   = document.getElementById('fLng')?.value;
+            const label=document.getElementById('fLabel')?.value.trim();
+            const lat=document.getElementById('fLat')?.value;
+            const lng=document.getElementById('fLng')?.value;
+            if(!label){hilite('fLabel');return;}
+            if(!lat){showToast('⚠️ Location not set');return;}
+            const fd=new FormData();
+            fd.append('markerType',  selectedType||'petfriendly');
+            fd.append('label',       label); fd.append('latitude',    lat); fd.append('longitude',   lng);
+            fd.append('city',        document.getElementById('fCity')?.value||'');
+            fd.append('area',        document.getElementById('fArea')?.value||'');
+            fd.append('phone',       document.getElementById('fPhone')?.value||'');
+            fd.append('workingHours',document.getElementById('fHours')?.value||'');
+            fd.append('description', document.getElementById('fDesc')?.value||'');
+            fd.append('website',     document.getElementById('fWeb')?.value||'');
+            fd.append('notes',       document.getElementById('fNotes')?.value||'');
+            fd.append('__RequestVerificationToken',getToken());
+            const imgFile=document.getElementById('imgFile')?.files?.[0];
+            if(imgFile)fd.append('image',imgFile);
+            const url=editingId?'/Map/EditAdminMarker':'/Map/AddAdminMarker';
+            if(editingId)fd.append('id',editingId);
+            const res=await fetch(url,{method:'POST',body:fd});
+            const data=await res.json();
+            if(data.success){closeRP();await fetchData();map.setView([parseFloat(lat),parseFloat(lng)],16,{animate:true});showToast(editingId?'✅ Updated!':'✅ Added to map!');editingId=null;}
+            else{showToast('⚠️ '+(data.message||'Error'));}
+        }
 
-            if (!label) { document.getElementById('fLabel').style.borderColor = '#dc2626'; return; }
-            if (!lat)   { showToast('⚠️ Location not set — go back and click on the map'); return; }
+        /* ════════════════════════════════════════════════════════════
+           DETAIL PANEL
+           ★ isAdmin = only admin-added places (NOT danger, NOT registered clinic/store)
+        ════════════════════════════════════════════════════════════ */
+        function openDetail(p, type) {
+            editingId=null;
+            const color=COLORS[type]||'#7fa85a';
+            const emoji=EMOJIS[type]||'📍';
+            const label=LABELS[type]||type;
 
-            const formData = new FormData();
-            formData.append('markerType',  selectedType || 'petfriendly');
-            formData.append('label',       label);
-            formData.append('latitude',    lat);
-            formData.append('longitude',   lng);
-            formData.append('city',        document.getElementById('fCity')?.value  || '');
-            formData.append('area',        document.getElementById('fArea')?.value  || '');
-            formData.append('phone',       document.getElementById('fPhone')?.value || '');
-            formData.append('workingHours',document.getElementById('fHours')?.value || '');
-            formData.append('description', document.getElementById('fDesc')?.value  || '');
-            formData.append('website',     document.getElementById('fWebsite')?.value || '');
-            formData.append('notes',       document.getElementById('fNotes')?.value || '');
-            formData.append('__RequestVerificationToken', getToken());
+            // ★ FIX: Only show edit/delete for admin-added non-danger items
+            const canEdit = p._src === 'admin' && type !== 'danger';
 
-            const imgFile = document.getElementById('imgFile')?.files?.[0];
-            if (imgFile) formData.append('image', imgFile);
+            setRP(label+' Details',false);
+            const photoHtml=(p.image||p.logo)?`<img src="${p.image||p.logo}" alt="${p.name||''}" />`:`<div class="dv-photo-ph" style="background:linear-gradient(135deg,${color}18,${color}32)">${emoji}</div>`;
+            const dangerBar=type==='danger'?`<div class="dv-danger-bar" style="background:${p.severity==='High'?'#fee2e2':p.severity==='Low'?'#f0fdf4':'#fff3e0'};color:${p.severity==='High'?'#dc2626':p.severity==='Low'?'#16a34a':'#b45309'}"><span>${p.severity==='High'?'🔴':p.severity==='Low'?'🟢':'🟠'}</span><strong>${p.severity||'Medium'} Severity</strong><span style="margin-left:auto;font-size:.72rem;opacity:.75">${p.status||''}</span></div>`:'';
+            const rows=[];
+            if(p.city||p.area) rows.push(dr('📍','Location',[p.city,p.area].filter(Boolean).join(', ')));
+            if(p.phone)         rows.push(dr('📞','Phone',`<a href="tel:${p.phone}">${p.phone}</a>`));
+                    const _hrs = p.hours || p.workingHours || p.openingHours;
+        if (_hrs) rows.push(dr('🕐','Hours', _hrs));
+            if(p.description)   rows.push(dr('📝','About',p.description));
+            if(p.website)       rows.push(dr('🌐','Website',`<a href="${p.website}" target="_blank">${p.website.replace(/https?:\/\//,'')}</a>`));
+            if(p.notes)         rows.push(dr('🗒️','Notes',p.notes));
+            if(p.reportCode)    rows.push(dr('🔖','Code',`<code style="font-size:.74rem">${p.reportCode}</code>`));
+            if(p.hasEmergency)  rows.push(dr('🚑','Emergency','<strong style="color:#16a34a">24/7 Available</strong>'));
 
-            const url = editingId
-                ? `/Map/EditAdminMarker`
-                : `/Map/AddAdminMarker`;
+            const mapsUrl=`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`;
+            let acts=`<a class="dv-btn primary" href="${mapsUrl}" target="_blank">🧭 Directions</a>`;
 
-            if (editingId) formData.append('id', editingId);
-
-            const res  = await fetch(url, { method: 'POST', body: formData });
-            const data = await res.json();
-
-            if (data.success) {
-                closeRightPanel();
-                await fetchData();
-                // Fly to the new/edited marker
-                map.setView([parseFloat(lat), parseFloat(lng)], 16, { animate: true });
-                showToast(editingId ? '✅ Marker updated!' : '✅ Marker added to map!');
-                editingId = null;
-            } else {
-                showToast('⚠️ ' + (data.message || 'Error saving'));
+            if (canEdit) {
+                // Admin-added clinics, stores, pet-friendly places → full edit controls
+                acts += `<button class="dv-btn edit" onclick="openEdit(${p.id})">✏️ Edit</button>`;
+                acts += `<button class="dv-btn del"  onclick="confirmDel(${p.id},'${(p.name||'').replace(/'/g,'')}')">🗑 Delete</button>`;
+                acts += `<button class="dv-btn hide" onclick="doHide(${p.id})">👁 Hide</button>`;
+            } else if (type==='clinic' && p._src!=='admin') {
+                acts += `<a class="dv-btn edit" href="/SuperAdmin/Clinics">⚙️ Manage Clinic</a>`;
+            } else if (type==='store' && p._src!=='admin') {
+                acts += `<a class="dv-btn edit" href="/SuperAdmin/Stores">⚙️ Manage Store</a>`;
+            } else if (type==='danger') {
+                // Danger: only resolve + full report (NO edit)
+                if (p.status!=='Resolved') acts += `<button class="dv-btn edit" onclick="updDanger(${p.id},'Resolved')">✅ Resolve</button>`;
+                acts += `<a class="dv-btn hide" href="/SuperAdmin/Dangerous_Animals">📋 Full Report</a>`;
             }
+
+            document.getElementById('rpBody').innerHTML=`<div class="detail-view"><div class="dv-photo" style="${!(p.image||p.logo)?'background:linear-gradient(135deg,'+color+'18,'+color+'32)':''}">${photoHtml}</div><div class="dv-content"><div class="dv-name">${p.name||p.label||'—'}</div><span class="dv-badge" style="background:${color}18;color:${color}">${emoji} ${label}</span>${dangerBar}${rows.join('')}</div><div class="dv-actions">${acts}</div></div>`;
+            openRP();
         }
 
-        // ════════════════════════════════════════════════════════════════
-        // DETAIL PANEL
-        // ════════════════════════════════════════════════════════════════
-        function openDetailPanel(p, type) {
-            editingId = null;
-            const color = COLORS[p.markerType || type] || '#7fa85a';
-            const emoji = EMOJIS[p.markerType || type] || '📍';
-            const label = LABELS[p.markerType || type] || type;
+        function dr(ico,key,val){return`<div class="dv-row"><div class="dv-ico">${ico}</div><span class="dv-key">${key}</span><span class="dv-val">${val}</span></div>`;}
 
-            document.getElementById('rpTitle').textContent = label + ' Details';
+        /* ════════════════════════════════════════════════════════════
+           API
+        ════════════════════════════════════════════════════════════ */
+        async function confirmDel(id,name){if(!confirm(`Delete "${name}"?`))return;const form=new URLSearchParams({id,__RequestVerificationToken:getToken()});await fetch('/Map/DeleteAdminMarker',{method:'POST',body:form});closeRP();await fetchData();showToast('🗑 Deleted');}
+        async function doHide(id){const form=new URLSearchParams({id,status:'Hidden',__RequestVerificationToken:getToken()});await fetch('/Map/ToggleAdminMarker',{method:'POST',body:form});closeRP();await fetchData();showToast('👁 Hidden');}
+        async function updDanger(id,status){const form=new URLSearchParams({reportId:id,status,__RequestVerificationToken:getToken()});await fetch('/SuperAdmin/UpdateDangerStatus',{method:'POST',body:form});await fetchData();showToast(status==='Resolved'?'✅ Resolved':'🔍 Under review');}
 
-            const photoHtml = (p.image || p.logo)
-                ? `<img src="${p.image||p.logo}" alt="${p.name}" />`
-                : `<span>${emoji}</span>`;
-
-            const rows = [];
-            if (p.city||p.area) rows.push(dRow('📍','Location',[p.city,p.area].filter(Boolean).join(', ')));
-            if (p.phone)         rows.push(dRow('📞','Phone',`<a href="tel:${p.phone}" style="color:#5a7a3e">${p.phone}</a>`));
-            if (p.hours)         rows.push(dRow('🕐','Hours',p.hours));
-            if (p.description)   rows.push(dRow('📝','About',p.description));
-            if (p.website)       rows.push(dRow('🌐','Website',`<a href="${p.website}" target="_blank" style="color:#5a7a3e">${p.website}</a>`));
-            if (p.notes)         rows.push(dRow('🗒️','Notes',p.notes));
-            if (p.reportCode)    rows.push(dRow('🔖','Code',`<code style="font-size:.72rem">${p.reportCode}</code>`));
-            if (p.severity)      rows.push(dRow('⚠️','Severity',`<strong class="sev-${p.severity}">${p.severity}</strong>`));
-            if (p.hasEmergency)  rows.push(dRow('🚑','Emergency','<strong style="color:#16a34a">24/7 Available</strong>'));
-
-            const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`;
-
-            // Danger-specific bar
-            const dangerBar = type === 'danger' ? `
-                <div class="dv-danger-bar sev-${p.severity||'Medium'}">
-                    <span>${p.severity==='High'?'🔴':p.severity==='Low'?'🟢':'🟠'}</span>
-                    <span>${p.severity} Severity — ${p.status}</span>
-                </div>` : '';
-
-            // Actions
-            let actions = `<a class="dv-btn primary" href="${mapsUrl}" target="_blank">🧭 Directions</a>`;
-            if (type !== 'clinic' && type !== 'store' && type !== 'danger') {
-                actions += `<button class="dv-btn edit" onclick="openEditPanel(${p.id})">✏️ Edit</button>`;
-                actions += `<button class="dv-btn danger" onclick="confirmDelete(${p.id},'${(p.name||'').replace(/'/g,'')}')">🗑 Delete</button>`;
-                actions += `<button class="dv-btn hide" onclick="toggleHide(${p.id},this)">👁 Hide</button>`;
-            }
-            if (type === 'danger') {
-                if (p.status !== 'Resolved') actions += `<button class="dv-btn edit" onclick="updateDanger(${p.id},'Resolved')">✅ Resolve</button>`;
-                actions += `<a class="dv-btn hide" href="/SuperAdmin/Dangerous_Animals">📋 Full Report</a>`;
-            }
-            if (type === 'clinic') actions += `<a class="dv-btn edit" href="/SuperAdmin/Clinics">⚙️ Manage</a>`;
-            if (type === 'store')  actions += `<a class="dv-btn edit" href="/SuperAdmin/Stores">⚙️ Manage</a>`;
-
-            document.getElementById('rpBody').innerHTML = `<div class="detail-view">
-                <div class="dv-photo">${photoHtml}</div>
-                <div class="dv-name">${p.name}</div>
-                <span class="dv-type-badge" style="background:${color}18;color:${color}">${label}</span>
-                ${dangerBar}
-                ${rows.join('')}
-                <div class="dv-actions">${actions}</div>
-            </div>`;
-
-            openRightPanel();
-        }
-
-        function dRow(ico, key, val) {
-            return `<div class="dv-row"><div class="dv-ico">${ico}</div><span class="dv-key">${key}</span><span class="dv-val">${val}</span></div>`;
-        }
-
-        // ════════════════════════════════════════════════════════════════
-        // API CALLS
-        // ════════════════════════════════════════════════════════════════
-        async function confirmDelete(id, name) {
-            if (!confirm(`Delete "${name}"?`)) return;
-            const form = new URLSearchParams({ id, __RequestVerificationToken: getToken() });
-            await fetch('/Map/DeleteAdminMarker', { method:'POST', body:form });
-            closeRightPanel();
-            await fetchData();
-            showToast('🗑 Marker deleted');
-        }
-
-        async function toggleHide(id, btn) {
-            const form = new URLSearchParams({ id, status:'Hidden', __RequestVerificationToken: getToken() });
-            await fetch('/Map/ToggleAdminMarker', { method:'POST', body:form });
-            closeRightPanel();
-            await fetchData();
-            showToast('👁 Marker hidden');
-        }
-
-        async function updateDanger(id, status) {
-            const form = new URLSearchParams({ reportId:id, status, __RequestVerificationToken: getToken() });
-            await fetch('/SuperAdmin/UpdateDangerStatus', { method:'POST', body:form });
-            await fetchData();
-            showToast(status==='Resolved' ? '✅ Report resolved' : '🔍 Under review');
-        }
-
-        // ════════════════════════════════════════════════════════════════
-        // PANEL HELPERS
-        // ════════════════════════════════════════════════════════════════
-        function openRightPanel() {
-            document.getElementById('rightPanel').classList.add('open');
-        }
-        function closeRightPanel() {
-            document.getElementById('rightPanel').classList.remove('open');
-            editingId = null;
-        }
-        function flyTo(lat, lng) {
-            map.setView([lat, lng], 16, { animate: true });
-        }
-        function flyAndDetail(lat, lng, type, p) {
-            map.setView([lat, lng], 16, { animate: true });
-            if (typeof p === 'string') p = JSON.parse(p.replace(/'/g, '"'));
-            openDetailPanel(p, type);
-        }
-
-        function getToken() {
-            return document.querySelector('input[name="__RequestVerificationToken"]')?.value ?? '';
-        }
-
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.textContent = msg; t.classList.add('show');
-            clearTimeout(t._t);
-            t._t = setTimeout(() => t.classList.remove('show'), 2800);
-        }
-
-        document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') { cancelAddMode(); closeRightPanel(); }
-        });
-
-        // ════════════════════════════════════════════════════════════════
-        // BOOT
-        // ════════════════════════════════════════════════════════════════
-        document.addEventListener('DOMContentLoaded', () => { initMap(); fetchData(); });
+        /* ════════════════════════════════════════════════════════════
+           HELPERS
+        ════════════════════════════════════════════════════════════ */
+        function setRP(title,showBack){document.getElementById('rpTitle').textContent=title;const b=document.getElementById('rpBack');if(showBack)b.classList.add('show');else b.classList.remove('show');}
+        function rpGoBack(){showTypeSelector();}
+        function openRP() {document.getElementById('rightPanel').classList.add('open');}
+        function closeRP(){document.getElementById('rightPanel').classList.remove('open');editingId=null;}
+        function hilite(id){const el=document.getElementById(id);if(!el)return;el.style.borderColor='#dc2626';el.focus();setTimeout(()=>el.style.borderColor='',2000);}
+        function getToken(){return document.querySelector('input[name="__RequestVerificationToken"]')?.value??'';}
+        function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),2800);}
+        document.addEventListener('keydown',e=>{if(e.key==='Escape'){cancelAddMode();closeRP();}});
+        window.addEventListener('resize',()=>{ if(map) map.invalidateSize(); });
+        document.addEventListener('DOMContentLoaded',()=>{ initMap(); fetchData(); });
     </script>
 </body>
 </html>

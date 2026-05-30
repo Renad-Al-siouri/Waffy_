@@ -6,808 +6,1226 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Explore — Waffy Map</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <title>Explore Map — Waffy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     <style>
+        /* ════════════════════════════════════════════════════════
+           VARIABLES  (match prodstyle.css)
+        ════════════════════════════════════════════════════════ */
+        :root {
+            --olive: #7a9e35;
+            --olive-dark: #4d6620;
+            --olive-light: #a8c558;
+            --olive-xl: #eef4e0;
+            --cream: #faf6f0;
+            --card: #ffffff;
+            --text-dark: #26321a;
+            --text-mid: #5a6e40;
+            --text-muted: #8fa070;
+            --line: #e2ecd0;
+            --danger: #d94f3a;
+            --r-card: 18px;
+            --r-btn: 999px;
+            --shadow: 0 2px 12px rgba(80,110,30,.09);
+            --shadow-h: 0 12px 32px rgba(80,110,30,.18);
+            --tr: .22s cubic-bezier(.4,0,.2,1);
+            /* pin colors */
+            --c-clinic: #00c896;
+            --c-store: #8b5cf6;
+            --c-friendly: #f59e0b;
+            --c-park: #38a169;
+        }
+
         *, *::before, *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
 
-        :root {
-            --sage: #7fa85a;
-            --sage-d: #5a7a3e;
-            --sage-l: #c4d9a8;
-            --sand: #f5efe6;
-            --ink: #1a1612;
-            --muted: #8a7b6c;
-            --white: #ffffff;
-            --glass: rgba(255,255,255,0.85);
-            --r: 18px;
-        }
-
-        html, body {
-            height: 100%;
-            font-family: 'DM Sans', sans-serif;
-            background: var(--ink);
-            overflow: hidden;
-        }
-
-        /* ══════════════════════════════════════════
-                   FULL SCREEN MAP
-                ══════════════════════════════════════════ */
-        #map {
-            position: fixed;
-            inset: 0;
-            z-index: 0;
-        }
-
-        /* ══════════════════════════════════════════
-                   TOP BAR — glass floating
-                ══════════════════════════════════════════ */
-        .top-bar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            z-index: 800;
-            padding: 14px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: linear-gradient(180deg, rgba(26,22,18,0.72) 0%, transparent 100%);
-        }
-
-        /* Logo */
-        .tb-logo {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: #fff;
-            letter-spacing: -0.5px;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-            .tb-logo span {
-                color: var(--sage-l);
-            }
-
-        /* Mode toggle */
-        .mode-pill {
-            display: flex;
-            background: rgba(255,255,255,0.12);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255,255,255,0.18);
-            border-radius: 50px;
-            padding: 4px;
-            flex-shrink: 0;
-        }
-
-        .mp-btn {
-            padding: 7px 16px;
-            border-radius: 50px;
-            border: none;
-            background: transparent;
-            font-family: 'DM Sans', sans-serif;
-            font-size: .78rem;
-            font-weight: 600;
-            color: rgba(255,255,255,.7);
-            cursor: pointer;
-            transition: all .25s ease;
-            white-space: nowrap;
-        }
-
-            .mp-btn.active {
-                background: var(--white);
-                color: var(--ink);
-                box-shadow: 0 4px 16px rgba(0,0,0,.25);
-            }
-
-        /* Search */
-        .search-pill {
-            flex: 1;
-            min-width: 0;
-            max-width: 380px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: rgba(255,255,255,0.12);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(255,255,255,0.18);
-            border-radius: 50px;
-            padding: 0 18px;
-            height: 44px;
-            transition: all .2s;
-        }
-
-            .search-pill:focus-within {
-                background: rgba(255,255,255,0.22);
-                border-color: rgba(255,255,255,.4);
-            }
-
-            .search-pill input {
-                border: none;
-                outline: none;
-                background: transparent;
-                font-family: 'DM Sans', sans-serif;
-                font-size: .84rem;
-                font-weight: 500;
-                color: #fff;
-                width: 100%;
-            }
-
-                .search-pill input::placeholder {
-                    color: rgba(255,255,255,.5);
-                }
-
-            .search-pill i {
-                color: rgba(255,255,255,.5);
-                font-size: .82rem;
-            }
-
-        /* Icon buttons */
-        .tb-icon-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            border: 1px solid rgba(255,255,255,.18);
-            background: rgba(255,255,255,.12);
-            backdrop-filter: blur(16px);
-            color: #fff;
-            font-size: .9rem;
-            cursor: pointer;
-            display: grid;
-            place-items: center;
-            flex-shrink: 0;
-            transition: all .2s;
-        }
-
-            .tb-icon-btn:hover {
-                background: rgba(255,255,255,.25);
-                border-color: rgba(255,255,255,.4);
-            }
-
-            .tb-icon-btn.active-loc {
-                background: var(--sage);
-                border-color: var(--sage-l);
-            }
-
-        /* ══════════════════════════════════════════
-                   NEARBY DRAWER
-                ══════════════════════════════════════════ */
-        .nearby-btn {
-            position: fixed;
-            bottom: 32px;
-            left: 20px;
-            z-index: 700;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--white);
-            border: none;
-            border-radius: 50px;
-            padding: 13px 22px;
-            font-family: 'Syne', sans-serif;
-            font-size: .84rem;
-            font-weight: 700;
-            color: var(--ink);
-            cursor: pointer;
-            box-shadow: 0 8px 32px rgba(0,0,0,.22);
-            transition: transform .2s, box-shadow .2s;
-        }
-
-            .nearby-btn:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 12px 36px rgba(0,0,0,.28);
-            }
-
-        .nb-count {
-            background: var(--sage);
-            color: #fff;
-            border-radius: 50px;
-            padding: 2px 8px;
-            font-size: .72rem;
-            font-weight: 700;
-        }
-
-        .nearby-drawer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 360px;
-            max-height: 72vh;
-            background: var(--white);
-            border-radius: 24px 24px 0 0;
-            z-index: 900;
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--cream);
+            color: var(--text-dark);
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
-            transform: translateY(100%);
-            transition: transform .38s cubic-bezier(.4,0,.2,1);
-            box-shadow: 0 -12px 48px rgba(0,0,0,.2);
+            overflow-x: hidden;
         }
 
-            .nearby-drawer.open {
-                transform: translateY(0);
-            }
-
-        .nd-handle {
-            width: 40px;
-            height: 4px;
-            background: #e0d8d0;
-            border-radius: 2px;
-            margin: 14px auto 0;
-            flex-shrink: 0;
+        a {
+            text-decoration: none;
+            color: inherit;
         }
 
-        .nd-hd {
+        img {
+            display: block;
+            max-width: 100%;
+        }
+
+        .container {
+            width: min(1280px, calc(100% - 28px));
+            margin: 0 auto;
+        }
+
+        /* ════════════════════════════════════════════════════════
+           NAVBAR  (identical to products page)
+        ════════════════════════════════════════════════════════ */
+        .topbar {
+            position: sticky;
+            top: 0;
+            z-index: 900;
+            background: rgba(250,246,240,.88);
+            backdrop-filter: blur(14px);
+            border-bottom: 1px solid rgba(120,160,50,.12);
+        }
+
+        .header-shell {
+            display: flex;
+            justify-content: center;
+            padding: 10px 20px;
+        }
+
+        .navbar {
+            width: 100%;
+            max-width: 1280px;
+            display: grid;
+            grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+            align-items: center;
+            gap: 16px;
+            min-height: 68px;
+        }
+
+        .desktop-nav {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px 12px;
-            flex-shrink: 0;
-        }
-
-        .nd-title {
-            font-family: 'Syne', sans-serif;
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--ink);
-        }
-
-        .nd-close {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-            border: none;
-            background: #f0ebe4;
-            color: var(--muted);
-            font-size: .8rem;
-            cursor: pointer;
-            display: grid;
-            place-items: center;
-        }
-
-        /* Filter chips */
-        .nd-chips {
-            display: flex;
             gap: 8px;
-            padding: 0 20px 12px;
-            overflow-x: auto;
-            scrollbar-width: none;
-            flex-shrink: 0;
         }
 
-            .nd-chips::-webkit-scrollbar {
-                display: none;
-            }
+        .left-nav {
+            justify-content: flex-start;
+        }
 
-        .chip {
-            padding: 6px 14px;
-            border-radius: 50px;
-            border: 1.5px solid #e8e0d8;
-            background: #fff;
-            font-size: .74rem;
-            font-weight: 600;
-            color: var(--muted);
+        .right-nav {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .logo-center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .main-logo {
+            width: 130px;
+            height: auto;
+        }
+
+        .nav-link {
+            padding: 8px 14px;
+            border-radius: var(--r-btn);
+            font-size: .86rem;
+            font-weight: 800;
+            color: var(--text-mid);
+            border: none;
+            background: transparent;
             cursor: pointer;
+            transition: var(--tr);
             white-space: nowrap;
-            transition: all .18s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
 
-            .chip.active {
-                background: var(--ink);
-                border-color: var(--ink);
+            .nav-link:hover, .nav-link.active {
+                background: var(--olive);
                 color: #fff;
             }
 
-        /* Place list */
-        #nearbyList {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0 16px 24px;
-            scrollbar-width: thin;
-            scrollbar-color: #e0d8d0 transparent;
+        .login-btn {
+            background: var(--olive);
+            color: #fff !important;
+            box-shadow: 0 4px 14px rgba(120,160,50,.3);
         }
 
-        .place-card {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 12px;
-            border-radius: 16px;
-            cursor: pointer;
-            transition: background .15s;
-            margin-bottom: 4px;
-        }
-
-            .place-card:hover {
-                background: #f8f4ef;
+            .login-btn:hover {
+                background: var(--olive-dark);
             }
 
-        .pc-img {
-            width: 56px;
-            height: 56px;
-            border-radius: 14px;
-            object-fit: cover;
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
             flex-shrink: 0;
-            background: linear-gradient(135deg, var(--sage-l), var(--sage));
+        }
+
+        .nav-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
-            overflow: hidden;
+            background: #fff;
+            border: 1px solid var(--line);
+            color: var(--olive-dark);
+            font-size: .95rem;
+            cursor: pointer;
+            transition: var(--tr);
+            flex-shrink: 0;
         }
 
-            .pc-img img {
+            .nav-icon:hover {
+                background: var(--olive);
+                color: #fff;
+                border-color: var(--olive);
+            }
+
+        .profile-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid rgba(120,160,50,.3);
+            flex-shrink: 0;
+        }
+
+            .profile-btn img {
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
-                border-radius: 14px;
             }
 
-        .pc-info {
+        .services-dropdown {
+            position: relative;
+        }
+
+        .dropdown-arrow {
+            font-size: .65rem;
+            margin-left: 5px;
+            transition: transform .2s;
+        }
+
+        .services-dropdown.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            top: calc(100% + 8px);
+            right: 0;
+            min-width: 210px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            box-shadow: 0 16px 40px rgba(60,90,20,.14);
+            padding: 8px;
+            flex-direction: column;
+            gap: 2px;
+            z-index: 2000;
+        }
+
+        .services-dropdown.open .dropdown-menu {
+            display: flex;
+        }
+
+        .dropdown-link {
+            display: block;
+            padding: 9px 12px;
+            border-radius: 10px;
+            font-size: .84rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            transition: var(--tr);
+        }
+
+            .dropdown-link:hover {
+                background: var(--olive-xl);
+                color: var(--olive-dark);
+            }
+
+        .mobile-nav-wrap {
+            display: none;
+            position: relative;
+        }
+
+        .menu-btn {
+            display: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: var(--olive);
+            color: #fff;
+            border: none;
+            font-size: 1rem;
+            cursor: pointer;
+            place-items: center;
+        }
+
+        .nav-links {
+            display: none;
+            position: absolute;
+            top: 52px;
+            right: 0;
+            width: min(260px, calc(100vw - 20px));
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            box-shadow: 0 16px 40px rgba(60,90,20,.14);
+            padding: 12px;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 3000;
+            max-height: calc(100vh - 80px);
+            overflow-y: auto;
+        }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-links .nav-link {
+                width: 100%;
+                justify-content: center;
+            }
+
+        .mobile-menu-logo {
+            display: flex;
+            justify-content: center;
+            padding-bottom: 8px;
+        }
+
+            .mobile-menu-logo img {
+                width: 70px;
+            }
+
+        .mobile-services-block {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .mobile-services-toggle {
+            width: 100%;
+            border: 1px solid var(--line);
+            background: #fafafa;
+            color: var(--olive-dark);
+            border-radius: 12px;
+            padding: 10px 14px;
+            font-weight: 800;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: .86rem;
+        }
+
+        .mobile-services-menu {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            padding-top: 4px;
+        }
+
+        .mobile-services-block.open .mobile-services-menu {
+            display: flex;
+        }
+
+        .mobile-services-block.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        /* ════════════════════════════════════════════════════════
+           PAGE HERO HEADER
+        ════════════════════════════════════════════════════════ */
+        .map-hero {
+            background: linear-gradient(135deg, var(--olive-dark) 0%, #2e5010 100%);
+            padding: 32px 0 28px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+            .map-hero::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23a8c558' fill-opacity='0.07'%3E%3Ccircle cx='30' cy='30' r='4'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+                pointer-events: none;
+            }
+
+            .map-hero h1 {
+                font-family: 'Fredoka', sans-serif;
+                font-size: clamp(1.6rem,3vw,2.2rem);
+                color: #fff;
+                margin-bottom: 6px;
+                position: relative;
+            }
+
+            .map-hero p {
+                color: rgba(255,255,255,.72);
+                font-size: .88rem;
+                font-weight: 600;
+                position: relative;
+            }
+
+        .hero-badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .hero-badge {
+            padding: 7px 16px;
+            border-radius: var(--r-btn);
+            background: rgba(255,255,255,.12);
+            border: 1px solid rgba(255,255,255,.2);
+            color: rgba(255,255,255,.85);
+            font-size: .78rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            backdrop-filter: blur(8px);
+        }
+
+            .hero-badge span.dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+            }
+
+        /* ════════════════════════════════════════════════════════
+           MAP SHELL — sidebar + map
+        ════════════════════════════════════════════════════════ */
+        .map-shell {
+            display: flex;
+            gap: 0;
+            height: calc(100vh - 68px - 110px); /* viewport - navbar - hero */
+            min-height: 560px;
+            border-top: 1px solid var(--line);
+        }
+
+        /* ── Left Sidebar ── */
+        .map-sidebar {
+            width: 340px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            background: var(--card);
+            border-right: 1px solid var(--line);
+            overflow: hidden;
+        }
+
+        /* Controls section */
+        .sb-controls {
+            padding: 16px 16px 12px;
+            border-bottom: 1px solid var(--line);
+            flex-shrink: 0;
+            background: #fff;
+        }
+
+        /* Mode toggle */
+        .mode-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            background: var(--olive-xl);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 12px;
+            gap: 3px;
+        }
+
+        .mt-btn {
+            padding: 9px 12px;
+            border-radius: 9px;
+            border: none;
+            background: transparent;
+            font-family: 'Nunito', sans-serif;
+            font-size: .78rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--tr);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+            .mt-btn.active {
+                background: #fff;
+                color: var(--olive-dark);
+                box-shadow: 0 2px 8px rgba(80,110,30,.12);
+            }
+
+        /* Search */
+        .sb-search {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            background: var(--cream);
+            border: 1.5px solid var(--line);
+            border-radius: 12px;
+            padding: 0 14px;
+            height: 42px;
+            margin-bottom: 10px;
+            transition: var(--tr);
+        }
+
+            .sb-search:focus-within {
+                border-color: var(--olive);
+                background: #fff;
+            }
+
+            .sb-search i {
+                color: var(--text-muted);
+                font-size: .84rem;
+                flex-shrink: 0;
+            }
+
+            .sb-search input {
+                border: none;
+                outline: none;
+                background: transparent;
+                font-family: 'Nunito', sans-serif;
+                font-size: .82rem;
+                font-weight: 600;
+                color: var(--text-dark);
+                width: 100%;
+            }
+
+                .sb-search input::placeholder {
+                    color: var(--text-muted);
+                }
+
+        .sb-search-clear {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: .8rem;
+            flex-shrink: 0;
+            display: none;
+        }
+
+        /* Filter chips row */
+        .sb-chips {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            padding-bottom: 2px;
+            margin-bottom: 10px;
+        }
+
+            .sb-chips::-webkit-scrollbar {
+                display: none;
+            }
+
+        .fchip {
+            flex-shrink: 0;
+            padding: 5px 12px;
+            border-radius: var(--r-btn);
+            border: 1.5px solid var(--line);
+            background: #fff;
+            font-size: .72rem;
+            font-weight: 800;
+            color: var(--text-mid);
+            cursor: pointer;
+            transition: var(--tr);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+            .fchip:hover {
+                border-color: var(--olive-light);
+                color: var(--olive-dark);
+            }
+
+            .fchip.active {
+                background: var(--olive);
+                border-color: var(--olive);
+                color: #fff;
+                box-shadow: 0 3px 10px rgba(120,160,50,.25);
+            }
+
+        .fchip-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+        }
+
+        .fchip.active .fchip-dot {
+            background: rgba(255,255,255,.6);
+        }
+
+        /* Distance filter */
+        .sb-dist-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sb-dist-label {
+            font-size: .72rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .dist-select {
+            flex: 1;
+            height: 36px;
+            padding: 0 12px;
+            border-radius: var(--r-btn);
+            border: 1.5px solid var(--line);
+            background: #fff;
+            font-family: 'Nunito', sans-serif;
+            font-size: .76rem;
+            font-weight: 700;
+            color: var(--text-mid);
+            cursor: pointer;
+            outline: none;
+            transition: var(--tr);
+        }
+
+            .dist-select:focus {
+                border-color: var(--olive);
+            }
+
+        /* Results count */
+        .sb-count {
+            padding: 8px 16px 6px;
+            font-size: .7rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            letter-spacing: .5px;
+            text-transform: uppercase;
+            border-bottom: 1px solid var(--line);
+            flex-shrink: 0;
+        }
+
+        /* Place list */
+        .sb-list {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--line) transparent;
+        }
+
+            .sb-list::-webkit-scrollbar {
+                width: 4px;
+            }
+
+            .sb-list::-webkit-scrollbar-thumb {
+                background: var(--line);
+                border-radius: 4px;
+            }
+
+        .place-item {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            padding: 11px 16px;
+            border-bottom: 1px solid #f5f0ea;
+            cursor: pointer;
+            transition: background .14s;
+        }
+
+            .place-item:hover {
+                background: var(--olive-xl);
+            }
+
+            .place-item.selected {
+                background: #f0f7e0;
+            }
+
+        .pi-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1.1rem;
+        }
+
+        .pi-body {
             flex: 1;
             min-width: 0;
         }
 
-        .pc-name {
-            font-family: 'Syne', sans-serif;
-            font-size: .88rem;
-            font-weight: 700;
-            color: var(--ink);
+        .pi-name {
+            font-size: .84rem;
+            font-weight: 800;
+            color: var(--text-dark);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        .pc-meta {
+        .pi-meta {
             display: flex;
             align-items: center;
             gap: 6px;
-            margin-top: 4px;
+            margin-top: 3px;
             flex-wrap: wrap;
         }
 
-        .pc-type {
-            font-size: .7rem;
-            font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 50px;
+        .pi-type {
+            font-size: .67rem;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 20px;
         }
 
-        .pc-dist {
-            font-size: .7rem;
-            font-weight: 500;
-            color: var(--muted);
+        .pi-dist {
+            font-size: .67rem;
+            font-weight: 700;
+            color: var(--text-muted);
         }
 
-        .pc-open {
-            background: #e8f5e0;
-            color: #3d7a2a;
-        }
-
-        .pc-closed {
-            background: #fce8e8;
-            color: #c0392b;
-        }
-
-        .pc-arrow {
-            color: var(--muted);
-            font-size: .7rem;
+        .pi-arr {
+            color: var(--line);
+            font-size: .68rem;
             flex-shrink: 0;
         }
 
-        /* ══════════════════════════════════════════
-                   PLACE POPUP CARD (slides from right)
-                ══════════════════════════════════════════ */
-        .place-popup {
-            position: fixed;
-            top: 80px;
-            right: 20px;
-            width: 320px;
-            background: var(--white);
-            border-radius: 24px;
-            z-index: 850;
-            box-shadow: 0 16px 56px rgba(0,0,0,.22);
-            overflow: hidden;
-            transform: translateX(360px) scale(0.95);
-            opacity: 0;
-            transition: transform .32s cubic-bezier(.4,0,.2,1), opacity .32s ease;
-            pointer-events: none;
+        .sb-empty {
+            padding: 40px 20px;
+            text-align: center;
         }
 
-            .place-popup.open {
-                transform: translateX(0) scale(1);
-                opacity: 1;
-                pointer-events: all;
+            .sb-empty .e-ico {
+                font-size: 2.5rem;
+                margin-bottom: 12px;
             }
 
-        .pp-photo {
-            height: 160px;
+            .sb-empty p {
+                font-size: .82rem;
+                color: var(--text-muted);
+                font-weight: 600;
+                line-height: 1.6;
+            }
+
+        /* ── Map Area ── */
+        .map-area {
+            flex: 1;
             position: relative;
             overflow: hidden;
         }
 
-        .pp-photo-img {
+        #map {
             width: 100%;
             height: 100%;
-            object-fit: cover;
         }
 
-        .pp-photo-placeholder {
+        /* ════════════════════════════════════════════════════════
+           CUSTOM MAP PINS — type-specific SVG
+        ════════════════════════════════════════════════════════ */
+        .wm-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .wm-body {
+            width: 38px;
+            height: 46px;
+            position: relative;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,.22));
+            transition: filter .18s, transform .18s;
+        }
+
+        .wm-wrap:hover .wm-body {
+            transform: translateY(-3px);
+            filter: drop-shadow(0 7px 14px rgba(0,0,0,.3));
+        }
+
+        .wm-svg {
+            width: 38px;
+            height: 46px;
+        }
+
+        .wm-ico {
+            position: absolute;
+            top: 7px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .wm-ico svg {
+                width: 14px;
+                height: 14px;
+            }
+
+        .wm-shadow {
+            width: 12px;
+            height: 4px;
+            background: rgba(0,0,0,.15);
+            border-radius: 50%;
+            filter: blur(2px);
+            margin-top: -2px;
+        }
+
+        /* User location */
+        .user-pin {
+            position: relative;
+        }
+
+        .user-dot {
+            width: 16px;
+            height: 16px;
+            background: #3b82f6;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 2px 10px rgba(59,130,246,.5);
+        }
+
+        .user-ring {
+            position: absolute;
+            inset: -8px;
+            border: 2px solid rgba(59,130,246,.3);
+            border-radius: 50%;
+            animation: uRing 2.5s ease-out infinite;
+        }
+
+        .user-ring2 {
+            position: absolute;
+            inset: -16px;
+            border: 1.5px solid rgba(59,130,246,.15);
+            border-radius: 50%;
+            animation: uRing 2.5s ease-out infinite .5s;
+        }
+
+        @@keyframes uRing {
+            0% {
+                transform: scale(.5);
+                opacity: 1
+            }
+
+            100% {
+                transform: scale(1.6);
+                opacity: 0
+            }
+        }
+
+        /* ════════════════════════════════════════════════════════
+           PLACE DETAIL PANEL — slides from right
+        ════════════════════════════════════════════════════════ */
+        .detail-panel {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            bottom: 16px;
+            width: 340px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 16px 56px rgba(0,0,0,.18);
+            display: flex;
+            flex-direction: column;
+            z-index: 500;
+            transform: translateX(380px);
+            transition: transform .32s cubic-bezier(.4,0,.2,1);
+            overflow: hidden;
+        }
+
+            .detail-panel.open {
+                transform: translateX(0);
+            }
+
+        .dp-photo {
+            height: 180px;
+            position: relative;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+            .dp-photo img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .dp-photo-ph {
             width: 100%;
             height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 3rem;
+            font-size: 3.5rem;
         }
 
-        .pp-close {
+        .dp-close {
             position: absolute;
             top: 12px;
             right: 12px;
             width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: rgba(255,255,255,.9);
+            background: rgba(255,255,255,.92);
             border: none;
             cursor: pointer;
             display: grid;
             place-items: center;
-            font-size: .8rem;
-            color: var(--ink);
+            font-size: .82rem;
+            color: var(--text-dark);
             box-shadow: 0 2px 8px rgba(0,0,0,.15);
+            transition: var(--tr);
         }
 
-        .pp-type-badge {
+            .dp-close:hover {
+                background: #fff;
+            }
+
+        .dp-type-badge {
             position: absolute;
             top: 12px;
             left: 12px;
             padding: 5px 12px;
-            border-radius: 50px;
+            border-radius: var(--r-btn);
             font-size: .7rem;
-            font-weight: 700;
+            font-weight: 800;
             backdrop-filter: blur(8px);
         }
 
-        .pp-body {
-            padding: 18px;
+        .dp-dist-pill {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background: rgba(0,0,0,.55);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: var(--r-btn);
+            font-size: .7rem;
+            font-weight: 700;
+            backdrop-filter: blur(6px);
         }
 
-        .pp-name {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.05rem;
-            font-weight: 800;
-            color: var(--ink);
-            margin-bottom: 4px;
+        .dp-body {
+            flex: 1;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: var(--line) transparent;
         }
 
-        .pp-address {
-            font-size: .78rem;
-            color: var(--muted);
-            font-weight: 500;
+        .dp-content {
+            padding: 18px 18px 0;
+        }
+
+        .dp-name {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.12rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 3px;
+        }
+
+        .dp-addr {
+            font-size: .76rem;
+            color: var(--text-muted);
+            font-weight: 600;
             margin-bottom: 14px;
         }
 
-        .pp-row {
+        .dp-row {
             display: flex;
-            align-items: center;
-            gap: 10px;
+            align-items: flex-start;
+            gap: 11px;
             padding: 9px 0;
-            border-bottom: 1px solid #f0ebe4;
+            border-bottom: 1px solid #f4efe8;
             font-size: .8rem;
         }
 
-            .pp-row:last-of-type {
+            .dp-row:last-of-type {
                 border-bottom: none;
             }
 
-        .pp-row-icon {
+        .dp-ico {
             width: 32px;
             height: 32px;
-            border-radius: 10px;
+            border-radius: 9px;
+            background: var(--olive-xl);
             display: grid;
             place-items: center;
             font-size: .85rem;
             flex-shrink: 0;
         }
 
-        .pp-row-label {
-            font-weight: 500;
-            color: var(--muted);
-        }
-
-        .pp-row-val {
+        .dp-label {
+            font-size: .7rem;
             font-weight: 700;
-            color: var(--ink);
-            margin-left: auto;
+            color: var(--text-muted);
         }
 
-        .open-badge {
-            color: #3d7a2a;
+        .dp-val {
+            font-size: .82rem;
             font-weight: 700;
+            color: var(--text-dark);
+            margin-top: 1px;
+            line-height: 1.5;
         }
 
-        .close-badge {
-            color: #c0392b;
-            font-weight: 700;
-        }
+            .dp-val a {
+                color: var(--olive-dark);
+            }
 
-        .pp-actions {
+        .dp-actions {
             display: flex;
             gap: 10px;
-            margin-top: 16px;
+            padding: 14px 18px 18px;
+            flex-shrink: 0;
+            border-top: 1px solid var(--line);
         }
 
-        .pp-btn {
+        .dp-btn {
             flex: 1;
-            padding: 11px;
+            padding: 12px;
             border-radius: 14px;
             border: none;
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Nunito', sans-serif;
             font-size: .8rem;
-            font-weight: 700;
+            font-weight: 800;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 7px;
-            transition: all .18s;
+            gap: 8px;
+            transition: var(--tr);
             text-decoration: none;
         }
 
-        .pp-btn-primary {
-            background: var(--ink);
+        .dp-btn-nav {
+            background: var(--olive-dark);
             color: #fff;
+            box-shadow: 0 4px 14px rgba(80,110,30,.25);
         }
 
-            .pp-btn-primary:hover {
-                background: #2d2820;
+            .dp-btn-nav:hover {
+                background: var(--olive);
+                color: #fff;
             }
 
-        .pp-btn-sec {
-            background: #f0ebe4;
-            color: var(--ink);
+        .dp-btn-call {
+            background: var(--olive-xl);
+            color: var(--olive-dark);
         }
 
-            .pp-btn-sec:hover {
-                background: #e8e0d8;
+            .dp-btn-call:hover {
+                background: #e0edca;
             }
 
-        /* Danger report popup extras */
-        .pp-danger-bar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 14px;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            font-size: .8rem;
-            font-weight: 700;
+        .dp-btn-web {
+            background: var(--cream);
+            color: var(--text-mid);
+            padding: 12px 14px;
+            flex: 0 0 auto;
         }
 
-        .sev-high {
-            background: #fee2e2;
-            color: #dc2626;
-        }
-
-        .sev-medium {
-            background: #fff3e0;
-            color: #b45309;
-        }
-
-        .sev-low {
-            background: #f0fdf4;
-            color: #16a34a;
-        }
-
-        /* ══════════════════════════════════════════
-                   MAP MARKERS
-                ══════════════════════════════════════════ */
-        .custom-marker {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .cm-pin {
-            width: 44px;
-            height: 44px;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            border: 3px solid rgba(255,255,255,.9);
-            box-shadow: 0 6px 20px rgba(0,0,0,.25);
-            overflow: hidden;
-            transition: transform .18s;
-        }
-
-            .cm-pin span {
-                transform: rotate(45deg);
-                display: block;
-            }
-
-            .cm-pin img {
-                transform: rotate(45deg);
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                border-radius: 50%;
-            }
-
-        .cm-shadow {
-            width: 14px;
-            height: 5px;
-            background: rgba(0,0,0,.18);
-            border-radius: 50%;
-            margin-top: -2px;
-            filter: blur(2px);
-        }
-
-        /* User dot */
-        .user-dot-wrap {
-            position: relative;
-        }
-
-        .user-dot {
-            width: 18px;
-            height: 18px;
-            background: #3b82f6;
-            border: 3px solid #fff;
-            border-radius: 50%;
-            box-shadow: 0 2px 12px rgba(59,130,246,.5);
-        }
-
-        .user-ring {
+        /* ════════════════════════════════════════════════════════
+           MAP CONTROLS OVERLAY (on map)
+        ════════════════════════════════════════════════════════ */
+        .map-fab {
             position: absolute;
-            inset: -10px;
-            border: 2px solid rgba(59,130,246,.3);
-            border-radius: 50%;
-            animation: ring 2.5s ease-out infinite;
-        }
-
-        .user-ring-2 {
-            position: absolute;
-            inset: -18px;
-            border: 1.5px solid rgba(59,130,246,.15);
-            border-radius: 50%;
-            animation: ring 2.5s ease-out infinite .4s;
-        }
-
-        @@keyframes ring {
-            0% {
-                transform: scale(.6);
-                opacity: 1;
-            }
-
-            100% {
-                transform: scale(1.4);
-                opacity: 0;
-            }
-        }
-
-        /* Status pill */
-        #statusPill {
-            position: fixed;
-            bottom: 100px;
+            bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(26,22,18,.85);
-            backdrop-filter: blur(12px);
-            color: #fff;
-            border-radius: 50px;
-            padding: 8px 18px;
-            font-size: .76rem;
-            font-weight: 600;
-            z-index: 700;
-            white-space: nowrap;
-            transition: opacity .4s;
-            pointer-events: none;
+            display: flex;
+            gap: 10px;
+            z-index: 400;
         }
 
-            #statusPill.hidden {
-                opacity: 0;
-            }
-
-        /* Legend */
-        .legend-card {
-            position: fixed;
-            bottom: 32px;
-            right: 20px;
-            background: rgba(255,255,255,.92);
-            backdrop-filter: blur(12px);
-            border-radius: 18px;
-            padding: 14px 18px;
-            z-index: 700;
-            box-shadow: 0 8px 32px rgba(0,0,0,.14);
-        }
-
-        .lc-title {
-            font-family: 'Syne', sans-serif;
-            font-size: .7rem;
-            font-weight: 700;
-            color: var(--muted);
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }
-
-        .lc-item {
+        .fab-btn {
+            padding: 11px 20px;
+            border-radius: var(--r-btn);
+            border: none;
+            background: #fff;
+            color: var(--text-dark);
+            font-family: 'Nunito', sans-serif;
+            font-size: .8rem;
+            font-weight: 800;
+            cursor: pointer;
             display: flex;
             align-items: center;
             gap: 8px;
-            font-size: .75rem;
-            font-weight: 600;
-            color: var(--ink);
-            margin-bottom: 6px;
+            box-shadow: var(--shadow-h);
+            transition: var(--tr);
         }
 
-            .lc-item:last-child {
+            .fab-btn:hover {
+                transform: translateY(-2px);
+            }
+
+            .fab-btn.active {
+                background: var(--olive);
+                color: #fff;
+            }
+
+        .fab-cnt {
+            background: var(--olive);
+            color: #fff;
+            border-radius: var(--r-btn);
+            padding: 1px 8px;
+            font-size: .68rem;
+            font-weight: 800;
+        }
+
+        .fab-btn.active .fab-cnt {
+            background: rgba(255,255,255,.25);
+        }
+
+        /* Map locate button */
+        .map-loc-btn {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 400;
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: #fff;
+            border: 2px solid var(--line);
+            color: var(--olive-dark);
+            font-size: 1rem;
+            cursor: pointer;
+            display: grid;
+            place-items: center;
+            box-shadow: var(--shadow-h);
+            transition: var(--tr);
+        }
+
+            .map-loc-btn:hover {
+                background: var(--olive);
+                color: #fff;
+                border-color: var(--olive);
+            }
+
+            .map-loc-btn.locating {
+                background: var(--olive);
+                color: #fff;
+                border-color: var(--olive-dark);
+            }
+
+        /* Legend */
+        .map-legend {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(255,255,255,.94);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 12px 16px;
+            z-index: 400;
+            box-shadow: var(--shadow);
+        }
+
+        .lg-title {
+            font-size: .62rem;
+            font-weight: 900;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .lg-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: .73rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 5px;
+        }
+
+            .lg-row:last-child {
                 margin-bottom: 0;
             }
 
-        .lc-dot {
-            width: 10px;
-            height: 10px;
+        .lg-dot {
+            width: 9px;
+            height: 9px;
             border-radius: 50%;
             flex-shrink: 0;
         }
 
-        /* ══════════════════════════════════════════
-                   MOBILE
-                ══════════════════════════════════════════ */
-        @@media (max-width: 768px) {
-            .top-bar {
-                padding: 12px 14px;
-                gap: 8px;
-            }
-
-            .tb-logo {
-                font-size: 1.1rem;
-            }
-
-            .mp-btn {
-                padding: 6px 12px;
-                font-size: .72rem;
-            }
-
-            .search-pill {
-                max-width: none;
-            }
-
-            .nearby-drawer {
-                width: 100%;
-                border-radius: 24px 24px 0 0;
-            }
-
-            .place-popup {
-                top: auto;
-                bottom: 0;
-                right: 0;
-                left: 0;
-                width: 100%;
-                border-radius: 24px 24px 0 0;
-                transform: translateY(100%);
-            }
-
-                .place-popup.open {
-                    transform: translateY(0);
-                }
-
-            .legend-card {
-                display: none;
-            }
+        /* ════════════════════════════════════════════════════════
+           FOOTER  (from products page)
+        ════════════════════════════════════════════════════════ */
+        .footer {
+            background: linear-gradient(135deg, var(--olive-dark) 0%, #2e4512 100%);
+            color: rgba(255,255,255,.8);
+            padding: 28px 20px 34px;
+            text-align: center;
+            margin-top: 0;
         }
 
-        /* Leaflet overrides */
+        .footer-links {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            font-size: .9rem;
+        }
+
+            .footer-links a {
+                color: rgba(255,255,255,.8);
+            }
+
+                .footer-links a:hover {
+                    color: #fff;
+                }
+
+        /* ════════════════════════════════════════════════════════
+           STATUS TOAST
+        ════════════════════════════════════════════════════════ */
+        #statusToast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(12px);
+            background: var(--text-dark);
+            color: #fff;
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-size: .8rem;
+            font-weight: 700;
+            z-index: 9999;
+            opacity: 0;
+            pointer-events: none;
+            transition: all .3s;
+            white-space: nowrap;
+        }
+
+            #statusToast.show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+
+        /* ════════════════════════════════════════════════════════
+           LEAFLET overrides
+        ════════════════════════════════════════════════════════ */
         .leaflet-control-zoom {
             border: none !important;
         }
@@ -816,18 +1234,16 @@
                 width: 36px !important;
                 height: 36px !important;
                 line-height: 36px !important;
-                font-size: .9rem !important;
-                background: rgba(255,255,255,.92) !important;
-                backdrop-filter: blur(8px);
+                background: rgba(255,255,255,.95) !important;
                 border: none !important;
-                box-shadow: 0 4px 14px rgba(0,0,0,.12) !important;
-                color: var(--ink) !important;
-                font-weight: 700 !important;
+                box-shadow: 0 3px 12px rgba(0,0,0,.1) !important;
+                color: var(--text-dark) !important;
+                font-size: .9rem !important;
+                font-weight: 800 !important;
             }
 
                 .leaflet-control-zoom a:first-child {
                     border-radius: 12px 12px 0 0 !important;
-                    margin-bottom: 2px;
                 }
 
                 .leaflet-control-zoom a:last-child {
@@ -838,544 +1254,735 @@
             display: none !important;
         }
 
-        /* Overlay when drawer open */
-        .drawer-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.3);
-            z-index: 890;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity .3s;
+        /* ════════════════════════════════════════════════════════
+           RESPONSIVE
+        ════════════════════════════════════════════════════════ */
+        @@media (max-width: 1180px) {
+            .desktop-links, .left-nav {
+                display: none;
+            }
+
+            .mobile-nav-wrap {
+                display: flex;
+            }
+
+            .menu-btn {
+                display: grid;
+            }
         }
 
-            .drawer-overlay.show {
-                opacity: 1;
-                pointer-events: all;
+        @@media (max-width: 1000px) {
+            .map-sidebar {
+                width: 280px;
             }
-
-        /* No results */
-        .nb-empty {
-            padding: 32px 20px;
-            text-align: center;
-            color: var(--muted);
         }
 
-            .nb-empty .nb-emoji {
-                font-size: 2.5rem;
-                margin-bottom: 12px;
+        @@media (max-width: 768px) {
+            .map-shell {
+                flex-direction: column;
+                height: auto;
+                min-height: auto;
             }
 
-            .nb-empty p {
-                font-size: .84rem;
-                font-weight: 500;
+            .map-sidebar {
+                width: 100%;
+                max-height: 44vh;
+                border-right: none;
+                border-bottom: 2px solid var(--line);
+                order: 2;
             }
+
+            .map-area {
+                height: 56vw;
+                min-height: 300px;
+                order: 1;
+                flex-shrink: 0;
+            }
+
+            .detail-panel {
+                top: auto;
+                right: 0;
+                left: 0;
+                bottom: 0;
+                width: 100%;
+                border-radius: 22px 22px 0 0;
+                height: 80vh;
+                transform: translateY(100%);
+            }
+
+                .detail-panel.open {
+                    transform: translateY(0);
+                }
+
+            .map-legend {
+                display: none;
+            }
+
+            .map-fab {
+                bottom: 14px;
+            }
+
+            .fab-btn {
+                padding: 10px 16px;
+                font-size: .76rem;
+            }
+
+            .nav-actions .login-btn {
+                display: none;
+            }
+
+            .map-hero {
+                padding: 22px 0 18px;
+            }
+
+            .hero-badges {
+                gap: 6px;
+            }
+
+            .hero-badge {
+                font-size: .72rem;
+                padding: 5px 12px;
+            }
+        }
+
+        @@media (max-width: 480px) {
+            .map-area {
+                height: 52vw;
+                min-height: 260px;
+            }
+
+            .map-sidebar {
+                max-height: 48vh;
+            }
+
+            .sb-chips .fchip span:not(.fchip-dot):not(.fchip-ico) {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
 
-    <!-- Full screen map -->
-    <div id="map"></div>
-
-    <!-- ══ Top Bar ═════════════════════════════════════════════ -->
-    <div class="top-bar">
-        <div class="tb-logo">waffy<span>.</span></div>
-
-        <div class="mode-pill">
-            <button class="mp-btn active" id="modePet" onclick="setMode('pet')">
-                🐾 Pet World
-            </button>
-            <button class="mp-btn" id="modeFull" onclick="setMode('full')">
-                🗺️ Full Map
-            </button>
+    <!-- ═══ NAVBAR ═══════════════════════════════════════════════ -->
+    <header class="topbar">
+        <div class="header-shell">
+            <nav class="navbar">
+                <div class="left-nav desktop-nav desktop-links">
+                    <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
+                    <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
+                    <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
+                    <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
+                    <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
+                </div>
+                <div class="logo-center">
+                    <img src="../Images/logo.png" alt="Waffy" class="main-logo">
+                </div>
+                <div class="right-nav">
+                    <div class="desktop-nav desktop-links" style="justify-content:flex-end">
+                        <div class="services-dropdown" id="servicesDropdown">
+                            <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
+                                Services <span class="dropdown-arrow">▼</span>
+                            </button>
+                            <div class="dropdown-menu" id="servicesMenu">
+                                <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
+                                <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
+                                <a asp-controller="Pet" asp-action="Adapt" class="dropdown-link">Adoption</a>
+                                <a asp-controller="Pet" asp-action="Lost" class="dropdown-link">Lost Pets</a>
+                                <a asp-controller="Map" asp-action="Gps" class="dropdown-link">Map</a>
+                                <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
+                                <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
+                                <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
+                                <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
+                                <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
+                            </div>
+                        </div>
+                        <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
+                    </div>
+                    <div class="nav-actions">
+                        <a asp-controller="Payment" asp-action="Cart" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+                        <a asp-controller="Home" asp-action="Notifications" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
+                        <a asp-controller="Account" asp-action="Profile" class="profile-btn"><img src="../Images/user.jpg" alt="Profile"></a>
+                        <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
+                    </div>
+                    <div class="mobile-nav-wrap">
+                        <button class="menu-btn" id="menuBtn" type="button">☰</button>
+                        <div class="nav-links" id="navLinks">
+                            <div class="mobile-menu-logo"><img src="../Images/logo.png" alt="Waffy"></div>
+                            <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
+                            <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
+                            <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
+                            <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
+                            <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
+                            <a asp-controller="Map" asp-action="Gps" class="nav-link active">Map</a>
+                            <div class="mobile-services-block" id="mobileServicesBlock">
+                                <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
+                                    <span>Services</span><span class="dropdown-arrow">▼</span>
+                                </button>
+                                <div class="mobile-services-menu" id="mobileServicesMenu">
+                                    <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
+                                    <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
+                                    <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
+                                    <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
+                                    <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
+                                </div>
+                            </div>
+                            <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
+                            <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
+                        </div>
+                    </div>
+                </div>
+            </nav>
         </div>
+    </header>
 
-        <div class="search-pill">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" placeholder="Search clinics, stores, parks…"
-                   oninput="handleSearch(this.value)" />
+    <!-- ═══ HERO ═════════════════════════════════════════════════ -->
+    <div class="map-hero">
+        <h1>🗺️ Explore Pet Places</h1>
+        <p>Find clinics, stores, and pet-friendly spots near you</p>
+        <div class="hero-badges">
+            <div class="hero-badge"><span class="dot" style="background:var(--c-clinic)"></span> Clinics</div>
+            <div class="hero-badge"><span class="dot" style="background:var(--c-store)"></span> Pet Stores</div>
+            <div class="hero-badge"><span class="dot" style="background:var(--c-friendly)"></span> Parks & Places</div>
         </div>
-
-        <button class="tb-icon-btn" id="locBtn" onclick="goToUser()" title="My Location">
-            <i class="fa-solid fa-location-crosshairs"></i>
-        </button>
-
-        <button class="tb-icon-btn" onclick="toggleNearby()" title="Nearby Places">
-            <i class="fa-solid fa-list"></i>
-        </button>
     </div>
 
-    <!-- ══ Nearby Drawer ═══════════════════════════════════════ -->
-    <div class="drawer-overlay" id="drawerOverlay" onclick="closeNearby()"></div>
+    <!-- ═══ MAP SHELL ════════════════════════════════════════════ -->
+    <div class="map-shell">
 
-    <div class="nearby-drawer" id="nearbyDrawer">
-        <div class="nd-handle"></div>
-        <div class="nd-hd">
-            <div class="nd-title">Nearby Places <span id="nearbyCount" style="color:var(--muted);font-size:.8rem;font-weight:500"></span></div>
-            <button class="nd-close" onclick="closeNearby()">✕</button>
-        </div>
-        <div class="nd-chips">
-            <button class="chip active" data-filter="all" onclick="filterChip(this,'all')">All</button>
-            <button class="chip" data-filter="clinic" onclick="filterChip(this,'clinic')">🏥 Clinics</button>
-            <button class="chip" data-filter="store" onclick="filterChip(this,'store')">🛍️ Stores</button>
-            <button class="chip" data-filter="petfriendly" onclick="filterChip(this,'petfriendly')">🌳 Parks</button>
-            <button class="chip" data-filter="danger" onclick="filterChip(this,'danger')">🚨 Danger</button>
-        </div>
-        <div id="nearbyList">
-            <div class="nb-empty">
-                <div class="nb-emoji">📡</div>
-                <p>Getting your location…</p>
+        <!-- ── Left Sidebar ── -->
+        <aside class="map-sidebar">
+
+            <!-- Controls -->
+            <div class="sb-controls">
+
+                <!-- Mode toggle -->
+                <div class="mode-toggle">
+                    <button class="mt-btn active" id="btnPet" onclick="setMode('pet')">
+                        🐾 Pet World
+                    </button>
+                    <button class="mt-btn" id="btnFull" onclick="setMode('full')">
+                        🗺️ Full Map
+                    </button>
+                </div>
+
+                <!-- Search -->
+                <div class="sb-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Search clinics, stores…" oninput="onSearch(this.value)" />
+                    <button class="sb-search-clear" id="searchClear" onclick="clearSearch()">✕</button>
+                </div>
+
+                <!-- Category chips -->
+                <div class="sb-chips">
+                    <button class="fchip active" data-f="all" onclick="setFilter(this,'all')">
+                        <span>All</span>
+                    </button>
+                    <button class="fchip" data-f="clinic" onclick="setFilter(this,'clinic')">
+                        <span class="fchip-dot" style="background:var(--c-clinic)"></span>
+                        <span>Clinics</span>
+                    </button>
+                    <button class="fchip" data-f="store" onclick="setFilter(this,'store')">
+                        <span class="fchip-dot" style="background:var(--c-store)"></span>
+                        <span>Stores</span>
+                    </button>
+                    <button class="fchip" data-f="petfriendly" onclick="setFilter(this,'petfriendly')">
+                        <span class="fchip-dot" style="background:var(--c-friendly)"></span>
+                        <span>Places</span>
+                    </button>
+                </div>
+
+                <!-- Distance filter -->
+                <div class="sb-dist-row">
+                    <span class="sb-dist-label"><i class="fa-solid fa-route" style="margin-right:4px"></i>Distance</span>
+                    <select class="dist-select" id="distSelect" onchange="onDistChange(this.value)">
+                        <option value="0">Any distance</option>
+                        <option value="1">Within 1 km</option>
+                        <option value="2">Within 2 km</option>
+                        <option value="5">Within 5 km</option>
+                        <option value="10">Within 10 km</option>
+                        <option value="20">Within 20 km</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Count row -->
+            <div class="sb-count" id="sbCount">Loading places…</div>
+
+            <!-- List -->
+            <div class="sb-list" id="sbList">
+                <div class="sb-empty">
+                    <div class="e-ico">📡</div>
+                    <p>Getting your location…</p>
+                </div>
+            </div>
+
+        </aside>
+
+        <!-- ── Map Area ── -->
+        <div class="map-area">
+            <div id="map"></div>
+
+            <!-- Locate me button -->
+            <button class="map-loc-btn" id="locBtn" onclick="goToUser()" title="Go to my location">
+                <i class="fa-solid fa-location-crosshairs"></i>
+            </button>
+
+            <!-- Legend -->
+            <div class="map-legend">
+                <div class="lg-title">Legend</div>
+                <div class="lg-row"><div class="lg-dot" style="background:var(--c-clinic)"></div> Vet Clinic</div>
+                <div class="lg-row"><div class="lg-dot" style="background:var(--c-store)"></div> Pet Store</div>
+                <div class="lg-row"><div class="lg-dot" style="background:var(--c-friendly)"></div> Pet-Friendly</div>
+                <div class="lg-row"><div class="lg-dot" style="background:var(--c-park)"></div> Park</div>
+                <div class="lg-row"><div class="lg-dot" style="background:#3b82f6"></div> You</div>
+            </div>
+
+            <!-- Detail Panel -->
+            <div class="detail-panel" id="detailPanel">
+                <div class="dp-body" id="dpInner"></div>
             </div>
         </div>
     </div>
 
-    <!-- Nearby FAB -->
-    <button class="nearby-btn" id="nearbyFab" onclick="toggleNearby()">
-        <i class="fa-solid fa-map-marker-alt"></i>
-        Nearby
-        <span class="nb-count" id="fabCount">0</span>
-    </button>
+    <!-- ═══ FOOTER ════════════════════════════════════════════════ -->
+    <footer class="footer">
+        <div class="footer-links">
+            <a asp-controller="Home" asp-action="About">About Us</a><span>|</span>
+            <a asp-controller="Home" asp-action="About">Contact</a><span>|</span>
+            <a asp-controller="Home" asp-action="Faq">FAQ</a>
+        </div>
+        <div style="font-size:.82rem;opacity:.7">© 2026 Waffy, all rights reserved.</div>
+    </footer>
 
-    <!-- ══ Place Popup ═════════════════════════════════════════ -->
-    <div class="place-popup" id="placePopup">
-        <div id="ppInner"></div>
-    </div>
-
-    <!-- Status pill -->
-    <div id="statusPill" class="hidden">📡 Locating…</div>
-
-    <!-- Legend -->
-    <div class="legend-card">
-        <div class="lc-title">Map Legend</div>
-        <div class="lc-item"><div class="lc-dot" style="background:#00c896"></div>Veterinary Clinic</div>
-        <div class="lc-item"><div class="lc-dot" style="background:#8b5cf6"></div>Pet Store</div>
-        <div class="lc-item"><div class="lc-dot" style="background:#f59e0b"></div>Pet-Friendly Place</div>
-        <div class="lc-item"><div class="lc-dot" style="background:#ef4444"></div>Danger Report</div>
-        <div class="lc-item"><div class="lc-dot" style="background:#3b82f6"></div>You</div>
-    </div>
+    <div id="statusToast"></div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         (function() {
-            'use strict';
+        'use strict';
 
-            // ── Config ──────────────────────────────────────────────
-            const DEFAULT_LAT = 31.9539, DEFAULT_LNG = 35.9106;
+        /* ════════════════════════════════════════════════════════
+           CONFIG
+        ════════════════════════════════════════════════════════ */
+        const DEFAULT = [31.9539, 35.9106];
 
-            const TILES = {
-                pet : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-                full: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
-            };
+        const TILES = {
+            pet : 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+            full: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+        };
 
-            const COLORS = {
-                clinic      : '#00c896',
-                store       : '#8b5cf6',
-                petfriendly : '#f59e0b',
-                playground  : '#f59e0b',
-                park        : '#f59e0b',
-                danger      : '#ef4444'
-            };
+        const COLORS = {
+            clinic     : '#00c896',
+            store      : '#8b5cf6',
+            petfriendly: '#f59e0b',
+            playground : '#f59e0b',
+            park       : '#38a169'
+        };
+        const LABELS = {
+            clinic     : 'Vet Clinic',
+            store      : 'Pet Store',
+            petfriendly: 'Pet-Friendly',
+            playground : 'Playground',
+            park       : 'Park'
+        };
 
-            const EMOJIS = {
-                clinic      : '🏥',
-                store       : '🛍️',
-                petfriendly : '🌳',
-                playground  : '🎡',
-                park        : '🌲',
-                danger      : '🚨'
-            };
+        /* Type-specific SVG icons for pins */
+        const PIN_SVG = {
+            clinic: `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.8" stroke-linecap="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>`,
+            store: `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>`,
+            petfriendly: `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round">
+                <path d="M12 21s-8-5-8-12a8 8 0 0 1 16 0c0 7-8 12-8 12z"/>
+            </svg>`,
+            playground: `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round">
+                <circle cx="12" cy="7" r="3.5"/><path d="M5 21l3.5-7m7 7L12 14m-3.5 7h7"/>
+            </svg>`,
+            park: `<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L7 9H3l5 6H5l7 7 7-7h-3l5-6h-4z"/>
+            </svg>`
+        };
 
-            const LABELS = {
-                clinic      : 'Veterinary Clinic',
-                store       : 'Pet Store',
-                petfriendly : 'Pet-Friendly',
-                playground  : 'Playground',
-                park        : 'Park',
-                danger      : 'Danger Report'
-            };
+        /* ════════════════════════════════════════════════════════
+           STATE
+        ════════════════════════════════════════════════════════ */
+        let map, tileLayer, userMarker, userCircle;
+        let userLat = null, userLng = null;
+        let allPlaces   = [];
+        let leafMarkers = [];
+        let mode        = 'pet';
+        let activeFilter = 'all';
+        let searchQ     = '';
+        let maxDist     = 0;        // 0 = no limit
 
-            // ── State ───────────────────────────────────────────────
-            let map, tileLayer, userMarker, userCircle;
-            let userLat = null, userLng = null;
-            let allPlaces   = [];
-            let leafMarkers = [];
-            let mode        = 'pet';
-            let chipFilter  = 'all';
-            let searchQuery = '';
-            let activePopupPlace = null;
+        /* ════════════════════════════════════════════════════════
+           MAP INIT
+        ════════════════════════════════════════════════════════ */
+        map = L.map('map', { zoomControl: false, attributionControl: false })
+              .setView(DEFAULT, 14);
 
-            // ── Map init ────────────────────────────────────────────
-            map = L.map('map', {
-                zoomControl    : true,
-                attributionControl: false,
-                zoomAnimation  : true
-            }).setView([DEFAULT_LAT, DEFAULT_LNG], 14);
+        L.control.attribution({ prefix: '© OpenStreetMap', position: 'bottomright' }).addTo(map);
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+        tileLayer = L.tileLayer(TILES.pet, { maxZoom: 19 }).addTo(map);
 
-            L.control.attribution({ prefix: '<a href="https://leafletjs.com">Leaflet</a> | © <a href="https://www.openstreetmap.org">OSM</a>', position: 'bottomright' }).addTo(map);
-            L.control.zoom({ position: 'bottomright' }).addTo(map);
+        map.on('click', () => closeDetail());
 
-            tileLayer = L.tileLayer(TILES.pet, { maxZoom: 19 }).addTo(map);
+        /* ════════════════════════════════════════════════════════
+           GEOLOCATION — watchPosition
+        ════════════════════════════════════════════════════════ */
+        function startTracking() {
+            if (!navigator.geolocation) { showToast('⚠️ Geolocation not available', 3500); return; }
+            showToast('📡 Getting your location…', 0);
+            navigator.geolocation.watchPosition(onPos, onErr,
+                { enableHighAccuracy: true, maximumAge: 4000, timeout: 14000 });
+        }
 
-            map.on('click', function(e) {
-                if (!e.originalEvent.target.classList.contains('cm-pin') &&
-                    !e.originalEvent.target.closest('.cm-pin'))
-                    closePopup();
+        function onPos(pos) {
+            const { latitude: lat, longitude: lng, accuracy } = pos.coords;
+            const first = userLat === null;
+            userLat = lat; userLng = lng;
+
+            if (userCircle) {
+                userCircle.setLatLng([lat, lng]).setRadius(accuracy);
+            } else {
+                userCircle = L.circle([lat, lng], {
+                    radius: accuracy, color: '#3b82f6',
+                    fillColor: '#3b82f6', fillOpacity: .06, weight: 1.5
+                }).addTo(map);
+            }
+
+            if (userMarker) {
+                userMarker.setLatLng([lat, lng]);
+            } else {
+                const icon = L.divIcon({
+                    className: '',
+                    html: `<div class="user-pin">
+                             <div class="user-dot"></div>
+                             <div class="user-ring"></div>
+                             <div class="user-ring2"></div>
+                           </div>`,
+                    iconSize: [16,16], iconAnchor: [8,8]
+                });
+                userMarker = L.marker([lat, lng], { icon, zIndexOffset: 2000 }).addTo(map);
+                userMarker.bindTooltip('You', { permanent: false, direction: 'top' });
+            }
+
+            if (first) {
+                map.setView([lat, lng], 15, { animate: true });
+                document.getElementById('locBtn').classList.add('locating');
+            }
+
+            showToast(`📍 ~${Math.round(accuracy)}m accuracy`, 3500);
+            renderList();
+        }
+
+        function onErr() { showToast('⚠️ Could not get location', 4000); }
+
+        /* ════════════════════════════════════════════════════════
+           FETCH
+        ════════════════════════════════════════════════════════ */
+        async function fetchData() {
+            try {
+                const res  = await fetch('/Map/GetMapData');
+                const data = await res.json();
+
+                allPlaces = [
+                    ...(data.clinics      || []).map(p => ({...p, type:'clinic'})),
+                    ...(data.stores       || []).map(p => ({...p, type:'store'})),
+                    ...(data.adminMarkers || []).map(p => ({...p, type: p.markerType || 'petfriendly'}))
+                    // ★ NO dangerReports — user map only shows pet-related places
+                ];
+
+                renderMarkers();
+                renderList();
+            } catch(e) {
+                showToast('⚠️ Could not load map data', 4000);
+            }
+        }
+
+        /* ════════════════════════════════════════════════════════
+           FILTER
+        ════════════════════════════════════════════════════════ */
+        function visible() {
+            return allPlaces.filter(p => {
+                // Mode: pet = no danger (already excluded from allPlaces)
+                // Chip filter
+                const chipOk = activeFilter === 'all' ||
+                    p.type === activeFilter ||
+                    (activeFilter === 'petfriendly' && ['petfriendly','playground','park'].includes(p.type));
+                // Search
+                const searchOk = !searchQ ||
+                    (p.name || '').toLowerCase().includes(searchQ) ||
+                    (p.city || '').toLowerCase().includes(searchQ) ||
+                    (p.area || '').toLowerCase().includes(searchQ);
+                // Distance
+                const dist = (userLat && maxDist > 0)
+                    ? haversine(userLat, userLng, p.lat, p.lng)
+                    : null;
+                const distOk = !maxDist || !userLat || (dist !== null && dist <= maxDist);
+
+                return chipOk && searchOk && distOk && p.lat && p.lng;
             });
+        }
 
-            // ── Geolocation ─────────────────────────────────────────
-            function startTracking() {
-                if (!navigator.geolocation) { showStatus('⚠️ No geolocation', 3000); return; }
-                showStatus('📡 Locating…', 0);
+        /* ════════════════════════════════════════════════════════
+           MAP MARKERS
+        ════════════════════════════════════════════════════════ */
+        function buildPin(type) {
+            const color = COLORS[type] || '#7a9e35';
+            const svgIco = PIN_SVG[type] || PIN_SVG.petfriendly;
 
-                navigator.geolocation.watchPosition(
-                    onPosition, onGeoError,
-                    { enableHighAccuracy: true, maximumAge: 4000, timeout: 14000 }
-                );
+            return L.divIcon({
+                className: '',
+                html: `<div class="wm-wrap">
+                         <div class="wm-body">
+                           <svg class="wm-svg" viewBox="0 0 38 46" xmlns="http://www.w3.org/2000/svg">
+                             <path d="M19 2C10.7 2 4 8.7 4 17c0 10.8 13.6 25.5 14.2 26.1a1 1 0 0 0 1.6 0C20.4 42.5 34 27.8 34 17 34 8.7 27.3 2 19 2z"
+                                   fill="${color}" stroke="rgba(255,255,255,0.35)" stroke-width="1"/>
+                             <circle cx="19" cy="17" r="9.5" fill="rgba(0,0,0,0.1)"/>
+                           </svg>
+                           <div class="wm-ico">${svgIco}</div>
+                         </div>
+                         <div class="wm-shadow"></div>
+                       </div>`,
+                iconSize: [38, 50], iconAnchor: [19, 50]
+            });
+        }
+
+        function renderMarkers() {
+            leafMarkers.forEach(m => m.remove());
+            leafMarkers = [];
+
+            visible().forEach(p => {
+                const m = L.marker([p.lat, p.lng], { icon: buildPin(p.type) }).addTo(map);
+                m.on('click', e => { L.DomEvent.stopPropagation(e); openDetail(p); });
+                leafMarkers.push(m);
+            });
+        }
+
+        /* ════════════════════════════════════════════════════════
+           SIDEBAR LIST
+        ════════════════════════════════════════════════════════ */
+        // Data store (avoids inline JSON issues)
+        const _store = new Map(); let _sid = 0;
+        function storeP(p) { const k = 's'+(++_sid); _store.set(k,p); return k; }
+
+        function renderList() {
+            const places = visible().map(p => ({
+                ...p,
+                _dist: (userLat && userLng) ? haversine(userLat, userLng, p.lat, p.lng) : null
+            }));
+
+            if (userLat) places.sort((a,b) => (a._dist??9999) - (b._dist??9999));
+
+            const count = places.length;
+            document.getElementById('sbCount').textContent =
+                count > 0 ? `${count} place${count!==1?'s':''} found` : 'No places found';
+
+            const list = document.getElementById('sbList');
+            if (!count) {
+                list.innerHTML = `<div class="sb-empty">
+                    <div class="e-ico">🔍</div>
+                    <p>No places match your filters.<br>Try adjusting your search.</p>
+                </div>`;
+                return;
             }
 
-            function onPosition(pos) {
-                const { latitude: lat, longitude: lng, accuracy } = pos.coords;
-                const first = userLat === null;
-                userLat = lat; userLng = lng;
-
-                if (userCircle) {
-                    userCircle.setLatLng([lat, lng]).setRadius(accuracy);
-                } else {
-                    userCircle = L.circle([lat, lng], {
-                        radius: accuracy, color: '#3b82f6',
-                        fillColor: '#3b82f6', fillOpacity: .06, weight: 1.5
-                    }).addTo(map);
-                }
-
-                if (userMarker) {
-                    userMarker.setLatLng([lat, lng]);
-                } else {
-                    const icon = L.divIcon({
-                        className: '',
-                        html: `<div class="user-dot-wrap">
-                                 <div class="user-dot"></div>
-                                 <div class="user-ring"></div>
-                                 <div class="user-ring-2"></div>
-                               </div>`,
-                        iconSize  : [18, 18],
-                        iconAnchor: [9, 9]
-                    });
-                    userMarker = L.marker([lat, lng], { icon, zIndexOffset: 2000 }).addTo(map);
-                }
-
-                if (first) {
-                    map.setView([lat, lng], 15, { animate: true });
-                    document.getElementById('locBtn').classList.add('active-loc');
-                }
-
-                showStatus(`📍 Accuracy: ~${Math.round(accuracy)}m`, 3500);
-                renderNearbyList();
-            }
-
-            function onGeoError() {
-                showStatus('📍 Using Amman as default', 3000);
-            }
-
-            // ── Fetch data ───────────────────────────────────────────
-            async function fetchData() {
-                try {
-                    const res  = await fetch('/Map/GetMapData');
-                    const data = await res.json();
-
-                    allPlaces = [
-                        ...(data.clinics       || []).map(p => ({ ...p, type: 'clinic' })),
-                        ...(data.stores        || []).map(p => ({ ...p, type: 'store'  })),
-                        ...(data.adminMarkers  || []).map(p => ({ ...p, type: p.markerType || 'petfriendly' })),
-                        ...(data.dangerReports || []).map(p => ({ ...p, type: 'danger' }))
-                    ];
-
-                    renderMarkers();
-                    renderNearbyList();
-                    document.getElementById('fabCount').textContent = visiblePlaces().length;
-                } catch(e) {
-                    console.warn('Data error:', e);
-                    showStatus('⚠️ Could not load map data', 4000);
-                }
-            }
-
-            // ── Filter ───────────────────────────────────────────────
-            function visiblePlaces() {
-                return allPlaces.filter(p => {
-                    const modeOk  = mode === 'full' || p.type !== 'danger';
-                    const chipOk  = chipFilter === 'all' || p.type === chipFilter ||
-                                    (chipFilter === 'petfriendly' && ['petfriendly','playground','park'].includes(p.type));
-                    const searchOk = !searchQuery ||
-                        (p.name || '').toLowerCase().includes(searchQuery) ||
-                        (p.city || '').toLowerCase().includes(searchQuery) ||
-                        (p.area || '').toLowerCase().includes(searchQuery);
-                    return modeOk && chipOk && searchOk && p.lat && p.lng;
-                });
-            }
-
-            // ── Render markers ────────────────────────────────────────
-            function renderMarkers() {
-                leafMarkers.forEach(m => m.remove());
-                leafMarkers = [];
-
-                visiblePlaces().forEach(p => {
-                    const color = COLORS[p.type] || '#97ad4d';
-                    const emoji = EMOJIS[p.type] || '📍';
-                    const logo  = p.logo || '';
-
-                    const innerHtml = logo
-                        ? `<img src="${logo}" alt="" />`
-                        : `<span>${emoji}</span>`;
-
-                    const icon = L.divIcon({
-                        className : '',
-                        html      : `<div class="custom-marker">
-                                       <div class="cm-pin" style="background:${color}">
-                                         ${innerHtml}
-                                       </div>
-                                       <div class="cm-shadow"></div>
-                                     </div>`,
-                        iconSize  : [44, 52],
-                        iconAnchor: [22, 52]
-                    });
-
-                    const m = L.marker([p.lat, p.lng], { icon }).addTo(map);
-                    m.on('click', (e) => {
-                        L.DomEvent.stopPropagation(e);
-                        openPopup(p);
-                    });
-                    leafMarkers.push(m);
-                });
-
-                document.getElementById('fabCount').textContent = visiblePlaces().length;
-            }
-
-            // ── Nearby list ───────────────────────────────────────────
-            function renderNearbyList() {
-                const list = document.getElementById('nearbyList');
-                let places = visiblePlaces().map(p => ({
-                    ...p,
-                    dist: (userLat && userLng) ? haversine(userLat, userLng, p.lat, p.lng) : null
-                }));
-
-                if (userLat) places.sort((a, b) => (a.dist||999) - (b.dist||999));
-
-                document.getElementById('nearbyCount').textContent =
-                    `— ${places.length} place${places.length!==1?'s':''}`;
-
-                if (!places.length) {
-                    list.innerHTML = `<div class="nb-empty"><div class="nb-emoji">🗺️</div><p>No places match your filter</p></div>`;
-                    return;
-                }
-
-                list.innerHTML = places.slice(0, 30).map(p => {
-                    const color = COLORS[p.type] || '#97ad4d';
-                    const emoji = EMOJIS[p.type] || '📍';
-                    const label = LABELS[p.type] || p.type;
-                    const dist  = p.dist !== null ? fmtDist(p.dist) : '';
-                    const openInfo = getOpenStatus(p);
-
-                    const imgHtml = p.logo
-                        ? `<div class="pc-img"><img src="${p.logo}" alt="" /></div>`
-                        : `<div class="pc-img" style="background:linear-gradient(135deg,${color}44,${color}88)">${emoji}</div>`;
-
-                    return `
-                      <div class="place-card" onclick="focusAndOpen(${p.lat},${p.lng},${JSON.stringify(p).replace(/"/g,'&quot;')})">
-                        ${imgHtml}
-                        <div class="pc-info">
-                          <div class="pc-name">${p.name}</div>
-                          <div class="pc-meta">
-                            <span class="pc-type" style="background:${color}18;color:${color}">${label}</span>
-                            ${dist ? `<span class="pc-dist">📏 ${dist}</span>` : ''}
-                            ${openInfo ? `<span class="pc-type ${openInfo.cls}">${openInfo.label}</span>` : ''}
-                          </div>
-                        </div>
-                        <i class="fa-solid fa-chevron-right pc-arrow"></i>
-                      </div>`;
-                }).join('');
-            }
-
-            // ── Popup ────────────────────────────────────────────────
-            function openPopup(p) {
-                activePopupPlace = p;
-                const color = COLORS[p.type] || '#97ad4d';
-                const emoji = EMOJIS[p.type] || '📍';
+            list.innerHTML = places.map(p => {
+                const col   = COLORS[p.type] || '#7a9e35';
                 const label = LABELS[p.type] || p.type;
-                const dist  = (userLat && userLng) ? haversine(userLat, userLng, p.lat, p.lng) : null;
-                const openInfo = getOpenStatus(p);
-                const mapsUrl  = `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`;
+                const dist  = p._dist !== null ? fmtDist(p._dist) : '';
+                const key   = storeP(p);
 
-                // Photo section
-                const photoHtml = p.logo
-                    ? `<img class="pp-photo-img" src="${p.logo}" alt="${p.name}" />`
-                    : `<div class="pp-photo-placeholder" style="background:linear-gradient(135deg,${color}22,${color}44)">${emoji}</div>`;
-
-                // Rows
-                const rows = [];
-                if (p.city || p.area) rows.push(`
-                    <div class="pp-row">
-                      <div class="pp-row-icon" style="background:${color}15">📍</div>
-                      <span class="pp-row-label">${[p.city, p.area].filter(Boolean).join(', ')}</span>
-                    </div>`);
-                if (dist !== null) rows.push(`
-                    <div class="pp-row">
-                      <div class="pp-row-icon" style="background:#f0f4ff">📏</div>
-                      <span class="pp-row-label">Distance</span>
-                      <span class="pp-row-val">${fmtDist(dist)} from you</span>
-                    </div>`);
-                if (p.phone) rows.push(`
-                    <div class="pp-row">
-                      <div class="pp-row-icon" style="background:#f0fff4">📞</div>
-                      <span class="pp-row-label">${p.phone}</span>
-                      <a href="tel:${p.phone}" class="pp-row-val" style="color:var(--sage-d)">Call</a>
-                    </div>`);
-                if (p.hours) rows.push(`
-                    <div class="pp-row">
-                      <div class="pp-row-icon" style="background:#fff7ed">🕐</div>
-                      <span class="pp-row-label">${p.hours}</span>
-                      ${openInfo ? `<span class="${openInfo.cls}">${openInfo.label}</span>` : ''}
-                    </div>`);
-                if (p.hasEmergency) rows.push(`
-                    <div class="pp-row">
-                      <div class="pp-row-icon" style="background:#fef2f2">🚑</div>
-                      <span class="pp-row-label">Emergency Service</span>
-                      <span class="pp-row-val open-badge">24/7</span>
-                    </div>`);
-                if (p.notes) rows.push(`
-                    <div class="pp-row">
-                      <div class="pp-row-icon" style="background:#f8fafc">📝</div>
-                      <span class="pp-row-label" style="flex:1">${p.notes}</span>
-                    </div>`);
-
-                // Danger extras
-                const dangerBar = p.type === 'danger' ? `
-                    <div class="pp-danger-bar sev-${(p.severity||'medium').toLowerCase()}">
-                      <span>${p.severity === 'High' ? '🔴' : p.severity === 'Medium' ? '🟠' : '🟢'}</span>
-                      <span>${p.severity} Severity — ${p.status}</span>
-                      ${p.reportCode ? `<code style="margin-left:auto;font-size:.7rem">${p.reportCode}</code>` : ''}
-                    </div>` : '';
-
-                document.getElementById('ppInner').innerHTML = `
-                  <div class="pp-photo">
-                    ${photoHtml}
-                    <button class="pp-close" onclick="closePopup()">✕</button>
-                    <div class="pp-type-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">
-                      ${label}
+                return `<div class="place-item" onclick="listClick('${key}')">
+                    <div class="pi-icon" style="background:${col}15;color:${col}">
+                        ${typeEmoji(p.type)}
                     </div>
-                  </div>
-                  <div class="pp-body">
-                    ${dangerBar}
-                    <div class="pp-name">${p.name}</div>
-                    ${p.city ? `<div class="pp-address">📍 ${[p.city, p.area].filter(Boolean).join(', ')}</div>` : ''}
-                    ${rows.join('')}
-                    <div class="pp-actions">
-                      <a class="pp-btn pp-btn-primary" href="${mapsUrl}" target="_blank">
-                        <i class="fa-solid fa-diamond-turn-right"></i> Directions
-                      </a>
-                      ${p.phone ? `<a class="pp-btn pp-btn-sec" href="tel:${p.phone}">
-                        <i class="fa-solid fa-phone"></i> Call
-                      </a>` : ''}
+                    <div class="pi-body">
+                        <div class="pi-name">${p.name || '—'}</div>
+                        <div class="pi-meta">
+                            <span class="pi-type" style="background:${col}18;color:${col}">${label}</span>
+                            ${dist ? `<span class="pi-dist"><i class="fa-solid fa-route" style="font-size:.6rem"></i> ${dist}</span>` : ''}
+                        </div>
                     </div>
-                  </div>`;
+                    <i class="fa-solid fa-chevron-right pi-arr"></i>
+                </div>`;
+            }).join('');
+        }
 
-                document.getElementById('placePopup').classList.add('open');
+        function typeEmoji(t) {
+            const m = { clinic:'🏥', store:'🛍️', petfriendly:'🌳', playground:'🎡', park:'🌲' };
+            return m[t] || '📍';
+        }
+
+        window.listClick = function(key) {
+            const p = _store.get(key);
+            if (!p) return;
+            map.setView([p.lat, p.lng], 16, { animate: true });
+            openDetail(p);
+        };
+
+        /* ════════════════════════════════════════════════════════
+           DETAIL PANEL
+        ════════════════════════════════════════════════════════ */
+        function openDetail(p) {
+            const color = COLORS[p.type] || '#7a9e35';
+            const label = LABELS[p.type] || p.type;
+            const dist  = (userLat && userLng) ? haversine(userLat, userLng, p.lat, p.lng) : null;
+            const mapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`;
+
+            // Photo / placeholder
+            const photo = (p.image || p.logo)
+                ? `<img src="${p.image||p.logo}" alt="${p.name}" />`
+                : `<div class="dp-photo-ph" style="background:linear-gradient(135deg,${color}20,${color}40)">${typeEmoji(p.type)}</div>`;
+
+            // Info rows
+            const rows = [];
+            if (p.city||p.area) rows.push(dRow('📍','Location',[p.city,p.area].filter(Boolean).join(', ')));
+            if (dist !== null)  rows.push(dRow('📏','Distance', `<strong style="color:${color}">${fmtDist(dist)}</strong> from you`));
+            if (p.phone)        rows.push(dRow('📞','Phone',`<a href="tel:${p.phone}">${p.phone}</a>`));
+                   const _hrs = p.hours || p.workingHours || p.openingHours;
+        if (_hrs) rows.push(dRow('🕐','Hours', _hrs));
+            if (p.description)  rows.push(dRow('📝','About', p.description));
+            if (p.website)      rows.push(dRow('🌐','Website',`<a href="${p.website}" target="_blank">${p.website.replace(/https?:\/\//,'')}</a>`));
+            if (p.hasEmergency) rows.push(dRow('🚑','Emergency','<strong style="color:#16a34a">24/7 Available</strong>'));
+
+            // Action buttons
+            let actions = `<a class="dp-btn dp-btn-nav" href="${mapsUrl}" target="_blank">
+                <i class="fa-solid fa-diamond-turn-right"></i> Get Directions
+            </a>`;
+            if (p.phone) actions += `<a class="dp-btn dp-btn-call" href="tel:${p.phone}">
+                <i class="fa-solid fa-phone"></i> Call
+            </a>`;
+            if (p.website) actions += `<a class="dp-btn dp-btn-web" href="${p.website}" target="_blank">
+                <i class="fa-solid fa-globe"></i>
+            </a>`;
+
+            document.getElementById('dpInner').innerHTML = `
+            <div class="dp-photo" style="${!(p.image||p.logo)?'background:linear-gradient(135deg,'+color+'20,'+color+'40)':''}">
+                ${photo}
+                <button class="dp-close" onclick="closeDetail()">✕</button>
+                <div class="dp-type-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">
+                    ${typeEmoji(p.type)} ${label}
+                </div>
+                ${dist !== null ? `<div class="dp-dist-pill">📏 ${fmtDist(dist)}</div>` : ''}
+            </div>
+            <div class="dp-content">
+                <div class="dp-name">${p.name || '—'}</div>
+                ${(p.city||p.area) ? `<div class="dp-addr">📍 ${[p.city,p.area].filter(Boolean).join(', ')}</div>` : ''}
+                ${rows.join('')}
+            </div>
+            <div class="dp-actions">${actions}</div>`;
+
+            document.getElementById('detailPanel').classList.add('open');
+        }
+
+        function dRow(ico, label, val) {
+            return `<div class="dp-row">
+                <div class="dp-ico">${ico}</div>
+                <div>
+                    <div class="dp-label">${label}</div>
+                    <div class="dp-val">${val}</div>
+                </div>
+            </div>`;
+        }
+
+        window.closeDetail = function() {
+            document.getElementById('detailPanel').classList.remove('open');
+        };
+
+        /* ════════════════════════════════════════════════════════
+           CONTROLS
+        ════════════════════════════════════════════════════════ */
+        window.setMode = function(m) {
+            mode = m;
+            document.getElementById('btnPet').classList.toggle('active', m==='pet');
+            document.getElementById('btnFull').classList.toggle('active', m==='full');
+            tileLayer.setUrl(TILES[m]);
+            renderMarkers(); renderList();
+        };
+
+        window.setFilter = function(btn, f) {
+            activeFilter = f;
+            document.querySelectorAll('.fchip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            renderMarkers(); renderList(); closeDetail();
+        };
+
+        window.onSearch = function(v) {
+            searchQ = v.trim().toLowerCase();
+            document.getElementById('searchClear').style.display = searchQ ? 'block' : 'none';
+            renderMarkers(); renderList();
+        };
+        window.clearSearch = function() {
+            document.getElementById('searchInput').value = '';
+            searchQ = '';
+            document.getElementById('searchClear').style.display = 'none';
+            renderMarkers(); renderList();
+        };
+
+        window.onDistChange = function(v) {
+            maxDist = parseFloat(v) || 0;
+            renderMarkers(); renderList();
+        };
+
+        window.goToUser = function() {
+            if (userLat && userLng) {
+                map.setView([userLat, userLng], 16, { animate: true });
+                showToast('📍 Centered on your location', 2500);
+            } else {
+                showToast('📡 Still locating…', 2500);
             }
+        };
 
-            window.closePopup = function() {
-                document.getElementById('placePopup').classList.remove('open');
-                activePopupPlace = null;
-            };
+        /* ════════════════════════════════════════════════════════
+           HELPERS
+        ════════════════════════════════════════════════════════ */
+        function haversine(lat1, lon1, lat2, lon2) {
+            const R = 6371, r = Math.PI/180;
+            const dL = (lat2-lat1)*r, dN = (lon2-lon1)*r;
+            const a = Math.sin(dL/2)**2 + Math.cos(lat1*r)*Math.cos(lat2*r)*Math.sin(dN/2)**2;
+            return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        }
+        function fmtDist(km) { return km < 1 ? `${Math.round(km*1000)} m` : `${km.toFixed(1)} km`; }
 
-            // Focus + open popup (from nearby list)
-            window.focusAndOpen = function(lat, lng, p) {
-                map.setView([lat, lng], 17, { animate: true });
-                openPopup(typeof p === 'string' ? JSON.parse(p) : p);
-                closeNearby();
-            };
+        let _toastTimer;
+        function showToast(msg, dur) {
+            const t = document.getElementById('statusToast');
+            t.textContent = msg; t.classList.add('show');
+            clearTimeout(_toastTimer);
+            if (dur > 0) _toastTimer = setTimeout(() => t.classList.remove('show'), dur);
+        }
 
-            // ── Mode toggle ───────────────────────────────────────────
-            window.setMode = function(newMode) {
-                mode = newMode;
-                document.getElementById('modePet').classList.toggle('active', newMode === 'pet');
-                document.getElementById('modeFull').classList.toggle('active', newMode === 'full');
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
 
-                tileLayer.setUrl(TILES[newMode]);
-                renderMarkers();
-                renderNearbyList();
-            };
-
-            // ── Chip filter ───────────────────────────────────────────
-            window.filterChip = function(btn, filter) {
-                document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-                btn.classList.add('active');
-                chipFilter = filter;
-                renderMarkers();
-                renderNearbyList();
-            };
-
-            // ── Search ────────────────────────────────────────────────
-            window.handleSearch = function(val) {
-                searchQuery = val.trim().toLowerCase();
-                renderMarkers();
-                renderNearbyList();
-            };
-
-            // ── Nearby drawer ─────────────────────────────────────────
-            window.toggleNearby = function() {
-                const d = document.getElementById('nearbyDrawer');
-                const o = document.getElementById('drawerOverlay');
-                const isOpen = d.classList.contains('open');
-                d.classList.toggle('open', !isOpen);
-                o.classList.toggle('show', !isOpen);
-            };
-
-            window.closeNearby = function() {
-                document.getElementById('nearbyDrawer').classList.remove('open');
-                document.getElementById('drawerOverlay').classList.remove('show');
-            };
-
-            // ── Go to user ────────────────────────────────────────────
-            window.goToUser = function() {
-                if (userLat && userLng) map.setView([userLat, userLng], 16, { animate: true });
-                else showStatus('📡 Still locating…', 2500);
-            };
-
-            // ── Helpers ───────────────────────────────────────────────
-            function haversine(lat1, lon1, lat2, lon2) {
-                const R = 6371, d2r = Math.PI / 180;
-                const dLat = (lat2 - lat1) * d2r, dLon = (lon2 - lon1) * d2r;
-                const a = Math.sin(dLat/2)**2 + Math.cos(lat1*d2r) * Math.cos(lat2*d2r) * Math.sin(dLon/2)**2;
-                return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            }
-
-            function fmtDist(km) {
-                return km < 1 ? `${Math.round(km*1000)} m` : `${km.toFixed(1)} km`;
-            }
-
-            function getOpenStatus(p) {
-                if (!p.hours) return null;
-                // Simple open/closed based on current time vs hours string
-                const now = new Date();
-                const h   = now.getHours();
-                // Very basic: if hours contains current hour range
-                // Real impl would parse the hours field
-                return null; // let backend provide isOpen flag for accuracy
-            }
-
-            function showStatus(msg, duration) {
-                const el = document.getElementById('statusPill');
-                el.textContent = msg;
-                el.classList.remove('hidden');
-                if (duration > 0) {
-                    clearTimeout(el._t);
-                    el._t = setTimeout(() => el.classList.add('hidden'), duration);
-                }
-            }
-
-            // ── Boot ──────────────────────────────────────────────────
-            startTracking();
-            fetchData();
+        /* ════════════════════════════════════════════════════════
+           BOOT
+        ════════════════════════════════════════════════════════ */
+        startTracking();
+        fetchData();
 
         })();
+
+        /* ── Navbar JS (identical to products page) ─── */
+        const dd = document.getElementById('servicesDropdown');
+        const dt = document.getElementById('servicesToggle');
+        if (dd && dt) {
+            dt.addEventListener('click', e => { e.stopPropagation(); dd.classList.toggle('open'); });
+            document.addEventListener('click', e => { if (!dd.contains(e.target)) dd.classList.remove('open'); });
+        }
+        const mb = document.getElementById('menuBtn');
+        const nl = document.getElementById('navLinks');
+        if (mb && nl) {
+            mb.addEventListener('click', e => { e.stopPropagation(); nl.classList.toggle('open'); });
+            document.addEventListener('click', e => { if (!nl.contains(e.target) && !mb.contains(e.target)) nl.classList.remove('open'); });
+        }
+        const ms = document.getElementById('mobileServicesBlock');
+        const mt = document.getElementById('mobileServicesToggle');
+        if (ms && mt) mt.addEventListener('click', e => { e.stopPropagation(); ms.classList.toggle('open'); });
     </script>
 </body>
 </html>

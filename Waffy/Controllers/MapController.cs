@@ -53,7 +53,10 @@ namespace Waffy.Controllers
                     area = s.Area ?? "",
                     logo = s.LogoUrl ?? "",
                     phone = s.Phone ?? "",
-                    hours = ""
+                    hours = (s.OpenTime.HasValue && s.CloseTime.HasValue)
+    ? $"{s.OpenTime.Value:hh\\:mm} – {s.CloseTime.Value:hh\\:mm}" +
+      (!string.IsNullOrEmpty(s.WorkingDays) ? $" · {s.WorkingDays}" : "")
+    : s.WorkingDays
                 });
 
             // ── Clinics ─────────────────────────────────────────
@@ -72,7 +75,9 @@ namespace Waffy.Controllers
                     logo = c.LogoUrl ?? "",
                     phone = c.Phone?.Trim() ?? "",
                     hasEmergency = c.HasEmergency,
-                    hours = ""
+                    hours = (c.DefaultOpenTime.HasValue && c.DefaultCloseTime.HasValue)
+    ? $"{c.DefaultOpenTime.Value:hh\\:mm} – {c.DefaultCloseTime.Value:hh\\:mm}"
+    : null
                 });
 
             // ── Admin Markers ────────────────────────────────────
