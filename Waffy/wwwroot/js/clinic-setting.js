@@ -66,9 +66,7 @@ function bindSidebarAutoClose() {
 
 /* ── Auth ───────────────────────────────────────────────── */
 function doLogout() {
-    localStorage.removeItem("waffyClinicLoggedIn");
-    localStorage.removeItem("waffyClinicRole");
-    window.location.href = "AdminClinicDoctor-Login.html";
+    window.location.href = "/ClinicAdmin/Logout";
 }
 
 /* ── Save feedback helper ───────────────────────────────── */
@@ -150,11 +148,7 @@ function attachRealImageUploads() {
 /* ── Bootstrap ──────────────────────────────────────────── */
 document.addEventListener("DOMContentLoaded", () => {
     // Auth guard
-    const loggedIn = localStorage.getItem("waffyClinicLoggedIn");
-    if (!loggedIn || loggedIn !== "true") {
-        window.location.href = "AdminClinicDoctor-Login.html";
-        return;
-    }
+
 
     bindSidebarAutoClose();
     bindDayChips();

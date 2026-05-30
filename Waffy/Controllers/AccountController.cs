@@ -120,7 +120,6 @@ namespace Waffy.Controllers
             // ── حساب عيادة ─────────────────────────────────────────
             if (roleName == "Clinic")
             {
-                // ✅ loginResult.UserId موجود الآن
                 var clinic = await _clinicRepository.GetByOwnerUserIdAsync(loginResult.UserId);
 
                 if (clinic == null)
@@ -142,9 +141,43 @@ namespace Waffy.Controllers
                         return RedirectToAction("Login");
                 }
 
-                // ✅ SetSession يستقبل LoginUserResult
+                // ✅ Session الأساسية
                 SetSession(loginResult, roleName);
+
+                // ✅ Session إضافية للـ ClinicAdmin
+                HttpContext.Session.SetInt32("RoleId", loginResult.RoleId);
+                HttpContext.Session.SetInt32("ClinicId", clinic.IdClinic);
+                HttpContext.Session.SetString("ClinicName", clinic.Name);
+                HttpContext.Session.SetString("UserName", loginResult.FullName ?? "");
+
                 TempData["LoginSuccess"] = "Welcome back!";
+                return RedirectToAction("Dashboard", "ClinicAdmin");
+            }
+
+            // ── حساب طبيب ──────────────────────────────────────────
+            if (roleName == "Doctor")
+            {
+                // جلب IdClinic من جدول Doctor
+                var clinicId = await _clinicRepository.GetClinicIdByDoctorUserIdAsync(loginResult.UserId);
+
+                if (clinicId == null)
+                {
+                    TempData["LoginError"] = "No clinic associated with this doctor account. Please contact your clinic manager.";
+                    return RedirectToAction("Login");
+                }
+
+                var clinic = await _clinicRepository.GetByIdAsync(clinicId.Value);
+
+                // ✅ Session الأساسية
+                SetSession(loginResult, roleName);
+
+                // ✅ Session إضافية للـ ClinicAdmin
+                HttpContext.Session.SetInt32("RoleId", loginResult.RoleId);
+                HttpContext.Session.SetInt32("ClinicId", clinicId.Value);
+                HttpContext.Session.SetString("ClinicName", clinic?.Name ?? "");
+                HttpContext.Session.SetString("UserName", loginResult.FullName ?? "");
+
+                TempData["LoginSuccess"] = "Welcome back, Doctor!";
                 return RedirectToAction("Dashboard", "ClinicAdmin");
             }
 

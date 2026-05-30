@@ -1,6 +1,12 @@
-﻿@{
-    ViewData["Title"] = "Waffy — Clinic Working Hours";
+﻿@model Waffy.Models.ViewModels.WorkingHoursViewModel
+@{
+    ViewData["Title"] = "Waffy — Working Hours";
     Layout = null;
+
+    var sessionUserName = Context.Session.GetString("UserName") ?? "Clinic Manager";
+    var sessionClinicName = Context.Session.GetString("ClinicName") ?? "Clinic";
+    var userInitials = sessionUserName.Length > 0
+                                ? sessionUserName[0].ToString().ToUpper() : "C";
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -20,7 +26,7 @@
 
     <div class="wa-shell" id="waShell">
 
-        <!-- ── Sidebar ──────────────────────────────────────── -->
+        <!-- ── Sidebar ── -->
         <aside class="wa-sb" id="sidebar">
             <div class="sb-logo">
                 <div class="sb-mark">
@@ -33,166 +39,251 @@
             </div>
             <nav class="sb-nav">
                 <div class="sb-group sb-group-flat">
-                    <a class="sb-row" href="@Url.Action("Dashboard", "ClinicAdmin")" data-tip="Dashboard"><span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Dashboard">
+                        <span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span>
+                    </a>
                 </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Daily Management</div>
-                    <a class="sb-row" href="@Url.Action("Appointments", "ClinicAdmin")" data-tip="Appointments"><span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span><span class="sb-bdg bd-g">5</span></a>
-                    <a class="sb-row" href="@Url.Action("Patients", "ClinicAdmin")" data-tip="Patients"><span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span></a>
-                    <a class="sb-row" href="@Url.Action("Medical_Records", "ClinicAdmin")" data-tip="Medical Records"><span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Appointments">
+                        <span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span>
+                    </a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Patients">
+                        <span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span>
+                    </a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Medical_Records">
+                        <span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span>
+                    </a>
                 </div>
                 <div class="sb-hr"></div>
-                <div class="sb-group" id="managerSection">
+                <div class="sb-group">
                     <div class="sb-grp-hd">Clinic Management</div>
-                    <a class="sb-row" href="@Url.Action("Doctors", "ClinicAdmin")" data-tip="Doctors"><span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span></a>
-                    <a class="sb-row active" href="@Url.Action("Basic_Information", "ClinicAdmin")" data-tip="Clinic Settings"><span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span></a>
-                    <a class="sb-row" href="@Url.Action("Revenue", "ClinicAdmin")" data-tip="Revenue &amp; Payments"><span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Doctors">
+                        <span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span>
+                    </a>
+                    <a class="sb-row active" asp-controller="ClinicAdmin" asp-action="Basic_Information">
+                        <span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span>
+                    </a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Revenue">
+                        <span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span>
+                    </a>
                 </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group sb-group-flat">
-                    <a class="sb-row" href="@Url.Action("Adoption", "ClinicAdmin")" data-tip="Adoption"><span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Adoption">
+                        <span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span>
+                    </a>
                 </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Analytics</div>
-                    <a class="sb-row" href="@Url.Action("Reviews", "ClinicAdmin")" data-tip="Reviews"><span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span><span class="sb-bdg bd-g">2</span></a>
-                    <a class="sb-row" href="@Url.Action("Reports", "ClinicAdmin")" data-tip="Reports"><span class="sb-icon">📈</span><span class="sb-lbl">Reports</span></a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reviews">
+                        <span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span>
+                    </a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reports">
+                        <span class="sb-icon">📈</span><span class="sb-lbl">Reports</span>
+                    </a>
                 </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group sb-group-flat">
-                    <a class="sb-row " asp-controller="ClinicAdmin" asp-action="Personal_nformation" data-tip="My Settings">
-                        <span class="sb-icon">⚙️</span>
-                        <span class="sb-lbl">My Settings</span>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Personal_nformation">
+                        <span class="sb-icon">⚙️</span><span class="sb-lbl">My Settings</span>
                     </a>
                 </div>
             </nav>
             <div class="sb-foot">
-                <div class="sb-user-row" onclick="openSidebarProfile()">
-                    <div class="sb-av">DC</div>
+                <div class="sb-user-row">
+                    <div class="sb-av">@userInitials</div>
                     <div class="sb-user-info">
-                        <div class="sb-user-name">Daniel Carter</div>
+                        <div class="sb-user-name">@sessionUserName</div>
                         <div class="sb-user-role">Clinic Manager 👑</div>
                     </div>
                 </div>
-                <button class="sb-logout" onclick="doLogout()" type="button">
-                    <span class="sb-icon">↩</span><span class="sb-logout-lbl">Sign Out</span>
-                </button>
+                <a asp-controller="ClinicAdmin" asp-action="Logout" class="sb-logout">
+                    <span class="sb-icon">↩</span>
+                    <span class="sb-logout-lbl">Sign Out</span>
+                </a>
             </div>
         </aside>
 
-        <!-- ── Topnav ───────────────────────────────────────── -->
+        <!-- ── Topnav ── -->
         <header class="wa-tn">
-            <button class="tn-toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
-            <div class="tn-bread"><span>Clinic Management</span><span>/</span><b>Clinic Settings</b></div>
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()">☰</button>
+            <div class="tn-bread">
+                <span>Clinic Management</span><span>/</span><b>Clinic Settings</b>
+            </div>
             <div class="tn-center">
                 <div class="tn-center-main">Clinic Settings</div>
-                <div class="tn-center-sub">Waffy Clinic Dashboard</div>
+                <div class="tn-center-sub">@sessionClinicName</div>
             </div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-                <div class="tn-identity">🏥 Al Amanah Veterinary Clinic</div>
-                <button class="tn-btn notif-btn" type="button" aria-label="Notifications">🔔<span class="tn-count">3</span></button>
+                <div class="tn-identity">🏥 @sessionClinicName</div>
+                <button class="tn-btn notif-btn" type="button">🔔</button>
                 <div class="tn-sep"></div>
-                <div class="tn-profile user-btn">
-                    <div class="tn-av">M</div>
+                <div class="tn-profile">
+                    <div class="tn-av">@userInitials</div>
                     <div>
-                        <div class="tn-pname">Clinic Manager</div>
+                        <div class="tn-pname">@sessionUserName</div>
                         <div class="tn-prole">Clinic Manager 👑</div>
                     </div>
                 </div>
             </div>
         </header>
 
-        <!-- ── Main ─────────────────────────────────────────── -->
+        <!-- ── Main ── -->
         <main class="wa-main">
-            <section class="page-hero">
-                <div>
-                    <h1>Clinic Settings</h1>
-                    <p>Update clinic profile, working hours, location, and operational preferences.</p>
-                </div>
-                <button class="btn btn-primary" onclick="saveWorkingHours(this)">💾 Save Changes</button>
-            </section>
 
-            <div class="page-body">
+            <form asp-controller="ClinicAdmin" asp-action="Working_Hours" method="post">
+                @Html.AntiForgeryToken()
 
-                <!-- Tab navigation -->
-                <nav class="tabs cs-tab-nav">
-                    <a class="tab" href="@Url.Action("Basic_Information", "ClinicAdmin")">📋 Basic Information</a>
-                    <a class="tab active" href="@Url.Action("Working_Hours", "ClinicAdmin")">⏰ Working Hours</a>
-                    <a class="tab" href="@Url.Action("Services", "ClinicAdmin")">🩺 Services</a>
-                    <a class="tab" href="@Url.Action("Documents_C", "ClinicAdmin")">📄 Documents</a>
-                    <a class="tab" href="@Url.Action("Images", "ClinicAdmin")">🖼 Images</a>
-                </nav>
+                <section class="page-hero">
+                    <div>
+                        <h1>Clinic Settings</h1>
+                        <p>Update clinic profile, working hours, and operational preferences.</p>
+                    </div>
+                    <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                </section>
 
-                <!-- ── Working Hours Form ────────────────────────── -->
-                <div class="chart-card">
-                    <form id="formWorkingHours" onsubmit="return false;">
+                <div class="page-body">
 
+                    @if (TempData["SaveSuccess"] != null)
+                    {
+                        <div style="background:#eef4dd;border:1px solid #8da546;border-radius:12px;
+                                        padding:10px 16px;margin-bottom:1rem;font-weight:800;color:#5f7430;">
+                            ✅ @TempData["SaveSuccess"]
+                        </div>
+                    }
+
+                    <!-- Tab navigation -->
+                    <nav class="tabs cs-tab-nav">
+                        <a class="tab" asp-controller="ClinicAdmin" asp-action="Basic_Information">📋 Basic Information</a>
+                        <a class="tab active" asp-controller="ClinicAdmin" asp-action="Working_Hours">⏰ Working Hours</a>
+                        <a class="tab" asp-controller="ClinicAdmin" asp-action="Services">🩺 Services</a>
+                        <a class="tab" asp-controller="ClinicAdmin" asp-action="Documents_C">📄 Documents</a>
+                        <a class="tab" asp-controller="ClinicAdmin" asp-action="Images">🖼 Images</a>
+                    </nav>
+
+                    <div class="chart-card">
+
+                        <!-- ✅ Working Days -->
                         <div class="sec-label">Working Days</div>
-                        <div class="days-row mb" id="workingDaysRow">
-                            <div class="day-chip on" data-day="sunday" onclick="this.classList.toggle('on')">Sunday</div>
-                            <div class="day-chip on" data-day="monday" onclick="this.classList.toggle('on')">Monday</div>
-                            <div class="day-chip on" data-day="tuesday" onclick="this.classList.toggle('on')">Tuesday</div>
-                            <div class="day-chip on" data-day="wednesday" onclick="this.classList.toggle('on')">Wednesday</div>
-                            <div class="day-chip on" data-day="thursday" onclick="this.classList.toggle('on')">Thursday</div>
-                            <div class="day-chip" data-day="friday" onclick="this.classList.toggle('on')">Friday</div>
-                            <div class="day-chip" data-day="saturday" onclick="this.classList.toggle('on')">Saturday</div>
+                        <div class="days-row mb">
+
+                            @{
+                                var dayDefs = new[]
+                                {
+                                                        ("Sunday",    Model.Sunday),
+                                                        ("Monday",    Model.Monday),
+                                                        ("Tuesday",   Model.Tuesday),
+                                                        ("Wednesday", Model.Wednesday),
+                                                        ("Thursday",  Model.Thursday),
+                                                        ("Friday",    Model.Friday),
+                                                        ("Saturday",  Model.Saturday)
+                                                        };
+                            }
+
+                            @foreach (var (dayName, isOn) in dayDefs)
+                            {
+                                <label class="day-chip @(isOn ? "on" : "")" id="chip-@dayName">
+                                    <input type="checkbox"
+                                           name="@dayName"
+                                           value="true"
+                                           @(isOn ? "checked" : "")
+                                           style="display:none"
+                                           onchange="this.closest('.day-chip').classList.toggle('on', this.checked)">
+                                    @dayName
+                                </label>
+                            }
+
                         </div>
 
+                        <!-- ✅ Hours -->
                         <div class="f-grid">
                             <div class="f-group">
                                 <label class="f-label">Opening time</label>
-                                <input id="openingTime" name="openingTime" class="f-inp" type="time" value="09:00">
+                                <input asp-for="OpenTime" class="f-inp" type="time">
                             </div>
                             <div class="f-group">
                                 <label class="f-label">Closing time</label>
-                                <input id="closingTime" name="closingTime" class="f-inp" type="time" value="18:00">
+                                <input asp-for="CloseTime" class="f-inp" type="time">
                             </div>
                         </div>
 
-                        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid var(--b);margin-top:8px">
+                        <!-- ✅ Emergency -->
+                        <div style="display:flex;align-items:center;justify-content:space-between;
+                                    padding:12px 0;border-top:1px solid var(--b);margin-top:8px">
                             <div>
-                                <div style="font-weight:700;font-size:.88rem">🚨 Emergency service outside working hours</div>
-                                <div style="font-size:.75rem;color:var(--muted)">Available for urgent cases</div>
+                                <div style="font-weight:700;font-size:.88rem">
+                                    🚨 Emergency service outside working hours
+                                </div>
+                                <div style="font-size:.75rem;color:var(--muted)">
+                                    Available for urgent cases
+                                </div>
                             </div>
-                            <button id="emergencyBtn"
-                                    name="emergencyEnabled"
-                                    type="button"
-                                    class="btn btn-outline btn-sm"
-                                    data-enabled="false"
-                                    onclick="toggleEmergency(this)">
-                                Enable
-                            </button>
+                            <label id="emergencyLabel"
+                                   class="btn @(Model.HasEmergency ? "btn-primary" : "btn-outline") btn-sm"
+                                   style="cursor:pointer;min-width:80px;text-align:center">
+                                <input type="checkbox"
+                                       asp-for="HasEmergency"
+                                       style="display:none"
+                                       onchange="
+                                           var lbl = document.getElementById('emergencyLabel');
+                                           var sp  = document.getElementById('emergencyText');
+                                           if(this.checked){
+                                               lbl.classList.remove('btn-outline');
+                                               lbl.classList.add('btn-primary');
+                                               sp.textContent = 'Disable';
+                                           } else {
+                                               lbl.classList.remove('btn-primary');
+                                               lbl.classList.add('btn-outline');
+                                               sp.textContent = 'Enable';
+                                           }">
+                                <span id="emergencyText">
+                                    @(Model.HasEmergency ? "Disable" : "Enable")
+                                </span>
+                            </label>
                         </div>
 
-                    </form>
+                    </div>
                 </div>
+            </form>
 
-            </div><!-- /.page-body -->
         </main>
+    </div>
 
-    </div><!-- /.wa-shell -->
-
-    <script src="~/js/AdminClinicDoctor.js"></script>
-    <script src="~/js/clinic-setting.js"></script>
     <script>
-        function toggleEmergency(btn) {
-            const enabled = btn.dataset.enabled === "true";
-            btn.dataset.enabled = String(!enabled);
-            btn.textContent = enabled ? "Enable" : "Disable";
-            btn.classList.toggle("btn-primary", !enabled);
-            btn.classList.toggle("btn-outline", enabled);
+        function toggleSidebar() {
+            const sidebar = document.getElementById("sidebar");
+            const overlay = document.getElementById("sidebarOverlay");
+            const shell   = document.getElementById("waShell");
+            if (window.innerWidth <= 992) {
+                sidebar?.classList.toggle("mob-open");
+                overlay?.classList.toggle("show");
+                document.body.classList.toggle("sidebar-open");
+            } else {
+                shell?.classList.toggle("mini");
+            }
         }
 
-        function getWorkingDays() {
-            return Array.from(document.querySelectorAll("#workingDaysRow .day-chip.on"))
-                .map(chip => chip.dataset.day);
+        function closeSidebar() {
+            document.getElementById("sidebar")?.classList.remove("mob-open");
+            document.getElementById("sidebarOverlay")?.classList.remove("show");
+            document.body.classList.remove("sidebar-open");
         }
 
-        function saveWorkingHours(btn) {
-            saveWithFeedback(btn, "Working hours saved.");
-        }
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll(".wa-sb .sb-row").forEach(item => {
+                item.addEventListener("click", () => {
+                    if (window.innerWidth <= 992) closeSidebar();
+                });
+            });
+            window.addEventListener("resize", () => {
+                if (window.innerWidth > 992) closeSidebar();
+            });
+        });
     </script>
+
 </body>
 </html>

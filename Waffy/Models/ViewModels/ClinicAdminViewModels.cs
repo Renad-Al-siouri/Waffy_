@@ -28,7 +28,71 @@ namespace Waffy.Models.ViewModels
         public int DocumentsCount { get; set; }
         public int PendingDocsCount { get; set; }
     }
+    public class DoctorsViewModel
+    {
+        public List<DoctorListItemViewModel> Doctors { get; set; } = new();
+    }
 
+    public class DoctorListItemViewModel
+    {
+        public int IdDoctor { get; set; }
+        public int? IdUser { get; set; }
+        public string FullName { get; set; } = "";
+        public string? Email { get; set; }
+        public string? Phone { get; set; }
+        public string? Specialization { get; set; }
+        public int? ExperienceYears { get; set; }
+        public bool? IsAvailable { get; set; }
+        public string? VerificationStatus { get; set; }
+        public decimal? Rating { get; set; }
+    }
+
+    public class AddDoctorViewModel
+    {
+        public string FullName { get; set; } = "";
+        public string Email { get; set; } = "";
+        public string Phone { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string? Specialization { get; set; }
+        public int? ExperienceYears { get; set; }
+        public string? Certifications { get; set; }
+    }
+    public class ClinicBasicInfoViewModel
+    {
+        public string Name { get; set; } = "";
+        public string? ClinicType { get; set; }
+        public string City { get; set; } = "";
+        public string? Area { get; set; }
+        public string Phone { get; set; } = "";
+        public string? Email { get; set; }
+        public string? Description { get; set; }
+        public string? Address { get; set; }
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
+    }
+    public class WorkingHoursViewModel
+    {
+        public bool Sunday { get; set; }
+        public bool Monday { get; set; }
+        public bool Tuesday { get; set; }
+        public bool Wednesday { get; set; }
+        public bool Thursday { get; set; }
+        public bool Friday { get; set; }
+        public bool Saturday { get; set; }
+        public string OpenTime { get; set; } = "09:00";
+        public string CloseTime { get; set; } = "18:00";
+        public bool HasEmergency { get; set; }
+    }
+
+    public class ServicesViewModel
+    {
+        public List<string> SelectedServices { get; set; } = new();
+    }
+    public class DocumentsCViewModel
+    {
+        public List<ClinicDocument> Documents { get; set; } = new();
+        public string ClinicVerificationStatus { get; set; } = "";
+    }
     public class ClinicDetailAdminViewModel
     {
         public Clinic Clinic { get; set; } = null!;

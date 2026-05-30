@@ -112,5 +112,17 @@ namespace Waffy.Repositories
         WHERE MONTH(CreatedAt) = MONTH(GETUTCDATE())
           AND YEAR(CreatedAt)  = YEAR(GETUTCDATE())");
         }
+
+        public async Task<int?> GetClinicIdByDoctorUserIdAsync(int userId)
+        {
+            const string sql = @"
+        SELECT IdClinic 
+        FROM Doctor 
+        WHERE IdUser = @UserId";
+
+            using var connection = new SqlConnection(_ConnectionString);
+            return await connection.QueryFirstOrDefaultAsync<int?>(
+                sql, new { UserId = userId });
+        }
     }
 }

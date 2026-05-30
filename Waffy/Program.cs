@@ -69,6 +69,10 @@ builder.Services.AddScoped<ISurpriseRewardRepository, SurpriseRewardRepository>(
 builder.Services.AddScoped<IPendingPaymentRepository, PendingPaymentRepository>();
 builder.Services.AddScoped<ILocationRepository, LocationRepository>();
 builder.Services.AddScoped<IRewardLogRepository, RewardLogRepository>();
+builder.Services.AddScoped<IClinicScheduleRepository, ClinicScheduleRepository>();
+builder.Services.AddScoped<IClinicServiceRepository, ClinicServiceRepository>();
+builder.Services.AddScoped<IClinicImageRepository, ClinicImageRepository>();
+builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
