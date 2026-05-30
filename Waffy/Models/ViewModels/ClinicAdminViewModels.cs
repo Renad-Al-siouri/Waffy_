@@ -55,7 +55,35 @@ namespace Waffy.Models.ViewModels
         public string Password { get; set; } = "";
         public string? Specialization { get; set; }
         public int? ExperienceYears { get; set; }
+        
+        public IFormFile? CertificationFile { get; set; }
+    }
+
+    public class DoctorAdminRowDto
+    {
+        public int IdDoctor { get; set; }
+        public int? IdUser { get; set; }
+        public int? IdClinic { get; set; }
+        public string FullName { get; set; } = "";
+        public string? Email { get; set; }
+        public string? Phone { get; set; }
+        public string? Specialization { get; set; }
+        public int? ExperienceYears { get; set; }
+        public string? VerificationStatus { get; set; }
         public string? Certifications { get; set; }
+        public string? ClinicName { get; set; }
+        public DateTime? CreatedAt { get; set; }
+    }
+
+    public class DoctorsAdminViewModel
+    {
+        public List<DoctorAdminRowDto> Doctors { get; set; } = new();
+        public int TotalDoctors { get; set; }
+        public int PendingDoctors { get; set; }
+        public int ApprovedDoctors { get; set; }
+        public int RejectedDoctors { get; set; }
+        public int ClinicsWithPendingDocs { get; set; }
+        public string? StatusFilter { get; set; }
     }
     public class ClinicBasicInfoViewModel
     {

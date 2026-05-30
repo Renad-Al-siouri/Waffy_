@@ -12,5 +12,8 @@ namespace Waffy.Interfaces
                                   string phone, string password);
         Task AddDoctorAsync(Doctor doctor);
         Task RemoveFromClinicAsync(int idDoctor);
+        Task<IEnumerable<DoctorAdminRowDto>> GetAllForAdminAsync(string? statusFilter);
+        Task UpdateVerificationStatusAsync(int idDoctor, string status);
+        Task<DoctorDetailViewModel?> GetDetailByIdAsync(int idDoctor);
     }
 }

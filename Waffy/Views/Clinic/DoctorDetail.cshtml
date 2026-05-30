@@ -1,0 +1,460 @@
+﻿@model Waffy.Models.ViewModels.DoctorDetailViewModel
+@{
+    ViewData["Title"] = $"Dr. {Model.FullName} — Waffy";
+    Layout = null;
+
+    var dayNames = new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+
+    // تحويل WorkingDays string "0,1,2,3,4" إلى list
+    var workDays = new List<int>();
+    if (!string.IsNullOrEmpty(Model.WorkingDays))
+    {
+        foreach (var d in Model.WorkingDays.Split(','))
+        {
+            if (int.TryParse(d.Trim(), out var n)) workDays.Add(n);
+        }
+    }
+
+    var initials = Model.FullName.Split(' ').Length > 1
+        ? $"{Model.FullName.Split(' ')[0][0]}{Model.FullName.Split(' ')[1][0]}"
+        : Model.FullName.Length > 0 ? Model.FullName[0].ToString() : "Dr";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/stylev.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        .doctor-page {
+            max-width: 780px;
+            margin: 0 auto;
+            padding: 0 1rem 3rem;
+        }
+
+        .doctor-hero {
+            background: #fff;
+            border-radius: 24px;
+            border: 1px solid #e8ddd0;
+            box-shadow: 0 6px 20px rgba(90,75,49,.08);
+            padding: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            margin-bottom: 1.2rem;
+            flex-wrap: wrap;
+        }
+
+        .doctor-hero-avatar {
+            width: 90px;
+            height: 90px;
+            border-radius: 50%;
+            background: linear-gradient(135deg,#9ab451,#7d953d);
+            color: #fff;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 2rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(125,149,61,.25);
+        }
+
+        .doctor-hero-info {
+            flex: 1;
+        }
+
+        .doctor-hero-name {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: #45382e;
+            margin-bottom: 4px;
+        }
+
+        .doctor-hero-spec {
+            font-size: .9rem;
+            color: #5f7430;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .doctor-hero-meta {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            font-size: .8rem;
+            color: #7b6c58;
+            font-weight: 700;
+        }
+
+        .available-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 12px;
+            border-radius: 999px;
+            font-size: .78rem;
+            font-weight: 900;
+        }
+
+        .available-yes {
+            background: #eef4dd;
+            color: #5f7430;
+            border: 1px solid #dbe8b8;
+        }
+
+        .available-no {
+            background: #faece8;
+            color: #c86a5c;
+            border: 1px solid rgba(200,106,92,.25);
+        }
+
+        .detail-section {
+            background: #fff;
+            border-radius: 18px;
+            border: 1px solid #e8ddd0;
+            padding: 1.3rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 3px 10px rgba(90,75,49,.05);
+        }
+
+        .detail-section-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #5f7430;
+            margin-bottom: 1rem;
+        }
+
+        .info-line {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            padding: 7px 0;
+            border-bottom: 1px solid #f5ede4;
+            font-size: .84rem;
+            font-weight: 700;
+        }
+
+            .info-line:last-child {
+                border-bottom: none;
+            }
+
+        .info-key {
+            color: #7b6c58;
+            min-width: 120px;
+            flex-shrink: 0;
+        }
+
+        .info-val {
+            color: #45382e;
+        }
+
+        .days-row {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .day-pill {
+            padding: 5px 13px;
+            border-radius: 999px;
+            font-size: .78rem;
+            font-weight: 800;
+            border: 1px solid;
+        }
+
+        .day-on {
+            background: #eef4dd;
+            color: #5f7430;
+            border-color: #dbe8b8;
+        }
+
+        .day-off {
+            background: #f5f0e8;
+            color: #a08f80;
+            border-color: #e8ddd0;
+        }
+
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #7b6c58;
+            font-size: .84rem;
+            font-weight: 800;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+
+            .back-link:hover {
+                color: #5f7430;
+            }
+
+        .cert-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: #eef4dd;
+            color: #5f7430;
+            font-size: .8rem;
+            font-weight: 800;
+            text-decoration: none;
+            border: 1px solid #dbe8b8;
+        }
+
+            .cert-link:hover {
+                background: #dbe8b8;
+            }
+    </style>
+</head>
+<body>
+
+    <!-- ══ Navbar ══ -->
+    <div class="top-hero-area">
+        <div class="top-hero-shell">
+            <header class="topbar">
+                <div class="header-shell">
+                    <nav class="navbar">
+                        <div class="left-nav desktop-nav desktop-links">
+                            <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
+                            <a asp-controller="Clinic" asp-action="Clinics" class="nav-link active">Clinics</a>
+                            <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
+                            <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
+                            <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
+                        </div>
+                        <div class="logo-center">
+                            <img src="~/Images/logo.png" alt="Waffy" class="main-logo">
+                        </div>
+                        <div class="right-nav">
+                            <div class="nav-actions">
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon">
+                                    <i class="fa-solid fa-cart-shopping"></i>
+                                </a>
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon">
+                                    <i class="fa-solid fa-bell"></i>
+                                </a>
+                                <a asp-controller="Account" asp-action="Profile" class="profile-btn">
+                                    <img src="~/Images/user.jpg" alt="Profile">
+                                </a>
+                                <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </header>
+        </div>
+    </div>
+
+    <main class="container">
+        <div class="doctor-page">
+
+            <!-- Back -->
+            @if (Model.IdClinic.HasValue)
+            {
+                <a asp-controller="Clinic" asp-action="ClinicDetail"
+                   asp-route-id="@Model.IdClinic"
+                   class="back-link">
+                    ← Back to @(Model.ClinicName ?? "Clinic")
+                </a>
+            }
+            else
+            {
+                <a asp-controller="Clinic" asp-action="Clinics" class="back-link">
+                    ← Back to Clinics
+                </a>
+            }
+
+            <!-- ── Hero ── -->
+            <div class="doctor-hero fade-up">
+                <div class="doctor-hero-avatar">@initials.ToUpper()</div>
+                <div class="doctor-hero-info">
+                    <div class="doctor-hero-name">Dr. @Model.FullName</div>
+                    <div class="doctor-hero-spec">
+                        @(Model.Specialization ?? "General Veterinary")
+                        @if (!string.IsNullOrEmpty(Model.SecondarySpec))
+                        {
+                            <span> · @Model.SecondarySpec</span>
+                        }
+                    </div>
+                    <div class="doctor-hero-meta">
+                        @if (Model.ExperienceYears.HasValue)
+                        {
+                            <span>🎓 @Model.ExperienceYears years experience</span>
+                        }
+                        @if (Model.Rating.HasValue && Model.Rating > 0)
+                        {
+                            <span>⭐ @Model.Rating.Value.ToString("F1")</span>
+                        }
+                        @if (!string.IsNullOrEmpty(Model.ClinicName))
+                        {
+                            <span>🏥 @Model.ClinicName</span>
+                        }
+                    </div>
+                    <div style="margin-top:10px;">
+                        @if (Model.IsAvailable == true)
+                        {
+                            <span class="available-badge available-yes">✅ Available</span>
+                        }
+                        else
+                        {
+                            <span class="available-badge available-no">⏸ Currently Unavailable</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- ── Bio ── -->
+            @if (!string.IsNullOrEmpty(Model.Bio))
+            {
+                <div class="detail-section fade-up">
+                    <div class="detail-section-title">👤 About</div>
+                    <p style="font-size:.86rem;color:#7b6c58;line-height:1.8;font-weight:700;margin:0;">
+                        @Model.Bio
+                    </p>
+                </div>
+            }
+
+            <!-- ── Professional Info ── -->
+            <div class="detail-section fade-up">
+                <div class="detail-section-title">🎓 Professional Information</div>
+
+                @if (!string.IsNullOrEmpty(Model.Qualification))
+                {
+                    <div class="info-line">
+                        <span class="info-key">Qualification</span>
+                        <span class="info-val">@Model.Qualification</span>
+                    </div>
+                }
+                @if (Model.ExperienceYears.HasValue)
+                {
+                    <div class="info-line">
+                        <span class="info-key">Experience</span>
+                        <span class="info-val">@Model.ExperienceYears years</span>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Languages))
+                {
+                    <div class="info-line">
+                        <span class="info-key">Languages</span>
+                        <span class="info-val">@Model.Languages</span>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Phone))
+                {
+                    <div class="info-line">
+                        <span class="info-key">Phone</span>
+                        <span class="info-val">@Model.Phone</span>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.Certifications))
+                {
+                    <div class="info-line">
+                        <span class="info-key">Certifications</span>
+                        <span class="info-val">
+                            <a href="@Model.Certifications" target="_blank" class="cert-link">
+                                📄 View Certificate
+                            </a>
+                        </span>
+                    </div>
+                }
+            </div>
+
+            <!-- ── Working Schedule ── -->
+            @if (workDays.Any() || (Model.StartTime.HasValue && Model.EndTime.HasValue))
+            {
+                <div class="detail-section fade-up">
+                    <div class="detail-section-title">📅 Working Schedule</div>
+
+                    @if (workDays.Any())
+                    {
+                        <div class="days-row" style="margin-bottom:14px;">
+                            @for (int i = 0; i < 7; i++)
+                            {
+                                var isOn = workDays.Contains(i);
+                                <span class="day-pill @(isOn ? "day-on" : "day-off")">
+                                    @dayNames[i]
+                                </span>
+                            }
+                        </div>
+                    }
+
+                    @if (Model.StartTime.HasValue && Model.EndTime.HasValue)
+                    {
+                        <div class="info-line">
+                            <span class="info-key">Hours</span>
+                            <span class="info-val">
+                                ⏰ @Model.StartTime.Value.ToString(@"hh\:mm")
+                                – @Model.EndTime.Value.ToString(@"hh\:mm")
+                            </span>
+                        </div>
+                    }
+                </div>
+            }
+
+            <!-- ── Clinic ── -->
+            @if (!string.IsNullOrEmpty(Model.ClinicName) && Model.IdClinic.HasValue)
+            {
+                <div class="detail-section fade-up">
+                    <div class="detail-section-title">🏥 Clinic</div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+                        <div>
+                            <div style="font-weight:900;font-size:.9rem;color:#45382e;">
+                                @Model.ClinicName
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.ClinicCity))
+                            {
+                                <div style="font-size:.78rem;color:#7b6c58;font-weight:700;margin-top:3px;">
+                                    📍 @Model.ClinicCity
+                                </div>
+                            }
+                        </div>
+                        <a asp-controller="Clinic" asp-action="ClinicDetail"
+                           asp-route-id="@Model.IdClinic"
+                           style="padding:8px 18px;border-radius:999px;
+                                      background:linear-gradient(180deg,#9ab451,#7d953d);
+                                      color:#fff;font-size:.82rem;font-weight:900;
+                                      text-decoration:none;">
+                            View Clinic →
+                        </a>
+                    </div>
+                </div>
+            }
+
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-links">
+            <a asp-controller="Home" asp-action="About">About Us</a>
+            <span>|</span>
+            <a asp-controller="Home" asp-action="Faq">FAQ</a>
+        </div>
+        <div>© 2026 Waffy, all rights reserved.</div>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if ("IntersectionObserver" in window) {
+                const obs = new IntersectionObserver(entries => {
+                    entries.forEach(e => {
+                        if (e.isIntersecting) { e.target.classList.add("show"); obs.unobserve(e.target); }
+                    });
+                }, { threshold: 0.1 });
+                document.querySelectorAll(".fade-up").forEach(el => obs.observe(el));
+            } else {
+                document.querySelectorAll(".fade-up").forEach(el => el.classList.add("show"));
+            }
+        });
+    </script>
+
+</body>
+</html>

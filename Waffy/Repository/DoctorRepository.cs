@@ -99,5 +99,56 @@ namespace Waffy.Repositories
                 WHERE IdDoctor = @IdDoctor",
                 new { IdDoctor = idDoctor });
         }
+
+        public async Task<IEnumerable<DoctorAdminRowDto>> GetAllForAdminAsync(string? statusFilter)
+        {
+            using var conn = new SqlConnection(_ConnectionString);
+            return await conn.QueryAsync<DoctorAdminRowDto>(@"
+        SELECT d.IdDoctor, d.IdUser, d.IdClinic,
+               d.Specialization, d.ExperienceYears,
+               d.VerificationStatus, d.Certifications, d.CreatedAt,
+               u.FullName, u.Email, u.Phone,
+               c.Name AS ClinicName
+        FROM Doctor d
+        INNER JOIN Users u ON d.IdUser = u.UserId
+        LEFT JOIN Clinic c ON d.IdClinic = c.IdClinic
+        WHERE d.VerificationStatus != 'Removed'
+          AND (@StatusFilter IS NULL OR d.VerificationStatus = @StatusFilter)
+        ORDER BY d.CreatedAt DESC",
+                new { StatusFilter = string.IsNullOrEmpty(statusFilter) ? null : statusFilter });
+        }
+
+        public async Task UpdateVerificationStatusAsync(int idDoctor, string status)
+        {
+            using var conn = new SqlConnection(_ConnectionString);
+            await conn.ExecuteAsync(
+                "UPDATE Doctor SET VerificationStatus = @Status WHERE IdDoctor = @IdDoctor",
+                new { Status = status, IdDoctor = idDoctor });
+        }
+
+
+        public async Task<DoctorDetailViewModel?> GetDetailByIdAsync(int idDoctor)
+        {
+            using var conn = new SqlConnection(_ConnectionString);
+            return await conn.QueryFirstOrDefaultAsync<DoctorDetailViewModel>(@"
+        SELECT d.IdDoctor, d.IdClinic,
+               d.Specialization, d.SecondarySpec, d.ExperienceYears,
+               d.Qualification, d.Bio, d.Languages,
+               d.WorkingDays, d.StartTime, d.EndTime,
+               d.Rating, d.IsAvailable, d.Certifications,
+               u.FullName, u.Email, u.Phone,
+               c.Name AS ClinicName, c.City AS ClinicCity
+        FROM Doctor d
+        INNER JOIN Users u ON d.IdUser = u.UserId
+        LEFT JOIN Clinic c ON d.IdClinic = c.IdClinic
+        WHERE d.IdDoctor = @IdDoctor
+          AND d.VerificationStatus = 'Approved'",
+                new { IdDoctor = idDoctor });
+        }
+
+
+
+
+
     }
 }

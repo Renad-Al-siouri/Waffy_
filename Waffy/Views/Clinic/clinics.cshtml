@@ -1,19 +1,554 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@model Waffy.Models.ViewModels.ClinicsListViewModel
 @{
+    ViewData["Title"] = "Waffy — Veterinary Clinics";
     Layout = null;
+    var now = DateTime.Now;
+    var currentTime = now.TimeOfDay;
 }
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Waffy Clinics</title>
-
+    <title>@ViewData["Title"]</title>
     <link rel="stylesheet" href="~/css/stylev.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --wg: #7d953d;
+            --wgl: #9ab451;
+            --wgp: #eef4dd;
+            --wgb: #dbe8b8;
+            --wb: #f8efea;
+            --ws: #fbf6f1;
+            --ww: #fffdf9;
+            --wt: #45382e;
+            --wm: #7b6c58;
+            --wl: #e8ddd0;
+            --wr: #c86a5c;
+            --wgold: #efb83c;
+            --sh: 0 4px 14px rgba(90,75,49,.08);
+            --shh: 0 10px 28px rgba(90,75,49,.14);
+        }
+
+        /* ── Hero Search ── */
+        .clinics-hero {
+            padding: 2.8rem 0 2rem;
+            text-align: center;
+        }
+
+            .clinics-hero .hero-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 18px;
+                border-radius: 999px;
+                background: var(--wgp);
+                border: 1px solid var(--wgb);
+                color: #5f7430;
+                font-size: .82rem;
+                font-weight: 800;
+                margin-bottom: 16px;
+            }
+
+            .clinics-hero h1 {
+                font-family: 'Fredoka', sans-serif;
+                font-size: clamp(2rem,4vw,2.8rem);
+                color: #5f7430;
+                margin: 0 0 8px;
+                line-height: 1.1;
+            }
+
+            .clinics-hero p {
+                color: var(--wm);
+                font-size: .96rem;
+                font-weight: 700;
+                margin: 0 auto 1.8rem;
+                max-width: 600px;
+                line-height: 1.6;
+            }
+
+        /* ── Search Box ── */
+        .search-hero-wrap {
+            max-width: 700px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 18px;
+            border: 1px solid var(--wl);
+            box-shadow: 0 6px 24px rgba(90,75,49,.12);
+            display: flex;
+            overflow: hidden;
+        }
+
+            .search-hero-wrap input {
+                flex: 1;
+                border: none;
+                padding: 15px 20px;
+                font-family: 'Nunito', sans-serif;
+                font-size: .94rem;
+                color: var(--wt);
+                background: transparent;
+                outline: none;
+            }
+
+                .search-hero-wrap input::placeholder {
+                    color: var(--wm);
+                }
+
+        .search-divider {
+            width: 1px;
+            height: 28px;
+            background: var(--wl);
+            align-self: center;
+            flex-shrink: 0;
+        }
+
+        .search-hero-wrap select {
+            border: none;
+            padding: 15px 16px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .88rem;
+            color: var(--wm);
+            background: transparent;
+            outline: none;
+            cursor: pointer;
+            min-width: 130px;
+        }
+
+        .search-hero-btn {
+            margin: 8px;
+            padding: 0 20px;
+            background: linear-gradient(180deg,#9ab451,#7d953d);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .9rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: .18s;
+            white-space: nowrap;
+        }
+
+            .search-hero-btn:hover {
+                background: linear-gradient(180deg,#8da546,#708734);
+            }
+
+        /* ── Filter Bar ── */
+        .filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 1.2rem 0 .8rem;
+        }
+
+        .filter-select {
+            padding: 8px 16px;
+            border: 1px solid var(--wl);
+            border-radius: 999px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .82rem;
+            font-weight: 700;
+            color: var(--wt);
+            background: #fff;
+            cursor: pointer;
+            outline: none;
+            transition: .18s;
+        }
+
+            .filter-select:focus {
+                border-color: var(--wg);
+            }
+
+        .filter-emergency-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border: 1px solid var(--wl);
+            border-radius: 999px;
+            background: #fff;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            font-size: .82rem;
+            font-weight: 700;
+            color: var(--wm);
+            transition: .18s;
+            user-select: none;
+        }
+
+            .filter-emergency-label input {
+                display: none;
+            }
+
+            .filter-emergency-label.active {
+                background: rgba(200,106,92,.08);
+                border-color: rgba(200,106,92,.4);
+                color: var(--wr);
+            }
+
+        .filter-reset {
+            padding: 7px 16px;
+            border: 1px solid var(--wl);
+            border-radius: 999px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .82rem;
+            font-weight: 800;
+            color: var(--wm);
+            background: #fff;
+            cursor: pointer;
+            text-decoration: none;
+            transition: .18s;
+        }
+
+            .filter-reset:hover {
+                background: var(--ws);
+            }
+
+        .results-info {
+            font-size: .84rem;
+            font-weight: 700;
+            color: var(--wm);
+            margin-left: auto;
+            white-space: nowrap;
+        }
+
+        /* ── Grid ── */
+        .clinics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px,1fr));
+            gap: 20px;
+            margin-bottom: 3rem;
+        }
+
+        /* ── Card ── */
+        .clinic-card-v2 {
+            background: var(--ww);
+            border-radius: 20px;
+            border: 1px solid var(--wl);
+            overflow: hidden;
+            transition: transform .22s, box-shadow .22s;
+            box-shadow: var(--sh);
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            color: inherit;
+        }
+
+            .clinic-card-v2:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shh);
+            }
+
+        .card-v2-cover {
+            position: relative;
+            height: 168px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .cover-v2-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .cover-v2-ph {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3.5rem;
+        }
+
+        .cover-v2-gradient {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom,transparent 40%,rgba(69,56,46,.2));
+        }
+
+        .cover-bg0 {
+            background: linear-gradient(135deg,#dbe8b8,#8da546);
+        }
+
+        .cover-bg1 {
+            background: linear-gradient(135deg,#bccc7e,#5f7430);
+        }
+
+        .cover-bg2 {
+            background: linear-gradient(135deg,#d4e8b8,#4aac72);
+        }
+
+        .cover-bg3 {
+            background: linear-gradient(135deg,#c8dcac,#7d953d);
+        }
+
+        .badge-emg {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(200,106,92,.9);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .badge-st {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .badge-open {
+            background: rgba(125,149,61,.88);
+            color: #fff;
+        }
+
+        .badge-closed {
+            background: rgba(255,253,249,.9);
+            color: var(--wr);
+            border: 0.5px solid rgba(200,106,92,.3);
+        }
+
+        .card-v2-logo {
+            position: absolute;
+            bottom: 18px;
+            left: 14px;
+            width: 46px;
+            height: 46px;
+            border-radius: 12px;
+            background: var(--ww);
+            border: 2px solid var(--ww);
+            box-shadow: 0 3px 10px rgba(90,75,49,.14);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            z-index: 1;
+        }
+
+            .card-v2-logo img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+            }
+
+        .card-v2-body {
+            padding: 26px 14px 8px;
+            flex: 1;
+        }
+
+        .card-v2-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .card-v2-name {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--wt);
+            line-height: 1.25;
+            flex: 1;
+            margin: 0;
+        }
+
+        .card-v2-verified {
+            font-size: 10px;
+            font-weight: 800;
+            color: #5f7430;
+            background: var(--wgp);
+            padding: 2px 7px;
+            border-radius: 999px;
+            border: 0.5px solid var(--wgb);
+            white-space: nowrap;
+            margin-left: 6px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        .card-v2-type {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--wm);
+            background: var(--ws);
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 0.5px solid var(--wl);
+            margin-bottom: 6px;
+        }
+
+        .card-v2-location {
+            font-size: 12px;
+            color: var(--wm);
+            font-weight: 700;
+            margin-bottom: 7px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-v2-stats {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--wm);
+            font-weight: 700;
+            margin-bottom: 9px;
+            flex-wrap: wrap;
+        }
+
+        .v2-stars {
+            color: var(--wgold);
+            letter-spacing: 1px;
+            font-size: 12px;
+        }
+
+        .v2-dot {
+            color: var(--wl);
+        }
+
+        .card-v2-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+
+        .v2-chip {
+            font-size: 11px;
+            font-weight: 800;
+            color: #5f7430;
+            background: var(--wgp);
+            padding: 3px 9px;
+            border-radius: 999px;
+            border: 0.5px solid var(--wgb);
+        }
+
+        .v2-chip-more {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--wm);
+            background: var(--ws);
+            padding: 3px 9px;
+            border-radius: 999px;
+            border: 0.5px solid var(--wl);
+        }
+
+        .card-v2-footer {
+            border-top: 1px solid var(--wl);
+            padding: 10px 14px 13px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: auto;
+        }
+
+        .card-v2-hours {
+            font-size: 11px;
+            color: var(--wm);
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .card-v2-cta {
+            font-size: 12px;
+            font-weight: 900;
+            color: #fff;
+            background: linear-gradient(180deg,#9ab451,#7d953d);
+            padding: 7px 14px;
+            border-radius: 999px;
+            transition: .18s;
+            box-shadow: 0 4px 10px rgba(125,149,61,.22);
+            display: inline-block;
+        }
+
+        .clinic-card-v2:hover .card-v2-cta {
+            background: linear-gradient(180deg,#8da546,#708734);
+        }
+
+        /* ── Empty State ── */
+        .empty-state {
+            grid-column: 1/-1;
+            text-align: center;
+            padding: 4rem 1rem;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-title {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.5rem;
+            color: #5f7430;
+            margin-bottom: .5rem;
+        }
+
+        .empty-sub {
+            color: var(--wm);
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+        }
+
+        .empty-reset {
+            display: inline-block;
+            padding: 10px 24px;
+            border-radius: 999px;
+            background: var(--wgl);
+            color: #fff;
+            font-weight: 900;
+            text-decoration: none;
+            transition: .18s;
+        }
+
+            .empty-reset:hover {
+                background: var(--wg);
+            }
+
+        @@media (max-width: 768px) {
+            .search-hero-wrap select
+
+        {
+            display: none;
+        }
+
+        .search-divider {
+            display: none;
+        }
+
+        .results-info {
+            margin-left: 0;
+        }
+
+        }
+        @@media (max-width: 480px) {
+            .clinics-grid
+
+        {
+            grid-template-columns: 1fr;
+        }
+
+        }
+    </style>
 </head>
 <body>
 
@@ -22,31 +557,22 @@
             <header class="topbar">
                 <div class="header-shell">
                     <nav class="navbar">
-
                         <div class="left-nav desktop-nav desktop-links">
-                            <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
-                            <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
+                            <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
+                            <a asp-controller="Clinic" asp-action="Clinics" class="nav-link active">Clinics</a>
                             <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                             <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-
                         </div>
-
                         <div class="logo-center">
-                            <img src="../Images/logo.png" alt="Waffy Main Logo" class="main-logo">
+                            <img src="~/Images/logo.png" alt="Waffy" class="main-logo">
                         </div>
-
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
-
-
-
                                 <div class="services-dropdown" id="servicesDropdown">
                                     <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services
-                                        <span class="dropdown-arrow">▼</span>
+                                        Services <span class="dropdown-arrow">▼</span>
                                     </button>
-
                                     <div class="dropdown-menu" id="servicesMenu">
                                         <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
                                         <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
@@ -60,119 +586,288 @@
                                         <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                     </div>
                                 </div>
-
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
-
                             </div>
-
                             <div class="nav-actions">
-                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon">
                                     <i class="fa-solid fa-cart-shopping"></i>
                                 </a>
-
-                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon" aria-label="Notifications">
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon">
                                     <i class="fa-solid fa-bell"></i>
                                 </a>
-
-                                <a asp-controller="Account" asp-action="Profile" class="profile-btn" aria-label="Profile">
-                                    <img src="../Images/user.jpg" alt="Profile">
+                                <a asp-controller="Account" asp-action="Profile" class="profile-btn">
+                                    <img src="~/Images/user.jpg" alt="Profile">
                                 </a>
                                 <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
-
                             <div class="mobile-nav-wrap">
-                                <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
+                                <button class="menu-btn" id="menuBtn" type="button">☰</button>
                                 <div class="nav-links" id="navLinks">
                                     <div class="mobile-menu-logo">
-                                        <img src="../Images/logo.png" alt="Waffy Logo">
+                                        <img src="~/Images/logo.png" alt="Waffy Logo">
                                     </div>
-
-                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
-                                    <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
+                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
+                                    <a asp-controller="Clinic" asp-action="Clinics" class="nav-link active">Clinics</a>
                                     <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                                     <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                                     <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                                     <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
-
                                     <div class="mobile-services-block" id="mobileServicesBlock">
                                         <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
-                                            <span>Services</span>
-                                            <span class="dropdown-arrow">▼</span>
+                                            <span>Services</span><span class="dropdown-arrow">▼</span>
                                         </button>
-
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
-
                                             <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                             <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                             <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
                                             <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
-                                            <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
+                                            <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                                     <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
                             </div>
                         </div>
-
                     </nav>
                 </div>
             </header>
         </div>
     </div>
 
-    <main class="container clinics-page">
-        <section id="listPage" class="page">
-            <section class="hero-section fade-up">
-                <div class="hero-badge">Veterinary Clinics 🏥</div>
-                <h1>Veterinary Clinics</h1>
-                <p>
-                    Find the best clinic in your area, choose the service you need,
-                    open the schedule, select a time slot, and confirm your appointment easily.
-                </p>
-            </section>
+    <main class="container" style="padding-bottom:3rem;">
 
-            <section class="toolbar fade-up">
-                <label class="search-box">
-                    <span class="search-icon"><i class="fa-solid fa-magnifying-glass"></i></span>
-                    <input id="searchInput" type="text" placeholder="Search clinics..." />
-                </label>
+        <!-- ── Hero + Search ── -->
+        <div class="clinics-hero fade-up">
+            <div class="hero-badge">🐾 Veterinary Clinics</div>
+            <h1>Find a Vet Clinic Near You</h1>
+            <p>Browse verified clinics, explore services, and book your appointment with ease.</p>
 
-                <button id="collapseAllBtn" class="action-btn" type="button">
-                    ✦ Close All Schedules
-                </button>
-            </section>
+            <form method="get" asp-action="Clinics">
+                <div class="search-hero-wrap">
+                    <input name="search" type="text"
+                           placeholder="🔍  Search by clinic name..."
+                           value="@Model.SearchQuery">
+                    <div class="search-divider"></div>
+                    <select name="city">
+                        @if (Model.SelectedCity == "All")
+                        {
+                            <option value="All" selected>All Cities</option>
+                        }
+                        else
+                        {
+                            <option value="All">All Cities</option>
+                        }
+                        @foreach (var c in Model.Cities)
+                        {
+                            if (c == Model.SelectedCity)
+                            {
+                                <option value="@c" selected>@c</option>
+                            }
+                            else
+                            {
+                                <option value="@c">@c</option>
+                            }
+                        }
+                    </select>
+                    <button type="submit" class="search-hero-btn">
+                        <i class="fa-solid fa-magnifying-glass"></i> Search
+                    </button>
+                </div>
 
-            <section id="cardsContainer" class="cards fade-up"></section>
-        </section>
+                <!-- Filter Bar -->
+                <div class="filter-bar">
+                    <select name="service" class="filter-select" onchange="this.form.submit()">
+                        @if (Model.SelectedService == "All")
+                        {
+                            <option value="All" selected>All Services</option>
+                        }
+                        else
+                        {
+                            <option value="All">All Services</option>
+                        }
+                        @foreach (var s in Model.AllServices)
+                        {
+                            if (s == Model.SelectedService)
+                            {
+                                <option value="@s" selected>@s</option>
+                            }
+                            else
+                            {
+                                <option value="@s">@s</option>
+                            }
+                        }
+                    </select>
 
-        <section id="detailPage" class="page hidden detail-page">
-            <button id="backBtn" class="back-btn" type="button">← Back to Clinics</button>
-            <div id="detailCard" class="detail-card"></div>
-        </section>
+                    @if (!string.IsNullOrEmpty(Model.SearchQuery)
+                                        || Model.SelectedCity != "All"
+                                        || Model.SelectedService != "All")
+                    {
+                        <a asp-action="Clinics" class="filter-reset">✕ Reset</a>
+                    }
+
+                    <div class="results-info">
+                        @Model.Clinics.Count clinic(s) found
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- ── Cards Grid ── -->
+        <div class="clinics-grid fade-up">
+
+            @if (!Model.Clinics.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-icon">🏥</div>
+                    <div class="empty-title">No clinics found</div>
+                    <p class="empty-sub">Try adjusting your search or removing filters.</p>
+                    <a asp-action="Clinics" class="empty-reset">Reset Filters</a>
+                </div>
+            }
+
+            @foreach (var clinic in Model.Clinics)
+            {
+                var rating = clinic.Rating > 0 ? (int)Math.Round((double)clinic.Rating) : 5;
+                var stars = new string('★', Math.Min(rating, 5));
+                var isOpen = clinic.DefaultOpenTime.HasValue && clinic.DefaultCloseTime.HasValue
+                && currentTime >= clinic.DefaultOpenTime.Value
+                && currentTime <= clinic.DefaultCloseTime.Value;
+                var bgClass = $"cover-bg{clinic.IdClinic % 4}";
+                var openHrs = clinic.DefaultOpenTime.HasValue && clinic.DefaultCloseTime.HasValue
+                ? $"{clinic.DefaultOpenTime.Value.ToString(@"hh\:mm")} – {clinic.DefaultCloseTime.Value.ToString(@"hh\:mm")}"
+                : "—";
+
+                <a asp-controller="Clinic" asp-action="ClinicDetail"
+                   asp-route-id="@clinic.IdClinic"
+                   class="clinic-card-v2">
+
+                    <!-- Cover -->
+                    <div class="card-v2-cover">
+                        @if (!string.IsNullOrEmpty(clinic.CoverImageUrl))
+                        {
+                            <img src="@clinic.CoverImageUrl" alt="@clinic.Name" class="cover-v2-img">
+                        }
+                        else
+                        {
+                            <div class="cover-v2-ph @bgClass">🏥</div>
+                        }
+                        <div class="cover-v2-gradient"></div>
+
+                        @if (clinic.HasEmergency)
+                        {
+                            <span class="badge-emg">🚨 Emergency</span>
+                        }
+
+                        @if (isOpen)
+                        {
+                            <span class="badge-st badge-open">● Open Now</span>
+                        }
+                        else
+                        {
+                            <span class="badge-st badge-closed">● Closed</span>
+                        }
+
+                        <div class="card-v2-logo">
+                            @if (!string.IsNullOrEmpty(clinic.LogoUrl))
+                            {
+                                <img src="@clinic.LogoUrl" alt="Logo">
+                            }
+                            else
+                            {
+                                <span>🏥</span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Body -->
+                    <div class="card-v2-body">
+                        <div class="card-v2-header">
+                            <h3 class="card-v2-name">@clinic.Name</h3>
+                            <span class="card-v2-verified">✓ Verified</span>
+                        </div>
+                        <span class="card-v2-type">@(clinic.ClinicType ?? "Veterinary Clinic")</span>
+                        <div class="card-v2-location">
+                            <i class="fa-solid fa-location-dot" style="font-size:11px;color:#97ad4d;"></i>
+                            @clinic.City@(!string.IsNullOrEmpty(clinic.Area) ? $", {clinic.Area}" : "")
+                        </div>
+                        <div class="card-v2-stats">
+                            <span class="v2-stars">@stars</span>
+                            <span>@(clinic.Rating > 0 ? clinic.Rating.ToString("F1") : "New")</span>
+                            <span class="v2-dot">·</span>
+                            <span>@clinic.Services.Count service(s)</span>
+                        </div>
+                        @if (clinic.Services.Any())
+                        {
+                            <div class="card-v2-chips">
+                                @foreach (var svc in clinic.Services.Take(3))
+                                {
+                                    <span class="v2-chip">@svc</span>
+                                }
+                                @if (clinic.Services.Count > 3)
+                                {
+                                    <span class="v2-chip-more">+@(clinic.Services.Count - 3)</span>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="card-v2-footer">
+                        <div class="card-v2-hours">
+                            <i class="fa-regular fa-clock" style="font-size:11px;"></i>
+                            @openHrs
+                        </div>
+                        <span class="card-v2-cta">View Clinic →</span>
+                    </div>
+
+                </a>
+            }
+        </div>
+
     </main>
 
     <footer class="footer">
         <div class="footer-links">
-            <a href="about.html">About Us</a>
+            <a asp-controller="Home" asp-action="About">About Us</a>
             <span>|</span>
-            <a href="about.html">Contact</a>
+            <a asp-controller="Home" asp-action="About">Contact</a>
             <span>|</span>
-            <a href="faq.html">FAQ</a>
-            <span>|</span>
-            <div class="social-inline" aria-label="Social links">
-                <span>f</span>
-                <span>🐦</span>
-                <span>◎</span>
-            </div>
+            <a asp-controller="Home" asp-action="Faq">FAQ</a>
         </div>
         <div>© 2026 Waffy, all rights reserved.</div>
     </footer>
 
-    <div id="toast" class="toast"></div>
+    <script>
+        const dropdown = document.getElementById("servicesDropdown");
+        const toggle   = document.getElementById("servicesToggle");
+        if (dropdown && toggle) {
+            toggle.addEventListener("click", e => { e.stopPropagation(); dropdown.classList.toggle("open"); });
+            document.addEventListener("click", e => { if (!dropdown.contains(e.target)) dropdown.classList.remove("open"); });
+        }
+        const menuBtn  = document.getElementById("menuBtn");
+        const navLinks = document.getElementById("navLinks");
+        if (menuBtn && navLinks) {
+            menuBtn.addEventListener("click", e => { e.stopPropagation(); navLinks.classList.toggle("open"); });
+            document.addEventListener("click", e => {
+                if (!navLinks.contains(e.target) && !menuBtn.contains(e.target)) navLinks.classList.remove("open");
+            });
+        }
+        const mb = document.getElementById("mobileServicesBlock");
+        const mt = document.getElementById("mobileServicesToggle");
+        if (mb && mt) mt.addEventListener("click", () => mb.classList.toggle("open"));
 
-    <script src="~/js/scriptv.js"></script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if ("IntersectionObserver" in window) {
+                const obs = new IntersectionObserver(entries => {
+                    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add("show"); obs.unobserve(e.target); } });
+                }, { threshold: 0.08 });
+                document.querySelectorAll(".fade-up").forEach(el => obs.observe(el));
+            } else {
+                document.querySelectorAll(".fade-up").forEach(el => el.classList.add("show"));
+            }
+        });
+    </script>
+
 </body>
 </html>

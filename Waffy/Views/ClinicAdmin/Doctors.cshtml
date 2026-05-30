@@ -262,8 +262,7 @@
     </div>
 
     <!-- ══ Modal: Add Doctor ══ -->
-    <div class="modal-overlay" id="modalAddDoctor"
-         onclick="closeOnBg(event,'modalAddDoctor')">
+    <div class="modal-overlay" id="modalAddDoctor">
         <div class="modal modal-wide">
             <div class="modal-header">
                 <div class="modal-title">👨‍⚕️ Add Doctor</div>
@@ -273,7 +272,8 @@
                 </button>
             </div>
 
-            <form asp-controller="ClinicAdmin" asp-action="AddDoctor" method="post">
+            <form asp-controller="ClinicAdmin" asp-action="AddDoctor"
+                  method="post" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
               
                     <div class="modal-body" style="overflow-y:auto; max-height:65vh;">
@@ -330,9 +330,16 @@
                             </select>
                         </div>
                         <div class="f-group f-full">
-                            <label class="f-label">Certifications</label>
-                            <textarea name="Certifications" class="f-inp"
-                                      placeholder="Bachelor of Veterinary Medicine..."></textarea>
+                            <label class="f-label">Certifications & Qualifications</label>
+                            <label class="upload-box" style="cursor:pointer;display:block">
+                                <input type="file" name="CertificationFile"
+                                       accept=".pdf,.jpg,.jpeg,.png,.docx"
+                                       style="display:none"
+                                       onchange="updateCertLabel(this)">
+                                <div class="upload-icon">🎓</div>
+                                <div class="upload-txt" id="certUploadTxt">Upload certification file</div>
+                                <div class="upload-sub">PDF, JPG, PNG, DOCX — max 5MB</div>
+                            </label>
                         </div>
                     </div>
 
@@ -364,9 +371,7 @@
         function closeModal(id) {
             document.getElementById(id)?.classList.remove("open");
         }
-        function closeOnBg(e, id) {
-            if (e.target === document.getElementById(id)) closeModal(id);
-        }
+      
 
         // ── Sidebar ───────────────────────────────────────
         function toggleSidebar() {
@@ -387,7 +392,24 @@
             document.body.classList.remove("sidebar-open");
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
+                function updateCertLabel(input) {
+            const txt = document.getElementById("certUploadTxt");
+            if (input.files && input.files[0]) {
+                txt.textContent = input.files[0].name;
+            }
+        }
+
+               document.addEventListener("DOMContentLoaded", () => {
+            // Modal background close
+            document.querySelectorAll(".modal-overlay").forEach(overlay => {
+                overlay.addEventListener("click", function(e) {
+                    if (e.target === this) {
+                        this.classList.remove("open");
+                    }
+                });
+            });
+
+            // Sidebar
             document.querySelectorAll(".wa-sb .sb-row").forEach(item => {
                 item.addEventListener("click", () => {
                     if (window.innerWidth <= 992) closeSidebar();

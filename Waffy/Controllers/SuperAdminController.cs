@@ -35,6 +35,7 @@ namespace Waffy.Controllers
         private readonly IPetRepository _petRepo;
         private readonly IProductImageRepository _productImageRepo;
         private readonly IClinicDocumentRepository _clinicDocumentRepo;
+        private readonly IDoctorRepository _doctorAdminRepo;
         public SuperAdminController(
             IUserRepository userRepo,
             IStoreRepository storeRepo,
@@ -59,7 +60,8 @@ namespace Waffy.Controllers
             IClinicRepository clinicRepo,
             IPetRepository petRepo,
             IProductImageRepository productImageRepo,
-            IClinicDocumentRepository clinicDocumentRepo,   // ← أضف
+            IClinicDocumentRepository clinicDocumentRepo,
+            IDoctorRepository doctorAdminRepo,
             IPendingPaymentRepository paymentRepo)  
         {
             _userRepo = userRepo;
@@ -87,6 +89,7 @@ namespace Waffy.Controllers
             _petRepo = petRepo;
             _productImageRepo = productImageRepo;
             _clinicDocumentRepo = clinicDocumentRepo;
+            _doctorAdminRepo = doctorAdminRepo;
         }
 
         // ── Guards ───────────────────────────────────────────────
@@ -2360,6 +2363,103 @@ namespace Waffy.Controllers
 
             return Json(new { success = true });
         }
+
+        // ════════════════════════════════════════════════════════
+        // Doctors_C — GET
+        // ════════════════════════════════════════════════════════
+        public async Task<IActionResult> Doctors_C(string? statusFilter)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var allDoctors = (await _doctorAdminRepo
+                .GetAllForAdminAsync(null)).ToList();
+
+            var filtered = string.IsNullOrEmpty(statusFilter) || statusFilter == "All"
+                ? allDoctors
+                : allDoctors.Where(d => d.VerificationStatus == statusFilter).ToList();
+
+            // عدد العيادات التي لها مستندات معلقة
+            var allClinics = (await _clinicRepo.GetAllAsync()).ToList();
+            int clinicsWithPendingDocs = 0;
+            foreach (var c in allClinics.Where(c => c.VerificationStatus == "Pending"))
+            {
+                var docs = (await _clinicDocumentRepo.GetByClinicIdAsync(c.IdClinic)).ToList();
+                if (docs.Any(d => d.Status?.ToLower() == "pending" && d.DocumentType != "Logo"))
+                    clinicsWithPendingDocs++;
+            }
+
+            var vm = new DoctorsAdminViewModel
+            {
+                Doctors = filtered,
+                TotalDoctors = allDoctors.Count,
+                PendingDoctors = allDoctors.Count(d => d.VerificationStatus == "Pending"),
+                ApprovedDoctors = allDoctors.Count(d => d.VerificationStatus == "Approved"),
+                RejectedDoctors = allDoctors.Count(d => d.VerificationStatus == "Rejected"),
+                ClinicsWithPendingDocs = clinicsWithPendingDocs,
+                StatusFilter = statusFilter ?? "All"
+            };
+
+            if (TempData["DoctorSuccess"] != null) ViewBag.Success = TempData["DoctorSuccess"];
+            if (TempData["DoctorError"] != null) ViewBag.Error = TempData["DoctorError"];
+
+            return View(vm);
+        }
+
+        // ════════════════════════════════════════════════════════
+        // ApproveDoctor — POST
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveDoctor(int idDoctor, int idUser, string? clinicName)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            await _doctorAdminRepo.UpdateVerificationStatusAsync(idDoctor, "Approved");
+
+            // إشعار للدكتور
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = idUser,
+                Type = "DoctorApproved",
+                Title = "✅ Your account has been approved!",
+                Message = $"Your doctor profile at {clinicName ?? "the clinic"} has been approved. You can now log in and complete your information.",
+                IsRead = false,
+                RelatedEntityType = "Doctor",
+                RelatedEntityId = idDoctor,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["DoctorSuccess"] = "✅ Doctor approved successfully.";
+            return RedirectToAction("Doctors_C");
+        }
+
+        // ════════════════════════════════════════════════════════
+        // RejectDoctor — POST
+        // ════════════════════════════════════════════════════════
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectDoctor(int idDoctor, int idUser,
+            string? reason, string? clinicName)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            await _doctorAdminRepo.UpdateVerificationStatusAsync(idDoctor, "Rejected");
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = idUser,
+                Type = "DoctorRejected",
+                Title = "❌ Doctor application rejected",
+                Message = $"Your application at {clinicName ?? "the clinic"} was rejected. Reason: {reason}. Please contact the clinic admin.",
+                IsRead = false,
+                RelatedEntityType = "Doctor",
+                RelatedEntityId = idDoctor,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["DoctorError"] = "❌ Doctor rejected.";
+            return RedirectToAction("Doctors_C");
+        }
+
         public IActionResult Analytics_A() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Map() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Notifications() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }

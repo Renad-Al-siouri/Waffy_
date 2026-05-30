@@ -146,6 +146,7 @@ namespace Waffy.Controllers
             var clinicId = GetCurrentClinicId();
             if (clinicId == null) return RedirectToAction("Login", "Account");
 
+            // ✅ 1. تحقق من الحقول المطلوبة
             if (string.IsNullOrWhiteSpace(vm.FullName) ||
                 string.IsNullOrWhiteSpace(vm.Email) ||
                 string.IsNullOrWhiteSpace(vm.Phone) ||
@@ -155,19 +156,33 @@ namespace Waffy.Controllers
                 return RedirectToAction("Doctors");
             }
 
-            // ✅ تحقق من تكرار الإيميل
+            // ✅ 2. تحقق من حجم الملف أولاً — قبل أي عملية على DB
+            if (vm.CertificationFile != null && vm.CertificationFile.Length > 5 * 1024 * 1024)
+            {
+                TempData["DoctorError"] = "Certification file too large. Max 5MB.";
+                return RedirectToAction("Doctors");
+            }
+
+            // ✅ 3. تحقق من تكرار الإيميل
             if (await _doctorRepo.EmailExistsAsync(vm.Email.Trim()))
             {
                 TempData["DoctorError"] = "This email is already registered.";
                 return RedirectToAction("Doctors");
             }
 
-            // ✅ إنشاء User
+            // ✅ 4. إنشاء User (بعد كل التحققات)
             var userId = await _doctorRepo.CreateUserAsync(
                 vm.FullName.Trim(), vm.Email.Trim(),
                 vm.Phone.Trim(), vm.Password);
 
-            // ✅ إنشاء Doctor
+            // ✅ 5. حفظ الملف (بعد إنشاء المستخدم)
+            string? certUrl = null;
+            if (vm.CertificationFile != null && vm.CertificationFile.Length > 0)
+            {
+                certUrl = await SaveFileAsync(vm.CertificationFile, "doctor-certs");
+            }
+
+            // ✅ 6. إنشاء Doctor
             var doctorId = await _doctorRepo.GetNextDoctorIdAsync();
             await _doctorRepo.AddDoctorAsync(new Doctor
             {
@@ -176,7 +191,7 @@ namespace Waffy.Controllers
                 IdClinic = clinicId.Value,
                 Specialization = vm.Specialization,
                 ExperienceYears = vm.ExperienceYears,
-                Certifications = vm.Certifications,
+                Certifications = certUrl,
                 IsAvailable = false,
                 VerificationStatus = "Pending",
                 CreatedAt = DateTime.UtcNow
