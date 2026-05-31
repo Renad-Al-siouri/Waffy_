@@ -58,6 +58,27 @@ namespace Waffy.Controllers
             HttpContext.Session.SetString("RoleName", roleName);
         }
 
+        // ضعه في AccountController كـ private method
+        private bool IsValidJordanianPhone(string phone)
+        {
+            // يقبل: 07XXXXXXXX أو 7XXXXXXXX أو +9627XXXXXXXX أو 9627XXXXXXXX
+            var cleaned = phone.Trim()
+                .Replace(" ", "")
+                .Replace("-", "");
+
+            // إزالة البادئات الدولية
+            if (cleaned.StartsWith("+962"))
+                cleaned = "0" + cleaned.Substring(4);
+            else if (cleaned.StartsWith("962"))
+                cleaned = "0" + cleaned.Substring(3);
+            else if (cleaned.StartsWith("7") && cleaned.Length == 9)
+                cleaned = "0" + cleaned;
+
+            // يجب أن يكون 10 أرقام يبدأ بـ 077, 078, 079
+            return cleaned.Length == 10 &&
+                   System.Text.RegularExpressions.Regex.IsMatch(
+                       cleaned, @"^07[789]\d{7}$");
+        }
         // ══════════════════════════════════════════════════════════
         // LOGIN
         // ══════════════════════════════════════════════════════════
@@ -266,6 +287,12 @@ namespace Waffy.Controllers
                 return RedirectToAction("user_signup");
             }
 
+            if (!IsValidJordanianPhone(phone))
+            {
+                TempData["SignupError"] = "Please enter a valid Jordanian phone number (07X XXX XXXX).";
+                return RedirectToAction("user_signup");
+            }
+
             if (password != confirmPassword)
             {
                 TempData["SignupError"] = "Passwords do not match.";
@@ -321,6 +348,16 @@ namespace Waffy.Controllers
                 string.IsNullOrWhiteSpace(password))
             {
                 TempData["StoreError"] = "Please fill in all required fields.";
+                TempData["firstName"] = firstName;
+                TempData["lastName"] = lastName;
+                TempData["email"] = email;
+                TempData["phone"] = phone;
+                return RedirectToAction("Stor_step1");
+            }
+
+            if (!IsValidJordanianPhone(phone))
+            {
+                TempData["StoreError"] = "Please enter a valid Jordanian phone number (07X XXX XXXX).";
                 TempData["firstName"] = firstName;
                 TempData["lastName"] = lastName;
                 TempData["email"] = email;
@@ -475,6 +512,15 @@ namespace Waffy.Controllers
                 return RedirectToAction("Clinic_step1");
             }
 
+            if (!IsValidJordanianPhone(phone))
+            {
+                TempData["ClinicStep1Error"] = "Please enter a valid Jordanian phone number (07X XXX XXXX).";
+                TempData["cc_name"] = name;
+                TempData["cc_city"] = city;
+                TempData["cc_phone"] = phone;
+                return RedirectToAction("Clinic_step1");
+            }
+
             if (docMunicipal == null || docMunicipal.Length == 0 ||
                 docVet == null || docVet.Length == 0 ||
                 docId == null || docId.Length == 0)
@@ -553,6 +599,13 @@ namespace Waffy.Controllers
             {
                 TempData["ClinicStep2Error"] = "Please fill in all required fields.";
                 SetReviewBag(); return View();
+            }
+
+            if (!IsValidJordanianPhone(ownerPhone))
+            {
+                TempData["ClinicStep2Error"] = "Please enter a valid Jordanian phone number (07X XXX XXXX).";
+                SetReviewBag();
+                return View();
             }
 
             if (password.Length < 8)

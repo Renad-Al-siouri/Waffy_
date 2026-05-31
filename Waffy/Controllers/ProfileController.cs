@@ -78,6 +78,28 @@ namespace Waffy.Controllers
             return await _userRepository.GetByIdAsync(userId.Value);
         }
 
+        // ضعه في AccountController كـ private method
+        private bool IsValidJordanianPhone(string phone)
+        {
+            // يقبل: 07XXXXXXXX أو 7XXXXXXXX أو +9627XXXXXXXX أو 9627XXXXXXXX
+            var cleaned = phone.Trim()
+                .Replace(" ", "")
+                .Replace("-", "");
+
+            // إزالة البادئات الدولية
+            if (cleaned.StartsWith("+962"))
+                cleaned = "0" + cleaned.Substring(4);
+            else if (cleaned.StartsWith("962"))
+                cleaned = "0" + cleaned.Substring(3);
+            else if (cleaned.StartsWith("7") && cleaned.Length == 9)
+                cleaned = "0" + cleaned;
+
+            // يجب أن يكون 10 أرقام يبدأ بـ 077, 078, 079
+            return cleaned.Length == 10 &&
+                   System.Text.RegularExpressions.Regex.IsMatch(
+                       cleaned, @"^07[789]\d{7}$");
+        }
+
         // =========================
         // Edit Profile — GET
         // =========================
@@ -178,6 +200,12 @@ namespace Waffy.Controllers
 
             var user = await _userRepository.GetByIdAsync(userId.Value);
             if (user == null) return RedirectToAction("Login", "Account");
+
+            if (!string.IsNullOrWhiteSpace(phone) && !IsValidJordanianPhone(phone))
+            {
+                TempData["ContactError"] = "Please enter a valid Jordanian phone number (07X XXX XXXX).";
+                return RedirectToAction("Contact_Info");
+            }
 
             user.Phone = phone;
             user.City = city;
