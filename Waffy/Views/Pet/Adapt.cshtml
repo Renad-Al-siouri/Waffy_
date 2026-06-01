@@ -591,21 +591,35 @@
     @* ── Reserve Modal ── *@
     <div id="reserveModal" class="modal hidden">
         <div class="modal-overlay" onclick="closeReserveModal()"></div>
-        <div class="modal-card" style="max-width:460px">
+        <div class="modal-card reserve-modal-card">
             <button class="modal-close" onclick="closeReserveModal()">&times;</button>
-            <h3 style="font-family:'Fredoka',sans-serif;color:#59652a;margin-bottom:1rem">
-                🐾 Reserve <span id="reservePetName"></span>
-            </h3>
+
+            <div class="reserve-modal-header">
+                <div class="reserve-modal-icon">🐾</div>
+                <div>
+                    <h3 class="reserve-modal-title">Reserve <span id="reservePetName"></span></h3>
+                    <p class="reserve-modal-sub">Send a request to the pet owner</p>
+                </div>
+            </div>
+
             <form method="post" asp-controller="Reservation" asp-action="Reserve">
                 @Html.AntiForgeryToken()
                 <input type="hidden" name="postId" id="reservePostId" />
-                <div class="field" style="margin-bottom:1rem">
-                    <label>Message to owner (optional)</label>
-                    <textarea name="message" rows="3" placeholder="Tell the owner about yourself..."></textarea>
+
+                <div class="reserve-field">
+                    <label class="reserve-label">
+                        💬 Message to owner
+                        <span class="reserve-optional">optional</span>
+                    </label>
+                    <textarea name="message"
+                              class="reserve-textarea"
+                              rows="4"
+                              placeholder="Tell the owner a little about yourself and why you'd love to adopt this pet..."></textarea>
                 </div>
-                <div style="display:flex;gap:.5rem;justify-content:flex-end">
-                    <button type="button" onclick="closeReserveModal()" class="olive-btn secondary-btn">Cancel</button>
-                    <button type="submit" class="olive-btn">Send Request 🐾</button>
+
+                <div class="reserve-actions">
+                    <button type="button" onclick="closeReserveModal()" class="reserve-cancel-btn">Cancel</button>
+                    <button type="submit" class="reserve-submit-btn">Send Request 🐾</button>
                 </div>
             </form>
         </div>

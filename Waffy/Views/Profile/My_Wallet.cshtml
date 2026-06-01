@@ -418,6 +418,8 @@
                 var cvv     = document.querySelector('#topup-card input[placeholder="•••"]');
                 var name    = document.querySelector('#topup-card input[placeholder="Name on card"]');
 
+
+
                 if (!cardNum?.value || !expiry?.value || !cvv?.value || !name?.value) {
                     showToast("⚠️ Please fill in all card details.");
                     return false;
@@ -430,13 +432,23 @@
                 }
             }
 
-            if (selMethod === "cliq") {
-                var cliqPhone = document.querySelector('#topup-cliq input');
-                if (!cliqPhone?.value) {
-                    showToast("⚠️ Please enter your CliQ phone number.");
-                    return false;
-                }
+                   if (selMethod === "cliq") {
+            var cliqPhone = document.querySelector('#topup-cliq input');
+            if (!cliqPhone?.value) {
+                showToast("⚠️ Please enter your CliQ phone number.");
+                return false;
             }
+            // أضف هذا:
+            var cleaned = cliqPhone.value.trim().replace(/[\s\-]/g, '');
+            if (cleaned.startsWith('+962')) cleaned = '0' + cleaned.slice(4);
+            else if (cleaned.startsWith('962')) cleaned = '0' + cleaned.slice(3);
+            else if (/^7[789]/.test(cleaned) && cleaned.length === 9) cleaned = '0' + cleaned;
+
+            if (!/^07[789]\d{7}$/.test(cleaned)) {
+                showToast("⚠️ Please enter a valid Jordanian CliQ number (077/078/079).");
+                return false;
+            }
+        }
 
             // ✅ أرسل للـ form
             document.getElementById("hiddenAmount").value = amount;

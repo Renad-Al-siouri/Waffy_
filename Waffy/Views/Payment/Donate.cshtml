@@ -407,7 +407,10 @@
                     </div>
                     <div id="cliqBox" class="payment-box hidden">
                         <div class="form-grid two">
-                            <label><span>Phone Number</span><input type="text" placeholder="7X XXX XXXX" /></label>
+                            <label>
+                                <span>Phone Number</span>
+                                <input type="text" id="donateCliqPhone" placeholder="7X XXX XXXX" />
+                            </label>
                             <label>
                                 <span>Country Code</span>
                                 <select>
@@ -742,11 +745,29 @@
                 }
                 if (!amt || amt <= 0) { showToast('⚠️ Please select or enter a donation amount.'); return; }
 
-                // ✅ شرط الرصيد فقط عند اختيار Wallet
+                // ✅ تحقق من رقم CliQ — داخل Money فقط
+                if (currentPayment === 'cliq') {
+                    var donateCliq = document.getElementById('donateCliqPhone');
+                    if (!donateCliq?.value) {
+                        showToast('⚠️ Please enter your CliQ phone number.');
+                        return;
+                    }
+                    var cleanedCliq = donateCliq.value.trim().replace(/[\s\-]/g, '');
+                    if (cleanedCliq.startsWith('+962')) cleanedCliq = '0' + cleanedCliq.slice(4);
+                    else if (cleanedCliq.startsWith('962')) cleanedCliq = '0' + cleanedCliq.slice(3);
+                    else if (/^7[789]/.test(cleanedCliq) && cleanedCliq.length === 9) cleanedCliq = '0' + cleanedCliq;
+                    if (!/^07[789]\d{7}$/.test(cleanedCliq)) {
+                        showToast('⚠️ Please enter a valid Jordanian CliQ number (077/078/079).');
+                        return;
+                    }
+                }
+
+                // ✅ تحقق من رصيد الـ Wallet
                 if (currentPayment === 'wallet' && amt > walletBalance) {
                     showToast('❌ Insufficient wallet balance! Your balance: ' + walletBalance.toFixed(2) + ' JD');
                     return;
                 }
+
                 document.getElementById('hAmount').value      = amt;
                 document.getElementById('hQuantity').value    = '';
                 document.getElementById('hUnit').value        = '';

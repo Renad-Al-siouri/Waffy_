@@ -85,7 +85,10 @@
                                     <label class="lbl">Phone Number <span class="req">*</span></label>
                                     <div class="ph-wrap">
                                         <span class="ph-pre">+962</span>
-                                        <input class="inp" name="phone" id="phone" type="tel" placeholder="7X XXX XXXX" oninput="ce(this)" />
+                                        <input class="inp" name="phone" id="sw-ophone" type="tel"
+                                               placeholder="7X XXX XXXX"
+                                               oninput="swCe(this); validateJordanPhone(this)"
+                                               maxlength="10" />
                                     </div>
                                     <div class="ferr" id="e-phone">Please enter a valid phone number.</div>
                                 </div>
@@ -185,6 +188,31 @@
                 opt.textContent = d;
                 sel.appendChild(opt);
             });
+        }
+
+                // Phone validation — Jordanian numbers only
+        function validateJordanPhone(input) {
+            var val = input.value.trim().replace(/[\s\-]/g, '');
+
+            // إزالة البادئات الدولية للعرض
+            if (val.startsWith('+962')) val = '0' + val.slice(4);
+            else if (val.startsWith('962')) val = '0' + val.slice(3);
+            else if (/^7[789]/.test(val) && val.length === 9) val = '0' + val;
+
+            var valid = /^07[789]\d{7}$/.test(val);
+            var errEl = document.getElementById('e-phone');
+
+            if (!valid && input.value.length > 0) {
+                input.style.borderColor = '#e74c3c';
+                if (errEl) {
+                    errEl.textContent = '⚠ Enter a valid number: 077, 078, or 079 followed by 7 digits';
+                    errEl.style.display = 'block';
+                }
+            } else {
+                input.style.borderColor = '';
+                if (errEl) errEl.style.display = 'none';
+            }
+            return valid;
         }
     </script>
 </body>
