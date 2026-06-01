@@ -17,6 +17,9 @@ namespace Waffy.Controllers
         private readonly INotificationRepository _notifRepo;
         private readonly IProductRepository _productRepo;
         private readonly IProductImageRepository _productImageRepo;
+        private readonly ILostPetRepository _lostPetRepo;
+        private readonly IAdoptionRepository _adoptionRepo; 
+
 
         public HomeController(
      ILogger<HomeController> logger,
@@ -26,7 +29,9 @@ namespace Waffy.Controllers
      IPetLawRepository lawRepo,
      INotificationRepository notifRepo,
      IProductRepository productRepo,
-     IProductImageRepository productImageRepo)
+     IProductImageRepository productImageRepo,
+     IAdoptionRepository adoptionRepo,
+     ILostPetRepository lostPetRepo)
         {
             _logger = logger;
             _complaintRepo = complaintRepo;
@@ -36,6 +41,8 @@ namespace Waffy.Controllers
             _notifRepo = notifRepo;
             _productRepo = productRepo;
             _productImageRepo = productImageRepo;
+            _adoptionRepo = adoptionRepo;
+            _lostPetRepo = lostPetRepo;
         }
 
         public IActionResult Index()
@@ -85,11 +92,69 @@ namespace Waffy.Controllers
             ViewBag.FeaturedProductsJson = System.Text.Json.JsonSerializer.Serialize(
                 featuredProducts.OrderBy(_ => Guid.NewGuid()).Take(20));
 
+            // ← أضف هذا الجزء الجديد فقط
+            var lostReports = (await _lostPetRepo.GetActivePagedAsync(1, 6)).ToList();
+            var lostDtos = new List<object>();
+            foreach (var r in lostReports)
+            {
+                var images = (await _lostPetRepo.GetAllImagesAsync(r.IdLostReport)).ToList();
+                var firstImage = images.FirstOrDefault() ?? "";
+                lostDtos.Add(new
+                {
+                    id = r.IdLostReport,
+                    name = r.PetName,
+                    animalType = r.AnimalType,
+                    breed = r.Breed ?? "",
+                    color = r.Color ?? "",
+                    city = r.City ?? "",
+                    area = r.Area ?? "",
+                    description = r.Description ?? "",
+                    contactPhone = r.ContactPhone ?? "",
+                    dateLost = r.DateLost?.ToString("yyyy-MM-dd") ?? "",
+                    hasReward = r.RewardAmount.HasValue && r.RewardAmount > 0,
+                    reward = r.RewardAmount?.ToString("F2") ?? "0",
+                    image = firstImage,
+                    images = images
+                });
+            }
+            ViewBag.LostReportsJson = System.Text.Json.JsonSerializer.Serialize(lostDtos);
+            // ← انتهى الجزء الجديد
+            // Adoption data
+            var adoptionPosts = (await _adoptionRepo.GetApprovedAsync()).Take(4).ToList();
+            var adoptionDtos = new List<object>();
+            foreach (var p in adoptionPosts)
+            {
+                var images = (await _adoptionRepo.GetAllImagesAsync(p.IdPost)).ToList();
+                adoptionDtos.Add(new
+                {
+                    id = p.IdPost,
+                    name = p.PetName ?? "",
+                    type = p.AnimalType ?? "",
+                    breed = p.Breed ?? "",
+                    age = p.Age.HasValue ? p.Age + " months" : "",
+                    gender = p.Gender ?? "",
+                    city = p.City ?? "",
+                    area = p.Area ?? "",
+                    color = p.Color ?? "",
+                    temperament = p.EnergyLevel ?? "",
+                    isVaccinated = p.IsVaccinated,
+                    isNeutered = p.IsNeutered,
+                    goodWithChildren = p.GoodWithChildren,
+                    goodWithPets = p.GoodWithPets,
+                    image = images.FirstOrDefault() ?? "",
+                    images = images
+                });
+            }
+            ViewBag.AdoptionJson = System.Text.Json.JsonSerializer.Serialize(adoptionDtos);
+
+           
             return View();
         }
 
         public async Task<IActionResult> Home_After()
         {
+
+
             var allStores = (await _storeRepo.GetAllAsync())
                 .Where(s => s.VerificationStatus == "Approved").ToList();
 
@@ -124,6 +189,60 @@ namespace Waffy.Controllers
 
             ViewBag.FeaturedProductsJson = System.Text.Json.JsonSerializer.Serialize(
                 featuredProducts.OrderBy(_ => Guid.NewGuid()).Take(20));
+            // ← أضف هذا الجزء الجديد فقط
+            var lostReports = (await _lostPetRepo.GetActivePagedAsync(1, 6)).ToList();
+            var lostDtos = new List<object>();
+            foreach (var r in lostReports)
+            {
+                var images = (await _lostPetRepo.GetAllImagesAsync(r.IdLostReport)).ToList();
+                var firstImage = images.FirstOrDefault() ?? "";
+                lostDtos.Add(new
+                {
+                    id = r.IdLostReport,
+                    name = r.PetName,
+                    animalType = r.AnimalType,
+                    breed = r.Breed ?? "",
+                    color = r.Color ?? "",
+                    city = r.City ?? "",
+                    area = r.Area ?? "",
+                    description = r.Description ?? "",
+                    contactPhone = r.ContactPhone ?? "",
+                    dateLost = r.DateLost?.ToString("yyyy-MM-dd") ?? "",
+                    hasReward = r.RewardAmount.HasValue && r.RewardAmount > 0,
+                    reward = r.RewardAmount?.ToString("F2") ?? "0",
+                    image = firstImage,
+                    images = images
+                });
+            }
+            ViewBag.LostReportsJson = System.Text.Json.JsonSerializer.Serialize(lostDtos);
+            // ← انتهى الجزء الجديد
+            // Adoption data
+            var adoptionPosts = (await _adoptionRepo.GetApprovedAsync()).Take(4).ToList();
+            var adoptionDtos = new List<object>();
+            foreach (var p in adoptionPosts)
+            {
+                var images = (await _adoptionRepo.GetAllImagesAsync(p.IdPost)).ToList();
+                adoptionDtos.Add(new
+                {
+                    id = p.IdPost,
+                    name = p.PetName ?? "",
+                    type = p.AnimalType ?? "",
+                    breed = p.Breed ?? "",
+                    age = p.Age.HasValue ? p.Age + " months" : "",
+                    gender = p.Gender ?? "",
+                    city = p.City ?? "",
+                    area = p.Area ?? "",
+                    color = p.Color ?? "",
+                    temperament = p.EnergyLevel ?? "",
+                    isVaccinated = p.IsVaccinated,
+                    isNeutered = p.IsNeutered,
+                    goodWithChildren = p.GoodWithChildren,
+                    goodWithPets = p.GoodWithPets,
+                    image = images.FirstOrDefault() ?? "",
+                    images = images
+                });
+            }
+            ViewBag.AdoptionJson = System.Text.Json.JsonSerializer.Serialize(adoptionDtos);
 
             return View();
         }
@@ -182,9 +301,9 @@ namespace Waffy.Controllers
             string description,
             string priority)
         {
+
             var userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null) return RedirectToAction("Login", "Account");
-
             if (string.IsNullOrWhiteSpace(title) ||
                 string.IsNullOrWhiteSpace(description))
             {

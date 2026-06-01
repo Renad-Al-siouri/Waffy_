@@ -1681,6 +1681,21 @@
 
         function onErr() { showToast('⚠️ Could not get location', 4000); }
 
+
+
+
+                // ── Focus on specific location if passed via URL ──
+        (function() {
+            const p = new URLSearchParams(location.search);
+            const lat = parseFloat(p.get('lat'));
+            const lng = parseFloat(p.get('lng'));
+            if (!isNaN(lat) && !isNaN(lng)) {
+                // انتظر حتى تتهيأ الخريطة ثم اطِر للموقع
+                setTimeout(() => {
+                    map.setView([lat, lng], 17, { animate: true });
+                }, 800);
+            }
+        })();
         /* ════════════════════════════════════════════════════════
            FETCH
         ════════════════════════════════════════════════════════ */
