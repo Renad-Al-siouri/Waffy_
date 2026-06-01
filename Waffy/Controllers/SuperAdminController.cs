@@ -2460,6 +2460,16 @@ namespace Waffy.Controllers
             return RedirectToAction("Doctors_C");
         }
 
+        // ════════════════════════════════════════════════════════
+        // GET DANGER REPORT IMAGES — AJAX
+        // GET /SuperAdmin/GetDangerImages?reportId=5
+        // ════════════════════════════════════════════════════════
+        [HttpGet]
+        public async Task<IActionResult> GetDangerImages(int reportId)
+        {
+            var images = await _dangerRepo.GetImagesByReportIdAsync(reportId);
+            return Json(images.Select(i => new { i.ImageUrl, i.SortOrder }));
+        }
         public IActionResult Analytics_A() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Map() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Notifications() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }

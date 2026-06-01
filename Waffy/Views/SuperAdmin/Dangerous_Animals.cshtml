@@ -577,7 +577,7 @@
         }
 
         // ══ Detail Modal ══
-        function openDetail(id) {
+                async function openDetail(id) {
             var row = document.querySelector('.report-row[onclick*="' + id + '"]');
             if (!row) return;
 
@@ -621,7 +621,9 @@
                 '<div class="info-row"><span class="info-key">Reference</span><span class="info-val" style="font-family:monospace;">' + code + '</span></div>' +
                 (desc ? '<div style="margin-top:10px;background:var(--surface-2);border-radius:var(--r);' +
                     'padding:10px 12px;font-size:.83rem;color:var(--text-muted);font-weight:700;">' +
-                    '📝 ' + desc + '</div>' : '');
+                    '📝 ' + desc + '</div>' : '') +
+                // ── حاوية الصور — تُملأ بعد الـ fetch ──
+                '<div id="dImagesWrap" style="margin-top:12px"></div>';
 
             // Status Forms
             var token = getToken();
@@ -651,6 +653,35 @@
             document.getElementById('dNote').value = '';
 
             document.getElementById('detailModal').classList.add('open');
+
+            // ── جلب الصور بـ AJAX ──────────────────────────────
+            try {
+                var res    = await fetch('/SuperAdmin/GetDangerImages?reportId=' + id);
+                var images = await res.json();
+                var wrap   = document.getElementById('dImagesWrap');
+
+                if (images && images.length > 0) {
+                    var html = '<div style="font-size:.72rem;font-weight:900;color:var(--text-muted);' +
+                               'text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">' +
+                               '📷 Evidence Photos (' + images.length + ')</div>' +
+                               '<div style="display:grid;grid-template-columns:repeat(' +
+                               Math.min(images.length, 4) + ',1fr);gap:8px">';
+
+                    images.forEach(function(img) {
+                        html += '<a href="' + img.imageUrl + '" target="_blank" ' +
+                                '   style="display:block;border-radius:10px;overflow:hidden;' +
+                                '          aspect-ratio:1;background:#f0e8d8;cursor:zoom-in">' +
+                                '  <img src="' + img.imageUrl + '" ' +
+                                '       style="width:100%;height:100%;object-fit:cover" ' +
+                                '       alt="Evidence photo" />' +
+                                '</a>';
+                    });
+                    html += '</div>';
+                    wrap.innerHTML = html;
+                }
+            } catch(e) {
+                // لا صور أو خطأ — نتجاهل
+            }
         }
 
         function closeModal() {

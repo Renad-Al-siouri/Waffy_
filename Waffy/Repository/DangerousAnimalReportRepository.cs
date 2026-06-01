@@ -146,5 +146,33 @@ namespace Waffy.Repository
             using var conn = NewConn();
             await conn.ExecuteAsync(sql, new { idDangReport });
         }
+
+        // ════════════════════════════════════════════════════════
+        // ADD IMAGE
+        // ════════════════════════════════════════════════════════
+        public async Task AddImageAsync(DangerReportImage image)
+        {
+            const string sql = @"
+
+        INSERT INTO DangerReportImage (IdDangReport, ImageUrl, SortOrder, CreatedAt)
+        VALUES (@IdDangReport, @ImageUrl, @SortOrder, @CreatedAt)";
+
+            using var conn = NewConn();
+            await conn.ExecuteAsync(sql, image);
+        }
+
+        // ════════════════════════════════════════════════════════
+        // GET IMAGES BY REPORT ID
+        // ════════════════════════════════════════════════════════
+        public async Task<IEnumerable<DangerReportImage>> GetImagesByReportIdAsync(int idDangReport)
+        {
+            const string sql = @"
+        SELECT * FROM DangerReportImage
+        WHERE IdDangReport = @idDangReport
+        ORDER BY SortOrder ASC";
+
+            using var conn = NewConn();
+            return await conn.QueryAsync<DangerReportImage>(sql, new { idDangReport });
+        }
     }
 }

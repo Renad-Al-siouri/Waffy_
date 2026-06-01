@@ -315,7 +315,23 @@
                                         📝 @r.Description
                                     </div>
                                 }
-
+                                @* ── صور البلاغ ── *@
+                                @if (r.Images.Any())
+                                {
+                                    <div style="display:grid;grid-template-columns:repeat(4,1fr);
+                            gap:8px;margin-bottom:14px">
+                                        @foreach (var img in r.Images)
+                                        {
+                                            <a href="@img.ImageUrl" target="_blank"
+                                               style="border-radius:10px;overflow:hidden;display:block;
+                                      aspect-ratio:1;background:#f0e8d8">
+                                                <img src="@img.ImageUrl"
+                                                     style="width:100%;height:100%;object-fit:cover"
+                                                     alt="Report photo" />
+                                            </a>
+                                        }
+                                    </div>
+                                }
                                 @* Track Bar *@
                                 <div>
                                     <div style="font-size:.72rem;font-weight:800;color:var(--muted);
@@ -464,7 +480,7 @@
             const menuBtn  = document.getElementById('menuBtn');
             const navLinks = document.getElementById('navLinks');
             if (menuBtn && navLinks) {
-                menuBtn.addEventListener('click', e => { e.stopPropagation(); navLinks.classList.toggle('open'); });
+               menuBtn.addEventListener('click', e => { e.stopPropagation(); navLinks.classList.toggle('open'); });
                 document.addEventListener('click', e => {
                     if (!navLinks.contains(e.target) && e.target !== menuBtn) navLinks.classList.remove('open');
                 });

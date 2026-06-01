@@ -21,5 +21,6 @@
         // ── Navigation (من JOIN مع Users — Dapper يملأها تلقائياً) ──
         public string? ReporterName { get; set; }
         public string? ReporterPhone { get; set; }
+        public List<DangerReportImage> Images { get; set; } = new();
     }
 }

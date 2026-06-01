@@ -140,7 +140,8 @@
         }
 
         @* ✅ الفورم الكامل مع كل الحقول بداخله مباشرةً *@
-        <form method="post" asp-controller="Map" asp-action="SubmitDanger">
+        <form method="post" asp-controller="Map" asp-action="SubmitDanger"
+              enctype="multipart/form-data">
             @Html.AntiForgeryToken()
 
             <section class="danger-card">
@@ -263,6 +264,46 @@
                         </label>
                     </div>
                 </section>
+                
+                <section class="report-section">
+                    <div class="report-head">
+                        <h2>Evidence Photos <span style="color:var(--muted);font-size:.8rem;font-weight:700">(optional)</span></h2>
+                        <p>Upload up to 4 photos to support your report.</p>
+                    </div>
+                    <div class="divider"></div>
+
+                    <input type="file"
+                           id="reportImagesInput"
+                           name="reportImages"
+                           accept="image/*"
+                           multiple
+                           style="display:none"
+                           onchange="handleImagePreview(this)" />
+
+                    <div id="imageUploadArea"
+                         onclick="document.getElementById('reportImagesInput').click()"
+                         style="border:2px dashed #d8cdbf;border-radius:16px;padding:28px;
+                text-align:center;cursor:pointer;background:#faf7f2;
+                transition:border-color .2s">
+                        <div style="font-size:2rem;margin-bottom:8px">📷</div>
+                        <div style="font-weight:800;color:var(--text);font-size:.9rem">
+                            Click to upload photos
+                        </div>
+                        <div style="color:var(--muted);font-size:.78rem;font-weight:700;margin-top:4px">
+                            JPG, PNG — max 4 photos
+                        </div>
+                    </div>
+
+                    <div id="imagePreviewGrid"
+                         style="display:none;grid-template-columns:repeat(4,1fr);
+            gap:10px;margin-top:12px">
+                    </div>
+
+                    <div id="imageCountMsg"
+                         style="font-size:.78rem;font-weight:700;color:var(--muted);
+                margin-top:8px;display:none">
+                    </div>
+                </section>
 
                 <div class="report-actions">
                     <button type="submit" class="submit-report-btn">
@@ -330,6 +371,94 @@
                 mb.classList.toggle('open');
             });
         });
+
+                      // ── متغير يحفظ الملفات المختارة الحالية ──
+        var selectedFiles = [];
+
+        function handleImagePreview(input) {
+            // نجمع الملفات الجديدة مع الموجودة حتى 4 كحد أقصى
+            var newFiles = Array.from(input.files);
+            selectedFiles = selectedFiles.concat(newFiles).slice(0, 4);
+
+            // نصفّر الـ input ثم نعيد بناء DataTransfer لنحدّث الـ input بالملفات الصحيحة
+            var dt = new DataTransfer();
+            selectedFiles.forEach(function(f) { dt.items.add(f); });
+            input.files = dt.files;
+
+            renderPreviews();
+        }
+
+        function renderPreviews() {
+            var grid = document.getElementById('imagePreviewGrid');
+            var msg  = document.getElementById('imageCountMsg');
+            var area = document.getElementById('imageUploadArea');
+
+            grid.innerHTML = '';
+
+            if (selectedFiles.length === 0) {
+                grid.style.display = 'none';
+                msg.style.display  = 'none';
+                area.style.display = 'block';
+                return;
+            }
+
+            area.style.display  = 'none';
+            grid.style.display  = 'grid';   // ← الآن يعمل لأن لا display:none في الـ CSS
+            msg.style.display   = 'block';
+            msg.textContent     = selectedFiles.length + ' photo' +
+                                  (selectedFiles.length > 1 ? 's' : '') + ' selected';
+
+            selectedFiles.forEach(function(file, i) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var div = document.createElement('div');
+                    div.style.cssText = 'position:relative;border-radius:12px;overflow:hidden;' +
+                                        'aspect-ratio:1;background:#f0e8d8';
+                    div.innerHTML =
+                        '<img src="' + e.target.result + '" ' +
+                        '     style="width:100%;height:100%;object-fit:cover" />' +
+                        '<button type="button" onclick="removeImage(' + i + ')" ' +
+                        '        style="position:absolute;top:4px;right:4px;width:22px;height:22px;' +
+                        '               border-radius:50%;background:rgba(0,0,0,.55);color:#fff;' +
+                        '               border:none;cursor:pointer;font-size:.7rem;line-height:1">' +
+                        '    ✕' +
+                        '</button>';
+                    grid.insertBefore(div, grid.lastChild);
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // زر إضافة المزيد إذا أقل من 4
+            if (selectedFiles.length < 4) {
+                var addBtn = document.createElement('div');
+                addBtn.onclick = function() {
+                    document.getElementById('reportImagesInput').click();
+                };
+                addBtn.style.cssText =
+                    'border:2px dashed #d8cdbf;border-radius:12px;display:flex;' +
+                    'align-items:center;justify-content:center;aspect-ratio:1;' +
+                    'cursor:pointer;color:#9e8f80;font-size:1.8rem;background:#faf7f2;' +
+                    'font-weight:300';
+                addBtn.textContent = '+';
+                grid.appendChild(addBtn);
+            }
+
+            // نحدّث الـ input بالملفات الصحيحة
+            var dt = new DataTransfer();
+            selectedFiles.forEach(function(f) { dt.items.add(f); });
+            document.getElementById('reportImagesInput').files = dt.files;
+        }
+
+        function removeImage(index) {
+            selectedFiles.splice(index, 1);
+
+            // نحدّث الـ input
+            var dt = new DataTransfer();
+            selectedFiles.forEach(function(f) { dt.items.add(f); });
+            document.getElementById('reportImagesInput').files = dt.files;
+
+            renderPreviews();
+        }
     </script>
 </body>
 </html>

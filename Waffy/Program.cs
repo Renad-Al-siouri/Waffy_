@@ -74,6 +74,8 @@ builder.Services.AddScoped<IClinicServiceRepository, ClinicServiceRepository>();
 builder.Services.AddScoped<IClinicImageRepository, ClinicImageRepository>();
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 
+
+
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {

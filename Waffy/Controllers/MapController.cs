@@ -319,15 +319,16 @@ namespace Waffy.Controllers
         // ════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitDanger(
-            string animalType,
-            string problemType,
-            string severity,
-            string? city,
-            string? area,
-            string? locationText,
-            decimal? latitude,
-            decimal? longitude,
-            string? description)
+     string animalType,
+     string problemType,
+     string severity,
+     string? city,
+     string? area,
+     string? locationText,
+     decimal? latitude,
+     decimal? longitude,
+     string? description,
+     List<IFormFile>? reportImages)          // ← جديد
         {
             var userId = HttpContext.Session.GetInt32("UserId");
 
@@ -340,7 +341,11 @@ namespace Waffy.Controllers
                 return RedirectToAction("Dangerous");
             }
 
-            await _dangerRepo.CreateAsync(new DangerousAnimalReport
+            // ── تحقق من عدد الصور ──────────────────────────────
+            var validImages = reportImages?.Where(f => f.Length > 0).Take(4).ToList()
+                              ?? new List<IFormFile>();
+
+            var reportId = await _dangerRepo.CreateAsync(new DangerousAnimalReport
             {
                 IdUser = userId,
                 AnimalType = animalType,
@@ -356,6 +361,34 @@ namespace Waffy.Controllers
                 ReportCode = $"WAFFY-D-{Guid.NewGuid().ToString()[..6].ToUpper()}",
                 CreatedAt = DateTime.UtcNow
             });
+
+            // ── حفظ الصور ─────────────────────────────────────
+            if (validImages.Any())
+            {
+                var folder = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot", "uploads", "danger-reports");
+                Directory.CreateDirectory(folder);
+
+                int order = 0;
+                foreach (var file in validImages)
+                {
+                    var ext = Path.GetExtension(file.FileName);
+                    var fileName = $"{Guid.NewGuid()}{ext}";
+                    var filePath = Path.Combine(folder, fileName);
+
+                    using var stream = new FileStream(filePath, FileMode.Create);
+                    await file.CopyToAsync(stream);
+
+                    await _dangerRepo.AddImageAsync(new DangerReportImage
+                    {
+                        IdDangReport = reportId,
+                        ImageUrl = $"/uploads/danger-reports/{fileName}",
+                        SortOrder = order++,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
 
             TempData["DangerSuccess"] = "🚨 Report submitted successfully!";
             return RedirectToAction("My_Danger_Reports", "Profile");

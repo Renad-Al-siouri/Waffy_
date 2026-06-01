@@ -101,11 +101,69 @@ namespace Waffy.Repository
         // ── حذف متجر ─────────────────────────────────────────
         public async Task DeleteAsync(int idStore)
         {
-            const string sql = "DELETE FROM Store WHERE IdStore = @IdStore";
             using var connection = new SqlConnection(_connectionString);
-            await connection.ExecuteAsync(sql, new { IdStore = idStore });
-        }
+            await connection.OpenAsync();
+            using var transaction = connection.BeginTransaction();
 
+            try
+            {
+                // 1. صور المنتجات (child of Product)
+                await connection.ExecuteAsync(
+                    @"DELETE pi FROM ProductImage pi
+              INNER JOIN Product p ON pi.IdProduct = p.Id
+              WHERE p.IdStore = @IdStore",
+                    new { IdStore = idStore }, transaction);
+
+                // 2. عناصر الأوردرات (child of Order)
+                await connection.ExecuteAsync(
+                    @"DELETE oi FROM OrderItem oi
+              INNER JOIN [Order] o ON oi.IdOrder = o.IdOrder
+              WHERE o.IdStore = @IdStore",
+                    new { IdStore = idStore }, transaction);
+
+                // 3. CartItem
+                await connection.ExecuteAsync(
+                    "DELETE FROM CartItem WHERE IdStore = @IdStore",
+                    new { IdStore = idStore }, transaction);
+
+                // 4. Category
+                await connection.ExecuteAsync(
+                    "DELETE FROM Category WHERE IdStore = @IdStore",
+                    new { IdStore = idStore }, transaction);
+
+                // 5. Order
+                await connection.ExecuteAsync(
+                    "DELETE FROM [Order] WHERE IdStore = @IdStore",
+                    new { IdStore = idStore }, transaction);
+
+                // 6. Product
+                await connection.ExecuteAsync(
+                    "DELETE FROM Product WHERE IdStore = @IdStore",
+                    new { IdStore = idStore }, transaction);
+
+                // 7. StoreDocument
+                await connection.ExecuteAsync(
+                    "DELETE FROM StoreDocument WHERE IdStore = @IdStore",
+                    new { IdStore = idStore }, transaction);
+
+                // 8. StoreImage
+                await connection.ExecuteAsync(
+                    "DELETE FROM StoreImage WHERE IdStore = @IdStore",
+                    new { IdStore = idStore }, transaction);
+
+                // 9. المتجر نفسه
+                await connection.ExecuteAsync(
+                    "DELETE FROM Store WHERE IdStore = @IdStore",
+                    new { IdStore = idStore }, transaction);
+
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+        }
         // ── تحديث حالة الاعتماد ──────────────────────────────
         public async Task UpdateVerificationAsync(int idStore, string status)
         {

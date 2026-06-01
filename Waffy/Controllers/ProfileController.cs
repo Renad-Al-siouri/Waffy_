@@ -1098,6 +1098,10 @@ namespace Waffy.Controllers
             var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
             var reports = (await _dangerRepo.GetByUserIdAsync(user.UserId)).ToList();
 
+            // ── تحميل صور كل بلاغ ─────────────────────────────
+            foreach (var r in reports)
+                r.Images = (await _dangerRepo.GetImagesByReportIdAsync(r.IdDangReport)).ToList();
+
             return View(new WalletViewModel
             {
                 User = user,

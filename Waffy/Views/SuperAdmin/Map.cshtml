@@ -2258,6 +2258,41 @@
 
             document.getElementById('rpBody').innerHTML=`<div class="detail-view"><div class="dv-photo" style="${!(p.image||p.logo)?'background:linear-gradient(135deg,'+color+'18,'+color+'32)':''}">${photoHtml}</div><div class="dv-content"><div class="dv-name">${p.name||p.label||'—'}</div><span class="dv-badge" style="background:${color}18;color:${color}">${emoji} ${label}</span>${dangerBar}${rows.join('')}</div><div class="dv-actions">${acts}</div></div>`;
             openRP();
+                    // ── جلب صور البلاغ إذا كان danger ──────────────────
+        if (type === 'danger' && p.id) {
+            fetch('/SuperAdmin/GetDangerImages?reportId=' + p.id)
+                .then(function(r) { return r.json(); })
+                .then(function(images) {
+                    if (!images || images.length === 0) return;
+
+                    // نبحث عن dv-actions ونضيف الصور قبله
+                    var rpBody = document.getElementById('rpBody');
+                    var acts   = rpBody.querySelector('.dv-actions');
+                    if (!acts) return;
+
+                    var grid = document.createElement('div');
+                    grid.style.cssText = 'padding:0 20px 16px';
+                    grid.innerHTML =
+                        '<div style="font-size:.63rem;font-weight:900;color:#b0a090;' +
+                        '     letter-spacing:1px;text-transform:uppercase;margin-bottom:8px">' +
+                        '📷 Evidence Photos (' + images.length + ')</div>' +
+                        '<div style="display:grid;grid-template-columns:repeat(' +
+                        Math.min(images.length, 4) + ',1fr);gap:6px">' +
+                        images.map(function(img) {
+                            return '<a href="' + img.imageUrl + '" target="_blank" ' +
+                                   '   style="display:block;border-radius:10px;overflow:hidden;' +
+                                   '          aspect-ratio:1;background:#f0e8d8">' +
+                                   '  <img src="' + img.imageUrl + '" ' +
+                                   '       style="width:100%;height:100%;object-fit:cover"/>' +
+                                   '</a>';
+                        }).join('') +
+                        '</div>';
+
+                    // ندرج الـ grid قبل الـ actions
+                    acts.parentNode.insertBefore(grid, acts);
+                })
+                .catch(function() {}); // لا صور — نتجاهل
+        }
         }
 
         function dr(ico,key,val){return`<div class="dv-row"><div class="dv-ico">${ico}</div><span class="dv-key">${key}</span><span class="dv-val">${val}</span></div>`;}

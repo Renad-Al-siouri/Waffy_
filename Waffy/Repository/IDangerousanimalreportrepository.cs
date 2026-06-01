@@ -15,6 +15,7 @@ namespace Waffy.Interfaces
         Task<DangerousAnimalReport?> GetByIdAsync(int idDangReport);
         Task DeleteAsync(int idDangReport);
 
-
+        Task AddImageAsync(DangerReportImage image);
+        Task<IEnumerable<DangerReportImage>> GetImagesByReportIdAsync(int idDangReport);
     }
 }
