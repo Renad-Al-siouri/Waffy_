@@ -1,0 +1,278 @@
+﻿@model Waffy.Models.ViewModels.DoctorWorkScheduleViewModel
+@{
+    ViewData["Title"] = "Waffy — Work Schedule";
+    Layout = null;
+    var userName = Context.Session.GetString("UserName") ?? "Doctor";
+    var clinicName = Context.Session.GetString("ClinicName") ?? "Clinic";
+    var initials = userName.Length > 0 ? userName[0].ToString().ToUpper() : "D";
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+    <style>
+        .settings-tab-nav {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            flex-wrap: nowrap;
+            margin: 14px;
+        }
+
+            .settings-tab-nav::-webkit-scrollbar {
+                display: none
+            }
+
+            .settings-tab-nav a {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 10px 16px;
+                border: 1.5px solid var(--line);
+                background: #fff;
+                border-radius: 12px;
+                color: var(--text-muted);
+                font-weight: 800;
+                font-size: .85rem;
+                font-family: 'Nunito',sans-serif;
+                text-decoration: none;
+                transition: .2s;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+                .settings-tab-nav a:hover {
+                    background: var(--olive-soft);
+                    border-color: var(--olive);
+                    color: var(--olive-dark);
+                }
+
+                .settings-tab-nav a.active {
+                    background: linear-gradient(135deg,var(--olive),var(--olive-dark));
+                    color: #fff;
+                    border-color: transparent;
+                }
+
+        .doc-profile-summary {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 18px;
+            padding: 22px;
+        }
+
+        .doc-profile-rating {
+            min-width: 130px;
+            text-align: center;
+            padding: 12px 20px;
+            background: var(--gp);
+            border-radius: 12px;
+            border: 1px solid var(--b2);
+        }
+
+        @@media(max-width:768px) {
+            .doc-profile-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="admin-shell">
+    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="wa-shell" id="waShell">
+        @await Html.PartialAsync("_DoctorSidebar")
+        <header class="wa-tn">
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()">☰</button>
+            <div class="tn-bread"><span>My Settings</span><span>/</span><b>Work Schedule</b></div>
+            <div class="tn-center">
+                <div class="tn-center-main">Doctor Settings</div>
+                <div class="tn-center-sub">@clinicName</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-identity">🏥 @clinicName</div>
+                <button class="tn-btn notif-btn" type="button">🔔</button>
+                <div class="tn-sep"></div>
+                <div class="tn-profile">
+                    <div class="tn-av">@initials</div>
+                    <div>
+                        <div class="tn-pname">@userName</div>
+                        <div class="tn-prole">👨‍⚕️ Doctor</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="wa-main">
+            <section class="page-hero">
+                <div>
+                    <h1>My Settings</h1>
+                    <p>Update your profile, schedule, and account details.</p>
+                </div>
+            </section>
+            <div class="page-body">
+
+                @if (TempData["SaveSuccess"] != null)
+                {
+                    <div style="background:#eef4dd;border:1px solid #8da546;border-radius:12px;padding:10px 16px;margin-bottom:1rem;font-weight:800;color:#5f7430;">✅ @TempData["SaveSuccess"]</div>
+                }
+
+                <!-- Profile Summary -->
+                <div class="chart-card doc-profile-summary">
+                    <div style="width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,var(--gp),var(--gu));display:flex;align-items:center;justify-content:center;font-size:2rem;border:2px solid var(--b2)">👨‍⚕️</div>
+                    <div style="flex:1">
+                        <div style="font-size:1.1rem;font-weight:700">Dr. @Model.FullName</div>
+                        <div style="font-size:.82rem;color:var(--muted);margin-top:3px">@(Model.ClinicName ?? "")</div>
+                        <div style="margin-top:8px;">
+                            @if (Model.IsAvailable)
+                            {
+                                <span class="status s-confirmed">🟢 Available for booking</span>
+                            }
+                            else
+                            {
+
+                                <span class="status s-cancelled">🔴 Unavailable</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="doc-profile-rating">
+                        <div style="font-size:1.6rem;font-weight:800;color:var(--gd)">@(Model.Rating.HasValue && Model.Rating > 0 ? Model.Rating.Value.ToString("F1") : "—")</div>
+                        <div style="font-size:.72rem;color:var(--muted)">Your rating</div>
+                    </div>
+                </div>
+
+                <!-- Tab Nav -->
+                <nav class="settings-tab-nav">
+                    <a asp-controller="DoctorAdmin" asp-action="Personal_Information">👤 Personal Info</a>
+                    <a asp-controller="DoctorAdmin" asp-action="Professional_Information">🎓 Professional</a>
+                    <a asp-controller="DoctorAdmin" asp-action="Work_Schedule" class="active">🗓 Work Schedule</a>
+                    <a asp-controller="DoctorAdmin" asp-action="Documents_D">📎 Documents</a>
+                    <a asp-controller="DoctorAdmin" asp-action="Password">🔒 Password</a>
+                </nav>
+
+                <form asp-controller="DoctorAdmin" asp-action="Work_Schedule" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="chart-card">
+                        <div class="sec-label">📅 Working Days &amp; Hours</div>
+
+                        <div class="f-group">
+                            <label class="f-label">Working days</label>
+                            <div class="days-row" style="margin-top:6px;">
+                                @{
+                                    var days = new[]
+                                    {
+                                                                ("Sunday",    "Sun", Model.Sunday),
+                                                                ("Monday",    "Mon", Model.Monday),
+                                                                ("Tuesday",   "Tue", Model.Tuesday),
+                                                                ("Wednesday", "Wed", Model.Wednesday),
+                                                                ("Thursday",  "Thu", Model.Thursday),
+                                                                ("Friday",    "Fri", Model.Friday),
+                                                                ("Saturday",  "Sat", Model.Saturday)
+                                                                };
+                                }
+                               
+                                @foreach (var (name, abbr, isOn) in days)
+                                {
+                                    <span style="display:inline-block;">
+                                        <input type="checkbox" name="@name" value="true"
+                                               id="day_@name" style="display:none;"
+                                               @(isOn ? "checked" : "")>
+                                        <div class="day-chip @(isOn ? "on" : "")"
+                                             onclick="var cb=document.getElementById('day_@name');
+                          cb.checked=!cb.checked;
+                          this.classList.toggle('on',cb.checked);"
+                                             style="cursor:pointer;">
+                                            @abbr
+                                        </div>
+                                    </span>
+                                }
+
+                            </div>
+                        </div>
+
+                        <div class="f-grid" style="margin-top:1rem;">
+                            <div class="f-group">
+                                <label class="f-label">Start Time</label>
+                                <input name="StartTime" class="f-inp" type="time" value="@Model.StartTime">
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label">End Time</label>
+                                <input name="EndTime" class="f-inp" type="time" value="@Model.EndTime">
+                            </div>
+                        </div>
+
+                        <hr class="sec-div">
+                        <div class="sec-label">⏱ Appointment Settings</div>
+
+                        <div class="f-grid">
+                            <div class="f-group">
+                                <label class="f-label">Appointment Duration (minutes)</label>
+                                <select name="AppointmentDuration" class="f-inp">
+                                    @foreach (var d in new[] { 15, 30, 45, 60 })
+                                    {
+                                        if (Model.AppointmentDuration == d)
+                                        {
+                                            <option value="@d" selected>@d minutes</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@d">@d minutes</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label">Max Appointments per Day</label>
+                                <input name="MaxDailyAppointments" class="f-inp" type="number"
+                                       value="@Model.MaxDailyAppointments" min="1" max="50">
+                                <div class="f-hint">⚠️ No extra bookings after this limit</div>
+                            </div>
+                        </div>
+
+                        <hr class="sec-div">
+                        <div class="sec-label">🔔 Booking Availability</div>
+
+                        <div style="display:flex;align-items:center;gap:14px;padding:14px;
+            background:var(--gu);border-radius:12px;border:1.5px solid var(--b2);">
+                            <div style="flex:1;">
+                                <div style="font-weight:800;font-size:.9rem;">Available for booking</div>
+                                <div style="font-size:.76rem;color:var(--muted);margin-top:3px;">
+                                    Disable to temporarily stop new appointments
+                                </div>
+                            </div>
+
+                            <!-- ✅ asp-for يتعامل مع الـ bool binding تلقائياً -->
+                            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none;">
+                                <input asp-for="IsAvailable" type="checkbox"
+                                       style="width:20px;height:20px;cursor:pointer;accent-color:var(--gd);"
+                                       onchange="document.getElementById('availSpan').textContent =
+                         this.checked ? '🟢 Available' : '🔴 Unavailable'">
+                                <span id="availSpan" style="font-weight:800;font-size:.9rem;
+              color:@(Model.IsAvailable ? "var(--gd)" : "var(--wr)");">
+                                    @(Model.IsAvailable ? "🟢 Available" : "🔴 Unavailable")
+                                </span>
+                            </label>
+                        </div>
+
+                        <div style="margin-top:1.2rem;display:flex;justify-content:flex-end;">
+                            <button type="submit" class="btn btn-primary">💾 Save Schedule</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+    <script>
+        function toggleSidebar(){const sb=document.getElementById("sidebar"),ov=document.getElementById("sidebarOverlay"),sh=document.getElementById("waShell");if(window.innerWidth<=992){sb?.classList.toggle("mob-open");ov?.classList.toggle("show");document.body.classList.toggle("sidebar-open")}else{sh?.classList.toggle("mini")}}
+        function closeSidebar(){document.getElementById("sidebar")?.classList.remove("mob-open");document.getElementById("sidebarOverlay")?.classList.remove("show");document.body.classList.remove("sidebar-open")}
+        document.addEventListener("DOMContentLoaded",()=>{document.querySelectorAll(".wa-sb .sb-row").forEach(r=>r.addEventListener("click",()=>{if(window.innerWidth<=992)closeSidebar()}));window.addEventListener("resize",()=>{if(window.innerWidth>992)closeSidebar()})});
+    </script>
+</body>
+</html>

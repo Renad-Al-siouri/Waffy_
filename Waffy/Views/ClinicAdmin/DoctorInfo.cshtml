@@ -1,0 +1,1110 @@
+﻿@model Waffy.Models.ViewModels.DoctorFullDto
+@using Waffy.Models
+@{
+    ViewData["Title"] = $"Dr. {Model.FullName} — Clinic Admin";
+    Layout = null;
+
+    var sessionUserName = Context.Session.GetString("UserName") ?? "Clinic Manager";
+    var sessionClinicName = Context.Session.GetString("ClinicName") ?? "Clinic";
+    var userInitials = sessionUserName.Length > 0 ? sessionUserName[0].ToString().ToUpper() : "C";
+
+    var allDocs = ViewBag.AllDocs as List<DoctorDocument> ?? new();
+    var certDocs = ViewBag.CertDocs as List<DoctorDocument> ?? new();
+    var otherDocs = ViewBag.OtherDocs as List<DoctorDocument> ?? new();
+
+    var dayAbbr = new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+    var dayNames = new[] { "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" };
+
+    var workDays = new HashSet<int>();
+    if (!string.IsNullOrEmpty(Model.WorkingDays))
+        foreach (var d in Model.WorkingDays.Split(','))
+            if (int.TryParse(d.Trim(), out var n)) workDays.Add(n);
+
+    var now = DateTime.Now;
+    var currentDow = (int)now.DayOfWeek;
+    var currentTime = now.TimeOfDay;
+    var isOpen = Model.IsAvailable == true
+                      && Model.StartTime.HasValue && Model.EndTime.HasValue
+                      && workDays.Contains(currentDow)
+                      && currentTime >= Model.StartTime.Value
+                      && currentTime <= Model.EndTime.Value;
+
+    var initials = Model.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries) is { Length: >= 2 } p
+                   ? $"{p[0][0]}{p[1][0]}".ToUpper()
+                   : Model.FullName.Length > 0 ? Model.FullName[0].ToString().ToUpper() : "DR";
+
+    var expLabel = Model.ExperienceYears switch
+    {
+        1 => "Less than 1 year",
+        2 => "1–3 years",
+        4 => "3–5 years",
+        7 => "5–10 years",
+        11 => "More than 10 years",
+        _ => Model.ExperienceYears.HasValue ? $"{Model.ExperienceYears} yrs" : "—"
+    };
+
+    var statusCss = Model.VerificationStatus?.ToLower() switch
+    {
+        "approved" => "s-confirmed",
+        "rejected" => "s-cancelled",
+        _ => "s-pending"
+    };
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+    <style>
+        /* ── Doctor Info Layout ── */
+        .di-layout {
+            display: grid;
+            grid-template-columns: 1fr 260px;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .di-main {
+            min-width: 0;
+        }
+
+        /* ── Hero ── */
+        .di-hero {
+            display: flex;
+            align-items: center;
+            gap: 1.4rem;
+            flex-wrap: wrap;
+            padding: 1.4rem;
+        }
+
+        .di-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg,var(--gp),var(--gu));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--gd);
+            border: 3px solid var(--b2);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+            .di-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .di-hero-name {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--olive-dark);
+            margin: 0 0 3px;
+        }
+
+        .di-hero-spec {
+            font-size: .88rem;
+            font-weight: 800;
+            color: var(--gd);
+            margin-bottom: 8px;
+        }
+
+        .di-hero-badges {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .di-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 11px;
+            border-radius: 999px;
+            font-size: .75rem;
+            font-weight: 900;
+        }
+
+        .dib-green {
+            background: var(--gp);
+            color: var(--gd);
+            border: 1px solid var(--b2);
+        }
+
+        .dib-muted {
+            background: var(--ws);
+            color: var(--olive);
+            border: 1px solid var(--line);
+        }
+
+        /* ── Hero Right ── */
+        .di-hero-right {
+            margin-left: auto;
+            text-align: center;
+            background: var(--gp);
+            border-radius: 14px;
+            padding: 1rem 1.4rem;
+            border: 1px solid var(--b2);
+            flex-shrink: 0;
+        }
+
+        .di-rating-val {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--gd);
+            line-height: 1;
+        }
+
+        .di-rating-stars {
+            color: #f59f00;
+            font-size: .88rem;
+            margin: 3px 0;
+        }
+
+        .di-rating-lbl {
+            font-size: .7rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        /* ── Section Card ── */
+        .di-card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            margin-bottom: 14px;
+            overflow: hidden;
+        }
+
+        .di-card-head {
+            padding: .75rem 1.1rem .5rem;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-family: 'Fredoka',sans-serif;
+            font-size: .88rem;
+            font-weight: 700;
+            color: var(--gd);
+        }
+
+        .di-card-body {
+            padding: 1rem 1.1rem;
+        }
+
+        /* Info rows */
+        .di-row {
+            display: flex;
+            align-items: flex-start;
+            padding: 7px 0;
+            border-bottom: .5px solid var(--line);
+            font-size: .84rem;
+        }
+
+            .di-row:last-child {
+                border-bottom: none;
+            }
+
+        .di-row-icon {
+            width: 24px;
+            color: var(--gd);
+            font-size: 12px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .di-row-lbl {
+            width: 130px;
+            color: var(--muted);
+            font-weight: 700;
+            flex-shrink: 0;
+            font-size: .82rem;
+        }
+
+        .di-row-val {
+            font-weight: 800;
+            color: var(--olive-dark);
+            flex: 1;
+            word-break: break-word;
+        }
+
+        /* Day chips */
+        .di-day-chips {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .dic-on {
+            padding: 4px 11px;
+            border-radius: 999px;
+            background: var(--gp);
+            color: var(--gd);
+            font-size: .75rem;
+            font-weight: 900;
+            border: 1px solid var(--b2);
+        }
+
+        .dic-off {
+            padding: 4px 11px;
+            border-radius: 999px;
+            background: #fff;
+            color: rgba(90,75,49,.35);
+            font-size: .75rem;
+            font-weight: 700;
+            border: 1px solid rgba(232,221,208,.5);
+        }
+
+        .dic-today {
+            outline: 2px solid var(--gd);
+            outline-offset: 2px;
+        }
+
+        /* Lang tags */
+        .di-lang {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+            .di-lang span {
+                padding: 4px 11px;
+                border-radius: 999px;
+                background: #fff;
+                color: var(--muted);
+                font-size: .75rem;
+                font-weight: 800;
+                border: 1px solid var(--line);
+            }
+
+        /* Cert text lines */
+        .di-cert-line {
+            display: flex;
+            align-items: flex-start;
+            gap: 7px;
+            font-size: .84rem;
+            font-weight: 700;
+            color: var(--muted);
+            padding: 4px 0;
+        }
+
+            .di-cert-line span:first-child {
+                color: var(--gd);
+                flex-shrink: 0;
+            }
+
+        /* Document file grid */
+        .di-doc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill,minmax(110px,1fr));
+            gap: 8px;
+        }
+
+        .di-doc-item {
+            display: block;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            text-decoration: none;
+            background: #fff;
+            transition: .18s;
+        }
+
+            .di-doc-item:hover {
+                border-color: var(--b2);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 10px rgba(90,75,49,.1);
+            }
+
+        .di-doc-thumb {
+            width: 100%;
+            height: 72px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .di-doc-pdf {
+            height: 72px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            background: var(--gp);
+        }
+
+        .di-doc-info {
+            padding: 5px 7px;
+        }
+
+        .di-doc-type {
+            font-size: .7rem;
+            font-weight: 800;
+            color: var(--olive-dark);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .di-doc-date {
+            font-size: .66rem;
+            color: var(--muted);
+            font-weight: 700;
+            margin-top: 1px;
+        }
+
+        /* Sidebar sticky */
+        .di-sidebar {
+            position: sticky;
+            top: 90px;
+        }
+
+     
+
+        .di-sb-card {
+            background: #fff;
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            padding: 1rem;
+            margin-bottom: 12px;
+        }
+
+        .di-sb-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: .88rem;
+            font-weight: 700;
+            color: var(--gd);
+            margin-bottom: .8rem;
+        }
+
+        .di-sb-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: .5px solid var(--line);
+            font-size: .8rem;
+        }
+
+            .di-sb-row:last-child {
+                border-bottom: none;
+            }
+
+        .di-sb-lbl {
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .di-sb-val {
+            font-weight: 800;
+            color: var(--olive-dark);
+            text-align: right;
+        }
+
+        /* Action buttons */
+        .di-action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 12px;
+            font-family: 'Nunito',sans-serif;
+            font-size: .86rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: .18s;
+            margin-bottom: 8px;
+            text-decoration: none;
+            border: none;
+        }
+
+        .dab-outline {
+            background: #fff;
+            color: var(--olive-dark);
+            border: 1.5px solid var(--line);
+        }
+
+            .dab-outline:hover {
+                background: var(--gp);
+                border-color: var(--b2);
+            }
+
+        .dab-danger {
+            background: rgba(200,106,92,.08);
+            color: #c86a5c;
+            border: 1.5px solid rgba(200,106,92,.25);
+        }
+
+            .dab-danger:hover {
+                background: rgba(200,106,92,.15);
+            }
+
+        /* Hours badge */
+        .di-open-now {
+            padding: 2px 9px;
+            border-radius: 999px;
+            background: var(--gd);
+            color: #fff;
+            font-size: .7rem;
+            font-weight: 900;
+        }
+
+        .di-closed {
+            padding: 2px 9px;
+            border-radius: 999px;
+            background: rgba(200,106,92,.1);
+            color: #c86a5c;
+            font-size: .7rem;
+            font-weight: 800;
+            border: .5px solid rgba(200,106,92,.3);
+        }
+
+        @@media(max-width:900px) {
+            .di-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .di-sidebar {
+                position: static;
+            }
+        }
+
+        @@media(max-width:540px) {
+            .di-hero {
+                gap: 1rem;
+            }
+
+            .di-hero-right {
+                width: 100%;
+                margin-left: 0;
+            }
+
+            .di-avatar {
+                width: 64px;
+                height: 64px;
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body class="admin-shell">
+
+    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="wa-shell" id="waShell">
+
+        <!-- ── Sidebar ── -->
+        <aside class="wa-sb" id="sidebar">
+            <div class="sb-logo">
+                <div class="sb-mark">
+                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img">
+                </div>
+                <div class="sb-wordmark">
+                    <div class="sb-wm-name">Waffy</div>
+                    <div class="sb-wm-tag">Clinic Admin</div>
+                </div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Dashboard">
+                        <span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Daily Management</div>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Appointments">
+                        <span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span>
+                    </a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Patients">
+                        <span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span>
+                    </a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Medical_Records">
+                        <span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Clinic Management</div>
+                    <a class="sb-row active" asp-controller="ClinicAdmin" asp-action="Doctors">
+                        <span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span>
+                    </a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Basic_Information">
+                        <span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span>
+                    </a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Revenue">
+                        <span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Adoption">
+                        <span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Analytics</div>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reviews">
+                        <span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span>
+                    </a>
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reports">
+                        <span class="sb-icon">📈</span><span class="sb-lbl">Reports</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Personal_nformation">
+                        <span class="sb-icon">⚙️</span><span class="sb-lbl">My Settings</span>
+                    </a>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row">
+                    <div class="sb-av">@userInitials</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">@sessionUserName</div>
+                        <div class="sb-user-role">Clinic Manager 👑</div>
+                    </div>
+                </div>
+                <a asp-controller="ClinicAdmin" asp-action="Logout" class="sb-logout">
+                    <span class="sb-icon">↩</span>
+                    <span class="sb-logout-lbl">Sign Out</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ── Topnav ── -->
+        <header class="wa-tn">
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()">☰</button>
+            <div class="tn-bread">
+                <a asp-controller="ClinicAdmin" asp-action="Doctors"
+                   style="color:var(--muted);text-decoration:none;font-weight:700;">Doctors</a>
+                <span>/</span>
+                <b>Dr. @Model.FullName</b>
+            </div>
+            <div class="tn-center">
+                <div class="tn-center-main">Doctor Profile</div>
+                <div class="tn-center-sub">@sessionClinicName</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-identity">🏥 @sessionClinicName</div>
+                <button class="tn-btn notif-btn" type="button">🔔</button>
+                <div class="tn-sep"></div>
+                <div class="tn-profile">
+                    <div class="tn-av">@userInitials</div>
+                    <div>
+                        <div class="tn-pname">@sessionUserName</div>
+                        <div class="tn-prole">Clinic Manager 👑</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ── Main ── -->
+        <main class="wa-main">
+
+            <section class="page-hero">
+                <div>
+                    <a asp-controller="ClinicAdmin" asp-action="Doctors"
+                       style="display:inline-flex;align-items:center;gap:6px;
+                          color:var(--muted);font-size:.84rem;font-weight:800;
+                          text-decoration:none;margin-bottom:6px;">
+                        ← Back to Doctors
+                    </a>
+                    <h1>Dr. @Model.FullName</h1>
+                    <p>@(Model.Specialization ?? "Veterinary Doctor") • @sessionClinicName</p>
+                </div>
+                <span class="status @statusCss" style="align-self:center;font-size:.82rem;">
+                    @(Model.VerificationStatus ?? "Pending")
+                </span>
+            </section>
+
+            <div class="page-body">
+
+                <!-- ── Hero Card ── -->
+                <div class="chart-card" style="margin-bottom:16px;padding:0;">
+                    <div class="di-hero">
+
+                        @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
+                        {
+                            <div class="di-avatar">
+                                <img src="@Model.ProfileImageUrl" alt="Dr. @Model.FullName">
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="di-avatar">@initials</div>
+                        }
+
+                        <div style="flex:1;min-width:160px;">
+                            <div class="di-hero-name">Dr. @Model.FullName</div>
+                            <div class="di-hero-spec">
+                                @(Model.Specialization ?? "General Veterinary Medicine")
+                                @if (!string.IsNullOrEmpty(Model.SecondarySpec))
+                                {
+                                    <span style="color:var(--muted);font-weight:700;">
+                                        &nbsp;·&nbsp;@Model.SecondarySpec
+                                    </span>
+                                }
+                            </div>
+                            <div class="di-hero-badges">
+                                <span class="di-badge @statusCss">
+                                    @(Model.VerificationStatus ?? "Pending")
+                                </span>
+                                @if (Model.IsAvailable == true)
+                                {
+                                    <span class="di-badge dib-green">🟢 Available</span>
+                                }
+                                else
+                                {
+                                    <span class="di-badge dib-muted">🔴 Unavailable</span>
+                                }
+                                @if (Model.ExperienceYears.HasValue)
+                                {
+                                    <span class="di-badge dib-green">🎓 @expLabel</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="di-hero-right">
+                            @if (Model.Rating.HasValue && Model.Rating > 0)
+                            {
+                                <div class="di-rating-val">@Model.Rating.Value.ToString("F1")</div>
+                                <div class="di-rating-stars">★★★★★</div>
+                                <div class="di-rating-lbl">Overall Rating</div>
+                            }
+                            else
+                            {
+                                <div style="font-size:1.6rem;margin-bottom:3px;">🌟</div>
+                                <div style="font-family:'Fredoka',sans-serif;font-size:1rem;font-weight:700;color:var(--gd);">New</div>
+                                <div class="di-rating-lbl">No reviews yet</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Two Column Layout ── -->
+                <div class="di-layout">
+
+                    <!-- ── Main Column ── -->
+                    <div class="di-main">
+
+                        <!-- Personal Info -->
+                        <div class="di-card">
+                            <div class="di-card-head">👤 Personal Information</div>
+                            <div class="di-card-body">
+                                <div class="di-row">
+                                    <div class="di-row-icon">📛</div>
+                                    <div class="di-row-lbl">Full Name</div>
+                                    <div class="di-row-val">Dr. @Model.FullName</div>
+                                </div>
+                                @if (!string.IsNullOrEmpty(Model.Phone))
+                                {
+                                    <div class="di-row">
+                                        <div class="di-row-icon">📞</div>
+                                        <div class="di-row-lbl">Phone</div>
+                                        <div class="di-row-val">
+                                            <a href="tel:@Model.Phone"
+                                               style="color:var(--gd);text-decoration:none;font-weight:800;">
+                                                @Model.Phone
+                                            </a>
+                                        </div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Email))
+                                {
+                                    <div class="di-row">
+                                        <div class="di-row-icon">✉️</div>
+                                        <div class="di-row-lbl">Email</div>
+                                        <div class="di-row-val">
+                                            <a href="mailto:@Model.Email"
+                                               style="color:var(--gd);text-decoration:none;font-weight:800;">
+                                                @Model.Email
+                                            </a>
+                                        </div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Bio))
+                                {
+                                    <div class="di-row">
+                                        <div class="di-row-icon">📝</div>
+                                        <div class="di-row-lbl">Bio</div>
+                                        <div class="di-row-val"
+                                             style="font-weight:700;line-height:1.7;color:var(--muted);">
+                                            @Model.Bio
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Professional Info -->
+                        <div class="di-card">
+                            <div class="di-card-head">🎓 Professional Information</div>
+                            <div class="di-card-body">
+                                @if (!string.IsNullOrEmpty(Model.Specialization))
+                                {
+                                    <div class="di-row">
+                                        <div class="di-row-icon">🩺</div>
+                                        <div class="di-row-lbl">Specialty</div>
+                                        <div class="di-row-val">
+                                            @Model.Specialization
+                                            @if (!string.IsNullOrEmpty(Model.SecondarySpec))
+                                            {
+                                                <span style="color:var(--muted);font-weight:700;">· @Model.SecondarySpec</span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                                @if (Model.ExperienceYears.HasValue)
+                                {
+                                    <div class="di-row">
+                                        <div class="di-row-icon">⏳</div>
+                                        <div class="di-row-lbl">Experience</div>
+                                        <div class="di-row-val">@expLabel</div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Qualification))
+                                {
+                                    <div class="di-row">
+                                        <div class="di-row-icon">🏅</div>
+                                        <div class="di-row-lbl">Qualification</div>
+                                        <div class="di-row-val">@Model.Qualification</div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Languages))
+                                {
+                                    <div class="di-row">
+                                        <div class="di-row-icon">🌐</div>
+                                        <div class="di-row-lbl">Languages</div>
+                                        <div class="di-row-val">
+                                            <div class="di-lang">
+                                                @foreach (var lang in Model.Languages.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                                {
+                                                    <span>@lang.Trim()</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Certifications))
+                                {
+                                    <div class="di-row">
+                                        <div class="di-row-icon">🎓</div>
+                                        <div class="di-row-lbl">Certifications</div>
+                                        <div class="di-row-val">
+                                            @foreach (var line in Model.Certifications.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                                            {
+                                                <div class="di-cert-line">
+                                                    <span>✓</span>
+                                                    <span>@line.Trim()</span>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Work Schedule -->
+                        @if (workDays.Any() || Model.StartTime.HasValue)
+                        {
+                            <div class="di-card">
+                                <div class="di-card-head">📅 Work Schedule</div>
+                                <div class="di-card-body">
+
+                                    @if (workDays.Any())
+                                    {
+                                        <div style="font-size:.76rem;font-weight:800;color:var(--muted);margin-bottom:7px;">
+                                            Working Days
+                                        </div>
+                                        <div class="di-day-chips">
+                                            @for (int i = 0; i < 7; i++)
+                                            {
+                                                var isW = workDays.Contains(i);
+                                                var isT = i == currentDow;
+                                                <span class="@(isW ? "dic-on" : "dic-off") @(isT && isW ? "dic-today" : "")">
+                                                    @dayAbbr[i]@(isT && isW ? " ●" : "")
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+
+                                    @if (Model.StartTime.HasValue && Model.EndTime.HasValue)
+                                    {
+                                        <div style="font-size:.76rem;font-weight:800;color:var(--muted);margin-bottom:7px;margin-top:10px;">
+                                            Working Hours
+                                        </div>
+                                        <div style="display:flex;align-items:center;gap:8px;font-size:.86rem;font-weight:800;color:var(--olive-dark);">
+                                            🕐 @Model.StartTime.Value.ToString(@"hh\:mm")
+                                            <span style="color:var(--muted);">–</span>
+                                            @Model.EndTime.Value.ToString(@"hh\:mm")
+                                            @if (isOpen)
+                                            {
+                                                <span class="di-open-now">Open Now</span>
+                                            }
+                                            else
+                                            {
+
+                                                <span class="di-closed">Closed Now</span>
+                                            }
+                                        </div>
+                                    }
+
+                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px;">
+                                        <div style="background:#fff;border-radius:10px;padding:10px 12px;border:1px solid var(--line);">
+                                            <div style="font-size:.7rem;font-weight:800;color:var(--muted);">Appointment Duration</div>
+                                            <div style="font-size:1.1rem;font-weight:800;color:var(--gd);margin-top:2px;">
+                                                @(Model.AppointmentDuration.HasValue ? $"{Model.AppointmentDuration} min" : "—")
+                                            </div>
+                                        </div>
+                                        <div style="background:#fff;border-radius:10px;padding:10px 12px;border:1px solid var(--line);">
+                                            <div style="font-size:.7rem;font-weight:800;color:var(--muted);">Max Daily Appointments</div>
+                                            <div style="font-size:1.1rem;font-weight:800;color:var(--gd);margin-top:2px;">
+                                                @(Model.MaxDailyAppointments.HasValue ? $"{Model.MaxDailyAppointments} appts" : "—")
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Documents -->
+                        @if (allDocs.Any())
+                        {
+                            <!-- Certification Files -->
+                            @if (certDocs.Any())
+                            {
+                                <div class="di-card">
+                                    <div class="di-card-head">
+                                        🏆 Certification Files
+                                        <span style="background:var(--gp);color:var(--gd);border:1px solid var(--b2);
+                                                         border-radius:999px;padding:1px 9px;font-size:.7rem;font-weight:900;">
+                                            @certDocs.Count
+                                        </span>
+                                    </div>
+                                    <div class="di-card-body">
+                                        <div class="di-doc-grid">
+                                            @foreach (var doc in certDocs)
+                                            {
+                                                var ext = System.IO.Path.GetExtension(doc.FileUrl).ToLowerInvariant();
+                                                var isImg = ext is ".jpg" or ".jpeg" or ".png" or ".webp";
+                                                var dStsCls = doc.Status?.ToLower() == "approved" ? "s-confirmed"
+                                                : doc.Status?.ToLower() == "rejected" ? "s-cancelled"
+                                                : "s-pending";
+                                                <a href="@doc.FileUrl" target="_blank" class="di-doc-item">
+                                                    @if (isImg)
+                                                    {
+                                                        <img src="@doc.FileUrl" alt="Cert" class="di-doc-thumb">
+                                                    }
+                                                    else
+                                                    {
+
+                                                        <div class="di-doc-pdf">📄</div>
+                                                    }
+                                                    <div class="di-doc-info">
+                                                        <div class="di-doc-type">Certificate</div>
+                                                        <div class="di-doc-date">@doc.UploadedAt.ToString("dd MMM yyyy")</div>
+                                                        <span class="status @dStsCls" style="font-size:.64rem;padding:1px 6px;margin-top:3px;display:inline-block;">
+                                                            @(doc.Status ?? "Pending")
+                                                        </span>
+                                                    </div>
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+                            <!-- Other Documents -->
+                            @if (otherDocs.Any())
+                            {
+                                <div class="di-card">
+                                    <div class="di-card-head">
+                                        📎 Other Documents
+                                        <span style="background:var(--gp);color:var(--gd);border:1px solid var(--b2);
+                                                         border-radius:999px;padding:1px 9px;font-size:.7rem;font-weight:900;">
+                                            @otherDocs.Count
+                                        </span>
+                                    </div>
+                                    <div class="di-card-body">
+                                        <div class="di-doc-grid">
+                                            @foreach (var doc in otherDocs)
+                                            {
+                                                var ext = System.IO.Path.GetExtension(doc.FileUrl).ToLowerInvariant();
+                                                var isImg = ext is ".jpg" or ".jpeg" or ".png" or ".webp";
+                                                var dStsCls = doc.Status?.ToLower() == "approved" ? "s-confirmed"
+                                                : doc.Status?.ToLower() == "rejected" ? "s-cancelled"
+                                                : "s-pending";
+                                                <a href="@doc.FileUrl" target="_blank" class="di-doc-item">
+                                                    @if (isImg)
+                                                    {
+                                                        <img src="@doc.FileUrl" alt="Doc" class="di-doc-thumb">
+                                                    }
+                                                    else
+                                                    {
+
+                                                        <div class="di-doc-pdf">📄</div>
+                                                    }
+                                                    <div class="di-doc-info">
+                                                        <div class="di-doc-type">@(doc.DocumentType ?? "Document")</div>
+                                                        <div class="di-doc-date">@doc.UploadedAt.ToString("dd MMM yyyy")</div>
+                                                        <span class="status @dStsCls" style="font-size:.64rem;padding:1px 6px;margin-top:3px;display:inline-block;">
+                                                            @(doc.Status ?? "Pending")
+                                                        </span>
+                                                    </div>
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="di-card">
+                                <div class="di-card-head">📎 Documents</div>
+                                <div class="di-card-body" style="text-align:center;padding:1.4rem;color:var(--muted);font-weight:700;font-size:.84rem;">
+                                    No documents uploaded yet.
+                                </div>
+                            </div>
+                        }
+
+                    </div>
+
+                    <!-- ── Sidebar ── -->
+                    <aside class="di-sidebar">
+
+                        <!-- Quick Stats -->
+                        <div class="di-sb-card">
+                            <div class="di-sb-title">📊 Quick Stats</div>
+                            <div class="di-sb-row">
+                                <span class="di-sb-lbl">Status</span>
+                                <span class="status @statusCss" style="font-size:.72rem;padding:3px 9px;">
+                                    @(Model.VerificationStatus ?? "Pending")
+                                </span>
+                            </div>
+                            <div class="di-sb-row">
+                                <span class="di-sb-lbl">⭐ Rating</span>
+                                <span class="di-sb-val">
+                                    @if (Model.Rating.HasValue && Model.Rating > 0)
+                                    {
+                                        <span style="color:#f59f00;">★</span> 
+                                        @Model.Rating.Value.ToString("F1")
+                                    }
+                                    else
+                                    {
+
+                                        <span style="color:var(--muted);">New</span>
+                                    }
+                                </span>
+                            </div>
+                            <div class="di-sb-row">
+                                <span class="di-sb-lbl">📅 Availability</span>
+                                <span class="di-sb-val">
+                                    @if (Model.IsAvailable == true)
+                                    {
+                                        <span style="color:var(--gd);">🟢 Open</span>
+                                    }
+                                    else
+                                    {
+
+                                        <span style="color:#c86a5c;">🔴 Off</span>
+                                    }
+                                </span>
+                            </div>
+                            <div class="di-sb-row">
+                                <span class="di-sb-lbl">📁 Documents</span>
+                                <span class="di-sb-val">@allDocs.Count file@(allDocs.Count != 1 ? "s" : "")</span>
+                            </div>
+                            <div class="di-sb-row">
+                                <span class="di-sb-lbl">🏆 Certs</span>
+                                <span class="di-sb-val">@certDocs.Count file@(certDocs.Count != 1 ? "s" : "")</span>
+                            </div>
+                            @if (workDays.Any())
+                            {
+                                <div class="di-sb-row">
+                                    <span class="di-sb-lbl">📆 Work Days</span>
+                                    <span class="di-sb-val">@workDays.Count days/week</span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Quick Contact -->
+                        @if (!string.IsNullOrEmpty(Model.Phone) || !string.IsNullOrEmpty(Model.Email))
+                        {
+                            <div class="di-sb-card">
+                                <div class="di-sb-title">📞 Quick Contact</div>
+                                @if (!string.IsNullOrEmpty(Model.Phone))
+                                {
+                                    <a href="tel:@Model.Phone" class="di-action-btn dab-outline"
+                                       style="margin-bottom:8px;">
+                                        📞 Call Doctor
+                                    </a>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Email))
+                                {
+                                    <a href="mailto:@Model.Email" class="di-action-btn dab-outline">
+                                        ✉️ Send Email
+                                    </a>
+                                }
+                            </div>
+                        }
+
+                        <!-- Actions -->
+                        <div class="di-sb-card">
+                            <div class="di-sb-title">⚙️ Actions</div>
+                            <form asp-controller="ClinicAdmin" asp-action="RemoveDoctor" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="idDoctor" value="@Model.IdDoctor">
+                                <button type="submit" class="di-action-btn dab-danger"
+                                        onclick="return confirm('Remove Dr. @Model.FullName from the clinic? This action cannot be undone.')">
+                                    🗑 Remove from Clinic
+                                </button>
+                            </form>
+                            <a asp-controller="ClinicAdmin" asp-action="Doctors"
+                               class="di-action-btn dab-outline" style="margin-top:4px;">
+                                ← Back to Doctors
+                            </a>
+                        </div>
+
+                    </aside>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sb=document.getElementById("sidebar"),ov=document.getElementById("sidebarOverlay"),sh=document.getElementById("waShell");
+            if(window.innerWidth<=992){sb?.classList.toggle("mob-open");ov?.classList.toggle("show");document.body.classList.toggle("sidebar-open")}
+            else{sh?.classList.toggle("mini")}
+        }
+        function closeSidebar() {
+            document.getElementById("sidebar")?.classList.remove("mob-open");
+            document.getElementById("sidebarOverlay")?.classList.remove("show");
+            document.body.classList.remove("sidebar-open");
+        }
+        document.addEventListener("DOMContentLoaded",()=>{
+            document.querySelectorAll(".wa-sb .sb-row").forEach(r=>r.addEventListener("click",()=>{if(window.innerWidth<=992)closeSidebar()}));
+            window.addEventListener("resize",()=>{if(window.innerWidth>992)closeSidebar()});
+        });
+    </script>
+
+</body>
+</html>

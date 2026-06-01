@@ -42,6 +42,9 @@ namespace Waffy.Models.ViewModels
         public int? IdClinic { get; set; }
         public string? ClinicName { get; set; }
         public string? ClinicCity { get; set; }
+        public string? ProfileImageUrl { get; set; }
+        public List<DoctorDocument> CertificationDocs { get; set; } = new();
+        
     }
 
     public class ClinicsListViewModel

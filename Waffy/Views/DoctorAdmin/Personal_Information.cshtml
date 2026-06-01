@@ -1,0 +1,281 @@
+﻿@model Waffy.Models.ViewModels.DoctorPersonalInfoViewModel
+@{
+    ViewData["Title"] = "Waffy — Personal Information";
+    Layout = null;
+    var userName = Context.Session.GetString("UserName") ?? "Doctor";
+    var clinicName = Context.Session.GetString("ClinicName") ?? "Clinic";
+    var initials = userName.Length > 0 ? userName[0].ToString().ToUpper() : "D";
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+    <style>
+        .settings-tab-nav {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            flex-wrap: nowrap;
+            margin: 14px;
+        }
+
+            .settings-tab-nav::-webkit-scrollbar {
+                display: none
+            }
+
+            .settings-tab-nav a {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 10px 16px;
+                border: 1.5px solid var(--line);
+                background: #fff;
+                border-radius: 12px;
+                color: var(--text-muted);
+                font-weight: 800;
+                font-size: .85rem;
+                font-family: 'Nunito',sans-serif;
+                text-decoration: none;
+                transition: .2s;
+                white-space: nowrap;
+                flex-shrink: 0;
+                box-shadow: 0 4px 14px rgba(62,46,32,.06);
+            }
+
+                .settings-tab-nav a:hover {
+                    background: var(--olive-soft);
+                    border-color: var(--olive);
+                    color: var(--olive-dark);
+                }
+
+                .settings-tab-nav a.active {
+                    background: linear-gradient(135deg,var(--olive),var(--olive-dark));
+                    color: #fff;
+                    border-color: transparent;
+                }
+
+        .doc-profile-summary {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 18px;
+            padding: 22px;
+        }
+
+        .doc-profile-rating {
+            min-width: 130px;
+            text-align: center;
+            padding: 12px 20px;
+            background: var(--gp);
+            border-radius: 12px;
+            border: 1px solid var(--b2);
+        }
+
+        @@media (max-width:768px) {
+            .doc-profile-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="admin-shell">
+
+    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="wa-shell" id="waShell">
+        @await Html.PartialAsync("_DoctorSidebar")
+        <header class="wa-tn">
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()">☰</button>
+            <div class="tn-bread"><span>My Settings</span><span>/</span><b>Personal Info</b></div>
+            <div class="tn-center">
+                <div class="tn-center-main">Doctor Settings</div>
+                <div class="tn-center-sub">@clinicName</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-identity">🏥 @clinicName</div>
+                <button class="tn-btn notif-btn" type="button">🔔</button>
+                <div class="tn-sep"></div>
+                <div class="tn-profile">
+                    <div class="tn-av">@initials</div>
+                    <div>
+                        <div class="tn-pname">@userName</div>
+                        <div class="tn-prole">👨‍⚕️ Doctor</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="wa-main">
+            <section class="page-hero">
+                <div>
+                    <h1>My Settings</h1>
+                    <p>Update your profile, schedule, and account details.</p>
+                </div>
+            </section>
+
+            <div class="page-body">
+
+                @if (TempData["SaveSuccess"] != null)
+                {
+                    <div style="background:#eef4dd;border:1px solid #8da546;border-radius:12px;padding:10px 16px;margin-bottom:1rem;font-weight:800;color:#5f7430;">
+                        ✅ @TempData["SaveSuccess"]
+                    </div>
+                }
+                @if (TempData["SaveError"] != null)
+                {
+                    <div style="background:#faece8;border:1px solid rgba(200,106,92,.3);border-radius:12px;padding:10px 16px;margin-bottom:1rem;font-weight:800;color:#c86a5c;">
+                        ⚠️ @TempData["SaveError"]
+                    </div>
+                }
+
+                <!-- Profile Summary -->
+                <div class="chart-card doc-profile-summary">
+                    <div style="position:relative">
+                        <div style="width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,var(--gp),var(--gu));display:flex;align-items:center;justify-content:center;font-size:2rem;border:2px solid var(--b2)">👨‍⚕️</div>
+                    </div>
+                    <div style="flex:1">
+                        <div style="font-size:1.1rem;font-weight:700">Dr. @Model.FullName</div>
+                        <div style="font-size:.82rem;color:var(--muted);margin-top:3px">
+                            @(Model.Specialization ?? "Veterinary") • @(Model.ClinicName ?? "")
+                        </div>
+                        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+                            @{
+                                var statusCls = Model.VerificationStatus?.ToLower() == "approved" ? "s-confirmed" : "s-pending";
+                            }
+                            <span class="status @statusCls">@(Model.VerificationStatus ?? "Pending")</span>
+                            @if (Model.Rating.HasValue && Model.Rating > 0)
+                            {
+                                <span class="status s-new">⭐ @Model.Rating.Value.ToString("F1")</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="doc-profile-rating">
+                        <div style="font-size:1.6rem;font-weight:800;color:var(--gd)">
+                            @(Model.Rating.HasValue && Model.Rating > 0 ? Model.Rating.Value.ToString("F1") : "—")
+                        </div>
+                        <div style="font-size:.72rem;color:var(--muted)">Your rating</div>
+                        <div style="color:#f59f00;font-size:.85rem;margin-top:2px">★★★★★</div>
+                    </div>
+                </div>
+
+                <!-- Tab Nav -->
+                <nav class="settings-tab-nav">
+                    <a asp-controller="DoctorAdmin" asp-action="Personal_Information" class="active">👤 Personal Info</a>
+                    <a asp-controller="DoctorAdmin" asp-action="Professional_Information">🎓 Professional</a>
+                    <a asp-controller="DoctorAdmin" asp-action="Work_Schedule">🗓 Work Schedule</a>
+                    <a asp-controller="DoctorAdmin" asp-action="Documents_D">📎 Documents</a>
+                    <a asp-controller="DoctorAdmin" asp-action="Password">🔒 Password</a>
+                </nav>
+
+                <!-- Form -->
+                <div class="chart-card">
+                    <div class="sec-label">👤 Personal Information</div>
+                    <form asp-controller="DoctorAdmin" asp-action="Personal_Information"
+                          method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        <div class="f-grid">
+                            <div class="f-group">
+                                <label class="f-label"><span class="req">*</span>Full Name</label>
+                                <input name="FullName" class="f-inp" type="text"
+                                       value="@Model.FullName" required>
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label"><span class="req">*</span>Phone Number</label>
+                                <input name="Phone" class="f-inp" type="tel"
+                                       value="@Model.Phone" required>
+                            </div>
+                            <div class="f-group f-full">
+                                <label class="f-label">Email Address</label>
+                                <input class="f-inp" type="email"
+                                       value="@Model.Email" disabled
+                                       style="background:#f5f0e8;color:var(--muted);">
+                                <div class="f-hint">📧 Email cannot be changed from here. Contact support.</div>
+                            </div>
+                            <div class="f-group f-full">
+                                <label class="f-label">Profile Image</label>
+                                <div style="display:flex;align-items:center;gap:14px;margin-bottom:8px;">
+                                    <!-- ✅ اعرضي الصورة الحالية -->
+                                    @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
+                                    {
+                                        <img src="@Model.ProfileImageUrl" alt="Profile"
+                                             style="width:64px;height:64px;border-radius:14px;
+                            object-fit:cover;border:2px solid var(--b2);">
+                                    }
+                                    else
+                                    {
+                                        <div style="width:64px;height:64px;border-radius:14px;
+                            background:linear-gradient(135deg,var(--gp),var(--gu));
+                            display:flex;align-items:center;justify-content:center;
+                            font-size:1.8rem;border:2px solid var(--b2);">
+                                            👨‍⚕️
+                                        </div>
+                                    }
+                                    <div style="font-size:.8rem;color:var(--muted);font-weight:700;">
+                                        @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
+                                        {
+                                            <span style="color:var(--gd);">✓ Image uploaded</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span>No image uploaded yet</span>
+                                        }
+                                    </div>
+                                </div>
+                                <label class="upload-box" style="cursor:pointer;display:block;">
+                                    <input type="file" name="ProfileImage" accept="image/*" style="display:none"
+                                           onchange="document.getElementById('profileImgTxt').textContent=this.files[0]?.name">
+                                    <div class="upload-icon">📸</div>
+                                    <div class="upload-txt" id="profileImgTxt">Change profile image</div>
+                                    <div class="upload-sub">JPG, PNG — max 3MB</div>
+                                </label>
+                            </div>
+                            <div class="f-group f-full">
+                                <label class="f-label">Bio (visible to pet owners)</label>
+                                <textarea name="Bio" class="f-inp">@Model.Bio</textarea>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:1rem;display:flex;gap:8px;justify-content:flex-end;">
+                            <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sb = document.getElementById("sidebar");
+            const ov = document.getElementById("sidebarOverlay");
+            const sh = document.getElementById("waShell");
+            if (window.innerWidth <= 992) {
+                sb?.classList.toggle("mob-open");
+                ov?.classList.toggle("show");
+                document.body.classList.toggle("sidebar-open");
+            } else {
+                sh?.classList.toggle("mini");
+            }
+        }
+        function closeSidebar() {
+            document.getElementById("sidebar")?.classList.remove("mob-open");
+            document.getElementById("sidebarOverlay")?.classList.remove("show");
+            document.body.classList.remove("sidebar-open");
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll(".wa-sb .sb-row").forEach(r =>
+                r.addEventListener("click", () => { if (window.innerWidth <= 992) closeSidebar(); }));
+            window.addEventListener("resize", () => { if (window.innerWidth > 992) closeSidebar(); });
+        });
+    </script>
+</body>
+</html>

@@ -23,7 +23,8 @@ namespace Waffy.Repositories
             return await conn.QueryAsync<DoctorListItemViewModel>(@"
                 SELECT d.IdDoctor, d.IdUser, d.Specialization, d.ExperienceYears,
                        d.IsAvailable, d.VerificationStatus, d.Rating,
-                       u.FullName, u.Email, u.Phone
+                       u.FullName, u.Email, u.Phone,
+                       u.ProfileImage AS ProfileImageUrl
                 FROM Doctor d
                 INNER JOIN Users u ON d.IdUser = u.UserId
                 WHERE d.IdClinic = @IdClinic
@@ -79,12 +80,12 @@ namespace Waffy.Repositories
         {
             using var conn = new SqlConnection(_ConnectionString);
             await conn.ExecuteAsync(@"
-                INSERT INTO Doctor
-                    (IdDoctor, IdUser, IdClinic, Specialization, ExperienceYears,
-                     Certifications, IsAvailable, VerificationStatus, CreatedAt)
-                VALUES
-                    (@IdDoctor, @IdUser, @IdClinic, @Specialization, @ExperienceYears,
-                     @Certifications, @IsAvailable, @VerificationStatus, @CreatedAt)",
+        INSERT INTO Doctor
+            (IdUser, IdClinic, Specialization, ExperienceYears,
+             Certifications, IsAvailable, VerificationStatus, CreatedAt)
+        VALUES
+            (@IdUser, @IdClinic, @Specialization, @ExperienceYears,
+             @Certifications, @IsAvailable, @VerificationStatus, @CreatedAt)",
                 doctor);
         }
 
@@ -136,7 +137,7 @@ namespace Waffy.Repositories
                d.Qualification, d.Bio, d.Languages,
                d.WorkingDays, d.StartTime, d.EndTime,
                d.Rating, d.IsAvailable, d.Certifications,
-               u.FullName, u.Email, u.Phone,
+               u.FullName, u.Email, u.Phone, u.ProfileImage AS ProfileImageUrl,
                c.Name AS ClinicName, c.City AS ClinicCity
         FROM Doctor d
         INNER JOIN Users u ON d.IdUser = u.UserId
@@ -146,6 +147,176 @@ namespace Waffy.Repositories
                 new { IdDoctor = idDoctor });
         }
 
+        // أضيفي داخل DoctorRepository class:
+
+        public async Task<DoctorFullDto?> GetFullInfoByUserIdAsync(int userId)
+        {
+            using var conn = new SqlConnection(_ConnectionString);
+            return await conn.QueryFirstOrDefaultAsync<DoctorFullDto>(@"
+        SELECT d.IdDoctor, d.IdClinic,
+               d.Specialization, d.SecondarySpec, d.ExperienceYears,
+               d.Qualification, d.Certifications, d.Bio, d.Languages,
+               d.WorkingDays, d.StartTime, d.EndTime,
+               d.AppointmentDuration, d.MaxDailyAppointments,
+               d.IsAvailable, d.VerificationStatus, d.Rating,
+               u.FullName, u.Email, u.Phone,
+           u.ProfileImage AS ProfileImageUrl, 
+               c.Name AS ClinicName
+        FROM Doctor d
+        INNER JOIN Users u ON d.IdUser = u.UserId
+        LEFT JOIN Clinic c ON d.IdClinic = c.IdClinic
+        WHERE d.IdUser = @UserId",
+                new { UserId = userId });
+        }
+
+        public async Task<int?> GetDoctorIdByUserIdAsync(int userId)
+        {
+            using var conn = new SqlConnection(_ConnectionString);
+            return await conn.ExecuteScalarAsync<int?>(
+                "SELECT IdDoctor FROM Doctor WHERE IdUser = @UserId",
+                new { UserId = userId });
+        }
+
+        public async Task UpdatePersonalInfoAsync(int userId, string fullName,
+     string? phone, string? bio, string? profileImageUrl = null)
+        {
+            using var conn = new SqlConnection(_ConnectionString);
+
+            if (!string.IsNullOrEmpty(profileImageUrl))
+            {
+                // ✅ حفظ مع الصورة
+                await conn.ExecuteAsync(@"
+            UPDATE Users
+            SET FullName = @FullName, Phone = @Phone, ProfileImage = @ProfileImage
+            WHERE UserId = @UserId",
+                    new
+                    {
+                        FullName = fullName,
+                        Phone = phone,
+                        ProfileImage = profileImageUrl,
+                        UserId = userId
+                    });
+            }
+            else
+            {
+                // ✅ حفظ بدون تغيير الصورة
+                await conn.ExecuteAsync(@"
+            UPDATE Users
+            SET FullName = @FullName, Phone = @Phone
+            WHERE UserId = @UserId",
+                    new { FullName = fullName, Phone = phone, UserId = userId });
+            }
+
+            await conn.ExecuteAsync(
+                "UPDATE Doctor SET Bio = @Bio WHERE IdUser = @UserId",
+                new { Bio = bio, UserId = userId });
+        }
+
+        public async Task UpdateProfessionalInfoAsync(int userId, Doctor data)
+        {
+            using var conn = new SqlConnection(_ConnectionString);
+            await conn.ExecuteAsync(@"
+        UPDATE Doctor SET
+            Specialization  = @Specialization,
+            SecondarySpec   = @SecondarySpec,
+            ExperienceYears = @ExperienceYears,
+            Qualification   = @Qualification,
+            Certifications  = @Certifications,
+            Languages       = @Languages
+        WHERE IdUser = @IdUser",
+                new
+                {
+                    data.Specialization,
+                    data.SecondarySpec,
+                    data.ExperienceYears,
+                    data.Qualification,
+                    data.Certifications,
+                    data.Languages,
+                    IdUser = userId
+                });
+        }
+
+        public async Task UpdateWorkScheduleAsync(int userId, Doctor data)
+        {
+            using var conn = new SqlConnection(_ConnectionString);
+            await conn.ExecuteAsync(@"
+        UPDATE Doctor SET
+            WorkingDays            = @WorkingDays,
+            StartTime              = @StartTime,
+            EndTime                = @EndTime,
+            AppointmentDuration    = @AppointmentDuration,
+            MaxDailyAppointments   = @MaxDailyAppointments,
+            IsAvailable            = @IsAvailable
+        WHERE IdUser = @IdUser",
+                new
+                {
+                    data.WorkingDays,
+                    data.StartTime,
+                    data.EndTime,
+                    data.AppointmentDuration,
+                    data.MaxDailyAppointments,
+                    data.IsAvailable,
+                    IdUser = userId
+                });
+        }
+
+        public async Task<bool> ChangePasswordAsync(int userId,
+            string currentPassword, string newPassword)
+        {
+            using var conn = new SqlConnection(_ConnectionString);
+            var rows = await conn.ExecuteAsync(@"
+        UPDATE Users SET PasswordHash = @NewPassword
+        WHERE UserId = @UserId AND PasswordHash = @CurrentPassword",
+                new { UserId = userId, CurrentPassword = currentPassword, NewPassword = newPassword });
+            return rows > 0;
+        }
+
+        public async Task<IEnumerable<DoctorDocument>> GetDocumentsByDoctorIdAsync(int idDoctor)
+        {
+            using var conn = new SqlConnection(_ConnectionString);
+            return await conn.QueryAsync<DoctorDocument>(
+                "SELECT * FROM DoctorDocument WHERE IdDoctor = @IdDoctor ORDER BY UploadedAt DESC",
+                new { IdDoctor = idDoctor });
+        }
+
+        public async Task AddDocumentAsync(DoctorDocument doc)
+        {
+            using var conn = new SqlConnection(_ConnectionString);
+            await conn.ExecuteAsync(@"
+        INSERT INTO DoctorDocument
+            (IdDoctor, DocumentType, FileUrl, Status, UploadedAt)
+        VALUES
+            (@IdDoctor, @DocumentType, @FileUrl, @Status, @UploadedAt)",
+                doc);
+        }
+
+        public async Task<DoctorFullDto?> GetFullInfoByDoctorIdAsync(int idDoctor)
+        {
+            using var conn = new SqlConnection(_ConnectionString);
+            return await conn.QueryFirstOrDefaultAsync<DoctorFullDto>(@"
+        SELECT d.IdDoctor, d.IdClinic,
+               d.Specialization, d.SecondarySpec, d.ExperienceYears,
+               d.Qualification, d.Certifications, d.Bio, d.Languages,
+               d.WorkingDays, d.StartTime, d.EndTime,
+               d.AppointmentDuration, d.MaxDailyAppointments,
+               d.IsAvailable, d.VerificationStatus, d.Rating,
+               u.FullName, u.Email, u.Phone,
+               u.ProfileImage AS ProfileImageUrl,
+               c.Name AS ClinicName
+        FROM Doctor d
+        INNER JOIN Users u ON d.IdUser = u.UserId
+        LEFT  JOIN Clinic c ON d.IdClinic = c.IdClinic
+        WHERE d.IdDoctor = @IdDoctor",
+                new { IdDoctor = idDoctor });
+        }
+
+        public async Task UpdateDocumentStatusAsync(int docId, string status)
+        {
+            using var conn = new SqlConnection(_ConnectionString);
+            await conn.ExecuteAsync(
+                "UPDATE DoctorDocument SET Status = @Status WHERE Id = @Id",
+                new { Status = status, Id = docId });
+        }
 
 
 

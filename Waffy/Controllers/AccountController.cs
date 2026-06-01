@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Waffy.Interfaces;
 using Waffy.Models;
 using Waffy.Models.ViewModels;
+using Waffy.Repositories;
 
 namespace Waffy.Controllers
 {
@@ -17,6 +18,7 @@ namespace Waffy.Controllers
         private readonly IClinicDocumentRepository _clinicDocumentRepository;
         private readonly IPetRepository _petRepository;
         private readonly ILocationRepository _locationRepo;
+        private readonly IDoctorRepository _doctorRepository;
 
         public AccountController(
             IUserRepository userRepository,
@@ -25,6 +27,7 @@ namespace Waffy.Controllers
             IClinicRepository clinicRepository,
             IClinicDocumentRepository clinicDocumentRepository,
             IPetRepository petRepository,
+                IDoctorRepository doctorRepository,
             ILocationRepository locationRepo)
         {
             _userRepository = userRepository;
@@ -34,6 +37,7 @@ namespace Waffy.Controllers
             _clinicDocumentRepository = clinicDocumentRepository;
             _petRepository = petRepository;
             _locationRepo = locationRepo;
+            _doctorRepository = doctorRepository;
         }
 
         // ══════════════════════════════════════════════════════════
@@ -178,28 +182,28 @@ namespace Waffy.Controllers
             // ── حساب طبيب ──────────────────────────────────────────
             if (roleName == "Doctor")
             {
-                // جلب IdClinic من جدول Doctor
                 var clinicId = await _clinicRepository.GetClinicIdByDoctorUserIdAsync(loginResult.UserId);
 
                 if (clinicId == null)
                 {
-                    TempData["LoginError"] = "No clinic associated with this doctor account. Please contact your clinic manager.";
+                    TempData["LoginError"] = "No clinic associated with this doctor account.";
                     return RedirectToAction("Login");
                 }
 
                 var clinic = await _clinicRepository.GetByIdAsync(clinicId.Value);
 
-                // ✅ Session الأساسية
-                SetSession(loginResult, roleName);
+                // ✅ جلب DoctorId من Doctor table
+                var doctorId = await _doctorRepository.GetDoctorIdByUserIdAsync(loginResult.UserId);
 
-                // ✅ Session إضافية للـ ClinicAdmin
+                SetSession(loginResult, roleName);
                 HttpContext.Session.SetInt32("RoleId", loginResult.RoleId);
                 HttpContext.Session.SetInt32("ClinicId", clinicId.Value);
+                HttpContext.Session.SetInt32("DoctorId", doctorId ?? 0);     // ← جديد
                 HttpContext.Session.SetString("ClinicName", clinic?.Name ?? "");
                 HttpContext.Session.SetString("UserName", loginResult.FullName ?? "");
 
                 TempData["LoginSuccess"] = "Welcome back, Doctor!";
-                return RedirectToAction("Dashboard", "ClinicAdmin");
+                return RedirectToAction("Dashboard", "DoctorAdmin"); // ← تغيير هنا
             }
 
             // ── Admin / User ────────────────────────────────────────

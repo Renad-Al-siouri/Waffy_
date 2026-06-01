@@ -1,0 +1,1141 @@
+﻿@model Waffy.Models.ViewModels.DoctorFullDto
+@using Waffy.Models
+@{
+    ViewData["Title"] = $"Dr. {Model.FullName} — Super Admin";
+    Layout = null;
+    var adminName = ViewBag.AdminName as string ?? "Admin";
+    var adminInitials = ViewBag.AdminInitials as string ?? "AD";
+
+    var allDocs = ViewBag.AllDocs as List<DoctorDocument> ?? new();
+    var certDocs = ViewBag.CertDocs as List<DoctorDocument> ?? new();
+    var otherDocs = ViewBag.OtherDocs as List<DoctorDocument> ?? new();
+    int doctorId = ViewBag.DoctorId ?? Model.IdDoctor;
+
+    var dayAbbr = new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" };
+    var workDays = new HashSet<int>();
+    if (!string.IsNullOrEmpty(Model.WorkingDays))
+        foreach (var d in Model.WorkingDays.Split(','))
+            if (int.TryParse(d.Trim(), out var n)) workDays.Add(n);
+
+    var now = DateTime.Now;
+    var currentDow = (int)now.DayOfWeek;
+
+    var expLabel = Model.ExperienceYears switch
+    {
+        1 => "< 1 year",
+        2 => "1–3 years",
+        4 => "3–5 years",
+        7 => "5–10 years",
+        11 => "10+ years",
+        _ => Model.ExperienceYears.HasValue ? $"{Model.ExperienceYears} yrs" : "—"
+    };
+
+    string StsCss(string? s) => s?.ToLower() switch
+    {
+        "approved" => "s-confirmed",
+        "rejected" => "s-cancelled",
+        _ => "s-pending"
+    };
+    string StsLabel(string? s) => s?.ToLower() switch
+    {
+        "approved" => "✅ Approved",
+        "rejected" => "❌ Rejected",
+        _ => "⏳ Pending"
+    };
+
+    var initials = Model.FullName.Split(' ', StringSplitOptions.RemoveEmptyEntries) is { Length: >= 2 } p
+                   ? $"{p[0][0]}{p[1][0]}".ToUpper()
+                   : Model.FullName.Length > 0 ? Model.FullName[0].ToString().ToUpper() : "DR";
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+    <style>
+        /* ── Detail Layout ── */
+        .dd-layout {
+            display: grid;
+            grid-template-columns: 1fr 270px;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .dd-main {
+            min-width: 0;
+        }
+
+        .dd-sidebar {
+            position: sticky;
+            top: 90px;
+        }
+
+        /* ── Hero ── */
+        .dd-hero {
+            display: flex;
+            align-items: center;
+            gap: 1.4rem;
+            flex-wrap: wrap;
+            padding: 1.4rem 1.6rem;
+        }
+
+        .dd-avatar {
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            background: var(--brand-ghost);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+            border: 3px solid var(--brand-light);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+            .dd-avatar img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .dd-hero-name {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.45rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin: 0 0 3px;
+        }
+
+        .dd-hero-spec {
+            font-size: .86rem;
+            font-weight: 800;
+            color: var(--brand);
+            margin-bottom: 8px;
+        }
+
+        .dd-hero-badges {
+            display: flex;
+            gap: 7px;
+            flex-wrap: wrap;
+        }
+
+        .dd-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: .73rem;
+            font-weight: 900;
+        }
+
+        .ddb-green {
+            background: var(--success-soft);
+            color: var(--success);
+            border: 1px solid rgba(76,175,80,.25);
+        }
+
+        .ddb-muted {
+            background: var(--bg-soft);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        /* Hero right (rating box) */
+        .dd-hero-right {
+            margin-left: auto;
+            text-align: center;
+            background: var(--brand-ghost);
+            border-radius: 12px;
+            padding: .9rem 1.3rem;
+            border: 1px solid var(--brand-light);
+            flex-shrink: 0;
+        }
+
+        .dd-rating-val {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--brand);
+            line-height: 1;
+        }
+
+        .dd-rating-stars {
+            color: #f59f00;
+            font-size: .82rem;
+            margin: 3px 0;
+        }
+
+        /* ── Section Card ── */
+        .dd-card {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            margin-bottom: 14px;
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .dd-card-head {
+            padding: .75rem 1.1rem .55rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-family: 'Fredoka',sans-serif;
+            font-size: .9rem;
+            font-weight: 700;
+            color: var(--brand);
+        }
+
+        .dd-card-body {
+            padding: .95rem 1.1rem;
+        }
+
+        /* Info rows */
+        .dd-row {
+            display: flex;
+            align-items: flex-start;
+            padding: 7px 0;
+            border-bottom: .5px solid var(--border);
+            font-size: .83rem;
+        }
+
+            .dd-row:last-child {
+                border-bottom: none;
+            }
+
+        .dd-lbl {
+            width: 130px;
+            color: var(--text-muted);
+            font-weight: 700;
+            flex-shrink: 0;
+            font-size: .8rem;
+        }
+
+        .dd-val {
+            font-weight: 800;
+            color: var(--text-dark);
+            flex: 1;
+            word-break: break-word;
+        }
+
+        /* Day chips */
+        .dd-day-chips {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+
+        .ddc-on {
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: var(--brand-ghost);
+            color: var(--brand-dark);
+            font-size: .73rem;
+            font-weight: 900;
+            border: 1px solid var(--brand-light);
+        }
+
+        .ddc-off {
+            padding: 3px 10px;
+            border-radius: 999px;
+            background: var(--bg-soft);
+            color: rgba(100,100,100,.4);
+            font-size: .73rem;
+            font-weight: 700;
+            border: 1px solid rgba(200,200,200,.4);
+        }
+
+        .ddc-today {
+            outline: 2px solid var(--brand);
+            outline-offset: 2px;
+        }
+
+        /* Language tags */
+        .dd-lang {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+            .dd-lang span {
+                padding: 3px 10px;
+                border-radius: 999px;
+                background: var(--bg-soft);
+                color: var(--text-muted);
+                font-size: .73rem;
+                font-weight: 800;
+                border: 1px solid var(--border);
+            }
+
+        /* Document grid */
+        .dd-doc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill,minmax(120px,1fr));
+            gap: 8px;
+        }
+
+        .dd-doc-item {
+            display: block;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            text-decoration: none;
+            background: var(--bg-soft);
+            transition: .18s;
+        }
+
+            .dd-doc-item:hover {
+                border-color: var(--brand-light);
+                box-shadow: var(--shadow-sm);
+            }
+
+        .dd-doc-thumb {
+            width: 100%;
+            height: 70px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .dd-doc-pdf {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.7rem;
+            background: var(--brand-ghost);
+        }
+
+        .dd-doc-info {
+            padding: 5px 7px;
+        }
+
+        .dd-doc-type {
+            font-size: .7rem;
+            font-weight: 800;
+            color: var(--text-dark);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .dd-doc-date {
+            font-size: .65rem;
+            color: var(--text-muted);
+            margin-top: 1px;
+        }
+
+        /* Doc approve/reject buttons */
+        .dd-doc-actions {
+            display: flex;
+            gap: 4px;
+            padding: 6px 7px;
+            border-top: 1px solid var(--border);
+        }
+
+        .dda-approve {
+            flex: 1;
+            padding: 4px 6px;
+            border-radius: 7px;
+            background: var(--success-soft);
+            color: var(--success);
+            border: 1px solid rgba(76,175,80,.25);
+            font-size: .68rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: .15s;
+            text-align: center;
+        }
+
+            .dda-approve:hover {
+                background: rgba(76,175,80,.2);
+            }
+
+        .dda-reject {
+            flex: 1;
+            padding: 4px 6px;
+            border-radius: 7px;
+            background: var(--danger-soft);
+            color: var(--danger);
+            border: 1px solid rgba(244,67,54,.2);
+            font-size: .68rem;
+            font-weight: 900;
+            cursor: pointer;
+            transition: .15s;
+            text-align: center;
+        }
+
+            .dda-reject:hover {
+                background: rgba(244,67,54,.15);
+            }
+
+        /* Sidebar cards */
+        .dd-sb-card {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            padding: 1rem;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .dd-sb-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: .9rem;
+            font-weight: 700;
+            color: var(--brand);
+            margin-bottom: .8rem;
+        }
+
+        .dd-sb-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0;
+            border-bottom: .5px solid var(--border);
+            font-size: .8rem;
+        }
+
+            .dd-sb-row:last-child {
+                border-bottom: none;
+            }
+
+        .dd-sb-lbl {
+            color: var(--text-muted);
+            font-weight: 700;
+        }
+
+        .dd-sb-val {
+            font-weight: 800;
+            color: var(--text-dark);
+            text-align: right;
+        }
+
+        /* Cert text lines */
+        .dd-cert-line {
+            display: flex;
+            gap: 7px;
+            font-size: .83rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            padding: 3px 0;
+        }
+
+            .dd-cert-line span:first-child {
+                color: var(--brand);
+                flex-shrink: 0;
+            }
+
+        /* Mini stat boxes */
+        .dd-stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .dd-stat-box {
+            background: var(--bg-soft);
+            border-radius: 10px;
+            padding: 8px 10px;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .dd-stat-box-val {
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--brand);
+        }
+
+        .dd-stat-box-lbl {
+            font-size: .66rem;
+            color: var(--text-muted);
+            font-weight: 700;
+            margin-top: 1px;
+        }
+
+        @@media(max-width:900px) {
+            .dd-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .dd-sidebar {
+                position: static;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
+    <div class="wa-shell" id="waShell">
+
+        <!-- ══ SIDEBAR ══ -->
+        <aside class="wa-sb" id="waSb">
+            <div class="sb-logo">
+                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
+                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard">
+                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
+                        <span class="sb-lbl">Dashboard</span>
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Management</div>
+                    <div>
+                        <button class="sb-row open active" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
+                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
+                            <span class="sb-lbl">Clinics</span>
+                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
+                        </button>
+                        <div class="sb-sub open" id="g-clinics" style="height:auto;">
+                            <div class="sb-sub-inner">
+                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
+                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Doctors_C"><span class="sb-dot"></span><span class="sb-child-lbl">Doctors</span></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            <div class="sb-foot">
+                <div class="sb-user-row">
+                    <div class="sb-av">@adminInitials</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">@adminName</div>
+                        <div class="sb-user-role">Super Admin</div>
+                    </div>
+                </div>
+                <a class="sb-logout" asp-controller="Account" asp-action="Logout">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
+                    <span class="sb-logout-lbl">Sign Out</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- ══ TOPNAV ══ -->
+        <header class="wa-tn" id="waTn">
+            <button class="tn-toggle" onclick="toggleSb()" type="button">
+                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24">
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+            </button>
+            <nav class="tn-bread">
+                <a asp-controller="SuperAdmin" asp-action="Doctors_C" style="color:var(--text-muted);font-weight:800;">Doctors</a>
+                <span>/</span><b>Dr. @Model.FullName</b>
+            </nav>
+            <div class="tn-center">
+                <div class="tn-center-main">Doctor Profile</div>
+                <div class="tn-center-sub">Review &amp; approve doctor information</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-profile">
+                    <div class="tn-av">@adminInitials</div>
+                    <div>
+                        <div class="tn-pname">@adminName</div>
+                        <div class="tn-prole">Super Admin</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ══ MAIN ══ -->
+        <main class="wa-main" id="waMain">
+
+            @if (ViewBag.Success != null)
+            {
+                <div id="flashMsg" style="position:fixed;bottom:24px;right:24px;z-index:9999;padding:14px 20px;
+                     border-radius:14px;background:var(--success-soft);border:1px solid rgba(76,175,80,.3);
+                     color:var(--success);font-weight:800;font-size:.86rem;
+                     box-shadow:0 8px 24px rgba(0,0,0,.12);max-width:320px;">
+                    @ViewBag.Success
+                </div>
+            }
+            @if (ViewBag.Error != null)
+            {
+                <div id="flashMsg" style="position:fixed;bottom:24px;right:24px;z-index:9999;padding:14px 20px;
+                     border-radius:14px;background:var(--danger-soft);border:1px solid rgba(244,67,54,.3);
+                     color:var(--danger);font-weight:800;font-size:.86rem;
+                     box-shadow:0 8px 24px rgba(0,0,0,.12);max-width:320px;">
+                    @ViewBag.Error
+                </div>
+            }
+
+            <section class="page-hero">
+                <div>
+                    <a asp-controller="SuperAdmin" asp-action="Doctors_C"
+                       style="display:inline-flex;align-items:center;gap:5px;color:var(--text-muted);
+                          font-size:.82rem;font-weight:800;text-decoration:none;margin-bottom:6px;">
+                        ← Back to Doctors
+                    </a>
+                    <h1>Dr. @Model.FullName</h1>
+                    <p>@(Model.Specialization ?? "Veterinary Doctor") • @(Model.ClinicName ?? "—")</p>
+                </div>
+                <span class="status @StsCss(Model.VerificationStatus)" style="align-self:center;font-size:.82rem;">
+                    @StsLabel(Model.VerificationStatus)
+                </span>
+            </section>
+
+            <div class="page-body">
+
+                <!-- ── Hero Card ── -->
+                <div class="table-card" style="margin-bottom:16px;padding:0;">
+                    <div class="dd-hero">
+
+                        @if (!string.IsNullOrEmpty(Model.ProfileImageUrl))
+                        {
+                            <div class="dd-avatar"><img src="@Model.ProfileImageUrl" alt="Dr. @Model.FullName"></div>
+                        }
+                        else
+                        {
+                            <div class="dd-avatar">@initials</div>
+                        }
+
+                        <div style="flex:1;min-width:160px;">
+                            <div class="dd-hero-name">Dr. @Model.FullName</div>
+                            <div class="dd-hero-spec">
+                                @(Model.Specialization ?? "General Veterinary Medicine")
+                                @if (!string.IsNullOrEmpty(Model.SecondarySpec))
+                                {
+                                    <span style="color:var(--text-muted);font-weight:700;"> · @Model.SecondarySpec</span>
+                                }
+                            </div>
+                            <div class="dd-hero-badges">
+                                <span class="status @StsCss(Model.VerificationStatus)" style="font-size:.73rem;">
+                                    @StsLabel(Model.VerificationStatus)
+                                </span>
+                                @if (Model.IsAvailable == true)
+                                {
+                                    <span class="dd-badge ddb-green">🟢 Available</span>
+                                }
+                                else
+                                {
+
+                                    <span class="dd-badge ddb-muted">🔴 Unavailable</span>
+                                }
+                                @if (Model.ExperienceYears.HasValue)
+                                {
+                                    <span class="dd-badge ddb-green">🎓 @expLabel</span>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.ClinicName))
+                                {
+                                    <span class="dd-badge ddb-muted">🏥 @Model.ClinicName</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="dd-hero-right">
+                            @if (Model.Rating.HasValue && Model.Rating > 0)
+                            {
+                                <div class="dd-rating-val">@Model.Rating.Value.ToString("F1")</div>
+                                <div class="dd-rating-stars">★★★★★</div>
+                                <div style="font-size:.7rem;color:var(--text-muted);font-weight:700;">Overall Rating</div>
+                            }
+                            else
+                            {
+                                <div style="font-size:1.6rem;margin-bottom:3px;">🌟</div>
+                                <div style="font-family:'Fredoka',sans-serif;font-size:1rem;font-weight:700;color:var(--brand);">New</div>
+                                <div style="font-size:.7rem;color:var(--text-muted);font-weight:700;">No reviews yet</div>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── Two Column Layout ── -->
+                <div class="dd-layout">
+
+                    <!-- ── Main ── -->
+                    <div class="dd-main">
+
+                        <!-- Personal Info -->
+                        <div class="dd-card">
+                            <div class="dd-card-head">👤 Personal Information</div>
+                            <div class="dd-card-body">
+                                <div class="dd-row"><div class="dd-lbl">Full Name</div><div class="dd-val">Dr. @Model.FullName</div></div>
+                                @if (!string.IsNullOrEmpty(Model.Phone))
+                                {
+                                    <div class="dd-row">
+                                        <div class="dd-lbl">Phone</div>
+                                        <div class="dd-val">
+                                            <a href="tel:@Model.Phone" style="color:var(--brand);text-decoration:none;font-weight:800;">@Model.Phone</a>
+                                        </div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Email))
+                                {
+                                    <div class="dd-row">
+                                        <div class="dd-lbl">Email</div>
+                                        <div class="dd-val">
+                                            <a href="mailto:@Model.Email" style="color:var(--brand);text-decoration:none;font-weight:800;">@Model.Email</a>
+                                        </div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Bio))
+                                {
+                                    <div class="dd-row">
+                                        <div class="dd-lbl">Bio</div>
+                                        <div class="dd-val" style="font-weight:700;line-height:1.7;color:var(--text-muted);">@Model.Bio</div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Professional Info -->
+                        <div class="dd-card">
+                            <div class="dd-card-head">🎓 Professional Information</div>
+                            <div class="dd-card-body">
+                                @if (!string.IsNullOrEmpty(Model.Specialization))
+                                {
+                                    <div class="dd-row">
+                                        <div class="dd-lbl">Specialty</div>
+                                        <div class="dd-val">
+                                            @Model.Specialization
+                                            @if (!string.IsNullOrEmpty(Model.SecondarySpec))
+                                            {
+                                                <span style="color:var(--text-muted);font-weight:700;"> · @Model.SecondarySpec</span>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                                @if (Model.ExperienceYears.HasValue)
+                                {
+                                    <div class="dd-row"><div class="dd-lbl">Experience</div><div class="dd-val">@expLabel</div></div>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Qualification))
+                                {
+                                    <div class="dd-row"><div class="dd-lbl">Qualification</div><div class="dd-val">@Model.Qualification</div></div>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Languages))
+                                {
+                                    <div class="dd-row">
+                                        <div class="dd-lbl">Languages</div>
+                                        <div class="dd-val">
+                                            <div class="dd-lang">
+                                                @foreach (var lang in Model.Languages.Split(',', StringSplitOptions.RemoveEmptyEntries))
+                                                {
+                                                    <span>@lang.Trim()</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(Model.Certifications))
+                                {
+                                    <div class="dd-row">
+                                        <div class="dd-lbl">Certifications</div>
+                                        <div class="dd-val">
+                                            @foreach (var line in Model.Certifications.Split('\n', StringSplitOptions.RemoveEmptyEntries))
+                                            {
+                                                <div class="dd-cert-line"><span>✓</span><span>@line.Trim()</span></div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Work Schedule -->
+                        @if (workDays.Any() || Model.StartTime.HasValue)
+                        {
+                            <div class="dd-card">
+                                <div class="dd-card-head">📅 Work Schedule</div>
+                                <div class="dd-card-body">
+                                    @if (workDays.Any())
+                                    {
+                                        <div style="font-size:.75rem;font-weight:800;color:var(--text-muted);margin-bottom:7px;">Working Days</div>
+                                        <div class="dd-day-chips">
+                                            @for (int i = 0; i < 7; i++)
+                                            {
+                                                var isW = workDays.Contains(i);
+                                                var isT = i == currentDow;
+                                                <span class="@(isW ? "ddc-on" : "ddc-off") @(isT && isW ? "ddc-today" : "")">
+                                                    @dayAbbr[i]@(isT && isW ? " ●" : "")
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                    @if (Model.StartTime.HasValue && Model.EndTime.HasValue)
+                                    {
+                                        <div style="font-size:.75rem;font-weight:800;color:var(--text-muted);margin-bottom:6px;margin-top:10px;">Working Hours</div>
+                                        <div style="display:flex;align-items:center;gap:8px;font-size:.86rem;font-weight:800;color:var(--text-dark);">
+                                            🕐 @Model.StartTime.Value.ToString(@"hh\:mm")
+                                            <span style="color:var(--text-muted);">–</span>
+                                            @Model.EndTime.Value.ToString(@"hh\:mm")
+                                        </div>
+                                    }
+                                    <div class="dd-stat-grid">
+                                        <div class="dd-stat-box">
+                                            <div class="dd-stat-box-val">@(Model.AppointmentDuration.HasValue ? $"{Model.AppointmentDuration}m" : "—")</div>
+                                            <div class="dd-stat-box-lbl">Appt Duration</div>
+                                        </div>
+                                        <div class="dd-stat-box">
+                                            <div class="dd-stat-box-val">@(Model.MaxDailyAppointments.HasValue? Model.MaxDailyAppointments.ToString() : "—")</div>
+                                            <div class="dd-stat-box-lbl">Max Daily Appts</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Certification Documents -->
+                        @if (certDocs.Any())
+                        {
+                            <div class="dd-card">
+                                <div class="dd-card-head">
+                                    🏆 Certification Files
+                                    <span style="background:var(--brand-ghost);color:var(--brand-dark);
+                                                 border:1px solid var(--brand-light);border-radius:999px;
+                                                 padding:1px 9px;font-size:.68rem;font-weight:900;">
+                                        @certDocs.Count
+                                    </span>
+                                </div>
+                                <div class="dd-card-body">
+                                    <div class="dd-doc-grid">
+                                        @foreach (var doc in certDocs)
+                                        {
+                                            var ext = System.IO.Path.GetExtension(doc.FileUrl ?? "").ToLowerInvariant();
+                                            var isImg = ext is ".jpg" or ".jpeg" or ".png" or ".webp";
+                                            var dStsCls = doc.Status?.ToLower() == "approved" ? "s-confirmed"
+                                            : doc.Status?.ToLower() == "rejected" ? "s-cancelled"
+                                            : "s-pending";
+                                            <div style="border-radius:10px;overflow:hidden;border:1px solid var(--border);background:#fff;">
+                                                <a href="@doc.FileUrl" target="_blank" class="dd-doc-item" style="display:block;border:none;border-radius:0;">
+                                                    @if (isImg)
+                                                    {
+                                                        <img src="@doc.FileUrl" alt="Cert" class="dd-doc-thumb">
+                                                    }
+                                                    else
+                                                    {
+
+                                                        <div class="dd-doc-pdf">📄</div>
+                                                    }
+                                                    <div class="dd-doc-info">
+                                                        <div class="dd-doc-type">Certificate</div>
+                                                        <div class="dd-doc-date">@doc.UploadedAt.ToString("dd MMM yyyy")</div>
+                                                        <span class="status @dStsCls" style="font-size:.62rem;padding:1px 6px;margin-top:3px;display:inline-block;">
+                                                            @(doc.Status ?? "Pending")
+                                                        </span>
+                                                    </div>
+                                                </a>
+                                                @if (doc.Status?.ToLower() != "approved" || doc.Status?.ToLower() == "rejected")
+                                                {
+                                                    <div class="dd-doc-actions">
+                                                        <form asp-controller="SuperAdmin" asp-action="ApproveDoctorDocument" method="post" style="flex:1;margin:0;">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="docId" value="@doc.Id">
+                                                            <input type="hidden" name="doctorId" value="@doctorId">
+                                                            <button type="submit" class="dda-approve" style="width:100%;">✅ Approve</button>
+                                                        </form>
+                                                        <form asp-controller="SuperAdmin" asp-action="RejectDoctorDocument" method="post" style="flex:1;margin:0;">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="docId" value="@doc.Id">
+                                                            <input type="hidden" name="doctorId" value="@doctorId">
+                                                            <button type="submit" class="dda-reject" style="width:100%;">❌ Reject</button>
+                                                        </form>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="dd-doc-actions">
+                                                        <form asp-controller="SuperAdmin" asp-action="RejectDoctorDocument" method="post" style="flex:1;margin:0;">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="docId" value="@doc.Id">
+                                                            <input type="hidden" name="doctorId" value="@doctorId">
+                                                            <button type="submit" class="dda-reject" style="width:100%;">↩ Revoke</button>
+                                                        </form>
+                                                    </div>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        <!-- Other Documents -->
+                        @if (otherDocs.Any())
+                        {
+                            <div class="dd-card">
+                                <div class="dd-card-head">
+                                    📎 Other Documents
+                                    <span style="background:var(--brand-ghost);color:var(--brand-dark);
+                                                 border:1px solid var(--brand-light);border-radius:999px;
+                                                 padding:1px 9px;font-size:.68rem;font-weight:900;">
+                                        @otherDocs.Count
+                                    </span>
+                                </div>
+                                <div class="dd-card-body">
+                                    <div class="dd-doc-grid">
+                                        @foreach (var doc in otherDocs)
+                                        {
+                                            var ext = System.IO.Path.GetExtension(doc.FileUrl ?? "").ToLowerInvariant();
+                                            var isImg = ext is ".jpg" or ".jpeg" or ".png" or ".webp";
+                                            var dStsCls = doc.Status?.ToLower() == "approved" ? "s-confirmed"
+                                            : doc.Status?.ToLower() == "rejected" ? "s-cancelled"
+                                            : "s-pending";
+                                            <div style="border-radius:10px;overflow:hidden;border:1px solid var(--border);background:#fff;">
+                                                <a href="@doc.FileUrl" target="_blank" style="display:block;text-decoration:none;">
+                                                    @if (isImg)
+                                                    {
+                                                        <img src="@doc.FileUrl" alt="Doc" class="dd-doc-thumb">
+                                                    }
+                                                    else
+                                                    {
+
+                                                        <div class="dd-doc-pdf">📄</div>
+                                                    }
+                                                    <div class="dd-doc-info">
+                                                        <div class="dd-doc-type">@(doc.DocumentType ?? "Document")</div>
+                                                        <div class="dd-doc-date">@doc.UploadedAt.ToString("dd MMM yyyy")</div>
+                                                        <span class="status @dStsCls" style="font-size:.62rem;padding:1px 6px;margin-top:3px;display:inline-block;">
+                                                            @(doc.Status ?? "Pending")
+                                                        </span>
+                                                    </div>
+                                                </a>
+                                                <div class="dd-doc-actions">
+                                                    <form asp-controller="SuperAdmin" asp-action="ApproveDoctorDocument" method="post" style="flex:1;margin:0;">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="docId" value="@doc.Id">
+                                                        <input type="hidden" name="doctorId" value="@doctorId">
+                                                        <button type="submit" class="dda-approve" style="width:100%;">✅</button>
+                                                    </form>
+                                                    <form asp-controller="SuperAdmin" asp-action="RejectDoctorDocument" method="post" style="flex:1;margin:0;">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="docId" value="@doc.Id">
+                                                        <input type="hidden" name="doctorId" value="@doctorId">
+                                                        <button type="submit" class="dda-reject" style="width:100%;">❌</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+
+                        @if (!allDocs.Any())
+                        {
+                            <div class="dd-card">
+                                <div class="dd-card-head">📎 Documents</div>
+                                <div class="dd-card-body" style="text-align:center;padding:1.4rem;color:var(--text-muted);font-weight:700;font-size:.84rem;">
+                                    No documents uploaded by this doctor yet.
+                                </div>
+                            </div>
+                        }
+
+                    </div>
+
+                    <!-- ── Sidebar ── -->
+                    <aside class="dd-sidebar">
+
+                        <!-- Quick Stats -->
+                        <div class="dd-sb-card">
+                            <div class="dd-sb-title">📊 Quick Stats</div>
+                            <div class="dd-sb-row">
+                                <span class="dd-sb-lbl">Status</span>
+                                <span class="status @StsCss(Model.VerificationStatus)" style="font-size:.7rem;padding:2px 8px;">
+                                    @StsLabel(Model.VerificationStatus)
+                                </span>
+                            </div>
+                            <div class="dd-sb-row">
+                                <span class="dd-sb-lbl">⭐ Rating</span>
+                                <span class="dd-sb-val">
+                                    @if (Model.Rating.HasValue && Model.Rating > 0)
+                                    {
+                                        <span style="color:#f59f00;">★</span>
+                                        @Model.Rating.Value.ToString("F1")
+                                    }
+                                    else
+                                    {
+
+                                        <span style="color:var(--text-muted);">New</span>
+                                    }
+                                </span>
+                            </div>
+                            <div class="dd-sb-row">
+                                <span class="dd-sb-lbl">📅 Availability</span>
+                                <span class="dd-sb-val">
+                                    @if (Model.IsAvailable == true)
+                                    {
+                                        <span style="color:var(--success);">🟢 Open</span>
+                                    }
+                                    else
+                                    {
+
+                                        <span style="color:var(--danger);">🔴 Off</span>
+                                    }
+                                </span>
+                            </div>
+                            <div class="dd-sb-row">
+                                <span class="dd-sb-lbl">📁 Total Docs</span>
+                                <span class="dd-sb-val">@allDocs.Count file@(allDocs.Count != 1 ? "s" : "")</span>
+                            </div>
+                            <div class="dd-sb-row">
+                                <span class="dd-sb-lbl">⏳ Pending Docs</span>
+                                <span class="dd-sb-val">
+                                    @{
+                                        var pendingCount = allDocs.Count(d => d.Status?.ToLower() == "pending");
+                                    }
+                                    @if (pendingCount > 0)
+                                    {
+                                        <span style="color:var(--warning);font-weight:900;">@pendingCount</span>
+                                    }
+                                    else
+                                    {
+
+                                        <span style="color:var(--success);">All reviewed</span>
+                                    }
+                                </span>
+                            </div>
+                            @if (workDays.Any())
+                            {
+                                <div class="dd-sb-row">
+                                    <span class="dd-sb-lbl">📆 Work Days</span>
+                                    <span class="dd-sb-val">@workDays.Count days/week</span>
+                                </div>
+                            }
+                            @if (!string.IsNullOrEmpty(Model.ClinicName))
+                            {
+                                <div class="dd-sb-row">
+                                    <span class="dd-sb-lbl">🏥 Clinic</span>
+                                    <span class="dd-sb-val" style="font-size:.75rem;">@Model.ClinicName</span>
+                                </div>
+                            }
+                        </div>
+
+                        <!-- Doctor Actions -->
+                        <div class="dd-sb-card">
+                            <div class="dd-sb-title">⚙️ Doctor Actions</div>
+
+                            @if (Model.VerificationStatus?.ToLower() == "pending")
+                            {
+                                <form asp-controller="SuperAdmin" asp-action="ApproveDoctor" method="post" style="margin-bottom:8px;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="idDoctor" value="@Model.IdDoctor">
+                                    <input type="hidden" name="idUser" value="@Model.IdDoctor">
+                                    <input type="hidden" name="clinicName" value="@Model.ClinicName">
+                                    <button type="submit" class="btn btn-primary btn-sm"
+                                            style="width:100%;justify-content:center;"
+                                            onclick="return confirm('Approve Dr. @Model.FullName?')">
+                                        ✅ Approve Doctor
+                                    </button>
+                                </form>
+                                <button class="btn btn-danger btn-sm"
+                                        style="width:100%;justify-content:center;"
+                                        onclick="openRejectModal(@Model.IdDoctor, @Model.IdDoctor, '@Model.FullName.Replace("'", "\\'")', '@((Model.ClinicName ?? "").Replace("'", "\\'"))')">
+                                    ❌ Reject Doctor
+                                </button>
+                            }
+                            else if (Model.VerificationStatus?.ToLower() == "approved")
+                            {
+                                <div style="text-align:center;padding:8px;background:var(--success-soft);
+                                            border-radius:10px;color:var(--success);font-weight:800;font-size:.82rem;margin-bottom:8px;">
+                                    ✅ Doctor is Approved
+                                </div>
+                                <button class="btn btn-danger btn-sm"
+                                        style="width:100%;justify-content:center;"
+                                        onclick="openRejectModal(@Model.IdDoctor, @Model.IdDoctor, '@Model.FullName.Replace("'", "\\'")', '@((Model.ClinicName ?? "").Replace("'", "\\'"))')">
+                                    ↩ Revoke Approval
+                                </button>
+                            }
+                            else if (Model.VerificationStatus?.ToLower() == "rejected")
+                            {
+                                <form asp-controller="SuperAdmin" asp-action="ApproveDoctor" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="idDoctor" value="@Model.IdDoctor">
+                                    <input type="hidden" name="idUser" value="@Model.IdDoctor">
+                                    <input type="hidden" name="clinicName" value="@Model.ClinicName">
+                                    <button type="submit" class="btn btn-primary btn-sm"
+                                            style="width:100%;justify-content:center;">
+                                        ↩ Re-approve Doctor
+                                    </button>
+                                </form>
+                            }
+
+                            <a asp-controller="SuperAdmin" asp-action="Doctors_C"
+                               class="btn btn-outline btn-sm"
+                               style="width:100%;justify-content:center;margin-top:8px;text-decoration:none;">
+                                ← Back to List
+                            </a>
+                        </div>
+
+                    </aside>
+
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Reject Modal -->
+    <div class="modal-overlay" id="rejectModal">
+        <div class="modal-box" style="max-width:460px;">
+            <div class="modal-head">
+                <div class="modal-title">❌ Reject Doctor</div>
+                <button class="dp-close" onclick="closeRejectModal()">✕</button>
+            </div>
+            <div style="padding:20px;">
+                <p style="font-size:.83rem;color:var(--text-muted);font-weight:700;margin-bottom:14px;">
+                    Doctor: <strong id="rejectDoctorName"></strong>
+                </p>
+                <form asp-controller="SuperAdmin" asp-action="RejectDoctor" method="post" id="rejectForm">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="idDoctor" id="rejectIdDoctor">
+                    <input type="hidden" name="idUser" id="rejectIdUser">
+                    <input type="hidden" name="clinicName" id="rejectClinicName">
+
+                    <div style="margin-bottom:12px;">
+                        <label style="display:block;font-size:.78rem;font-weight:800;color:var(--text-muted);margin-bottom:5px;">Rejection Reason</label>
+                        <select name="reason" class="sel-wrap" style="width:100%;">
+                            <option value="Incomplete or invalid certifications">Incomplete or invalid certifications</option>
+                            <option value="Unverified credentials">Unverified credentials</option>
+                            <option value="Does not meet requirements">Does not meet requirements</option>
+                            <option value="Duplicate profile">Duplicate profile</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:16px;">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="closeRejectModal()">Cancel</button>
+                        <button type="submit" class="btn btn-danger btn-sm">❌ Reject &amp; Notify</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
+    <script>
+        function openRejectModal(idDoctor, idUser, doctorName, clinicName) {
+            document.getElementById("rejectIdDoctor").value   = idDoctor;
+            document.getElementById("rejectIdUser").value     = idUser;
+            document.getElementById("rejectDoctorName").textContent = doctorName;
+            document.getElementById("rejectClinicName").value = clinicName;
+            document.getElementById("rejectModal").classList.add("open");
+        }
+        function closeRejectModal() {
+            document.getElementById("rejectModal").classList.remove("open");
+        }
+        document.getElementById("rejectModal").addEventListener("click", e => {
+            if (e.target === document.getElementById("rejectModal")) closeRejectModal();
+        });
+        const fm = document.getElementById("flashMsg");
+        if (fm) { setTimeout(()=>fm.style.opacity="0",3500); setTimeout(()=>fm.remove(),3900); }
+    </script>
+</body>
+</html>

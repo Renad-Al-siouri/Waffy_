@@ -1,0 +1,177 @@
+﻿@model Waffy.Models.ViewModels.DoctorDashboardViewModel
+@{
+    ViewData["Title"] = "Waffy — Doctor Dashboard";
+    Layout = null;
+    var userName = Context.Session.GetString("UserName") ?? "Doctor";
+    var clinicName = Context.Session.GetString("ClinicName") ?? "Clinic";
+    var initials = userName.Length > 0 ? userName[0].ToString().ToUpper() : "D";
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+</head>
+<body class="admin-shell">
+    <!-- wa-overlay خارج wa-shell ✅ -->
+    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+
+    <div class="wa-shell" id="waShell">
+
+        @await Html.PartialAsync("_DoctorSidebar")
+        <header class="wa-tn">
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()">☰</button>
+            <div class="tn-bread"><b>Dashboard</b></div>
+            <div class="tn-center">
+                <div class="tn-center-main">Doctor Panel</div>
+                <div class="tn-center-sub">@clinicName</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-identity">🏥 @clinicName</div>
+                <button class="tn-btn notif-btn" type="button">🔔</button>
+                <div class="tn-sep"></div>
+                <div class="tn-profile">
+                    <div class="tn-av">@initials</div>
+                    <div>
+                        <div class="tn-pname">@userName</div>
+                        <div class="tn-prole">👨‍⚕️ Doctor</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="wa-main">
+            <section class="page-hero">
+                <div>
+                    <h1>Welcome, Dr. @Model.FullName 👋</h1>
+                    <p>@(Model.ClinicName ?? "") • @(Model.Specialization ?? "Veterinary Doctor")</p>
+                </div>
+                @{
+                    var isApproved = Model.VerificationStatus?.ToLower() == "approved";
+                }
+                <span class="status @(isApproved ? "s-confirmed" : "s-pending")" style="align-self:center;">
+                    @(isApproved ? "✅ Verified" : "⏳ Pending Verification")
+                </span>
+            </section>
+
+            <div class="page-body">
+
+                <!-- KPI Cards -->
+                <div class="kpi-grid kpi-4" style="margin-bottom:1.2rem;">
+                    <div class="kpi-card green">
+                        <div class="kpi-top">
+                            <div class="kpi-icon green">📅</div>
+                        </div>
+                        <div class="kpi-val">—</div>
+                        <div class="kpi-label">Appointments Today</div>
+                        <div class="kpi-sub">Booking coming soon</div>
+                    </div>
+                    <div class="kpi-card blue">
+                        <div class="kpi-top">
+                            <div class="kpi-icon blue">🐾</div>
+                        </div>
+                        <div class="kpi-val">—</div>
+                        <div class="kpi-label">My Patients</div>
+                    </div>
+                    <div class="kpi-card orange">
+                        <div class="kpi-top">
+                            <div class="kpi-icon orange">⭐</div>
+                        </div>
+                        <div class="kpi-val">
+                            @(Model.Rating.HasValue && Model.Rating > 0
+                                                        ? Model.Rating.Value.ToString("F1")
+                                                        : "New")
+                        </div>
+                        <div class="kpi-label">My Rating</div>
+                    </div>
+                    <div class="kpi-card green">
+                        <div class="kpi-top">
+                            <div class="kpi-icon green">🔔</div>
+                        </div>
+                        <div class="kpi-val">
+                            @if (Model.IsAvailable == true)
+                            {
+                                <span style="font-size:1rem;">🟢 Open</span>
+                            }
+                            else
+                            {
+
+                                <span style="font-size:1rem;">🔴 Off</span>
+                            }
+                        </div>
+                        <div class="kpi-label">Booking Status</div>
+                    </div>
+                </div>
+
+                <!-- Quick Links -->
+                <div class="chart-card">
+                    <div style="font-family:'Fredoka',sans-serif;font-size:1rem;font-weight:700;color:var(--olive-dark);margin-bottom:1rem;">
+                        ⚡ Quick Actions
+                    </div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;">
+                        @foreach (var (icon, label, action) in new[]
+                                                {
+                                                ("👤","Personal Info",    "Personal_Information"),
+                                                ("🎓","Professional",     "Professional_Information"),
+                                                ("🗓","Work Schedule",    "Work_Schedule"),
+                                                ("📎","Documents",        "Documents_D"),
+                                                ("📅","Appointments",     "Appointments"),
+                                                ("🐾","Patients",         "Patients")
+                                                })
+                        {
+                            <a asp-controller="DoctorAdmin" asp-action="@action"
+                               style="display:flex;flex-direction:column;align-items:center;gap:8px;
+                                      padding:1rem;background:var(--ws);border-radius:14px;
+                                      border:1px solid var(--line);text-decoration:none;
+                                      color:var(--text);font-weight:700;font-size:.84rem;
+                                      transition:.2s;"
+                               onmouseover="this.style.background='var(--gp)';this.style.borderColor='var(--b2)'"
+                               onmouseout="this.style.background='var(--ws)';this.style.borderColor='var(--line)'">
+                                <span style="font-size:1.6rem;">@icon</span>
+                                @label
+                            </a>
+                        }
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            const sb = document.getElementById("sidebar");
+            const ov = document.getElementById("sidebarOverlay");
+            const sh = document.getElementById("waShell");
+            if (window.innerWidth <= 992) {
+                sb?.classList.toggle("mob-open");
+                ov?.classList.toggle("show");
+                document.body.classList.toggle("sidebar-open");
+            } else {
+                sh?.classList.toggle("mini");
+            }
+        }
+        function closeSidebar() {
+            document.getElementById("sidebar")?.classList.remove("mob-open");
+            document.getElementById("sidebarOverlay")?.classList.remove("show");
+            document.body.classList.remove("sidebar-open");
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll(".wa-sb .sb-row").forEach(r =>
+                r.addEventListener("click", () => {
+                    if (window.innerWidth <= 992) closeSidebar();
+                }));
+            window.addEventListener("resize", () => {
+                if (window.innerWidth > 992) closeSidebar();
+            });
+        });
+    </script>
+
+</body>
+</html>

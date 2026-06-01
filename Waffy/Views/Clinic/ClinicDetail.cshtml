@@ -1026,7 +1026,16 @@
                                 <a asp-controller="Clinic" asp-action="DoctorDetail"
                                    asp-route-id="@doc.IdDoctor"
                                    class="doctor-card-v2">
-                                    <div class="doc-avatar">@initials2(doc.FullName)</div>
+                                    @if (!string.IsNullOrEmpty(doc.ProfileImageUrl))
+                                    {
+                                        <img src="@doc.ProfileImageUrl" alt="Dr. @doc.FullName"
+                                             class="doc-avatar"
+                                             style="object-fit:cover;font-size:0;">
+                                    }
+                                    else
+                                    {
+                                        <div class="doc-avatar">@initials2(doc.FullName)</div>
+                                    }
                                     <div class="doc-name">Dr. @doc.FullName</div>
                                     <div class="doc-spec">@(doc.Specialization ?? "General Veterinary")</div>
                                     @if (doc.ExperienceYears.HasValue)

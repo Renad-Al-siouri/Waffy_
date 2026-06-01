@@ -178,6 +178,14 @@ namespace Waffy.Controllers
         {
             var doctor = await _doctorRepo.GetDetailByIdAsync(id);
             if (doctor == null) return NotFound();
+
+            // ✅ جلب ملفات الشهادات
+            var certDocs = (await _doctorRepo.GetDocumentsByDoctorIdAsync(id))
+                .Where(d => d.DocumentType == "Certification")
+                .ToList();
+
+            doctor.CertificationDocs = certDocs;
+
             return View(doctor);
         }
 

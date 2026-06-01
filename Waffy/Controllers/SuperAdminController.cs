@@ -2460,6 +2460,47 @@ namespace Waffy.Controllers
             return RedirectToAction("Doctors_C");
         }
 
+
+        [HttpGet]
+        public async Task<IActionResult> Details_D(int id)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
+
+            var doctor = await _doctorAdminRepo.GetFullInfoByDoctorIdAsync(id);
+            if (doctor == null) return NotFound();
+
+            var docs = (await _doctorAdminRepo.GetDocumentsByDoctorIdAsync(id)).ToList();
+
+            ViewBag.AllDocs = docs;
+            ViewBag.CertDocs = docs.Where(d => d.DocumentType == "Certification").ToList();
+            ViewBag.OtherDocs = docs.Where(d => d.DocumentType != "Certification").ToList();
+            ViewBag.DoctorId = id;
+
+            if (TempData["DoctorSuccess"] != null) ViewBag.Success = TempData["DoctorSuccess"];
+            if (TempData["DoctorError"] != null) ViewBag.Error = TempData["DoctorError"];
+
+            return View(doctor);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveDoctorDocument(int docId, int doctorId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _doctorAdminRepo.UpdateDocumentStatusAsync(docId, "Approved");
+            TempData["DoctorSuccess"] = "✅ Document approved.";
+            return RedirectToAction("Details_D", new { id = doctorId });
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectDoctorDocument(int docId, int doctorId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _doctorAdminRepo.UpdateDocumentStatusAsync(docId, "Rejected");
+            TempData["DoctorError"] = "❌ Document rejected.";
+            return RedirectToAction("Details_D", new { id = doctorId });
+        }
+
         // ════════════════════════════════════════════════════════
         // GET DANGER REPORT IMAGES — AJAX
         // GET /SuperAdmin/GetDangerImages?reportId=5

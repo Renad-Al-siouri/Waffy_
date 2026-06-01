@@ -1,0 +1,88 @@
+﻿@{
+    var userName = Context.Session.GetString("UserName") ?? "Doctor";
+    var clinicName = Context.Session.GetString("ClinicName") ?? "Clinic";
+    var initials = userName.Length > 0 ? userName[0].ToString().ToUpper() : "D";
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+}
+
+<aside class="wa-sb" id="sidebar">
+    <div class="sb-logo">
+        <div class="sb-mark">
+            <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img">
+        </div>
+        <div class="sb-wordmark">
+            <div class="sb-wm-name">Waffy</div>
+            <div class="sb-wm-tag">Doctor Panel</div>
+        </div>
+    </div>
+
+    <nav class="sb-nav">
+        <div class="sb-group sb-group-flat">
+            <a class="sb-row @(action == "Dashboard" ? "active" : "")"
+               asp-controller="DoctorAdmin" asp-action="Dashboard">
+                <span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span>
+            </a>
+        </div>
+        <div class="sb-hr"></div>
+        <div class="sb-group">
+            <div class="sb-grp-hd">Daily Management</div>
+            <a class="sb-row @(action == "Appointments" ? "active" : "")"
+               asp-controller="DoctorAdmin" asp-action="Appointments">
+                <span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span>
+            </a>
+            <a class="sb-row @(action == "Patients" ? "active" : "")"
+               asp-controller="DoctorAdmin" asp-action="Patients">
+                <span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span>
+            </a>
+            <a class="sb-row @(action == "Medical_Records" ? "active" : "")"
+               asp-controller="DoctorAdmin" asp-action="Medical_Records">
+                <span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span>
+            </a>
+        </div>
+        <div class="sb-hr"></div>
+        <div class="sb-group">
+            <div class="sb-grp-hd">My Settings</div>
+            <a class="sb-row @(action == "Personal_Information" ? "active" : "")"
+               asp-controller="DoctorAdmin" asp-action="Personal_Information">
+                <span class="sb-icon">👤</span><span class="sb-lbl">Personal Info</span>
+            </a>
+            <a class="sb-row @(action == "Professional_Information" ? "active" : "")"
+               asp-controller="DoctorAdmin" asp-action="Professional_Information">
+                <span class="sb-icon">🎓</span><span class="sb-lbl">Professional Info</span>
+            </a>
+            <a class="sb-row @(action == "Work_Schedule" ? "active" : "")"
+               asp-controller="DoctorAdmin" asp-action="Work_Schedule">
+                <span class="sb-icon">🗓</span><span class="sb-lbl">Work Schedule</span>
+            </a>
+            <a class="sb-row @(action == "Documents_D" ? "active" : "")"
+               asp-controller="DoctorAdmin" asp-action="Documents_D">
+                <span class="sb-icon">📎</span><span class="sb-lbl">Documents</span>
+            </a>
+            <a class="sb-row @(action == "Password" ? "active" : "")"
+               asp-controller="DoctorAdmin" asp-action="Password">
+                <span class="sb-icon">🔒</span><span class="sb-lbl">Password</span>
+            </a>
+        </div>
+        <div class="sb-hr"></div>
+        <div class="sb-group sb-group-flat">
+            <a class="sb-row @(action == "Notifications" ? "active" : "")"
+               asp-controller="DoctorAdmin" asp-action="Notifications">
+                <span class="sb-icon">🔔</span><span class="sb-lbl">Notifications</span>
+            </a>
+        </div>
+    </nav>
+
+    <div class="sb-foot">
+        <div class="sb-user-row">
+            <div class="sb-av">@initials</div>
+            <div class="sb-user-info">
+                <div class="sb-user-name">@userName</div>
+                <div class="sb-user-role">👨‍⚕️ Doctor</div>
+            </div>
+        </div>
+        <a asp-controller="DoctorAdmin" asp-action="Logout" class="sb-logout">
+            <span class="sb-icon">↩</span>
+            <span class="sb-logout-lbl">Sign Out</span>
+        </a>
+    </div>
+</aside>

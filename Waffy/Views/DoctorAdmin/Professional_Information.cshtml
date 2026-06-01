@@ -1,0 +1,368 @@
+﻿@model Waffy.Models.ViewModels.DoctorProfessionalInfoViewModel
+@{
+    ViewData["Title"] = "Waffy — Professional Information";
+    Layout = null;
+    var userName   = Context.Session.GetString("UserName")   ?? "Doctor";
+    var clinicName = Context.Session.GetString("ClinicName") ?? "Clinic";
+    var initials   = userName.Length > 0 ? userName[0].ToString().ToUpper() : "D";
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+    <style>
+        .settings-tab-nav {
+            display: flex; gap: 6px; overflow-x: auto;
+            scrollbar-width: none; flex-wrap: nowrap; margin: 14px;
+        }
+        .settings-tab-nav::-webkit-scrollbar { display: none }
+        .settings-tab-nav a {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 10px 16px; border: 1.5px solid var(--line);
+            background: #fff; border-radius: 12px; color: var(--text-muted);
+            font-weight: 800; font-size: .85rem; font-family: 'Nunito',sans-serif;
+            text-decoration: none; transition: .2s; white-space: nowrap; flex-shrink: 0;
+        }
+        .settings-tab-nav a:hover { background: var(--olive-soft); border-color: var(--olive); color: var(--olive-dark); }
+        .settings-tab-nav a.active { background: linear-gradient(135deg,var(--olive),var(--olive-dark)); color: #fff; border-color: transparent; }
+
+        .doc-profile-summary { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; padding: 22px; }
+        .doc-profile-rating { min-width: 130px; text-align: center; padding: 12px 20px; background: var(--gp); border-radius: 12px; border: 1px solid var(--b2); }
+        @@media(max-width:768px) { .doc-profile-summary { grid-template-columns: 1fr; } }
+
+        /* cert grid */
+        .cert-file-card {
+            display: block; border-radius: 12px; overflow: hidden;
+            border: 1px solid var(--b); text-decoration: none;
+            background: var(--gu); transition: .2s;
+        }
+        .cert-file-card:hover { border-color: var(--gm); transform: translateY(-2px); box-shadow: 0 6px 16px rgba(90,75,49,.1); }
+        .cert-file-thumb { width: 100%; height: 90px; object-fit: cover; display: block; }
+        .cert-file-pdf { height: 90px; display: flex; align-items: center; justify-content: center; font-size: 2rem; background: var(--gp); }
+        .cert-file-info { padding: 6px 8px; }
+        .cert-file-date { font-size: .72rem; font-weight: 800; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-bottom: 3px; }
+
+        /* upload row */
+        .cert-upload-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+        .cert-upload-label {
+            flex: 1; min-width: 200px; cursor: pointer;
+        }
+        .cert-upload-inner {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border: 1.5px dashed var(--b2);
+            border-radius: 12px; background: var(--gu); transition: .18s;
+        }
+        .cert-upload-inner:hover { background: var(--gp); border-color: var(--gm); }
+        .cert-upload-txt { font-size: .84rem; font-weight: 800; color: var(--text); }
+        .cert-upload-sub { font-size: .74rem; color: var(--muted); margin-top: 1px; }
+    </style>
+</head>
+<body class="admin-shell">
+
+<div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="wa-shell" id="waShell">
+
+    @await Html.PartialAsync("_DoctorSidebar")
+
+    <header class="wa-tn">
+        <button class="tn-toggle" type="button" onclick="toggleSidebar()">☰</button>
+        <div class="tn-bread"><span>My Settings</span><span>/</span><b>Professional Info</b></div>
+        <div class="tn-center">
+            <div class="tn-center-main">Doctor Settings</div>
+            <div class="tn-center-sub">@clinicName</div>
+        </div>
+        <div class="tn-spacer"></div>
+        <div class="tn-right">
+            <div class="tn-identity">🏥 @clinicName</div>
+            <button class="tn-btn notif-btn" type="button">🔔</button>
+            <div class="tn-sep"></div>
+            <div class="tn-profile">
+                <div class="tn-av">@initials</div>
+                <div>
+                    <div class="tn-pname">@userName</div>
+                    <div class="tn-prole">👨‍⚕️ Doctor</div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="wa-main">
+        <section class="page-hero">
+            <div>
+                <h1>My Settings</h1>
+                <p>Update your profile, schedule, and account details.</p>
+            </div>
+        </section>
+
+        <div class="page-body">
+
+            @if (TempData["SaveSuccess"] != null)
+            {
+                <div style="background:#eef4dd;border:1px solid #8da546;border-radius:12px;
+                            padding:10px 16px;margin-bottom:1rem;font-weight:800;color:#5f7430;">
+                    ✅ @TempData["SaveSuccess"]
+                </div>
+            }
+
+            <!-- ── Profile Summary ── -->
+            <div class="chart-card doc-profile-summary">
+                <div style="width:72px;height:72px;border-radius:18px;
+                            background:linear-gradient(135deg,var(--gp),var(--gu));
+                            display:flex;align-items:center;justify-content:center;
+                            font-size:2rem;border:2px solid var(--b2)">👨‍⚕️</div>
+                <div style="flex:1">
+                    <div style="font-size:1.1rem;font-weight:700">Dr. @Model.FullName</div>
+                    <div style="font-size:.82rem;color:var(--muted);margin-top:3px">
+                        @(Model.Specialization ?? "Veterinary") • @(Model.ClinicName ?? "")
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+                        <span class="status @(Model.VerificationStatus?.ToLower() == "approved" ? "s-confirmed" : "s-pending")">
+                            @(Model.VerificationStatus ?? "Pending")
+                        </span>
+                        @if (Model.Rating.HasValue && Model.Rating > 0)
+                        {
+                            <span class="status s-new">⭐ @Model.Rating.Value.ToString("F1")</span>
+                        }
+                    </div>
+                </div>
+                <div class="doc-profile-rating">
+                    <div style="font-size:1.6rem;font-weight:800;color:var(--gd)">
+                        @(Model.Rating.HasValue && Model.Rating > 0 ? Model.Rating.Value.ToString("F1") : "—")
+                    </div>
+                    <div style="font-size:.72rem;color:var(--muted)">Your rating</div>
+                    <div style="color:#f59f00;font-size:.85rem;margin-top:2px">★★★★★</div>
+                </div>
+            </div>
+
+            <!-- ── Tab Nav ── -->
+            <nav class="settings-tab-nav">
+                <a asp-controller="DoctorAdmin" asp-action="Personal_Information">👤 Personal Info</a>
+                <a asp-controller="DoctorAdmin" asp-action="Professional_Information" class="active">🎓 Professional</a>
+                <a asp-controller="DoctorAdmin" asp-action="Work_Schedule">🗓 Work Schedule</a>
+                <a asp-controller="DoctorAdmin" asp-action="Documents_D">📎 Documents</a>
+                <a asp-controller="DoctorAdmin" asp-action="Password">🔒 Password</a>
+            </nav>
+
+            <!-- ══════════════════════════════════════════
+                 FORM 1 — Professional Info + Cert Text
+            ══════════════════════════════════════════ -->
+            <form asp-controller="DoctorAdmin" asp-action="Professional_Information" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="chart-card">
+                    <div class="sec-label">🎓 Specialty &amp; Experience</div>
+                    <div class="f-grid">
+
+                        <div class="f-group">
+                            <label class="f-label"><span class="req">*</span>Primary Specialty</label>
+                            <select name="Specialization" class="f-inp">
+                                @foreach (var opt in new[] {
+                                    "General Veterinary Medicine","Veterinary Surgery",
+                                    "Dermatology","Veterinary Dentistry","Bird & Reptile Medicine"
+                                })
+                                {
+                                    <option value="@opt" @@(opt == Model.Specialization ? "selected" : "")>@opt</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="f-group">
+                            <label class="f-label">Secondary Specialty</label>
+                            <input name="SecondarySpec" class="f-inp"
+                                   value="@Model.SecondarySpec"
+                                   placeholder="Optional second specialty">
+                        </div>
+
+                        <div class="f-group">
+                            <label class="f-label">Years of Experience</label>
+                            <select name="ExperienceYears" class="f-inp">
+                                @foreach (var (lbl, val) in new[] {
+                                    ("Less than 1 year", 1), ("1–3 years", 2),
+                                    ("3–5 years", 4), ("5–10 years", 7), ("More than 10 years", 11)
+                                })
+                                {
+                                    <option value="@val" @@(Model.ExperienceYears == val ? "selected" : "")>@lbl</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="f-group">
+                            <label class="f-label">Languages</label>
+                            <input name="Languages" class="f-inp"
+                                   value="@Model.Languages"
+                                   placeholder="e.g. Arabic, English">
+                        </div>
+
+                        <div class="f-group f-full">
+                            <label class="f-label">Academic Qualification</label>
+                            <input name="Qualification" class="f-inp"
+                                   value="@Model.Qualification"
+                                   placeholder="e.g. Bachelor of Veterinary Medicine — University of Jordan, 2016">
+                        </div>
+
+                    </div>
+
+                    <!-- divider -->
+                    <div style="border-top:1px solid var(--line);margin:1.2rem 0;"></div>
+
+                    <!-- Certification Text -->
+                    <div class="sec-label">📝 Certification Description</div>
+                    <div class="f-group f-full" style="margin-top:6px;">
+                        <textarea name="Certifications" class="f-inp" rows="4"
+                                  style="resize:vertical;min-height:90px;"
+                                  placeholder="Write each certificate on a new line, e.g.:&#10;Board Certified Veterinary Surgeon — ABVS, 2018&#10;Advanced Dentistry Certificate — UAE, 2020">@Model.Certifications</textarea>
+                        <div class="f-hint">💡 Each line will appear as a separate certificate on your profile</div>
+                    </div>
+
+                    <div style="margin-top:1rem;display:flex;justify-content:flex-end;">
+                        <button type="submit" class="btn btn-primary">💾 Save Changes</button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- ══════════════════════════════════════════
+                 FORM 2 — Certificate Files (منفصل تماماً)
+            ══════════════════════════════════════════ -->
+            <div class="chart-card" style="margin-top:16px;">
+
+                @if (TempData["CertSuccess"] != null)
+                {
+                    <div style="background:#eef4dd;border:1px solid #8da546;border-radius:10px;
+                                padding:9px 14px;margin-bottom:14px;font-weight:800;color:#5f7430;font-size:.84rem;">
+                        ✅ @TempData["CertSuccess"]
+                    </div>
+                }
+                @if (TempData["CertError"] != null)
+                {
+                    <div style="background:#faece8;border:1px solid rgba(200,106,92,.3);border-radius:10px;
+                                padding:9px 14px;margin-bottom:14px;font-weight:800;color:#c86a5c;font-size:.84rem;">
+                        ⚠️ @TempData["CertError"]
+                    </div>
+                }
+
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+                    <div class="sec-label" style="margin:0;">
+                        📎 Uploaded Certificate Files
+                        @if (Model.CertificationFiles.Any())
+                        {
+                            <span style="background:var(--gp);color:var(--gd);border:1px solid var(--b2);
+                                         border-radius:999px;padding:2px 10px;font-size:.74rem;
+                                         font-weight:900;margin-left:6px;">
+                                @Model.CertificationFiles.Count
+                            </span>
+                        }
+                    </div>
+                </div>
+
+                <!-- Uploaded files grid -->
+                @if (Model.CertificationFiles.Any())
+                {
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+                                gap:10px;margin-bottom:16px;">
+                        @foreach (var cert in Model.CertificationFiles)
+                        {
+                            var ext    = System.IO.Path.GetExtension(cert.FileUrl).ToLowerInvariant();
+                            var isImg  = ext is ".jpg" or ".jpeg" or ".png" or ".webp";
+                            var stsCls = cert.Status?.ToLower() == "approved" ? "s-confirmed"
+                                       : cert.Status?.ToLower() == "rejected"  ? "s-cancelled"
+                                       : "s-pending";
+                            <a href="@cert.FileUrl" target="_blank" class="cert-file-card">
+                                @if (isImg)
+                                {
+                                    <img src="@cert.FileUrl" alt="Certificate" class="cert-file-thumb">
+                                }
+                                else
+                                {
+                                    <div class="cert-file-pdf">📄</div>
+                                }
+                                <div class="cert-file-info">
+                                    <div class="cert-file-date">@cert.UploadedAt.ToString("dd MMM yyyy")</div>
+                                    <span class="status @stsCls" style="font-size:.68rem;padding:2px 7px;">
+                                        @(cert.Status ?? "Pending")
+                                    </span>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div style="text-align:center;padding:1.2rem;color:var(--muted);
+                                font-size:.84rem;font-weight:700;margin-bottom:12px;
+                                background:var(--ws);border-radius:12px;border:1px dashed var(--line);">
+                        🎓 No certificate files uploaded yet
+                    </div>
+                }
+
+                <!-- divider -->
+                <div style="border-top:1px solid var(--line);margin-bottom:14px;"></div>
+
+                <div class="sec-label" style="margin-bottom:10px;">⬆️ Upload New Certificate</div>
+
+                <!-- Upload form — منفصل عن الـ main form ✅ -->
+                <form asp-controller="DoctorAdmin" asp-action="UploadCertification"
+                      method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="cert-upload-row">
+                        <label class="cert-upload-label">
+                            <div class="cert-upload-inner" id="certUploadInner">
+                                <span style="font-size:1.4rem;">🎓</span>
+                                <div>
+                                    <div class="cert-upload-txt" id="certFileName">Choose certificate file</div>
+                                    <div class="cert-upload-sub">PDF, JPG, PNG — max 5MB</div>
+                                </div>
+                            </div>
+                            <input type="file" name="certFile"
+                                   accept=".pdf,.jpg,.jpeg,.png,.webp"
+                                   style="display:none"
+                                   onchange="
+                                       var name = this.files[0]?.name || 'Choose certificate file';
+                                       document.getElementById('certFileName').textContent = name;
+                                       document.getElementById('certUploadInner').style.background = 'var(--gp)';
+                                       document.getElementById('certUploadInner').style.borderColor = 'var(--gm)';
+                                   ">
+                        </label>
+                        <button type="submit" class="btn btn-primary" style="flex-shrink:0;white-space:nowrap;">
+                            📤 Upload Certificate
+                        </button>
+                    </div>
+                </form>
+
+            </div><!-- /.chart-card cert files -->
+
+        </div><!-- /.page-body -->
+    </main>
+</div><!-- /.wa-shell -->
+
+<script>
+    function toggleSidebar() {
+        const sb = document.getElementById("sidebar"),
+              ov = document.getElementById("sidebarOverlay"),
+              sh = document.getElementById("waShell");
+        if (window.innerWidth <= 992) {
+            sb?.classList.toggle("mob-open");
+            ov?.classList.toggle("show");
+            document.body.classList.toggle("sidebar-open");
+        } else {
+            sh?.classList.toggle("mini");
+        }
+    }
+    function closeSidebar() {
+        document.getElementById("sidebar")?.classList.remove("mob-open");
+        document.getElementById("sidebarOverlay")?.classList.remove("show");
+        document.body.classList.remove("sidebar-open");
+    }
+    document.addEventListener("DOMContentLoaded", () => {
+        document.querySelectorAll(".wa-sb .sb-row").forEach(r =>
+            r.addEventListener("click", () => { if (window.innerWidth <= 992) closeSidebar(); }));
+        window.addEventListener("resize", () => { if (window.innerWidth > 992) closeSidebar(); });
+    });
+</script>
+
+</body>
+</html>

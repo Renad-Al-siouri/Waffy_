@@ -220,24 +220,50 @@
                                         </div>
                                     </div>
                                 </div>
-                                <div class="doctor-actions">
-                                    <span class="status @statusCls">@statusLabel</span>
+                                <div class="doctor-actions"
+                                     style="display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex-shrink:0;">
 
-                                    @* Remove button — Approved فقط يمكن إزالته *@
-                                    @if (doc.VerificationStatus?.ToLower() != "pending")
-                                    {
-                                        <form asp-controller="ClinicAdmin"
-                                              asp-action="RemoveDoctor"
-                                              method="post" style="margin:0">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="idDoctor" value="@doc.IdDoctor">
-                                            <button type="submit"
-                                                    class="btn btn-red btn-sm"
-                                                    onclick="return confirm('Remove Dr. @doc.FullName from the clinic?')">
-                                                🗑
-                                            </button>
-                                        </form>
-                                    }
+                                    <!-- Status Badge -->
+                                    <span class="status @statusCls" style="font-size:.76rem;">@statusLabel</span>
+
+                                    <!-- Buttons Row -->
+                                    <div style="display:flex;gap:6px;align-items:center;">
+
+                                        @if (doc.VerificationStatus?.ToLower() == "approved")
+                                        {
+                                            <a asp-controller="ClinicAdmin" asp-action="DoctorInfo"
+                                               asp-route-id="@doc.IdDoctor"
+                                               style="display:inline-flex;align-items:center;gap:4px;
+                                  padding:5px 12px;border-radius:10px;
+                                  background:var(--gp);color:var(--gd);
+                                  font-size:.78rem;font-weight:800;text-decoration:none;
+                                  border:1px solid var(--b2);transition:.18s;white-space:nowrap;"
+                                               onmouseover="this.style.background='var(--b2)'"
+                                               onmouseout="this.style.background='var(--gp)'">
+                                                👁 View
+                                            </a>
+                                        }
+
+                                        @if (doc.VerificationStatus?.ToLower() != "pending")
+                                        {
+                                            <form asp-controller="ClinicAdmin" asp-action="RemoveDoctor"
+                                                  method="post" style="margin:0;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="idDoctor" value="@doc.IdDoctor">
+                                                <button type="submit"
+                                                        style="display:inline-flex;align-items:center;justify-content:center;
+                                           width:32px;height:32px;border-radius:10px;
+                                           background:rgba(200,106,92,.08);color:#c86a5c;
+                                           border:1px solid rgba(200,106,92,.22);
+                                           font-size:.86rem;cursor:pointer;transition:.18s;"
+                                                        onmouseover="this.style.background='rgba(200,106,92,.18)'"
+                                                        onmouseout="this.style.background='rgba(200,106,92,.08)'"
+                                                        onclick="return confirm('Remove Dr. @doc.FullName from the clinic?')">
+                                                    🗑
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
                                 </div>
                             </div>
                         }

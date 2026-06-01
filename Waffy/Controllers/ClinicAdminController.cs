@@ -182,11 +182,8 @@ namespace Waffy.Controllers
                 certUrl = await SaveFileAsync(vm.CertificationFile, "doctor-certs");
             }
 
-            // ✅ 6. إنشاء Doctor
-            var doctorId = await _doctorRepo.GetNextDoctorIdAsync();
             await _doctorRepo.AddDoctorAsync(new Doctor
             {
-                IdDoctor = doctorId,
                 IdUser = userId,
                 IdClinic = clinicId.Value,
                 Specialization = vm.Specialization,
@@ -682,6 +679,28 @@ namespace Waffy.Controllers
             return RedirectToAction("Images");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> DoctorInfo(int id)
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
+            var doctor = await _doctorRepo.GetFullInfoByDoctorIdAsync(id);
+            if (doctor == null || doctor.IdClinic != clinicId.Value)
+                return NotFound();
+
+            // جلب كل الوثائق
+            var docs = (await _doctorRepo.GetDocumentsByDoctorIdAsync(id)).ToList();
+
+            ViewBag.AllDocs = docs;
+            ViewBag.CertDocs = docs.Where(d => d.DocumentType == "Certification").ToList();
+            ViewBag.OtherDocs = docs.Where(d => d.DocumentType != "Certification").ToList();
+
+            return View(doctor);
+        }
         public IActionResult Revenue()
         {
             var auth = RequireClinicAuth();

@@ -45,6 +45,7 @@ namespace Waffy.Models.ViewModels
         public bool? IsAvailable { get; set; }
         public string? VerificationStatus { get; set; }
         public decimal? Rating { get; set; }
+        public string? ProfileImageUrl { get; set; }
     }
 
     public class AddDoctorViewModel

@@ -1,0 +1,254 @@
+﻿@model Waffy.Models.ViewModels.DoctorDocumentsViewModel
+@{
+    ViewData["Title"] = "Waffy — Documents";
+    Layout = null;
+    var userName = Context.Session.GetString("UserName") ?? "Doctor";
+    var clinicName = Context.Session.GetString("ClinicName") ?? "Clinic";
+    var initials = userName.Length > 0 ? userName[0].ToString().ToUpper() : "D";
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+    <style>
+        .settings-tab-nav {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            flex-wrap: nowrap;
+            margin: 14px;
+        }
+
+            .settings-tab-nav::-webkit-scrollbar {
+                display: none
+            }
+
+            .settings-tab-nav a {
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                padding: 10px 16px;
+                border: 1.5px solid var(--line);
+                background: #fff;
+                border-radius: 12px;
+                color: var(--text-muted);
+                font-weight: 800;
+                font-size: .85rem;
+                font-family: 'Nunito',sans-serif;
+                text-decoration: none;
+                transition: .2s;
+                white-space: nowrap;
+                flex-shrink: 0;
+            }
+
+                .settings-tab-nav a:hover {
+                    background: var(--olive-soft);
+                    border-color: var(--olive);
+                    color: var(--olive-dark);
+                }
+
+                .settings-tab-nav a.active {
+                    background: linear-gradient(135deg,var(--olive),var(--olive-dark));
+                    color: #fff;
+                    border-color: transparent;
+                }
+
+        .doc-profile-summary {
+            display: grid;
+            grid-template-columns: auto 1fr auto;
+            align-items: center;
+            gap: 18px;
+            padding: 22px;
+        }
+
+        .doc-profile-rating {
+            min-width: 130px;
+            text-align: center;
+            padding: 12px 20px;
+            background: var(--gp);
+            border-radius: 12px;
+            border: 1px solid var(--b2);
+        }
+
+        @@media(max-width:768px) {
+            .doc-profile-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="admin-shell">
+
+    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="wa-shell" id="waShell">
+        @await Html.PartialAsync("_DoctorSidebar")
+        <header class="wa-tn">
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()">☰</button>
+            <div class="tn-bread"><span>My Settings</span><span>/</span><b>Documents</b></div>
+            <div class="tn-center">
+                <div class="tn-center-main">Doctor Settings</div>
+                <div class="tn-center-sub">@clinicName</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-identity">🏥 @clinicName</div>
+                <button class="tn-btn notif-btn" type="button">🔔</button>
+                <div class="tn-sep"></div>
+                <div class="tn-profile">
+                    <div class="tn-av">@initials</div>
+                    <div>
+                        <div class="tn-pname">@userName</div>
+                        <div class="tn-prole">👨‍⚕️ Doctor</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="wa-main">
+            <section class="page-hero">
+                <div>
+                    <h1>My Settings</h1>
+                    <p>Upload and manage your official documents and certifications.</p>
+                </div>
+            </section>
+            <div class="page-body">
+
+                @if (TempData["DocSuccess"] != null)
+                {
+                    <div style="background:#eef4dd;border:1px solid #8da546;border-radius:12px;padding:10px 16px;margin-bottom:1rem;font-weight:800;color:#5f7430;">✅ @TempData["DocSuccess"]</div>
+                }
+                @if (TempData["DocError"] != null)
+                {
+                    <div style="background:#faece8;border:1px solid rgba(200,106,92,.3);border-radius:12px;padding:10px 16px;margin-bottom:1rem;font-weight:800;color:#c86a5c;">⚠️ @TempData["DocError"]</div>
+                }
+
+                <!-- Profile Summary -->
+                <div class="chart-card doc-profile-summary">
+                    <div style="width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,var(--gp),var(--gu));display:flex;align-items:center;justify-content:center;font-size:2rem;border:2px solid var(--b2)">👨‍⚕️</div>
+                    <div style="flex:1">
+                        <div style="font-size:1.1rem;font-weight:700">Dr. @Model.FullName</div>
+                        <div style="font-size:.82rem;color:var(--muted);margin-top:3px">@(Model.Specialization ?? "Veterinary") • @(Model.ClinicName ?? "")</div>
+                    </div>
+                    <div class="doc-profile-rating">
+                        <div style="font-size:1.6rem;font-weight:800;color:var(--gd)">@(Model.Rating.HasValue && Model.Rating > 0 ? Model.Rating.Value.ToString("F1") : "—")</div>
+                        <div style="font-size:.72rem;color:var(--muted)">Your rating</div>
+                    </div>
+                </div>
+
+                <!-- Tab Nav -->
+                <nav class="settings-tab-nav">
+                    <a asp-controller="DoctorAdmin" asp-action="Personal_Information">👤 Personal Info</a>
+                    <a asp-controller="DoctorAdmin" asp-action="Professional_Information">🎓 Professional</a>
+                    <a asp-controller="DoctorAdmin" asp-action="Work_Schedule">🗓 Work Schedule</a>
+                    <a asp-controller="DoctorAdmin" asp-action="Documents_D" class="active">📎 Documents</a>
+                    <a asp-controller="DoctorAdmin" asp-action="Password">🔒 Password</a>
+                </nav>
+
+                <div class="chart-card">
+                    <div class="sec-label">📄 Uploaded Documents</div>
+
+                    <!-- Certification from Doctor.Certifications -->
+                    @if (!string.IsNullOrEmpty(Model.CertificationUrl))
+                    {
+                        <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--gp);border-radius:10px;border:1px solid var(--b2);margin-bottom:10px;">
+                            <span style="font-size:1.5rem;">🎓</span>
+                            <div style="flex:1;">
+                                <div style="font-weight:700;font-size:.88rem;">Certification File</div>
+                                <div style="font-size:.75rem;color:var(--muted);">Uploaded by clinic admin</div>
+                            </div>
+                            <span class="status s-confirmed">✓ On file</span>
+                            <a href="@Model.CertificationUrl" target="_blank"
+                               class="btn btn-outline btn-sm">📎 View</a>
+                        </div>
+                    }
+
+                    <!-- Additional uploaded documents -->
+                    @if (Model.Documents.Any())
+                    {
+                        @foreach (var doc in Model.Documents)
+                        {
+                            var docCls = doc.Status?.ToLower() == "approved" ? "s-confirmed"
+                            : doc.Status?.ToLower() == "rejected" ? "s-cancelled"
+                            : "s-pending";
+                            <div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--ws);border-radius:10px;border:1px solid var(--line);margin-bottom:8px;">
+                                <span style="font-size:1.5rem;">📄</span>
+                                <div style="flex:1;">
+                                    <div style="font-weight:700;font-size:.88rem;">@doc.DocumentType</div>
+                                    <div style="font-size:.75rem;color:var(--muted);">
+                                        Uploaded: @doc.UploadedAt.ToString("dd MMM yyyy")
+                                        @if (!string.IsNullOrEmpty(doc.AdminNote))
+                                        {
+                                            <span> • Note: @doc.AdminNote</span>
+                                        }
+                                    </div>
+                                </div>
+                                <span class="status @docCls">@(doc.Status ?? "Pending")</span>
+                                <a href="@doc.FileUrl" target="_blank"
+                                   class="btn btn-outline btn-sm">📎 View</a>
+                            </div>
+                        }
+                    }
+
+                    @if (!Model.Documents.Any() && string.IsNullOrEmpty(Model.CertificationUrl))
+                    {
+                        <div style="text-align:center;padding:1.5rem;color:var(--muted);font-weight:700;">
+                            <div style="font-size:2rem;margin-bottom:.5rem;">📄</div>
+                            No documents uploaded yet.
+                        </div>
+                    }
+
+                    <hr class="sec-div">
+                    <div class="sec-label">📎 Upload New Document</div>
+
+                    <form asp-controller="DoctorAdmin" asp-action="UploadDocument"
+                          method="post" enctype="multipart/form-data">
+                        @Html.AntiForgeryToken()
+
+                        <div class="f-grid">
+                            <div class="f-group">
+                                <label class="f-label"><span class="req">*</span>Document Type</label>
+                                <select name="documentType" class="f-inp">
+                                    <option value="Practice License">Practice License</option>
+                                    <option value="University Degree">University Degree</option>
+                                    <option value="Training Certificate">Training Certificate</option>
+                                    <option value="National ID">National ID</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="f-group">
+                                <label class="f-label"><span class="req">*</span>File</label>
+                                <label class="upload-box" style="cursor:pointer; display:block;">
+                                    <input type="file" name="file"
+                                           accept=".pdf,.jpg,.jpeg,.png,.docx"
+                                           required style="display:none"
+                                           onchange="document.getElementById('docFileName').textContent=this.files[0]?.name||'Choose file'">
+                                    <div class="upload-icon">📎</div>
+                                    <div class="upload-txt" id="docFileName">Choose file</div>
+                                    <div class="upload-sub">PDF, JPG, PNG, DOCX — max 10MB</div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div style="margin-top:.8rem;display:flex;justify-content:flex-end;">
+                            <button type="submit" class="btn btn-primary">📤 Upload Document</button>
+                        </div>
+                    </form>
+                </div>
+
+            </div>
+        </main>
+    </div>
+    <script>
+        function toggleSidebar(){const sb=document.getElementById("sidebar"),ov=document.getElementById("sidebarOverlay"),sh=document.getElementById("waShell");if(window.innerWidth<=992){sb?.classList.toggle("mob-open");ov?.classList.toggle("show");document.body.classList.toggle("sidebar-open")}else{sh?.classList.toggle("mini")}}
+        function closeSidebar(){document.getElementById("sidebar")?.classList.remove("mob-open");document.getElementById("sidebarOverlay")?.classList.remove("show");document.body.classList.remove("sidebar-open")}
+        document.addEventListener("DOMContentLoaded",()=>{document.querySelectorAll(".wa-sb .sb-row").forEach(r=>r.addEventListener("click",()=>{if(window.innerWidth<=992)closeSidebar()}));window.addEventListener("resize",()=>{if(window.innerWidth>992)closeSidebar()})});
+    </script>
+</body>
+</html>
