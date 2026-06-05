@@ -1,596 +1,991 @@
-﻿@{
+﻿@model Waffy.Models.ViewModels.ClinicAppointmentsViewModel
+@{
+    ViewData["Title"] = "Waffy — Appointments";
     Layout = null;
+    var userName   = Context.Session.GetString("UserName")   ?? "Clinic Manager";
+    var clinicName = Context.Session.GetString("ClinicName") ?? "Clinic";
+    var initials   = userName.Length > 0 ? userName[0].ToString().ToUpper() : "C";
+    var now        = DateTime.Now;
+
+    var pendingClinic = Model.Appointments.Count(a => a.Status == "PendingClinicApproval");
+    var pendingDoctor = Model.Appointments.Count(a => a.Status == "PendingDoctorApproval");
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Waffy — Clinic &amp; Doctor Appointments</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>@ViewData["Title"]</title>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
 <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+<style>
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px;}
+.kpi-card{background:var(--ws);border-radius:14px;border:1px solid var(--line);padding:.8rem;text-align:center;}
+.kpi-val{font-family:'Fredoka',sans-serif;font-size:1.4rem;font-weight:700;color:var(--gd);}
+.kpi-lbl{font-size:.68rem;color:var(--muted);font-weight:700;margin-top:2px;}
+.pending-banner{background:#fff8e1;border:1.5px solid #fde68a;border-radius:14px;
+    padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;
+    gap:12px;font-size:.84rem;font-weight:700;color:#9b6000;}
+.pending-count{background:#e07b3c;color:#fff;border-radius:999px;padding:2px 12px;font-size:.78rem;font-weight:900;}
+.f-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+.f-chip{padding:6px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--ws);
+    font-size:.82rem;font-weight:800;color:var(--muted);cursor:pointer;transition:.15s;text-decoration:none;}
+.f-chip:hover,.f-chip.active{border-color:var(--gd);background:var(--gp);color:var(--gd);}
+.f-chip-warn{border-color:#e07b3c!important;color:#e07b3c!important;background:#fef0e6!important;}
+.f-chip-warn.active,.f-chip-warn:hover{background:#e07b3c!important;color:#fff!important;}
+.s-wrap{position:relative;flex:1;min-width:180px;max-width:280px;}
+.s-inp{width:100%;padding:8px 12px 8px 32px;border:1.5px solid var(--line);border-radius:10px;
+    background:var(--ws);font-family:'Nunito',sans-serif;font-size:.84rem;font-weight:700;outline:none;box-sizing:border-box;}
+.s-inp:focus{border-color:var(--gd);}
+.s-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;color:var(--muted);pointer-events:none;}
+.doc-sel{padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;background:var(--ws);
+    font-family:'Nunito',sans-serif;font-size:.84rem;font-weight:700;color:var(--text);outline:none;cursor:pointer;}
+.ap-table{width:100%;border-collapse:collapse;}
+.ap-table th{font-size:.74rem;font-weight:900;color:var(--muted);padding:8px 12px;
+    text-align:left;border-bottom:1.5px solid var(--line);white-space:nowrap;background:var(--ws);}
+.ap-table td{font-size:.84rem;padding:10px 12px;border-bottom:.5px solid var(--line);vertical-align:middle;}
+.ap-table tr:last-child td{border-bottom:none;}
+.ap-table tbody tr:hover td{background:var(--gp);}
+.t-time{font-family:'Fredoka',sans-serif;font-size:.9rem;font-weight:700;color:var(--gd);}
+.t-date{font-size:.71rem;color:var(--muted);font-weight:700;margin-top:1px;}
+.t-name{font-weight:900;font-size:.86rem;color:var(--text);}
+.t-sub{font-size:.73rem;color:var(--muted);font-weight:700;margin-top:1px;}
+.pet-img{width:34px;height:34px;border-radius:8px;overflow:hidden;display:inline-flex;
+    align-items:center;justify-content:center;background:var(--gp);font-size:.9rem;
+    border:1px solid var(--b2);flex-shrink:0;vertical-align:middle;margin-right:6px;}
+.pet-img img{width:100%;height:100%;object-fit:cover;}
+.act-row{display:flex;gap:4px;flex-wrap:wrap;align-items:center;}
+.s-pend-c{background:#fff8e1;color:#9b6000;border:1px solid #fde68a;border-radius:8px;padding:2px 8px;font-size:.72rem;font-weight:900;}
+.s-pend-d{background:#e8f0fe;color:#1a3a8f;border:1px solid #c5d0e8;border-radius:8px;padding:2px 8px;font-size:.72rem;font-weight:900;}
+.s-noshow{background:#fef0e6;color:#e07b3c;border:1px solid #f0c4a0;border-radius:8px;padding:2px 8px;font-size:.72rem;font-weight:900;}
+.dep-chip{display:inline-flex;align-items:center;font-size:.68rem;font-weight:800;
+    background:#e8f0fe;color:#1a3a8f;border-radius:999px;padding:1px 7px;border:1px solid #c5d0e8;margin-top:2px;}
+.dep-ok{background:var(--gp);color:var(--gd);border-color:var(--b2);}
+.dep-cliq-pending{background:#fff8e1;color:#9b6000;border-color:#fde68a;}
+
+/* Modals */
+.det-modal{max-width:500px;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;}
+.det-modal .modal-body{overflow-y:auto;flex:1;padding:0;}
+.det-hero{display:flex;gap:14px;align-items:center;padding:1.1rem 1.2rem;background:var(--gp);border-bottom:1px solid var(--b2);}
+.det-hero-img{width:60px;height:60px;border-radius:12px;overflow:hidden;flex-shrink:0;
+    background:var(--ws);border:2px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:1.6rem;}
+.det-hero-img img{width:100%;height:100%;object-fit:cover;}
+.det-sec{padding:.7rem 1.2rem;}
+.det-sec-title{font-family:'Fredoka',sans-serif;font-size:.84rem;font-weight:700;color:var(--gd);margin-bottom:7px;}
+.det-row{display:flex;gap:8px;padding:4px 0;border-bottom:.5px solid var(--line);font-size:.82rem;}
+.det-row:last-child{border-bottom:none;}
+.det-lbl{width:110px;color:var(--muted);font-weight:700;flex-shrink:0;}
+.det-val{font-weight:800;color:var(--text);flex:1;}
+.assign-card{border-radius:12px;border:1.5px solid var(--line);background:var(--ws);
+    padding:.8rem;cursor:pointer;transition:.18s;display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.assign-card:hover{border-color:var(--gd);background:var(--gp);}
+.assign-card.sel{border-color:var(--gd);background:var(--gp);outline:2px solid var(--gd);}
+.assign-card.disabled{opacity:.45;cursor:not-allowed;}
+.av-ok{color:var(--gd);font-size:.7rem;font-weight:900;}
+.av-no{color:var(--wr);font-size:.7rem;font-weight:900;}
+.av-warn{color:#e07b3c;font-size:.7rem;font-weight:900;}
+.confirm-modal{max-width:420px;}
+.c-icon{font-size:2rem;text-align:center;margin-bottom:6px;}
+.c-title{font-family:'Fredoka',sans-serif;font-size:1.05rem;font-weight:700;color:var(--text);text-align:center;margin-bottom:4px;}
+.c-msg{font-size:.83rem;color:var(--muted);font-weight:700;text-align:center;margin-bottom:.8rem;line-height:1.6;}
+.c-select{width:100%;padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;
+    font-family:'Nunito',sans-serif;font-size:.84rem;font-weight:700;outline:none;margin-bottom:.8rem;box-sizing:border-box;}
+@@media(max-width:1024px){.kpi-grid{grid-template-columns:repeat(3,1fr);}}
+@@media(max-width:640px){.kpi-grid{grid-template-columns:repeat(2,1fr);}
+    .ap-table th:nth-child(4),.ap-table td:nth-child(4){display:none;}}
+</style>
 </head>
 <body class="admin-shell">
 <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
 <div class="wa-shell" id="waShell">
-  <aside class="wa-sb" id="sidebar">
+
+<aside class="wa-sb" id="sidebar">
     <div class="sb-logo">
-      <div class="sb-mark">
-        <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"
-             onerror="this.remove(); this.parentElement.innerHTML='🐾'; this.parentElement.style.fontSize='2rem';">
-      </div>
-      <div class="sb-wordmark">
-        <div class="sb-wm-name">Waffy</div>
-        <div class="sb-wm-tag">Clinic Admin</div>
-      </div>
+        <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
+        <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Clinic Admin</div></div>
     </div>
     <nav class="sb-nav">
-      <div class="sb-group sb-group-flat">
-        <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Dashboard" data-tip="Dashboard">
-          <span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span>
-        </a>
-      </div>
-      <div class="sb-hr"></div>
-      <div class="sb-group">
-        <div class="sb-grp-hd">Daily Management</div>
-        <a class="sb-row active" asp-controller="ClinicAdmin" asp-action="Appointments" data-tip="Appointments">
-          <span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span><span class="sb-bdg bd-g">5</span>
-        </a>
-        <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Patients" data-tip="Patients">
-          <span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span>
-        </a>
-        <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Medical_Records" data-tip="Medical Records">
-          <span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span>
-        </a>
-      </div>
-      <div class="sb-hr"></div>
-      <div class="sb-group" id="managerSection">
-        <div class="sb-grp-hd">Clinic Management</div>
-        <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Doctors" data-tip="Doctors">
-          <span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span>
-        </a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Basic_Information" data-tip="Clinic Settings">
-                        <span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span>
-                    </a> <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Revenue" data-tip="Revenue &amp; Payments">
-          <span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span>
-        </a>
-      </div>
-      <div class="sb-hr"></div>
-      <div class="sb-group sb-group-flat">
-        <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Adoption" data-tip="Adoption">
-          <span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span>
-        </a>
-      </div>
-      <div class="sb-hr"></div>
-      <div class="sb-group">
-        <div class="sb-grp-hd">Analytics</div>
-        <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reviews" data-tip="Reviews">
-          <span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span><span class="sb-bdg bd-g">2</span>
-        </a>
-        <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reports" data-tip="Reports">
-          <span class="sb-icon">📈</span><span class="sb-lbl">Reports</span>
-        </a>
-      </div>
-      <div class="sb-hr"></div>
-      <div class="sb-group sb-group-flat">
-                    <a class="sb-row " asp-controller="ClinicAdmin" asp-action="Personal_nformation" data-tip="My Settings">
-                        <span class="sb-icon">⚙️</span>
-                        <span class="sb-lbl">My Settings</span>
-                    </a>
-      </div>
+        <div class="sb-group sb-group-flat">
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Dashboard"><span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span></a>
+        </div>
+        <div class="sb-hr"></div>
+        <div class="sb-group">
+            <div class="sb-grp-hd">Daily Management</div>
+            <a class="sb-row active" asp-controller="ClinicAdmin" asp-action="Appointments">
+                <span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span>
+                @if (pendingClinic > 0){ <span class="sb-bdg bd-g">@pendingClinic</span> }
+            </a>
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Patients"><span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span></a>
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Medical_Records"><span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span></a>
+        </div>
+        <div class="sb-hr"></div>
+        <div class="sb-group">
+            <div class="sb-grp-hd">Clinic Management</div>
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Doctors"><span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span></a>
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Basic_Information"><span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span></a>
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Revenue"><span class="sb-icon">💰</span><span class="sb-lbl">Revenue</span></a>
+        </div>
+        <div class="sb-hr"></div>
+        <div class="sb-group sb-group-flat">
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Adoption"><span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span></a>
+        </div>
+        <div class="sb-hr"></div>
+        <div class="sb-group">
+            <div class="sb-grp-hd">Analytics</div>
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reviews"><span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span></a>
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reports"><span class="sb-icon">📈</span><span class="sb-lbl">Reports</span></a>
+        </div>
+        <div class="sb-hr"></div>
+        <div class="sb-group sb-group-flat">
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Personal_nformation"><span class="sb-icon">⚙️</span><span class="sb-lbl">My Settings</span></a>
+        </div>
     </nav>
     <div class="sb-foot">
-      <div class="sb-user-row" onclick="openSidebarProfile()">
-        <div class="sb-av">DC</div>
-        <div class="sb-user-info">
-          <div class="sb-user-name">Daniel Carter</div>
-          <div class="sb-user-role">Clinic Manager 👑</div>
+        <div class="sb-user-row">
+            <div class="sb-av">@initials</div>
+            <div class="sb-user-info">
+                <div class="sb-user-name">@userName</div>
+                <div class="sb-user-role">Clinic Manager 👑</div>
+            </div>
         </div>
-      </div>
-      <button class="sb-logout" onclick="doLogout()" type="button">
-        <span class="sb-icon">↩</span>
-        <span class="sb-logout-lbl">Sign Out</span>
-      </button>
+        <a asp-controller="ClinicAdmin" asp-action="Logout" class="sb-logout">
+            <span class="sb-icon">↩</span><span class="sb-logout-lbl">Sign Out</span>
+        </a>
     </div>
-  </aside>
+</aside>
 
-  <header class="wa-tn">
-    <button class="tn-toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
-    <div class="tn-bread" id="tnBread"><span>Daily Management</span><span>/</span><b id="tnCur">Appointments</b></div>
+<header class="wa-tn">
+    <button class="tn-toggle" type="button" onclick="toggleSidebar()">☰</button>
+    <div class="tn-bread"><span>Daily Management</span><span>/</span><b>Appointments</b></div>
     <div class="tn-center">
-      <div class="tn-center-main" id="tnTitle">Appointments</div>
-      <div class="tn-center-sub" id="tnSub">Waffy Clinic Dashboard</div>
+        <div class="tn-center-main">Appointments</div>
+        <div class="tn-center-sub">@clinicName</div>
     </div>
     <div class="tn-spacer"></div>
     <div class="tn-right">
-      <div class="tn-identity" id="tnIdentityPill">🏥 Al Amanah Veterinary Clinic</div>
-      <button class="tn-btn notif-btn" type="button" aria-label="Notifications">🔔<span class="tn-count">3</span></button>
-      <div class="tn-sep"></div>
-      <div class="tn-profile user-btn">
-        <div class="tn-av" id="userAvaTop">M</div>
+        <div class="tn-identity">🏥 @clinicName</div>
+        <button class="tn-btn notif-btn" type="button">🔔</button>
+        <div class="tn-sep"></div>
+        <div class="tn-profile">
+            <div class="tn-av">@initials</div>
+            <div><div class="tn-pname">@userName</div><div class="tn-prole">Clinic Manager 👑</div></div>
+        </div>
+    </div>
+</header>
+
+<main class="wa-main">
+<section class="page-hero">
+    <div><h1>Appointments</h1><p>Manage and approve appointment requests.</p></div>
+</section>
+<div class="page-body">
+
+@if (TempData["ApptSuccess"] != null)
+{
+    <div style="background:#eef4dd;border:1.5px solid #8da546;border-radius:14px;
+                padding:14px 18px;margin-bottom:14px;display:flex;
+                align-items:center;gap:12px;">
+        <span style="font-size:1.2rem;">✅</span>
         <div>
-          <div class="tn-pname" id="userNameTop">Clinic Manager</div>
-          <div class="tn-prole" id="roleTagTop">Clinic Manager 👑</div>
+            <div style="font-weight:900;color:#5f7430;font-size:.9rem;">
+                Action Completed
+            </div>
+            <div style="font-weight:700;color:#5f7430;font-size:.84rem;margin-top:2px;">
+                @TempData["ApptSuccess"]
+            </div>
         </div>
-      </div>
     </div>
-  </header>
+}
+@if (TempData["ApptError"] != null)
+{
+    <div style="background:#faece8;border:1.5px solid #c86a5c;border-radius:14px;
+                padding:14px 18px;margin-bottom:14px;display:flex;
+                align-items:center;gap:12px;">
+        <span style="font-size:1.2rem;">⚠️</span>
+        <div>
+            <div style="font-weight:900;color:#c86a5c;font-size:.9rem;">
+                Action Notice
+            </div>
+            <div style="font-weight:700;color:#c86a5c;font-size:.84rem;margin-top:2px;">
+                @TempData["ApptError"]
+            </div>
+        </div>
+    </div>
+}
 
-  <main class="wa-main">
-    <section class="page-hero">
-      <div>
-        <h1 id="pageHeroTitle">Appointments</h1>
-        <p>Manage scheduled visits, confirm requests, and organize the clinic calendar.</p>
-      </div>
-    </section>
-    <div class="page-body">
-      <div id="page-appointments" class="page-content">
-        <div class="page-header">
-          <div>
-            <div class="page-title">📅 <span id="apptPageTitle">Manage Appointments</span></div>
-            <div class="page-sub" id="apptPageSub">All clinic appointments</div>
-          </div>
-          <div class="header-actions">
-            <button class="btn btn-outline">📤 Export</button>
-            <button class="btn btn-primary" onclick="openModal('modalAppt')">+ New Appointment</button>
-          </div>
+
+@if (TempData["ApptError"] != null)
+{<div style="background:#faece8;border:1px solid rgba(200,106,92,.3);border-radius:12px;padding:10px 16px;margin-bottom:12px;font-weight:800;color:#c86a5c;font-size:.86rem;">⚠️ @TempData["ApptError"]</div>}
+
+@* Pending banner — clinic approval only *@
+@if (pendingClinic > 0)
+{
+<div class="pending-banner">
+    <span style="font-size:1.1rem;">⏳</span>
+    <div>
+        <strong>@pendingClinic request(s) need your approval</strong>
+        — Select an available doctor and confirm each request.
+    </div>
+    <span class="pending-count">@pendingClinic Pending</span>
+</div>
+}
+
+@* Info: doctor-specific appointments await the doctor, not clinic *@
+@if (pendingDoctor > 0)
+{
+<div style="background:#e8f0fe;border:1.5px solid #c5d0e8;border-radius:14px;
+            padding:10px 16px;margin-bottom:12px;display:flex;align-items:center;
+            gap:10px;font-size:.83rem;font-weight:700;color:#1a3a8f;">
+    <span style="font-size:1rem;">👨‍⚕️</span>
+    <div>
+        <strong>@pendingDoctor appointment(s) awaiting doctor approval</strong>
+        — These were booked with specific doctors. Doctors must approve or reject them.
+    </div>
+</div>
+}
+@if (Model.TodayAppointments.Any())
+{
+    <div style="background:#fff;border:1.5px solid #8da546;border-radius:16px;
+                padding:1rem 1.2rem;margin-bottom:16px;">
+        <div style="font-family:'Fredoka',sans-serif;font-size:.95rem;
+                    font-weight:700;color:var(--gd);margin-bottom:10px;">
+            📅 Today's Appointments
+            <span style="background:var(--gd);color:#fff;border-radius:999px;
+                         padding:1px 10px;font-size:.76rem;margin-left:6px;">
+                @Model.TodayAppointments.Count
+            </span>
         </div>
-        <div class="filter-bar">
-          <div class="search-input"><span>🔍</span><input placeholder="Search by owner or pet..."></div>
-          <select class="filter-select" id="doctorFilter">
-            <option>All Doctors</option>
-            <option>Dr. Ahmad Al-Zoubi</option>
-            <option>Dr. Sarah Al-Hussein</option>
-          </select>
-          <select class="filter-select">
-            <option>All statuses</option>
-            <option>Confirmed</option>
-            <option>Pending</option>
-            <option>Cancelled</option>
-          </select>
-          <button class="chip active" onclick="setChip(this)">Today</button>
-          <button class="chip" onclick="setChip(this)">This week</button>
-          <button class="chip" onclick="setChip(this)">This month</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            @foreach (var a in Model.TodayAppointments)
+            {
+                <div style="background:var(--gp);border:1px solid var(--b2);
+                            border-radius:12px;padding:8px 12px;min-width:160px;">
+                    <div style="font-family:'Fredoka',sans-serif;font-size:1rem;
+                                font-weight:700;color:var(--gd);">
+                        @a.StartTime.ToString(@"hh\:mm")
+                    </div>
+                    <div style="font-weight:800;font-size:.84rem;color:var(--text);">
+                        @(a.PetName ?? "No pet") · @(a.UserFullName ?? "—")
+                    </div>
+                    <div style="font-size:.74rem;color:var(--muted);font-weight:700;">
+                        @if (!string.IsNullOrEmpty(a.DoctorName))
+                        { <text>Dr. @a.DoctorName</text> }
+                        else
+                        { <text>Doctor TBD</text> }
+                    </div>
+                    @{
+                        var todayBadge = a.Status switch {
+                            "Confirmed"             => ("✅","#5f7430"),
+                            "PendingClinicApproval" => ("⏳","#9b6000"),
+                            "PendingDoctorApproval" => ("👨‍⚕️","#1a3a8f"),
+                            _                       => ("•","#888")
+                        };
+                    }
+                    <span style="font-size:.7rem;font-weight:900;color:@todayBadge.Item2;">
+                        @todayBadge.Item1 @a.Status
+                    </span>
+                </div>
+            }
         </div>
-        <div class="table-card">
-          <div class="table-head-bar">
-            <div class="chart-title">📋 Appointment List</div>
-            <span style="font-size:.82rem;color:var(--muted)">24 Today's appointments</span>
-          </div>
-          <div class="t-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Time</th><th>Pet / Owner</th><th>Doctor</th>
-                  <th>Service</th><th>Payment</th><th>Status</th><th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><b>09:00 AM</b></td>
-                  <td>🐕 Max — Sarah Al-Khatib</td>
-                  <td>Dr. Ahmad Al-Zoubi</td>
-                  <td>Routine checkup</td>
-                  <td style="color:var(--gd)">✅ 15 JOD</td>
-                  <td><span class="status s-confirmed">Confirmed</span></td>
-                  <td>
-                    <div style="display:flex;gap:4px">
-                      <button class="btn btn-primary btn-sm">Details</button>
-                      <button class="btn btn-outline btn-sm" onclick="openModal('modalAppt')">✏️</button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td><b>10:30 AM</b></td>
-                  <td>🐈 Luna — Ahmad Mansour</td>
-                  <td>Dr. Sarah Al-Hussein</td>
-                  <td>Vaccination</td>
-                  <td style="color:var(--ora)">⏳ Prepaid</td>
-                  <td><span class="status s-pending">Pending</span></td>
-                  <td>
-                    <div style="display:flex;gap:4px">
-                      <button class="btn btn-primary btn-sm">Accept</button>
-                      <button class="btn btn-red btn-sm">Decline</button>
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td><b>11:00 AM</b></td>
-                  <td>🐕 Buddy — Rana Al-Salem</td>
-                  <td>Dr. Ahmad Al-Zoubi</td>
-                  <td>Surgery</td>
-                  <td style="color:var(--gd)">✅ 45 JOD</td>
-                  <td><span class="status s-confirmed">Confirmed</span></td>
-                  <td>
-                    <div style="display:flex;gap:4px">
-                      <button class="btn btn-primary btn-sm">Details</button>
-                      <button class="btn btn-outline btn-sm" onclick="openModal('modalAppt')">✏️</button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
+    </div>
+}
+<!-- KPIs -->
+<div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-val">@Model.TotalCount</div><div class="kpi-lbl">📋 Total</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:#9b6000;">@pendingClinic</div><div class="kpi-lbl">⏳ Need Approval</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:#1a3a8f;">@pendingDoctor</div><div class="kpi-lbl">👨‍⚕️ With Doctor</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--gd);">@Model.ConfirmedCount</div><div class="kpi-lbl">✅ Confirmed</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:#5f7430;">@Model.CompletedCount</div><div class="kpi-lbl">🏁 Completed</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--wr);">@Model.CancelledCount</div><div class="kpi-lbl">❌ Cancelled</div></div>
+</div>
+
+<!-- Filters -->
+<div class="f-bar">
+    <div class="s-wrap">
+        <span class="s-ico">🔍</span>
+        <input class="s-inp" id="searchInput" placeholder="Search pet, owner, doctor..." oninput="filterTable()">
+    </div>
+    @if (Model.DoctorNames.Any())
+    {
+        <select class="doc-sel" id="docFilter" onchange="filterTable()">
+            <option value="">All Doctors</option>
+            @foreach (var dn in Model.DoctorNames){ <option value="@dn">Dr. @dn</option> }
+        </select>
+    }
+    @foreach (var (lbl,val,cls) in new[]{
+        ("All","All",""),
+        ("🔍 Verify CliQ","PendingPaymentVerification","f-chip-warn"),
+        ("⏳ Need Approval","PendingClinicApproval","f-chip-warn"),
+        ("👨‍⚕️ With Doctor","PendingDoctorApproval",""),
+        ("✅ Confirmed","Confirmed",""),
+        ("🏁 Completed","Completed",""),
+        ("❌ Cancelled","Cancelled","")
+    })
+    {
+        <a asp-controller="ClinicAdmin" asp-action="Appointments"
+           asp-route-statusFilter="@val"
+           class="f-chip @cls @(Model.StatusFilter == val ? "active" : "")">@lbl</a>
+    }
+    <span style="margin-left:auto;font-size:.78rem;font-weight:700;color:var(--muted);" id="countLabel">
+        @Model.Appointments.Count result(s)
+    </span>
+</div>
+
+<!-- Table -->
+<div class="chart-card" style="padding:0;overflow:hidden;">
+    <div style="display:flex;align-items:center;justify-content:space-between;
+                padding:.9rem 1.2rem;border-bottom:1px solid var(--line);">
+        <div style="font-family:'Fredoka',sans-serif;font-size:.92rem;font-weight:700;color:var(--gd);">
+            📋 Appointment List
+        </div>
+    </div>
+    @if (!Model.Appointments.Any())
+    {
+        <div style="text-align:center;padding:3rem;color:var(--muted);font-weight:700;">
+            <div style="font-size:2rem;margin-bottom:8px;">📅</div>No appointments found.
+        </div>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="ap-table" id="apptTable">
+                <thead>
+                    <tr>
+                        <th>Date / Time</th>
+                        <th>Pet &amp; Owner</th>
+                        <th>Doctor</th>
+                        <th>Service</th>
+                        <th>Status</th>
+                        <th>Deposit</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="apptTbody">
+                @foreach (var a in Model.Appointments)
+                {
+                    var isToday = a.AppointmentDate.Date == now.Date;
+                    var petNameE  = (a.PetName ?? "").Replace("'","&#39;");
+                    var ownerNameE = (a.UserFullName ?? "").Replace("'","&#39;");
+                    <tr data-id="@a.Id"
+                        data-depositmethod="@(a.DepositPayMethod ?? "")"
+data-depositpaid="@(a.DepositPaid ? "1" : "0")"
+data-cliqref="@(a.CliqReference ?? "")"
+                        data-status="@a.Status"
+                        data-petid="@(a.IdPet ?? 0)"
+                        data-petname="@petNameE"
+                        data-petimg="@(a.PetImageUrl ?? "")"
+                        data-petspecies="@(a.PetSpecies ?? "")"
+                        data-ownername="@ownerNameE"
+                        data-ownerphone="@(a.UserPhone ?? "")"
+                        data-docname="@((a.DoctorName ?? "").Replace("'","&#39;"))"
+                        data-docspec="@(a.DoctorSpecialization ?? "")"
+                        data-date="@a.AppointmentDate.ToString("dd MMM yyyy")"
+                        data-time="@a.StartTime.ToString(@"hh\:mm")"
+                        data-endtime="@(a.EndTime?.ToString(@"hh\:mm") ?? "")"
+                        data-service="@(a.ServiceName ?? "")"
+                        data-urgency="@(a.UrgencyLevel ?? "Normal")"
+                        data-reason="@((a.Reason ?? "").Replace("'","&#39;"))"
+                        data-depositmethod="@(a.DepositPayMethod ?? "")"
+                        data-depositpaid="@(a.DepositPaid ? "1" : "0")"
+                        data-apptdate="@a.AppointmentDate.ToString("yyyy-MM-dd")"
+                        data-search="@($"{a.PetName} {a.UserFullName} {a.DoctorName} {a.ServiceName}".ToLower())"
+                        data-doctor="@(a.DoctorName ?? "")">
+
+                        <!-- Date / Time -->
+                        <td>
+                            <div class="t-time">@a.StartTime.ToString(@"hh\:mm")</div>
+                            <div class="t-date">
+                                @if (isToday)
+                                {<span style="color:var(--gd);font-weight:900;">Today</span>}
+                                else
+                                {@a.AppointmentDate.ToString("dd MMM yyyy")}
+                            </div>
+                        </td>
+
+                        <!-- Pet & Owner -->
+                        <td>
+                            <div style="display:flex;align-items:center;">
+                                <div class="pet-img">
+                                    @if (!string.IsNullOrEmpty(a.PetImageUrl))
+                                    { <img src="@a.PetImageUrl" alt="@a.PetName"> }
+                                    else
+                                    { @(a.PetSpecies?.ToLower() switch{"dog"=>"🐕","cat"=>"🐈",_=>"🐾"}) }
+                                </div>
+                                <div>
+                                    @if (!string.IsNullOrEmpty(a.PetName))
+                                    {<div class="t-name">@a.PetName
+                                        @if(!string.IsNullOrEmpty(a.PetSpecies))
+                                        {<span style="color:var(--muted);font-size:.76rem;">(@a.PetSpecies)</span>}
+                                    </div>}
+                                    <div class="t-sub">
+                                        👤 @(a.UserFullName ?? "—")
+                                        @if (!string.IsNullOrEmpty(a.UserPhone))
+                                        {<span> · @a.UserPhone</span>}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Doctor -->
+                        <td>
+                            @if (a.Status == "PendingClinicApproval")
+                            {
+                                <span style="font-size:.76rem;color:#9b6000;font-weight:800;">
+                                    ⏳ To be assigned
+                                </span>
+                            }
+                            else if (!string.IsNullOrEmpty(a.DoctorName))
+                            {
+                                <div style="font-weight:800;font-size:.84rem;">Dr. @a.DoctorName</div>
+                                @if (!string.IsNullOrEmpty(a.DoctorSpecialization))
+                                {<div class="t-sub">@a.DoctorSpecialization</div>}
+                            }
+                            else
+                            {<span style="color:var(--muted);">—</span>}
+                        </td>
+
+                        <!-- Service -->
+                        <td style="font-weight:800;font-size:.84rem;">
+                            @(a.ServiceName ?? "General")
+                            @if (a.UrgencyLevel == "Urgent")
+                            {<div style="font-size:.7rem;color:#e07b3c;font-weight:900;">🔴 Urgent</div>}
+                        </td>
+
+                        <!-- Status badge -->
+                        <td>
+                            @{
+                                var (badge, badgeCss) = a.Status switch {
+    "PendingPayment"             => ("💳 Awaiting Payment","s-pend-c"),
+    "PendingPaymentVerification" => ("🔍 Verify CliQ","s-pend-c"),
+    "PendingClinicApproval"      => ("⏳ Need Approval","s-pend-c"),
+    "PendingDoctorApproval"      => ("👨‍⚕️ With Doctor","s-pend-d"),
+    "Confirmed"                  => ("✅ Confirmed","s-confirmed"),
+    "Completed"                  => ("🏁 Completed","s-completed"),
+    "Cancelled"                  => ("❌ Cancelled","s-cancelled"),
+    "NoShow"                     => ("🚫 No-Show","s-noshow"),
+    _                            => (a.Status,"s-pending")
+};
+                            }
+                            <span class="status @badgeCss" style="font-size:.74rem;">@badge</span>
+                        </td>
+
+                        <!-- Deposit chip -->
+                      <!-- Deposit -->
+<td>
+    @if (a.DepositPaid && a.DepositReturned)
+    {
+        <span class="dep-chip dep-ok">✅ Returned</span>
+    }
+    else if (a.DepositPaid && a.DepositPayMethod == "CliQ")
+    {
+        <span class="dep-chip dep-ok">📱 CliQ · Paid</span>
+    }
+    else if (a.DepositPaid && a.DepositPayMethod == "Wallet")
+    {
+        <span class="dep-chip dep-ok">💳 Wallet · Paid</span>
+    }
+    else if (a.DepositPayMethod == "CliQ" && !a.DepositPaid)
+    {
+        <div>
+            <span class="dep-chip dep-cliq-pending">📱 CliQ · Pending</span>
+            @if (!string.IsNullOrEmpty(a.CliqReference))
+            {
+                <div style="font-size:.68rem;font-weight:900;
+                            color:#9b6000;margin-top:3px;
+                            letter-spacing:.5px;font-family:'Fredoka',sans-serif;">
+                    🔑 @a.CliqReference
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <span style="font-size:.74rem;color:var(--muted);">—</span>
+    }
+</td>
+                        <!-- Actions -->
+                        <td>
+                            <div class="act-row">
+
+                                @* Details button — always visible *@
+                                <button type="button" class="btn btn-outline btn-sm"
+                                        onclick="openDetails(@a.Id)" title="View details">
+                                    👁
+                                </button>
+
+                                @* Clinic approval actions — ONLY for "Any Doctor" bookings *@
+                                @if (a.Status == "PendingClinicApproval")
+                                {
+                                    <button type="button" class="btn btn-primary btn-sm"
+                                            onclick="openAssignModal(@a.Id,'@a.AppointmentDate.ToString("yyyy-MM-dd")')"
+                                            title="Assign doctor & approve">
+                                        ✅ Assign
+                                    </button>
+                                    <button type="button" class="btn btn-red btn-sm"
+                                            onclick="openRejectModal(@a.Id,'@petNameE')"
+                                            title="Reject">
+                                        ❌
+                                    </button>
+                                }
+
+                                @* Doctor-specific: clinic reads only — doctor approves/rejects *@
+                                else if (a.Status == "PendingDoctorApproval")
+                                {
+                                    <span style="font-size:.7rem;font-weight:800;color:#1a3a8f;
+                                                 background:#e8f0fe;padding:3px 7px;border-radius:7px;
+                                                 border:1px solid #c5d0e8;white-space:nowrap;">
+                                        👨‍⚕️ Doctor's call
+                                    </span>
+                                }
+                                @* CliQ تحت التحقق — الادمن يؤكد الدفع *@
+@if (a.Status == "PendingPaymentVerification")
+{
+    <button type="button" class="btn btn-outline btn-sm"
+            style="color:#9b6000;border-color:#fde68a;"
+            onclick="confirmCliq(@a.Id)">
+        📱 Confirm CliQ
+    </button>
+    <button type="button" class="btn btn-red btn-sm"
+            onclick="openRejectModal(@a.Id,'@petNameE')">
+        ❌
+    </button>
+}
+
+                                @* Confirmed: attendance tracking *@
+                              @* Confirmed — الادمن يشوف فقط، التأكيد والغياب من صلاحية الطبيب *@
+else if (a.Status == "Confirmed")
+{
+    <span style="font-size:.72rem;font-weight:800;color:var(--gd);
+                 background:var(--gp);padding:3px 8px;border-radius:8px;
+                 border:1px solid var(--b2);white-space:nowrap;">
+        ✅ Confirmed
+    </span>
+}
+
+                                @* CliQ unconfirmed — clinic verifies payment *@
+                                @if (a.DepositPayMethod == "CliQ" && !a.DepositPaid
+                                     && a.Status != "Cancelled" && a.Status != "NoShow")
+                                {
+                                    <button type="button" class="btn btn-outline btn-sm"
+                                            style="color:#9b6000;border-color:#fde68a;font-size:.7rem;"
+                                            onclick="confirmCliq(@a.Id)"
+                                            title="Confirm CliQ payment received">
+                                        📱 Confirm CliQ
+                                    </button>
+                                }
+
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
             </table>
-          </div>
         </div>
-      </div>
-    </div>
-  </main>
+    }
+</div>
+</div>
+</main>
 </div>
 
-<!-- Modal: New/Edit Appointment -->
-<div class="modal-overlay" id="modalAppt" onclick="closeOnBg(event,'modalAppt')">
-  <div class="modal">
+<!-- ═══════════════════════════════
+     DETAILS MODAL — كاملة
+═══════════════════════════════ -->
+<div class="modal-overlay" id="detailsModal">
+<div class="modal det-modal">
     <div class="modal-header">
-      <div class="modal-title">📅 New Appointment / Edit Appointment</div>
-      <button class="modal-close" onclick="closeModal('modalAppt')">✕</button>
+        <div class="modal-title" id="detTitle">📅 Appointment Details</div>
+        <button class="modal-close" type="button" onclick="closeModal('detailsModal')">✕</button>
     </div>
     <div class="modal-body">
-      <div class="f-grid">
-        <div class="f-group">
-          <label class="f-label"><span class="req">*</span>Pet (Patient)</label>
-          <select class="f-inp">
-            <option>Choose a pet...</option>
-            <option>🐕 Max — Sarah Al-Khatib</option>
-            <option>🐈 Luna — Ahmad Mansour</option>
-            <option>🐕 Buddy — Rana Al-Salem</option>
-          </select>
+        <!-- Pet hero -->
+        <div class="det-hero">
+            <div class="det-hero-img" id="detImg">🐾</div>
+            <div>
+                <div style="font-family:'Fredoka',sans-serif;font-size:1.05rem;font-weight:700;color:var(--gd);" id="detPetName">—</div>
+                <div style="font-size:.76rem;color:#5f7430;font-weight:700;" id="detPetSpecies">—</div>
+            </div>
         </div>
-        <div class="f-group">
-          <label class="f-label"><span class="req">*</span>Owner</label>
-          <input class="f-inp" placeholder="Owner name or phone number...">
+        <!-- Owner -->
+        <div class="det-sec">
+            <div class="det-sec-title">👤 Owner Information</div>
+            <div class="det-row"><div class="det-lbl">Name</div><div class="det-val" id="detOwner">—</div></div>
+            <div class="det-row"><div class="det-lbl">Phone</div><div class="det-val" id="detPhone">—</div></div>
         </div>
-        <div class="f-group">
-          <label class="f-label"><span class="req">*</span>Doctor</label>
-          <select class="f-inp">
-            <option>Choose a doctor...</option>
-            <option>Dr. Ahmad Al-Zoubi</option>
-            <option>Dr. Sarah Al-Hussein</option>
-            <option>Dr. Mohammad Salameh</option>
-          </select>
+        <!-- Appointment -->
+        <div class="det-sec" style="border-top:1px solid var(--line);">
+            <div class="det-sec-title">📅 Appointment Details</div>
+            <div class="det-row"><div class="det-lbl">Date</div><div class="det-val" id="detDate">—</div></div>
+            <div class="det-row"><div class="det-lbl">Time</div><div class="det-val" id="detTime">—</div></div>
+            <div class="det-row"><div class="det-lbl">Doctor</div><div class="det-val" id="detDoctor">—</div></div>
+            <div class="det-row"><div class="det-lbl">Service</div><div class="det-val" id="detService">—</div></div>
+            <div class="det-row"><div class="det-lbl">Urgency</div><div class="det-val" id="detUrgency">—</div></div>
+            <div class="det-row"><div class="det-lbl">Status</div><div class="det-val" id="detStatus">—</div></div>
         </div>
-        <div class="f-group">
-          <label class="f-label"><span class="req">*</span>Service</label>
-          <select class="f-inp">
-            <option>Choose a service...</option>
-            <option>General checkup</option>
-            <option>Vaccination</option>
-            <option>Surgery</option>
-            <option>Dentistry</option>
-            <option>Lab Tests</option>
-            <option>X-Ray</option>
-          </select>
+        <!-- Payment -->
+        <div class="det-sec" style="border-top:1px solid var(--line);">
+            <div class="det-sec-title">💳 Deposit</div>
+            <div class="det-row" id="detDepositRow">
+                <div class="det-lbl">Method</div><div class="det-val" id="detDepMethod">—</div>
+            </div>
+            <div class="det-row">
+                <div class="det-lbl">Status</div><div class="det-val" id="detDepStatus">—</div>
+            </div>
         </div>
-        <div class="f-group">
-          <label class="f-label"><span class="req">*</span>Appointment date</label>
-          <input class="f-inp" type="date">
+        <!-- Reason -->
+        <div id="detReasonSection" class="det-sec" style="border-top:1px solid var(--line);display:none;">
+            <div class="det-sec-title">📝 Reason</div>
+            <div style="font-size:.82rem;font-weight:700;color:var(--text);" id="detReason">—</div>
         </div>
-        <div class="f-group">
-          <label class="f-label"><span class="req">*</span>Appointment time</label>
-          <input class="f-inp" type="time" value="09:00">
-        </div>
-        <div class="f-group">
-          <label class="f-label">Status</label>
-          <select class="f-inp">
-            <option>Scheduled</option>
-            <option>Completed</option>
-            <option>Cancelled</option>
-          </select>
-        </div>
-        <div class="f-group f-full">
-          <label class="f-label">Notes</label>
-          <textarea class="f-inp" placeholder="Any notes about the appointment..."></textarea>
-        </div>
-      </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modalAppt')">Cancel</button>
-      <button class="btn btn-primary">💾 Save Appointment</button>
+        <button class="btn btn-outline" onclick="closeModal('detailsModal')">Close</button>
     </div>
-  </div>
+</div>
 </div>
 
-<!-- Modal: Add/Edit Patient (Pet) -->
-<div class="modal-overlay" id="modalPet" onclick="closeOnBg(event,'modalPet')">
-  <div class="modal modal-wide">
+<!-- ═══════════════════════════════
+     ASSIGN DOCTOR MODAL
+═══════════════════════════════ -->
+<div class="modal-overlay" id="assignModal">
+<div class="modal" style="max-width:500px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;">
     <div class="modal-header">
-      <div class="modal-title">🐾 Add / Edit Patient (Pet)</div>
-      <button class="modal-close" onclick="closeModal('modalPet')">✕</button>
+        <div class="modal-title">👨‍⚕️ Assign Doctor &amp; Approve</div>
+        <button class="modal-close" type="button" onclick="closeModal('assignModal')">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="sec-label">🐾 Pet Information</div>
-      <div class="f-grid">
-        <div class="f-group"><label class="f-label"><span class="req">*</span>Pet Name</label><input class="f-inp" placeholder="Example: Max"></div>
-        <div class="f-group">
-          <label class="f-label"><span class="req">*</span>Type</label>
-          <select class="f-inp">
-            <option>Choose a type...</option>
-            <option>🐕 Dog</option><option>🐈 Cat</option><option>🐦 Bird</option>
-            <option>🐇 Rabbit</option><option>🐠 Fish</option><option>🦎 Reptile</option><option>Other</option>
-          </select>
+    <div class="modal-body" style="overflow-y:auto;flex:1;padding:1.2rem;">
+        <div style="background:var(--gp);border:1px solid var(--b2);border-radius:10px;
+                    padding:8px 12px;margin-bottom:12px;font-size:.8rem;font-weight:700;color:#5f7430;">
+            ✅ Availability is checked automatically based on working days and max patients per day.
         </div>
-        <div class="f-group"><label class="f-label"><span class="req">*</span>Breed / Family</label><input class="f-inp" placeholder="Example: Labrador"></div>
-        <div class="f-group">
-          <label class="f-label"><span class="req">*</span>Gender</label>
-          <select class="f-inp"><option>Male</option><option>Female</option></select>
-        </div>
-        <div class="f-group"><label class="f-label"><span class="req">*</span>Age</label><input class="f-inp" placeholder="Example: 3 years / 6 months"></div>
-        <div class="f-group">
-          <label class="f-label">Microchip ID</label>
-          <input class="f-inp" placeholder="Microchip number if available">
-          <div class="f-hint">🔍 Used to track lost pets</div>
-        </div>
-      </div>
-      <hr class="sec-div">
-      <div class="sec-label">❤️ Health Status</div>
-      <div class="f-grid">
-        <div class="f-group">
-          <label class="f-label">Vaccination status</label>
-          <select class="f-inp"><option>Updated ✓</option><option>Expired — needs update</option><option>Unknown</option></select>
-        </div>
-        <div class="f-group">
-          <label class="f-label">Overall Health Status</label>
-          <select class="f-inp"><option>Healthy</option><option>Has a health issue</option><option>Under treatment</option></select>
-        </div>
-        <div class="f-group f-full"><label class="f-label">Chronic health issues</label><textarea class="f-inp" placeholder="Example: diabetes, heart disease..."></textarea></div>
-        <div class="f-group f-full"><label class="f-label">Allergies</label><textarea class="f-inp" placeholder="Example: allergy to some antibiotics..."></textarea></div>
-      </div>
-      <hr class="sec-div">
-      <div class="sec-label">👤 Owner Information</div>
-      <div class="f-grid">
-        <div class="f-group"><label class="f-label"><span class="req">*</span>Owner Name</label><input class="f-inp" placeholder="Full name"></div>
-        <div class="f-group"><label class="f-label"><span class="req">*</span>Phone Number</label><input class="f-inp" type="tel" placeholder="07XXXXXXXX"></div>
-        <div class="f-group f-full"><label class="f-label">Email Address</label><input class="f-inp" type="email" placeholder="owner@email.com"></div>
-      </div>
-      <hr class="sec-div">
-      <div class="sec-label">🖼 Pet Photo</div>
-      <div class="upload-box">
-        <div class="upload-icon">📸</div>
-        <div class="upload-txt">Upload Pet Photo</div>
-        <div class="upload-sub">JPG, PNG — max 5MB</div>
-      </div>
+        <div id="doctorList"></div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modalPet')">Cancel</button>
-      <button class="btn btn-primary">💾 Save Patient</button>
-    </div>
-  </div>
+    <form asp-controller="ClinicAdmin" asp-action="ApproveAndAssign" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="appointmentId" id="assignApptId">
+        <input type="hidden" name="assignedDoctorId" id="assignDoctorId" value="0">
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('assignModal')">Cancel</button>
+            <button type="submit" id="assignBtn" class="btn btn-primary" disabled>✅ Confirm Assignment</button>
+        </div>
+    </form>
+</div>
 </div>
 
-<!-- Modal: Add/Edit Medical Record -->
-<div class="modal-overlay" id="modalRecord" onclick="closeOnBg(event,'modalRecord')">
-  <div class="modal modal-wide">
+<!-- ═══════════════════════════════
+     REJECT MODAL
+═══════════════════════════════ -->
+<div class="modal-overlay" id="rejectModal">
+<div class="modal confirm-modal">
     <div class="modal-header">
-      <div class="modal-title">📄 Add / Edit Medical Record</div>
-      <button class="modal-close" onclick="closeModal('modalRecord')">✕</button>
+        <div class="modal-title">❌ Reject Appointment</div>
+        <button class="modal-close" type="button" onclick="closeModal('rejectModal')">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="sec-label">🐾 Visit Information</div>
-      <div class="f-grid">
-        <div class="f-group">
-          <label class="f-label"><span class="req">*</span>Pet</label>
-          <select class="f-inp"><option>Choose a pet...</option><option>🐕 Max</option><option>🐈 Luna</option><option>🐕 Buddy</option></select>
+    <form asp-controller="ClinicAdmin" asp-action="RejectAppointment" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" id="rejectId">
+        <div class="modal-body" style="padding:1.4rem;">
+            <div class="c-icon">❌</div>
+            <div class="c-title">Reject Appointment?</div>
+            <div class="c-msg" id="rejectMsg">The 5 JOD deposit will be returned to the patient immediately.</div>
+            <select name="reason" class="c-select">
+                <option value="No available doctors">No available doctors</option>
+                <option value="Fully booked">Fully booked</option>
+                <option value="Outside working hours">Outside working hours</option>
+                <option value="Service not available">Service not available</option>
+                <option value="Other">Other</option>
+            </select>
         </div>
-        <div class="f-group">
-          <label class="f-label"><span class="req">*</span>Doctor</label>
-          <select class="f-inp"><option>Dr. Ahmad Al-Zoubi</option><option>Dr. Sarah Al-Hussein</option><option>Dr. Mohammad Salameh</option></select>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('rejectModal')">Back</button>
+            <button type="submit" class="btn btn-red">❌ Confirm Reject</button>
         </div>
-        <div class="f-group"><label class="f-label"><span class="req">*</span>Visit date</label><input class="f-inp" type="date"></div>
-        <div class="f-group">
-          <label class="f-label">Follow-up date</label>
-          <input class="f-inp" type="date">
-          <div class="f-hint">📅 Added automatically to the calendar</div>
-        </div>
-      </div>
-      <hr class="sec-div">
-      <div class="sec-label">🩺 Diagnosis</div>
-      <div class="f-grid">
-        <div class="f-group f-full"><label class="f-label"><span class="req">*</span>Diagnosis</label><textarea class="f-inp" placeholder="Diagnostic findings..."></textarea></div>
-        <div class="f-group f-full"><label class="f-label">Symptoms</label><textarea class="f-inp" placeholder="Symptoms noticed by the owner or doctor..."></textarea></div>
-      </div>
-      <hr class="sec-div">
-      <div class="sec-label">💊 Treatment</div>
-      <div class="f-grid">
-        <div class="f-group f-full"><label class="f-label">Treatment provided</label><textarea class="f-inp" placeholder="Completed treatment procedures..."></textarea></div>
-        <div class="f-group f-full"><label class="f-label">Prescription</label><textarea class="f-inp" placeholder="Medication: name, dose, duration..."></textarea></div>
-      </div>
-      <hr class="sec-div">
-      <div class="sec-label">💉 Vaccination</div>
-      <div class="f-grid">
-        <div class="f-group"><label class="f-label">Vaccine name</label><input class="f-inp" placeholder="Example: Rabies, FVR..."></div>
-        <div class="f-group"><label class="f-label">Next dose date</label><input class="f-inp" type="date"></div>
-      </div>
-      <hr class="sec-div">
-      <div class="sec-label">📄 Files &amp; Images</div>
-      <div class="f-grid">
-        <div class="f-group">
-          <div class="upload-box"><div class="upload-icon">🧪</div><div class="upload-txt">Lab Test Results</div><div class="upload-sub">PDF, JPG — max 10MB</div></div>
-        </div>
-        <div class="f-group">
-          <div class="upload-box"><div class="upload-icon">🩻</div><div class="upload-txt">X-Ray images</div><div class="upload-sub">DICOM, JPG — max 20MB</div></div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modalRecord')">Cancel</button>
-      <button class="btn btn-primary">💾 Save Record</button>
-    </div>
-  </div>
+    </form>
+</div>
 </div>
 
-<!-- Modal: Add Doctor -->
-<div class="modal-overlay" id="modalDoctor" onclick="closeOnBg(event,'modalDoctor')">
-  <div class="modal modal-wide">
+<!-- ═══════════════════════════════
+     ATTENDANCE MODAL
+═══════════════════════════════ -->
+<div class="modal-overlay" id="attendModal">
+<div class="modal confirm-modal">
     <div class="modal-header">
-      <div class="modal-title">👨‍⚕️ Add Doctor (Manually)</div>
-      <button class="modal-close" onclick="closeModal('modalDoctor')">✕</button>
+        <div class="modal-title" id="attendTitle">Attendance</div>
+        <button class="modal-close" type="button" onclick="closeModal('attendModal')">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="sec-label">👤 Personal Information</div>
-      <div class="f-grid">
-        <div class="f-group"><label class="f-label"><span class="req">*</span>Doctor Name</label><input class="f-inp" placeholder="Dr. Full Name"></div>
-        <div class="f-group"><label class="f-label"><span class="req">*</span>Phone Number</label><input class="f-inp" type="tel" placeholder="07XXXXXXXX"></div>
-        <div class="f-group f-full"><label class="f-label"><span class="req">*</span>Email Address</label><input class="f-inp" type="email" placeholder="doctor@waffy.jo"></div>
-        <div class="f-group f-full">
-          <div class="upload-box"><div class="upload-icon">👤</div><div class="upload-txt">Professional profile image</div><div class="upload-sub">JPG, PNG — max 3MB</div></div>
-        </div>
-      </div>
-      <hr class="sec-div">
-      <div class="sec-label">🎓 Professional Information</div>
-      <div class="f-grid">
-        <div class="f-group">
-          <label class="f-label"><span class="req">*</span>Specialty</label>
-          <select class="f-inp">
-            <option>Choose a specialty...</option>
-            <option>General Veterinary Medicine</option><option>Veterinary Surgery</option>
-            <option>Dermatology</option><option>Veterinary Dentistry</option>
-            <option>Bird &amp; Reptile Medicine</option>
-          </select>
-        </div>
-        <div class="f-group">
-          <label class="f-label"><span class="req">*</span>Years of experience</label>
-          <select class="f-inp">
-            <option>Less than 1 year</option><option>1–3 years</option>
-            <option>3–5 years</option><option>5–10 years</option><option>More than 10 years</option>
-          </select>
-        </div>
-        <div class="f-group f-full"><label class="f-label">Certifications &amp; Qualifications</label><textarea class="f-inp" placeholder="Bachelor of Veterinary Medicine, certifications..."></textarea></div>
-      </div>
-      <hr class="sec-div">
-      <div class="sec-label">🗓 Work Schedule</div>
-      <div class="f-group">
-        <label class="f-label">Working Days</label>
-        <div class="days-row">
-          <div class="day-chip on" onclick="this.classList.toggle('on')">Sunday</div>
-          <div class="day-chip on" onclick="this.classList.toggle('on')">Monday</div>
-          <div class="day-chip on" onclick="this.classList.toggle('on')">Tuesday</div>
-          <div class="day-chip on" onclick="this.classList.toggle('on')">Wednesday</div>
-          <div class="day-chip on" onclick="this.classList.toggle('on')">Thursday</div>
-          <div class="day-chip" onclick="this.classList.toggle('on')">Friday</div>
-          <div class="day-chip" onclick="this.classList.toggle('on')">Saturday</div>
-        </div>
-      </div>
-      <div class="f-grid">
-        <div class="f-group"><label class="f-label">Start time</label><input class="f-inp" type="time" value="09:00"></div>
-        <div class="f-group"><label class="f-label">End time</label><input class="f-inp" type="time" value="17:00"></div>
-      </div>
+    <div class="modal-body" style="padding:1.4rem;">
+        <div class="c-icon" id="attendIcon">🏁</div>
+        <div class="c-title" id="attendName">Patient</div>
+        <div class="c-msg" id="attendMsg">—</div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modalDoctor')">Cancel</button>
-      <button class="btn btn-primary">💾 Add Doctor</button>
-    </div>
-  </div>
+    <form id="attendForm" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" id="attendId">
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('attendModal')">Cancel</button>
+            <button type="submit" id="attendBtn" class="btn btn-primary">Confirm</button>
+        </div>
+    </form>
+</div>
 </div>
 
-<!-- Modal: Edit Doctor -->
-<div class="modal-overlay" id="modalDoctorEdit" onclick="closeOnBg(event,'modalDoctorEdit')">
-  <div class="modal modal-wide">
+<!-- ═══════════════════════════════
+     CLIQ CONFIRM MODAL
+═══════════════════════════════ -->
+<div class="modal-overlay" id="cliqModal">
+<div class="modal confirm-modal">
     <div class="modal-header">
-      <div class="modal-title">✏️ Edit Doctor Information</div>
-      <button class="modal-close" onclick="closeModal('modalDoctorEdit')">✕</button>
+        <div class="modal-title">📱 Confirm CliQ Payment</div>
+        <button class="modal-close" type="button" onclick="closeModal('cliqModal')">✕</button>
     </div>
-    <div class="modal-body">
-      <div class="sec-label">👤 Personal Information</div>
-      <div class="f-grid">
-        <div class="f-group"><label class="f-label">Doctor Name</label><input class="f-inp" value="Dr. Ahmad Al-Zoubi"></div>
-        <div class="f-group"><label class="f-label">Phone Number</label><input class="f-inp" value="0791234567"></div>
-        <div class="f-group f-full"><label class="f-label">Email Address</label><input class="f-inp" value="ahmed@clinic.jo"></div>
-        <div class="f-group f-full">
-          <div class="upload-box"><div class="upload-icon">👤</div><div class="upload-txt">Change profile image</div><div class="upload-sub">JPG, PNG — max 3MB</div></div>
-        </div>
-      </div>
-      <hr class="sec-div">
-      <div class="sec-label">🎓 Professional Information</div>
-      <div class="f-grid">
-        <div class="f-group">
-          <label class="f-label">Specialty</label>
-          <select class="f-inp"><option selected>Veterinary Surgery</option><option>General Veterinary Medicine</option><option>Dermatology</option></select>
-        </div>
-        <div class="f-group">
-          <label class="f-label">Years of experience</label>
-          <select class="f-inp"><option>5–10 years</option><option selected>More than 10 years</option></select>
-        </div>
-        <div class="f-group f-full"><label class="f-label">Certifications</label><textarea class="f-inp">Bachelor of Veterinary Medicine — University of Jordan, Advanced Surgery Certificate</textarea></div>
-      </div>
-      <hr class="sec-div">
-      <div class="sec-label">🗓 Work Schedule</div>
-      <div class="f-group">
-        <label class="f-label">Working Days</label>
-        <div class="days-row">
-          <div class="day-chip on" onclick="this.classList.toggle('on')">Sunday</div>
-          <div class="day-chip on" onclick="this.classList.toggle('on')">Monday</div>
-          <div class="day-chip on" onclick="this.classList.toggle('on')">Tuesday</div>
-          <div class="day-chip on" onclick="this.classList.toggle('on')">Wednesday</div>
-          <div class="day-chip on" onclick="this.classList.toggle('on')">Thursday</div>
-          <div class="day-chip" onclick="this.classList.toggle('on')">Friday</div>
-          <div class="day-chip" onclick="this.classList.toggle('on')">Saturday</div>
-        </div>
-      </div>
-      <div class="f-grid">
-        <div class="f-group"><label class="f-label">Start time</label><input class="f-inp" type="time" value="09:00"></div>
-        <div class="f-group"><label class="f-label">End time</label><input class="f-inp" type="time" value="17:00"></div>
-      </div>
-      <hr class="sec-div">
-      <div class="sec-label" style="color:var(--red)">⚠️ Actions</div>
-      <div style="display:flex;gap:8px">
-        <button class="btn btn-outline btn-sm" style="color:var(--ora);border-color:var(--ora)">🔒 Temporarily suspend account</button>
-        <button class="btn btn-red btn-sm">🗑 Remove from Clinic</button>
-      </div>
+    <form asp-controller="ClinicAdmin" asp-action="ConfirmCliqPayment" method="post">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="id" id="cliqApptId">
+        <div class="modal-body" style="padding:1.4rem;">
+            <div class="c-icon">📱</div>
+            <div class="c-title">Confirm CliQ Receipt?</div>
+           <div class="c-msg">
+    Verify that you received <strong>5 JOD</strong> via CliQ
+    from the patient for this appointment.<br>
+    Once confirmed, the deposit will be marked as paid.
+</div>
+<div style="background:#fff8e1;border:1.5px solid #fde68a;
+            border-radius:10px;padding:10px 14px;
+            margin-top:10px;text-align:center;">
+    <div style="font-size:.74rem;color:#9b6000;font-weight:700;margin-bottom:4px;">
+        📋 Reference Number to Verify
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modalDoctorEdit')">Cancel</button>
-      <button class="btn btn-primary">💾 Save Changes</button>
+    <div id="cliqRefDisplay"
+         style="font-family:'Fredoka',sans-serif;font-size:1.3rem;
+                font-weight:700;color:#9b6000;letter-spacing:3px;">
+        —
     </div>
-  </div>
+    <div style="font-size:.7rem;color:#555;font-weight:600;margin-top:4px;">
+        This must match the reference sent by the patient
+    </div>
 </div>
 
-<!-- Modal: Adoption Pet Details -->
-<div class="modal-overlay" id="adoptionPetModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="adoptionPetModalTitle">🐾 Pet Details</div>
-      <button class="modal-close" onclick="closeModal('adoptionPetModal')">✕</button>
+<div style="background:#fff8e1;border:1.5px solid #fde68a;border-radius:10px;
+            padding:10px 14px;margin-top:6px;text-align:center;">
+    <div style="font-size:.75rem;color:#9b6000;font-weight:700;">
+        Expected Reference Number
     </div>
-    <div class="modal-body" id="adoptionPetModalBody"></div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('adoptionPetModal')">Close</button>
+    <div style="font-family:'Fredoka',sans-serif;font-size:1.2rem;
+                font-weight:700;color:#9b6000;letter-spacing:2px;"
+         id="cliqRefDisplay">
+        —
     </div>
-  </div>
 </div>
-
-<!-- Modal: Invite Doctor -->
-<div class="modal-overlay" id="modalInvite" onclick="closeOnBg(event,'modalInvite')">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">📨 Send Invite Code for a Doctor</div>
-      <button class="modal-close" onclick="closeModal('modalInvite')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div style="background:linear-gradient(135deg,var(--gp),var(--gu));border-radius:12px;padding:1.2rem;text-align:center;margin-bottom:1.2rem">
-        <div style="font-size:2rem;margin-bottom:8px">🔑</div>
-        <div style="font-size:1.8rem;font-weight:800;color:var(--gd);letter-spacing:3px">WAFFY-DR-4X9K</div>
-        <div style="font-size:.78rem;color:var(--muted);margin-top:6px">Invite code — valid for 7 days</div>
-      </div>
-      <div class="f-group"><label class="f-label">Invited Doctor Name</label><input class="f-inp" placeholder="Dr. Full Name"></div>
-      <div class="f-group"><label class="f-label">Send to</label><input class="f-inp" type="email" placeholder="doctor@email.com"></div>
-      <div class="f-group">
-        <label class="f-label">Delivery method</label>
-        <div style="display:flex;gap:8px;margin-top:6px">
-          <button class="btn btn-outline btn-sm">📧 Email</button>
-          <button class="btn btn-outline btn-sm">📱 WhatsApp</button>
-          <button class="btn btn-outline btn-sm">📋 Copy code</button>
         </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modalInvite')">Close</button>
-      <button class="btn btn-primary">📨 Send Invite</button>
-    </div>
-  </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('cliqModal')">Cancel</button>
+            <button type="submit" class="btn btn-primary">✅ Confirm Received</button>
+        </div>
+    </form>
+</div>
 </div>
 
-<script src="~/js/AdminClinicDoctor.js"></script>
+<script>
+// Doctors data
+const DOCTORS = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+    Model.AvailableDoctors.Select(d => new {
+        id       = d.IdDoctor,
+        name     = d.FullName,
+        spec     = d.Specialization ?? "Veterinary",
+        days     = d.WorkingDays ?? "",
+        maxDaily = d.MaxDailyAppointments.GetValueOrDefault(12),
+        avail    = d.IsAvailable.GetValueOrDefault(true)
+    })
+));
+const COUNTS = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+    Model.DoctorAppointmentCounts
+));
+
+// Modal helpers
+function closeModal(id){ document.getElementById(id)?.classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o =>
+    o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); })
+);
+
+// ── Details Modal ─────────────────────────────────────────────────────
+function openDetails(id) {
+    const row = document.querySelector(`#apptTbody tr[data-id="${id}"]`);
+    if (!row) return;
+    const d = row.dataset;
+
+    // Pet hero
+    const imgEl = document.getElementById('detImg');
+    imgEl.innerHTML = d.petimg
+        ? `<img src="${d.petimg}" style="width:100%;height:100%;object-fit:cover;" alt="${d.petname}">`
+        : (d.petspecies==='dog'?'🐕':d.petspecies==='cat'?'🐈':'🐾');
+    document.getElementById('detPetName').textContent    = d.petname || 'No pet selected';
+    document.getElementById('detPetSpecies').textContent = d.petspecies || '—';
+
+    // Owner
+    document.getElementById('detOwner').textContent = d.ownername || '—';
+    document.getElementById('detPhone').textContent  = d.ownerphone || '—';
+
+    // Appointment
+    document.getElementById('detDate').textContent   = d.date || '—';
+    document.getElementById('detTime').textContent   = d.time + (d.endtime ? ` – ${d.endtime}` : '');
+    document.getElementById('detDoctor').textContent = d.docname
+        ? `Dr. ${d.docname}${d.docspec ? ` · ${d.docspec}` : ''}`
+        : (d.status === 'PendingClinicApproval' ? 'To be assigned by clinic' : '—');
+    document.getElementById('detService').textContent  = d.service || 'General';
+    document.getElementById('detUrgency').innerHTML    = d.urgency === 'Urgent'
+        ? '<span style="color:#e07b3c;font-weight:900;">🔴 Urgent</span>'
+        : '<span style="color:var(--gd);font-weight:800;">🟢 Normal</span>';
+    document.getElementById('detStatus').textContent   = d.status || '—';
+
+    // Deposit
+    document.getElementById('detDepMethod').textContent = d.depositmethod || '—';
+    const depPaid = d.depositpaid === '1';
+    document.getElementById('detDepStatus').innerHTML = depPaid
+        ? '<span style="color:var(--gd);font-weight:900;">✅ Paid</span>'
+        : (d.depositmethod === 'CliQ'
+            ? '<span style="color:#9b6000;font-weight:900;">⏳ CliQ Pending</span>'
+            : '<span style="color:var(--muted);">Not paid</span>');
+
+    // Reason
+    const rsec = document.getElementById('detReasonSection');
+    if (d.reason) {
+        document.getElementById('detReason').textContent = d.reason;
+        rsec.style.display = 'block';
+    } else {
+        rsec.style.display = 'none';
+    }
+
+    document.getElementById('detTitle').textContent = d.petname
+        ? `📅 ${d.petname}'s Appointment`
+        : '📅 Appointment Details';
+
+    document.getElementById('detailsModal').classList.add('open');
+}
+
+// ── Assign Doctor Modal ───────────────────────────────────────────────
+let selDocId = 0;
+function openAssignModal(apptId, apptDate) {
+    document.getElementById('assignApptId').value = apptId;
+    selDocId = 0;
+    document.getElementById('assignDoctorId').value = 0;
+    document.getElementById('assignBtn').disabled = true;
+
+    const dayOfWeek = new Date(apptDate + 'T00:00:00').getDay();
+    let html = '';
+
+    if (!DOCTORS || DOCTORS.length === 0) {
+        document.getElementById('doctorList').innerHTML =
+            '<div style="color:var(--muted);padding:1rem;font-weight:700;">No doctors registered in this clinic.</div>';
+        document.getElementById('assignModal').classList.add('open');
+        return;
+    }
+
+    DOCTORS.forEach(doc => {
+        const wdays = doc.days ? doc.days.split(',').map(x => parseInt(x.trim())) : [];
+        const worksToday = wdays.length === 0 || wdays.includes(dayOfWeek);
+        const cnt  = COUNTS[doc.id] || 0;
+        const full = cnt >= doc.maxDaily;
+        const ok   = worksToday && !full && doc.avail;
+
+        const avHtml = ok
+            ? `<span class="av-ok">🟢 Available · ${cnt}/${doc.maxDaily} today</span>`
+            : !worksToday ? `<span class="av-warn">📅 Day off</span>`
+            : full        ? `<span class="av-no">🔴 Full (${cnt}/${doc.maxDaily})</span>`
+            :               `<span class="av-no">❌ Unavailable</span>`;
+
+        html += `
+        <div class="assign-card ${ok ? '' : 'disabled'}" id="adc${doc.id}"
+             onclick="${ok ? `selDoc(${doc.id})` : ''}">
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--gp);
+                        display:flex;align-items:center;justify-content:center;
+                        font-family:'Fredoka',sans-serif;font-size:.95rem;
+                        font-weight:700;color:var(--gd);flex-shrink:0;">
+                ${doc.name.split(' ').slice(0,2).map(w=>w[0]).join('').toUpperCase()}
+            </div>
+            <div style="flex:1;">
+                <div style="font-weight:900;font-size:.88rem;">Dr. ${doc.name}</div>
+                <div style="font-size:.73rem;color:var(--muted);font-weight:700;">${doc.spec}</div>
+                ${avHtml}
+            </div>
+        </div>`;
+    });
+
+    document.getElementById('doctorList').innerHTML = html ||
+        '<div style="color:var(--muted);padding:1rem;font-weight:700;">No available doctors for this slot.</div>';
+    document.getElementById('assignModal').classList.add('open');
+}
+
+function selDoc(id) {
+    document.querySelectorAll('.assign-card').forEach(c => c.classList.remove('sel'));
+    document.getElementById(`adc${id}`)?.classList.add('sel');
+    selDocId = id;
+    document.getElementById('assignDoctorId').value = id;
+    document.getElementById('assignBtn').disabled = false;
+}
+
+// ── Reject Modal ──────────────────────────────────────────────────────
+function openRejectModal(id, name) {
+    document.getElementById('rejectId').value = id;
+    document.getElementById('rejectMsg').textContent =
+        `Reject ${name || 'this'} appointment? The 5 JOD deposit will be returned immediately.`;
+    document.getElementById('rejectModal').classList.add('open');
+}
+
+// ── Attendance Modal ──────────────────────────────────────────────────
+function openAttendModal(id, name, attended) {
+    document.getElementById('attendId').value = id;
+    if (attended) {
+        document.getElementById('attendTitle').textContent = '🏁 Confirm Attendance';
+        document.getElementById('attendIcon').textContent  = '🏁';
+        document.getElementById('attendName').textContent  = `${name || 'Patient'} attended`;
+        document.getElementById('attendMsg').textContent   =
+            'Marking visit as complete. The 5 JOD deposit will be returned to the patient\'s wallet.';
+        document.getElementById('attendBtn').className     = 'btn btn-primary';
+        document.getElementById('attendBtn').textContent   = '✅ Confirm & Return Deposit';
+        document.getElementById('attendForm').action       = '/ClinicAdmin/ConfirmAttendance';
+    } else {
+        document.getElementById('attendTitle').textContent = '🚫 Mark No-Show';
+        document.getElementById('attendIcon').textContent  = '🚫';
+        document.getElementById('attendName').textContent  = `${name || 'Patient'} did not attend`;
+        document.getElementById('attendMsg').textContent   =
+            'The appointment will be cancelled. The 5 JOD deposit will be RETAINED as per the no-show policy.';
+        document.getElementById('attendBtn').className     = 'btn btn-red';
+        document.getElementById('attendBtn').textContent   = '🚫 Mark No-Show (Keep Deposit)';
+        document.getElementById('attendForm').action       = '/ClinicAdmin/MarkNoShow';
+    }
+    document.getElementById('attendModal').classList.add('open');
+}
+
+// ── CliQ Confirm Modal ────────────────────────────────────────────────
+function confirmCliq(id) {
+    document.getElementById('cliqApptId').value = id;
+    const row = document.querySelector(`#apptTbody tr[data-id="${id}"]`);
+    const ref = row?.dataset.cliqref || '—';
+    document.getElementById('cliqRefDisplay').textContent = ref;
+    document.getElementById('cliqModal').classList.add('open');
+}
+
+// ── Table Filter ──────────────────────────────────────────────────────
+function filterTable() {
+    const q   = (document.getElementById('searchInput')?.value ?? '').toLowerCase();
+    const doc = (document.getElementById('docFilter')?.value   ?? '').toLowerCase();
+    let vis = 0;
+    document.querySelectorAll('#apptTbody tr').forEach(r => {
+        const ok = (!q   || (r.dataset.search ?? '').includes(q)) &&
+                   (!doc || (r.dataset.doctor ?? '').toLowerCase().includes(doc));
+        r.style.display = ok ? '' : 'none';
+        if (ok) vis++;
+    });
+    const lbl = document.getElementById('countLabel');
+    if (lbl) lbl.textContent = vis + ' result(s)';
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────
+function toggleSidebar(){const sb=document.getElementById("sidebar"),ov=document.getElementById("sidebarOverlay"),sh=document.getElementById("waShell");if(window.innerWidth<=992){sb?.classList.toggle("mob-open");ov?.classList.toggle("show");document.body.classList.toggle("sidebar-open")}else{sh?.classList.toggle("mini")}}
+function closeSidebar(){document.getElementById("sidebar")?.classList.remove("mob-open");document.getElementById("sidebarOverlay")?.classList.remove("show");document.body.classList.remove("sidebar-open");}
+document.addEventListener("DOMContentLoaded",()=>{
+    document.querySelectorAll(".wa-sb .sb-row").forEach(r=>r.addEventListener("click",()=>{if(window.innerWidth<=992)closeSidebar()}));
+    window.addEventListener("resize",()=>{if(window.innerWidth>992)closeSidebar()});
+});
+</script>
 </body>
 </html>

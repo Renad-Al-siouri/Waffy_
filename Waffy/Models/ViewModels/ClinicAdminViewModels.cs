@@ -98,6 +98,8 @@ namespace Waffy.Models.ViewModels
         public string? Address { get; set; }
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
+        public string? CliqNumber { get; set; }
+
     }
     public class WorkingHoursViewModel
     {
@@ -139,4 +141,9 @@ namespace Waffy.Models.ViewModels
         public bool HasRejectedDoc =>
             Documents.Any(d => d.Status == "rejected" || d.Status == "Rejected");
     }
+
+
+
+
+
 }

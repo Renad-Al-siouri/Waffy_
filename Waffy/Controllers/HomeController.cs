@@ -18,8 +18,8 @@ namespace Waffy.Controllers
         private readonly IProductRepository _productRepo;
         private readonly IProductImageRepository _productImageRepo;
         private readonly ILostPetRepository _lostPetRepo;
-        private readonly IAdoptionRepository _adoptionRepo; 
-
+        private readonly IAdoptionRepository _adoptionRepo;
+        private readonly IUserRepository _userRepo;
 
         public HomeController(
      ILogger<HomeController> logger,
@@ -31,7 +31,8 @@ namespace Waffy.Controllers
      IProductRepository productRepo,
      IProductImageRepository productImageRepo,
      IAdoptionRepository adoptionRepo,
-     ILostPetRepository lostPetRepo)
+     ILostPetRepository lostPetRepo,
+     IUserRepository userRepo)
         {
             _logger = logger;
             _complaintRepo = complaintRepo;
@@ -43,6 +44,7 @@ namespace Waffy.Controllers
             _productImageRepo = productImageRepo;
             _adoptionRepo = adoptionRepo;
             _lostPetRepo = lostPetRepo;
+            _userRepo = userRepo;
         }
 
         public IActionResult Index()
@@ -56,6 +58,8 @@ namespace Waffy.Controllers
         }
         public async Task<IActionResult> Home_Before()
         {
+
+
             var allStores = (await _storeRepo.GetAllAsync())
      .Where(s => s.VerificationStatus == "Approved")
      .ToList();
@@ -146,8 +150,48 @@ namespace Waffy.Controllers
                 });
             }
             ViewBag.AdoptionJson = System.Text.Json.JsonSerializer.Serialize(adoptionDtos);
+            // ── Stats ──
+            var petOwnerCount = await _userRepo.CountTotalAsync();
+            var clinicCount = (await _clinicRepo.GetAllAsync())
+                                 .Count(c => c.VerificationStatus == "Approved");
+            var storeCount = (await _storeRepo.GetAllAsync())
+                                 .Count(s => s.VerificationStatus == "Approved");
+            var adoptionCount = (await _adoptionRepo.GetApprovedAsync()).Count();
 
-           
+            ViewBag.StatPetOwners = petOwnerCount.ToString("N0");
+            ViewBag.StatClinics = clinicCount.ToString();
+            ViewBag.StatStores = storeCount.ToString();
+            ViewBag.StatAdoptions = adoptionCount.ToString();
+
+            // ── Clinics for home section ──
+            var homeClinics = (await _clinicRepo.GetAllAsync())
+     .Where(c => c.VerificationStatus == "Approved")
+     .OrderByDescending(c => c.CreatedAt)
+     .Take(5).ToList();
+
+            var now2 = DateTime.Now.TimeOfDay;
+            var clinicDtos = homeClinics.Select(c => new
+            {
+                id = c.IdClinic,
+                name = c.Name,
+                city = c.City ?? "",
+                area = c.Area ?? "",
+                logo = c.LogoUrl ?? "",
+                cover = c.CoverImageUrl ?? "",
+                isOpen = c.DefaultOpenTime.HasValue && c.DefaultCloseTime.HasValue
+                           && now2 >= c.DefaultOpenTime.Value
+                           && now2 <= c.DefaultCloseTime.Value,
+                openTime = c.DefaultOpenTime?.ToString(@"hh\:mm") ?? "",
+                closeTime = c.DefaultCloseTime?.ToString(@"hh\:mm") ?? "",
+                rating = c.Rating,
+                hasEmergency = c.HasEmergency,
+                clinicType = c.ClinicType ?? "Veterinary Clinic",
+                lat = c.Latitude,
+                lng = c.Longitude
+            }).ToList();
+
+            ViewBag.HomeClinicsJson = System.Text.Json.JsonSerializer.Serialize(clinicDtos);
+
             return View();
         }
 
@@ -243,7 +287,46 @@ namespace Waffy.Controllers
                 });
             }
             ViewBag.AdoptionJson = System.Text.Json.JsonSerializer.Serialize(adoptionDtos);
+            // ── Stats ──
+            var petOwnerCount = await _userRepo.CountTotalAsync();
+            var clinicCount = (await _clinicRepo.GetAllAsync())
+                                 .Count(c => c.VerificationStatus == "Approved");
+            var storeCount = (await _storeRepo.GetAllAsync())
+                                 .Count(s => s.VerificationStatus == "Approved");
+            var adoptionCount = (await _adoptionRepo.GetApprovedAsync()).Count();
 
+            ViewBag.StatPetOwners = petOwnerCount.ToString("N0");
+            ViewBag.StatClinics = clinicCount.ToString();
+            ViewBag.StatStores = storeCount.ToString();
+            ViewBag.StatAdoptions = adoptionCount.ToString();
+
+            // ── Clinics for home section ──
+            var homeClinics = (await _clinicRepo.GetAllAsync())
+                .Where(c => c.VerificationStatus == "Approved")
+                .Take(7).ToList();
+
+            var now2 = DateTime.Now.TimeOfDay;
+            var clinicDtos = homeClinics.Select(c => new
+            {
+                id = c.IdClinic,
+                name = c.Name,
+                city = c.City ?? "",
+                area = c.Area ?? "",
+                logo = c.LogoUrl ?? "",
+                cover = c.CoverImageUrl ?? "",
+                isOpen = c.DefaultOpenTime.HasValue && c.DefaultCloseTime.HasValue
+                           && now2 >= c.DefaultOpenTime.Value
+                           && now2 <= c.DefaultCloseTime.Value,
+                openTime = c.DefaultOpenTime?.ToString(@"hh\:mm") ?? "",
+                closeTime = c.DefaultCloseTime?.ToString(@"hh\:mm") ?? "",
+                rating = c.Rating,
+                hasEmergency = c.HasEmergency,
+                clinicType = c.ClinicType ?? "Veterinary Clinic",
+                lat = c.Latitude,
+                lng = c.Longitude
+            }).ToList();
+
+            ViewBag.HomeClinicsJson = System.Text.Json.JsonSerializer.Serialize(clinicDtos);
             return View();
         }
         public IActionResult About()

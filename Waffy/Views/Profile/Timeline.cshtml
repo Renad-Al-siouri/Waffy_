@@ -1,5 +1,4 @@
 ﻿@model Waffy.Models.ViewModels.WalletViewModel
-
 @{
     ViewData["Title"] = "Activity Timeline";
     Layout = null;
@@ -8,7 +7,6 @@
     ViewBag.SidebarProfileImage = Model.User.ProfileImage;
     ViewBag.SidebarBalance = Model.Balance.ToString("F2");
 }
-
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -20,68 +18,266 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="~/css/waffy-shared.css">
     <link rel="stylesheet" href="~/css/waffy-responsive-patch.css">
+    <style>
+        /* ── Timeline ── */
+        .timeline {
+            position: relative;
+            padding-left: 28px;
+        }
+
+            .timeline::before {
+                content: '';
+                position: absolute;
+                left: 9px;
+                top: 0;
+                bottom: 0;
+                width: 2px;
+                background: linear-gradient(to bottom, #dbe8b8, #e8efd8);
+            }
+
+        .tl-item {
+            position: relative;
+            margin-bottom: 18px;
+            animation: fadeInUp .3s ease both;
+        }
+
+        .tl-dot {
+            position: absolute;
+            left: -24px;
+            top: 4px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 2px currentColor;
+            flex-shrink: 0;
+        }
+
+        .tl-content {
+            background: #fff;
+            border: 1px solid #e8efd8;
+            border-radius: 12px;
+            padding: 10px 14px;
+            transition: box-shadow .2s;
+        }
+
+            .tl-content:hover {
+                box-shadow: 0 3px 12px rgba(90,101,42,.1);
+            }
+
+            .tl-content h4 {
+                font-size: .88rem;
+                font-weight: 800;
+                color: #3d3020;
+                margin: 0 0 3px;
+            }
+
+            .tl-content p {
+                font-size: .78rem;
+                color: #7b6c58;
+                font-weight: 700;
+                margin: 0 0 4px;
+                line-height: 1.5;
+            }
+
+            .tl-content small {
+                font-size: .68rem;
+                color: #a89688;
+                font-weight: 700;
+            }
+
+        /* ── Appointment events get special border ── */
+        .tl-appt .tl-content {
+            border-left: 3px solid #7d953d;
+        }
+
+        .tl-appt-confirmed .tl-content {
+            border-left-color: #2d7a2d;
+        }
+
+        .tl-appt-completed .tl-content {
+            border-left-color: #5f7430;
+        }
+
+        .tl-appt-cancelled .tl-content {
+            border-left-color: #c86a5c;
+        }
+
+        .tl-appt-noshow .tl-content {
+            border-left-color: #e07b3c;
+        }
+
+        .tl-appt-pending .tl-content {
+            border-left-color: #9b6000;
+        }
+
+        .tl-appt-cliq .tl-content {
+            border-left-color: #1a3a8f;
+        }
+
+        .tl-appt-deposit .tl-content {
+            border-left-color: #2d7a2d;
+        }
+
+        .tl-appt-returned .tl-content {
+            border-left-color: #2d7a2d;
+        }
+
+        /* ── Filters ── */
+        .tl-filter {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .tl-chip {
+            padding: 5px 12px;
+            border-radius: 10px;
+            border: 1.5px solid #e8efd8;
+            background: #fff;
+            font-size: .78rem;
+            font-weight: 800;
+            color: #8a9a6a;
+            cursor: pointer;
+            font-family: 'Nunito', sans-serif;
+            transition: .15s;
+        }
+
+            .tl-chip:hover, .tl-chip.active {
+                border-color: #5f7430;
+                background: #eef4dd;
+                color: #5f7430;
+            }
+
+        .tl-chip-appt {
+            border-color: #c5d0e8;
+            color: #1a3a8f;
+            background: #e8f0fe;
+        }
+
+            .tl-chip-appt.active {
+                background: #1a3a8f;
+                color: #fff;
+                border-color: #1a3a8f;
+            }
+
+        /* ── Empty ── */
+        .tl-empty {
+            text-align: center;
+            padding: 2.5rem;
+            color: #a89688;
+            font-weight: 700;
+        }
+
+        @@keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @@media(max-width: 540px) {
+            .tl-content h4 {
+                font-size: .82rem;
+            }
+
+            .tl-content p {
+                font-size: .74rem;
+            }
+
+            .tl-filter {
+                gap: 6px;
+            }
+
+            .tl-chip {
+                font-size: .72rem;
+                padding: 4px 10px;
+            }
+        }
+    </style>
 </head>
 <body>
 
+    <!-- ══ NAVBAR ══ -->
     <div class="top-hero-area">
         <div class="top-hero-shell">
             <header class="topbar">
                 <div class="header-shell">
                     <nav class="navbar">
                         <div class="left-nav desktop-nav desktop-links">
-                            <a href="/Home/Index" class="nav-link active">Home</a>
-                            <a href="/Clinics/Index" class="nav-link">Clinics</a>
-                            <a href="/Stores/Index" class="nav-link">Stores</a>
-                            <a href="/Adoption/Index" class="nav-link">Adoption</a>
-                            <a href="/Lost/Index" class="nav-link">Lost Pets</a>
+                            <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
+                            <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
+                            <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
+                            <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
+                            <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                         </div>
                         <div class="logo-center"><img src="~/Images/logo.png" alt="Waffy" class="main-logo"></div>
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
                                 <div class="services-dropdown" id="servicesDropdown">
-                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">Services <span class="dropdown-arrow">&#9660;</span></button>
+                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
+                                        Services <span class="dropdown-arrow">▼</span>
+                                    </button>
                                     <div class="dropdown-menu" id="servicesMenu">
-                                        <a href="/Clinics/Index" class="dropdown-link">Clinics</a>
-                                        <a href="/Stores/Index" class="dropdown-link">Stores</a>
-                                        <a href="/Adoption/Index" class="dropdown-link">Adoption</a>
-                                        <a href="/Lost/Index" class="dropdown-link">Lost Pets</a>
-                                        <a href="/Map/Index" class="dropdown-link">Map</a>
-                                        <a href="/Donate/Index" class="dropdown-link">Donations</a>
-                                        <a href="/Law/Index" class="dropdown-link">Law</a>
-                                        <a href="/Dangerous/Index" class="dropdown-link">Dangerous Animal</a>
-                                        <a href="/Support/Index" class="dropdown-link">Technical Support</a>
-                                        <a href="/Faq/Index" class="dropdown-link">FAQ</a>
+                                        <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
+                                        <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
+                                        <a asp-controller="Pet" asp-action="Adapt" class="dropdown-link">Adoption</a>
+                                        <a asp-controller="Pet" asp-action="Lost" class="dropdown-link">Lost Pets</a>
+                                        <a asp-controller="Map" asp-action="Gps" class="dropdown-link">Map</a>
+                                        <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
+                                        <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
+                                        <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
+                                        <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
+                                        <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                     </div>
                                 </div>
-                                <a href="/About/Index" class="nav-link">About Us</a>
+                                <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                             </div>
                             <div class="nav-actions">
-                                <a href="/Cart/Index" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
-                                <a href="/Notifications/Index" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
-                                <a href="/Profile/Edit_Profile" class="profile-btn"><img src="~/Images/user.jpg" alt="Profile"></a>
-                                <a href="/Account/Logout" class="nav-link login-btn">Log out</a>
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
+                                <a asp-controller="Profile" asp-action="Edit_Profile" class="profile-btn">
+                                    @if (!string.IsNullOrEmpty(Model.User.ProfileImage))
+                                    {
+                                        <img src="@Model.User.ProfileImage" alt="Profile">
+                                    }
+                                    else
+                                    {
+
+                                        <img src="~/Images/user.jpg" alt="Profile">
+                                    }
+                                </a>
+                                <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
                             <div class="mobile-nav-wrap">
-                                <button class="menu-btn" id="menuBtn" type="button">&#9776;</button>
+                                <button class="menu-btn" id="menuBtn" type="button">☰</button>
                                 <div class="nav-links" id="navLinks">
                                     <div class="mobile-menu-logo"><img src="~/Images/logo.png" alt="Waffy"></div>
-                                    <a href="/Home/Index" class="nav-link active">Home</a>
-                                    <a href="/Clinics/Index" class="nav-link">Clinics</a>
-                                    <a href="/Stores/Index" class="nav-link">Stores</a>
-                                    <a href="/Adoption/Index" class="nav-link">Adoption</a>
-                                    <a href="/Lost/Index" class="nav-link">Lost Pets</a>
+                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
+                                    <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
+                                    <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
+                                    <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
+                                    <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                                     <div class="mobile-services-block" id="mobileServicesBlock">
-                                        <button class="mobile-services-toggle" id="mobileServicesToggle" type="button"><span>Services</span><span class="dropdown-arrow">&#9660;</span></button>
+                                        <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
+                                            <span>Services</span><span class="dropdown-arrow">▼</span>
+                                        </button>
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
-                                            <a href="/Donate/Index" class="dropdown-link">Donations</a>
-                                            <a href="/Law/Index" class="dropdown-link">Law</a>
-                                            <a href="/Dangerous/Index" class="dropdown-link">Dangerous Animal</a>
-                                            <a href="/Support/Index" class="dropdown-link">Technical Support</a>
-                                            <a href="/Faq/Index" class="dropdown-link">FAQ</a>
+                                            <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
+                                            <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
+                                            <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
+                                            <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
+                                            <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
-                                    <a href="/About/Index" class="nav-link">About Us</a>
-                                    <a href="/Account/Logout" class="nav-link login-btn">Log out</a>
+                                    <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
+                                    <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                                 </div>
                             </div>
                         </div>
@@ -91,10 +287,11 @@
         </div>
     </div>
 
+    <!-- ══ CONTENT ══ -->
     <div class="page-wrap">
         @await Html.PartialAsync("_ProfileSidebar")
-
         <main class="main-content">
+
             <div class="page-header">
                 <div>
                     <h2>Activity Timeline ⏰</h2>
@@ -105,44 +302,85 @@
             <div class="s-card">
                 <div class="s-card-head">
                     <span class="s-card-title">Recent Activity</span>
-                    <span class="badge badge-blue">@Model.TimelineEvents.Count Events</span>
+                    <span class="badge badge-blue">@Model.TimelineEvents.Count events</span>
                 </div>
                 <div class="s-card-body">
+
                     @if (!Model.TimelineEvents.Any())
                     {
-                        <p style="text-align:center;color:var(--muted);padding:2rem">
-                            No activity yet. Start using Waffy! 🐾
-                        </p>
+                        <div class="tl-empty">
+                            <div style="font-size:2.5rem;margin-bottom:10px;">⏰</div>
+                            <div>No activity yet. Start using Waffy! 🐾</div>
+                        </div>
                     }
+                    else
+                    {
+                        <!-- Filter chips -->
+                        <div class="tl-filter">
+                            <button class="tl-chip active" data-filter="all" onclick="filterTL(this,'all')">All</button>
+                            <button class="tl-chip tl-chip-appt" data-filter="appt" onclick="filterTL(this,'appt')">📅 Appointments</button>
+                            <button class="tl-chip" data-filter="wallet" onclick="filterTL(this,'wallet')">💳 Wallet</button>
+                            <button class="tl-chip" data-filter="lost" onclick="filterTL(this,'lost')">🔍 Lost Pets</button>
+                            <button class="tl-chip" data-filter="other" onclick="filterTL(this,'other')">🐾 Other</button>
+                        </div>
 
-                    <div class="timeline">
-                        @foreach (var ev in Model.TimelineEvents)
-                        {
-                            <div class="tl-item">
-                                <div class="tl-dot" style="background:@ev.Color"></div>
-                                <div class="tl-content">
-                                    <h4>@ev.Icon @ev.Title</h4>
-                                    @if (!string.IsNullOrEmpty(ev.Description))
-                                    {
-                                        <p>@ev.Description</p>
-                                    }
-                                    <small>@ev.Date.ToString("MMM dd, yyyy · hh:mm tt")</small>
+                        <div class="timeline" id="tlList">
+                            @foreach (var ev in Model.TimelineEvents)
+                            {
+                                @* تحديد category لكل حدث *@
+                                var cat = ev.Icon switch
+                                {
+                                    "📅" or "✅" or "🏁" or "❌" or "🚫" or "⏳" or "📱" => "appt",
+                                    "💰" or "💸" or "💳" or "🔒" or "↩️" when
+                                    ev.Title.Contains("Deposit") || ev.Title.Contains("Top-up")
+                                    || ev.Title.Contains("Payment") => "wallet",
+                                    "💰" or "💸" or "💳" when !ev.Title.Contains("Deposit") => "wallet",
+                                    "🔍" or "🎁" or "🔎" => "lost",
+                                    _ => "other"
+                                };
+
+                                @* CSS class لأحداث المواعيد *@
+                                var apptClass = ev.Icon switch
+                                {
+                                    "✅" => "tl-appt tl-appt-confirmed",
+                                    "🏁" => "tl-appt tl-appt-completed",
+                                    "❌" => "tl-appt tl-appt-cancelled",
+                                    "🚫" => "tl-appt tl-appt-noshow",
+                                    "⏳" => "tl-appt tl-appt-pending",
+                                    "📱" => "tl-appt tl-appt-cliq",
+                                    "📅" => "tl-appt",
+                                    "💰" when ev.Title.Contains("Deposit") => "tl-appt tl-appt-returned",
+                                    "💳" when ev.Title.Contains("Deposit") => "tl-appt tl-appt-deposit",
+                                    _ => ""
+                                };
+
+                                <div class="tl-item @apptClass" data-cat="@cat">
+                                    <div class="tl-dot" style="background:@ev.Color;color:@ev.Color;"></div>
+                                    <div class="tl-content">
+                                        <h4>@ev.Icon @ev.Title</h4>
+                                        @if (!string.IsNullOrEmpty(ev.Description))
+                                        {
+                                            <p>@ev.Description</p>
+                                        }
+                                        <small>🕐 @ev.Date.ToString("dd MMM yyyy · hh:mm tt")</small>
+                                    </div>
                                 </div>
-                            </div>
-                        }
-                    </div>
+                            }
+                        </div>
+                    }
                 </div>
             </div>
+
         </main>
     </div>
 
-    <!-- Mobile Bottom Navigation -->
-    <div class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile bottom navigation">
-        <a href="/Profile/Edit_Profile" class="mb-nav-item"><i class="fa-solid fa-user"></i><span>Edit</span></a>
-        <a href="/Profile/My_Wallet" class="mb-nav-item"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
-        <a href="/Profile/Appointments" class="mb-nav-item"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></a>
-        <a href="/Profile/Orders" class="mb-nav-item"><i class="fa-solid fa-box"></i><span>Orders</span></a>
-        <button type="button" class="mb-nav-item mb-more-btn" id="mbMoreBtn" aria-expanded="false" aria-controls="mbMoreDrawer">
+    <!-- ══ MOBILE BOTTOM NAV ══ -->
+    <div class="mobile-bottom-nav" id="mobileBottomNav">
+        <a asp-controller="Profile" asp-action="Edit_Profile" class="mb-nav-item"><i class="fa-solid fa-user"></i><span>Edit</span></a>
+        <a asp-controller="Profile" asp-action="My_Wallet" class="mb-nav-item"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
+        <a asp-controller="Profile" asp-action="Appointments" class="mb-nav-item"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></a>
+        <a asp-controller="Profile" asp-action="Orders" class="mb-nav-item"><i class="fa-solid fa-box"></i><span>Orders</span></a>
+        <button type="button" class="mb-nav-item mb-more-btn" id="mbMoreBtn" aria-expanded="false">
             <i class="fa-solid fa-grid-2"></i><span>More</span>
         </button>
     </div>
@@ -151,16 +389,16 @@
     <div class="mb-more-drawer" id="mbMoreDrawer" aria-hidden="true">
         <div class="mb-more-head">
             <h3>More Pages</h3>
-            <button type="button" class="mb-more-close" id="mbMoreClose" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" class="mb-more-close" id="mbMoreClose"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="mb-more-grid">
-            <a href="/Profile/Contact_Info" class="mb-more-link"><i class="fa-solid fa-address-card"></i><span>Contact Info</span></a>
-            <a href="/Profile/Rewards" class="mb-more-link"><i class="fa-solid fa-gift"></i><span>Rewards</span></a>
-            <a href="/Profile/Lost_Reports" class="mb-more-link"><i class="fa-solid fa-magnifying-glass"></i><span>Lost Reports</span></a>
-            <a href="/Profile/Adoption_Ads" class="mb-more-link"><i class="fa-solid fa-paw"></i><span>Adoption Ads</span></a>
-            <a href="/Profile/Timeline" class="mb-more-link"><i class="fa-solid fa-clock-rotate-left"></i><span>Timeline</span></a>
-            <a href="/Profile/Complaints" class="mb-more-link"><i class="fa-solid fa-triangle-exclamation"></i><span>Complaints</span></a>
-            <a href="/Profile/Security" class="mb-more-link"><i class="fa-solid fa-lock"></i><span>Security</span></a>
+            <a asp-controller="Profile" asp-action="Contact_Info" class="mb-more-link"><i class="fa-solid fa-address-card"></i><span>Contact Info</span></a>
+            <a asp-controller="Profile" asp-action="Rewards" class="mb-more-link"><i class="fa-solid fa-gift"></i><span>Rewards</span></a>
+            <a asp-controller="Profile" asp-action="Lost_Reports" class="mb-more-link"><i class="fa-solid fa-magnifying-glass"></i><span>Lost Reports</span></a>
+            <a asp-controller="Profile" asp-action="Adoption_Ads" class="mb-more-link"><i class="fa-solid fa-paw"></i><span>Adoption Ads</span></a>
+            <a asp-controller="Profile" asp-action="Timeline" class="mb-more-link"><i class="fa-solid fa-clock-rotate-left"></i><span>Timeline</span></a>
+            <a asp-controller="Profile" asp-action="Complaints" class="mb-more-link"><i class="fa-solid fa-flag"></i><span>Complaints</span></a>
+            <a asp-controller="Profile" asp-action="Security" class="mb-more-link"><i class="fa-solid fa-lock"></i><span>Security</span></a>
         </div>
     </div>
 
@@ -168,38 +406,74 @@
     <footer class="footer">
         <div class="container">
             <div class="footer-links">
-                <a href="/Home/Index">Home</a><span>|</span>
-                <a href="/Clinics/Index">Clinics</a><span>|</span>
-                <a href="/Stores/Index">Supplies</a><span>|</span>
-                <a href="/About/Index">About Us</a>
+                <a asp-controller="Home" asp-action="About">About Us</a><span>|</span>
+                <a asp-controller="Home" asp-action="Faq">FAQ</a>
             </div>
-            <p>&#169; 2026 Waffy. All rights reserved.</p>
+            <p>© 2026 Waffy. All rights reserved.</p>
         </div>
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-          const moreBtn = document.getElementById('mbMoreBtn'); const moreDrawer = document.getElementById('mbMoreDrawer'); const moreOverlay = document.getElementById('mbMoreOverlay'); const moreClose = document.getElementById('mbMoreClose');
-          if (!moreBtn || !moreDrawer || !moreOverlay) return;
-          function openMoreDrawer() { moreDrawer.classList.add('open'); moreOverlay.classList.add('open'); moreBtn.setAttribute('aria-expanded','true'); moreDrawer.setAttribute('aria-hidden','false'); document.body.classList.add('mb-menu-open'); }
-          function closeMoreDrawer() { moreDrawer.classList.remove('open'); moreOverlay.classList.remove('open'); moreBtn.setAttribute('aria-expanded','false'); moreDrawer.setAttribute('aria-hidden','true'); document.body.classList.remove('mb-menu-open'); }
-          function toggleMoreDrawer() { moreDrawer.classList.contains('open') ? closeMoreDrawer() : openMoreDrawer(); }
-          moreBtn.addEventListener('click', toggleMoreDrawer);
-          if (moreClose) moreClose.addEventListener('click', closeMoreDrawer);
-          moreOverlay.addEventListener('click', closeMoreDrawer);
-          document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMoreDrawer(); });
-          window.addEventListener('resize', () => { if (window.innerWidth >= 768) closeMoreDrawer(); });
+        // ── Filter ────────────────────────────────────────────────────────
+        function filterTL(btn, filter) {
+            document.querySelectorAll('.tl-chip').forEach(c => c.classList.remove('active'));
+            btn.classList.add('active');
+            document.querySelectorAll('#tlList .tl-item').forEach(item => {
+                item.style.display =
+                    filter === 'all' || item.dataset.cat === filter ? '' : 'none';
+            });
+        }
+
+        // ── Navbar / Sidebar ──────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            const sd = document.getElementById("servicesDropdown");
+            const st = document.getElementById("servicesToggle");
+            if (sd && st) {
+                st.addEventListener("click", e => { e.stopPropagation(); sd.classList.toggle("open"); });
+                document.addEventListener("click", () => sd.classList.remove("open"));
+            }
+            const mb = document.getElementById("menuBtn");
+            const nl = document.getElementById("navLinks");
+            if (mb && nl) {
+                mb.addEventListener("click", e => { e.stopPropagation(); nl.classList.toggle("open"); });
+                document.addEventListener("click", e => {
+                    if (!nl.contains(e.target) && e.target !== mb) nl.classList.remove("open");
+                });
+            }
+            const mt = document.getElementById("mobileServicesToggle");
+            const ms = document.getElementById("mobileServicesBlock");
+            if (mt && ms) mt.addEventListener("click", () => ms.classList.toggle("open"));
+
+            const moreBtn     = document.getElementById('mbMoreBtn');
+            const moreDrawer  = document.getElementById('mbMoreDrawer');
+            const moreOverlay = document.getElementById('mbMoreOverlay');
+            const moreClose   = document.getElementById('mbMoreClose');
+            if (!moreBtn) return;
+            const openMore  = () => { moreDrawer.classList.add('open'); moreOverlay.classList.add('open'); document.body.classList.add('mb-menu-open'); };
+            const closeMore = () => { moreDrawer.classList.remove('open'); moreOverlay.classList.remove('open'); document.body.classList.remove('mb-menu-open'); };
+            moreBtn.addEventListener('click', () => moreDrawer.classList.contains('open') ? closeMore() : openMore());
+            moreClose?.addEventListener('click', closeMore);
+            moreOverlay?.addEventListener('click', closeMore);
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMore(); });
+            window.addEventListener('resize', () => { if (window.innerWidth >= 768) closeMore(); });
         });
-        function showToast(msg, duration = 3000) { const t = document.getElementById("toast"); if (!t) return; t.textContent = msg; t.classList.add("show"); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove("show"), duration); }
-        document.addEventListener("DOMContentLoaded", () => {
-          const menuBtn = document.getElementById("menuBtn"); const navLinks = document.getElementById("navLinks");
-          if (menuBtn && navLinks) { menuBtn.addEventListener("click", e => { e.stopPropagation(); navLinks.classList.toggle("open"); }); document.addEventListener("click", e => { if (!navLinks.contains(e.target) && e.target !== menuBtn) navLinks.classList.remove("open"); }); }
-          const sd = document.getElementById("servicesDropdown"); const st = document.getElementById("servicesToggle");
-          if (sd && st) { st.addEventListener("click", e => { e.stopPropagation(); sd.classList.toggle("open"); }); document.addEventListener("click", () => sd.classList.remove("open")); }
-          const mt = document.getElementById("mobileServicesToggle"); const mb = document.getElementById("mobileServicesBlock");
-          if (mt && mb) mt.addEventListener("click", () => mb.classList.toggle("open"));
-        });
-        function changeAvatar(input) { if (input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { const sb = document.getElementById("sidebarAvatar"); if (sb) sb.innerHTML = `<img src="${e.target.result}" alt="Profile">`; const big = document.getElementById("bigAvatar"); if (big) big.innerHTML = `<img src="${e.target.result}" alt="Profile">`; }; r.readAsDataURL(input.files[0]); } }
+
+        function changeAvatar(input) {
+            if (input.files && input.files[0]) {
+                const r = new FileReader();
+                r.onload = e => {
+                    const sb = document.getElementById("sidebarAvatar");
+                    if (sb) sb.innerHTML = `<img src="${e.target.result}" alt="Profile">`;
+                };
+                r.readAsDataURL(input.files[0]);
+            }
+        }
+        function showToast(msg, d = 3000) {
+            const t = document.getElementById("toast");
+            if (!t) return;
+            t.textContent = msg; t.classList.add("show");
+            clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("show"), d);
+        }
     </script>
 </body>
 </html>

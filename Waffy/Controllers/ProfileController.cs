@@ -28,6 +28,8 @@ namespace Waffy.Controllers
         private readonly IRewardLogRepository _rewardLogRepo;
         private readonly INotificationRepository _notifRepo;
         private readonly IProductImageRepository _productImageRepo;
+        private readonly IAppointmentRepository _apptRepo;
+     
         public ProfileController(
             IUserRepository userRepository,
             IPetRepository petRepo,
@@ -47,6 +49,7 @@ namespace Waffy.Controllers
                 IRewardLogRepository rewardLogRepo,
                 INotificationRepository notifRepo,
                 IProductImageRepository productImageRepo,
+                IAppointmentRepository apptRepo,
             ILocationRepository locationRepo)
         {
             _userRepository = userRepository;
@@ -67,6 +70,7 @@ namespace Waffy.Controllers
             _locationRepo = locationRepo;
             _rewardLogRepo = rewardLogRepo;
             _notifRepo = notifRepo;
+            _apptRepo = apptRepo;
             _productImageRepo = productImageRepo;
         }
 
@@ -254,7 +258,7 @@ namespace Waffy.Controllers
             return View(new WalletViewModel
             {
                 User = user,
-                Wallet = wallet,
+                Wallet = wallet,   // ← استخدام المتغير المعرّف أعلى
                 Transactions = transactions
             });
         }
@@ -327,20 +331,79 @@ namespace Waffy.Controllers
                 SurpriseRewards = surpriseRewards    // ← جديد
             });
         }
+        [HttpGet]
         public async Task<IActionResult> Appointments()
         {
-            var user = await GetCurrentUserAsync();
+            var userId = HttpContext.Session.GetInt32("UserId") ?? 0;
+            if (userId == 0) return RedirectToAction("Login", "Account");
+
+            // ① جلب بيانات اليوزر
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null) return RedirectToAction("Login", "Account");
 
-            var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
-            ViewBag.SidebarBalance = (wallet?.Balance ?? 0).ToString("F2");
-            ViewBag.SidebarName = user.FullName;        // ← أضيفي
-            ViewBag.SidebarEmail = user.Email;           // ← أضيفي
-            ViewBag.SidebarProfileImage = user.ProfileImage;    // ← أضيفي
+            var wallet = await _walletRepo.GetByUserIdAsync(userId);
+            var appointments = (await _apptRepo.GetByUserIdAsync(userId)).ToList();
 
-            return View();
+            // إثراء بصور الحيوانات
+            foreach (var a in appointments)
+            {
+                if (a.IdPet == null || a.IdPet <= 0) continue;
+                var pet = await _petRepo.GetByIdAsync(a.IdPet.Value);
+                if (pet == null) continue;
+                var imgs = (await _petRepo.GetImagesAsync(pet.IdPet)).ToList();
+                a.PetImageUrl = imgs.FirstOrDefault(i => i.IsMain)?.ImageUrl
+                             ?? imgs.FirstOrDefault()?.ImageUrl
+                             ?? pet.ImageUrl;
+            }
+
+            var vm = new ProfileAppointmentsViewModel
+            {
+                UserFullName = user.FullName,
+                UserEmail = user.Email,
+                UserProfileImage = user.ProfileImage,
+                Balance = wallet?.Balance ?? 0,
+                Appointments = appointments
+                // UpcomingCount, CompletedCount, CancelledCount تحسب تلقائياً ✅
+            };
+
+            return View(vm);
         }
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> CliqSubmitted(int appointmentId)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId") ?? 0;
+            if (userId == 0) return RedirectToAction("Login", "Account");
 
+            var appt = await _apptRepo.GetByIdAsync(appointmentId);
+
+            // تحقق أن الموعد يخص هذا اليوزر
+            if (appt == null || appt.IdUser != userId)
+            {
+                TempData["BookError"] = "⚠️ Appointment not found.";
+                return RedirectToAction("Appointments");
+            }
+
+            await _apptRepo.MarkCliqSubmittedAsync(appointmentId);
+            await _apptRepo.SetStatusAsync(appointmentId, "PendingPaymentVerification"); // ← جديد
+
+            // إشعار لادمن العيادة
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = appt.IdUser,
+                Type = "CliqPaymentSubmitted",
+                Title = "📱 CliQ Payment Submitted",
+                Message = $"Patient claims to have sent 5 JOD via CliQ " +
+                                    $"for appointment #{appointmentId}. " +
+                                    "Please verify and confirm.",
+                IsRead = false,
+                RelatedEntityType = "Appointment",
+                RelatedEntityId = appointmentId,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["BookSuccess"] = "✅ Payment submitted! The clinic will verify and confirm within 24 hours.";
+            return RedirectToAction("Appointments");
+        }
         [HttpGet]
         public async Task<IActionResult> Orders()
         {
@@ -805,12 +868,30 @@ namespace Waffy.Controllers
             TempData["LostSuccess"] = "❌ Claim rejected and finder notified.";
             return RedirectToAction("Lost_Reports");
         }
+
+
         // ════════════════════════════════════════════════════
         // TIMELINE — GET
         // ════════════════════════════════════════════════════
         public async Task<IActionResult> Timeline()
         {
             var user = await GetCurrentUserAsync();
+            // ── Sidebar ──────────────────────────────────────────
+            var wallet = await _walletRepo.GetByUserIdAsync(user.UserId);
+            ViewBag.SidebarName = user.FullName;
+            ViewBag.SidebarEmail = user.Email;
+            ViewBag.SidebarProfileImage = user.ProfileImage;
+            ViewBag.SidebarBalance = (wallet?.Balance ?? 0).ToString("F2");
+            ViewBag.SidebarWalletBadge = null;
+            ViewBag.SidebarRewardsBadge = null;
+            ViewBag.SidebarOrdersBadge = null;
+            ViewBag.SidebarLostBadge = null;
+            ViewBag.SidebarAdoptionBadge = null;
+            ViewBag.SidebarDonationsBadge = null;
+            ViewBag.SidebarDangerBadge = null;
+            ViewBag.SidebarComplaintsBadge = null;
+            ViewBag.SidebarAppointmentsBadge = null;
+            // ─────────────────────────────────────────────────────
             if (user == null) return RedirectToAction("Login", "Account");
 
             var events = new List<TimelineEvent>();
@@ -986,6 +1067,138 @@ namespace Waffy.Controllers
                 });
             }
 
+            // ✅ 9-Appoinment
+            // ✅ 9 — Appointments (أحداث متعددة لكل موعد)
+            var userAppts = (await _apptRepo.GetByUserIdAsync(user.UserId)).ToList();
+            foreach (var appt in userAppts)
+            {
+                var petInfo = !string.IsNullOrEmpty(appt.PetName) ? $" — {appt.PetName}" : "";
+                var baseDesc = $"{appt.ServiceName ?? "Checkup"} · {appt.ClinicName} · " +
+                               $"Dr. {appt.DoctorName} · " +
+                               $"{appt.AppointmentDate:dd MMM yyyy} at {appt.StartTime:hh\\:mm}";
+
+                // ① حدث الحجز — دائماً
+                events.Add(new TimelineEvent
+                {
+                    Icon = "📅",
+                    Title = $"Appointment Booked{petInfo}",
+                    Description = baseDesc,
+                    Date = appt.CreatedAt,
+                    Color = "#7d953d"
+                });
+
+                // ② CliQ submitted
+                if (appt.DepositPayMethod == "CliQ" && appt.DepositCliqSubmitted)
+                {
+                    events.Add(new TimelineEvent
+                    {
+                        Icon = "📱",
+                        Title = $"CliQ Payment Submitted{petInfo}",
+                        Description = $"5 JOD via CliQ · Ref: {appt.CliqReference ?? "—"} · Awaiting clinic verification",
+                        Date = appt.CreatedAt.AddMinutes(15),
+                        Color = "#1a3a8f"
+                    });
+                }
+
+                // ③ إيداع مدفوع
+                if (appt.DepositPaid)
+                {
+                    events.Add(new TimelineEvent
+                    {
+                        Icon = "💳",
+                        Title = $"Deposit Confirmed{petInfo}",
+                        Description = $"5 JOD deposit confirmed via {appt.DepositPayMethod} · {appt.ClinicName}",
+                        Date = appt.CreatedAt.AddHours(1),
+                        Color = "#2d7a2d"
+                    });
+                }
+
+                // ④ أحداث حسب الحالة
+                switch (appt.Status)
+                {
+                    case "Confirmed":
+                        events.Add(new TimelineEvent
+                        {
+                            Icon = "✅",
+                            Title = $"Appointment Confirmed{petInfo}",
+                            Description = $"{appt.ClinicName} · Dr. {appt.DoctorName} · {appt.AppointmentDate:dd MMM yyyy}",
+                            Date = appt.CreatedAt.AddHours(2),
+                            Color = "#2d7a2d"
+                        });
+                        break;
+
+                    case "Completed":
+                        events.Add(new TimelineEvent
+                        {
+                            Icon = "🏁",
+                            Title = $"Visit Completed{petInfo}",
+                            Description = baseDesc,
+                            Date = appt.AppointmentDate,
+                            Color = "#5f7430"
+                        });
+                        if (appt.DepositReturned)
+                        {
+                            events.Add(new TimelineEvent
+                            {
+                                Icon = "💰",
+                                Title = $"Deposit Returned{petInfo}",
+                                Description = "5 JOD returned to your wallet after successful visit",
+                                Date = appt.AppointmentDate.AddMinutes(30),
+                                Color = "#2d7a2d"
+                            });
+                        }
+                        break;
+
+                    case "Cancelled":
+                        events.Add(new TimelineEvent
+                        {
+                            Icon = "❌",
+                            Title = $"Appointment Cancelled{petInfo}",
+                            Description = $"{appt.ClinicName} · {appt.AppointmentDate:dd MMM yyyy}" +
+                                          (!string.IsNullOrEmpty(appt.CancellationReason)
+                                              ? $" · Reason: {appt.CancellationReason}" : ""),
+                            Date = appt.CreatedAt.AddHours(3),
+                            Color = "#c86a5c"
+                        });
+                        if (appt.DepositReturned)
+                        {
+                            events.Add(new TimelineEvent
+                            {
+                                Icon = "💰",
+                                Title = $"Deposit Returned{petInfo}",
+                                Description = "5 JOD returned to your wallet after cancellation",
+                                Date = appt.CreatedAt.AddHours(3).AddMinutes(5),
+                                Color = "#2d7a2d"
+                            });
+                        }
+                        break;
+
+                    case "NoShow":
+                        events.Add(new TimelineEvent
+                        {
+                            Icon = "🚫",
+                            Title = $"No-Show Recorded{petInfo}",
+                            Description = $"{baseDesc} · 5 JOD deposit retained by clinic",
+                            Date = appt.AppointmentDate,
+                            Color = "#e07b3c"
+                        });
+                        break;
+
+                    case "PendingPayment":
+                    case "PendingPaymentVerification":
+                    case "PendingClinicApproval":
+                    case "PendingDoctorApproval":
+                        events.Add(new TimelineEvent
+                        {
+                            Icon = "⏳",
+                            Title = $"Appointment Pending{petInfo}",
+                            Description = $"{appt.ClinicName} · {appt.AppointmentDate:dd MMM yyyy} · Status: {appt.Status}",
+                            Date = appt.CreatedAt.AddMinutes(5),
+                            Color = "#9b6000"
+                        });
+                        break;
+                }
+            }
             // ✅ Surprise Rewards من الأدمن
             var surpriseRewards = (await _rewardLogRepo.GetByUserIdAsync(user.UserId)).ToList();
             foreach (var sr in surpriseRewards)
@@ -1316,5 +1529,7 @@ namespace Waffy.Controllers
             TempData["OrderSuccess"] = "Order cancelled successfully.";
             return RedirectToAction("Orders");
         }
+
+        
     }
 }

@@ -7,6 +7,7 @@ namespace Waffy.Models.ViewModels
     {
         public int IdDoctor { get; set; }
         public int? IdClinic { get; set; }
+        public int IdUsers { get; set; }  // يجب أن يكون int لا int?
         // Doctor fields
         public string? Specialization { get; set; }
         public string? SecondarySpec { get; set; }

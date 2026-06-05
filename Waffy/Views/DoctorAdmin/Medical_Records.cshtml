@@ -1,0 +1,818 @@
+﻿@model Waffy.Models.ViewModels.DoctorAppointmentsViewModel
+@{
+    ViewData["Title"] = "Waffy — Medical Records";
+    Layout = null;
+    var userName   = Context.Session.GetString("UserName")   ?? "Doctor";
+    var clinicName = Context.Session.GetString("ClinicName") ?? "Clinic";
+    var initials   = userName.Length > 0 ? userName[0].ToString().ToUpper() : "D";
+
+    var records = Model.Appointments
+        .Where(a => a.Status == "Completed" && a.IdPet > 0)
+        .OrderByDescending(a => a.AppointmentDate)
+        .ToList();
+
+    string PetEmoji(string? s) => s?.ToLower() switch {
+        "dog"=>"🐕","cat"=>"🐈","bird"=>"🐦","rabbit"=>"🐇","fish"=>"🐠",_=>"🐾"
+    };
+    string VaccColor(string? v) => v?.ToLower() switch {
+        "uptodate"     => "background:#eef4dd;color:#5f7430;border:1px solid #c3d9a0;",
+        "partial"      => "background:#fff3e0;color:#e07b3c;border:1px solid #ffcc80;",
+        "notvaccinated"=> "background:#fde8e8;color:#c0392b;border:1px solid #f5b8b8;",
+        _              => "background:#f5f5f5;color:#888;border:1px solid #ddd;"
+    };
+    string VaccLabel(string? v) => v?.ToLower() switch {
+        "uptodate"     => "✅ Up to Date",
+        "partial"      => "⚠️ Partial",
+        "notvaccinated"=> "❌ Not Vaccinated",
+        _              => "❓ Unknown"
+    };
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>@ViewData["Title"]</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
+<link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+<style>
+/* ── KPI ── */
+.mr-kpi{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px;}
+.mr-kpi-card{background:var(--ws);border-radius:16px;border:1px solid var(--line);padding:1rem;text-align:center;}
+.mr-kpi-val{font-family:'Fredoka',sans-serif;font-size:1.7rem;font-weight:700;color:var(--gd);}
+.mr-kpi-lbl{font-size:.72rem;color:var(--muted);font-weight:700;margin-top:2px;}
+/* ── Filter ── */
+.mr-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+.mr-search-wrap{position:relative;flex:1;min-width:180px;max-width:280px;}
+.mr-search{width:100%;padding:8px 12px 8px 32px;border:1.5px solid var(--line);border-radius:10px;background:var(--ws);font-family:'Nunito',sans-serif;font-size:.84rem;font-weight:700;outline:none;box-sizing:border-box;}
+.mr-search:focus{border-color:var(--gd);}
+.mr-search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;}
+.mr-chip{padding:6px 14px;border-radius:10px;border:1.5px solid var(--line);background:var(--ws);font-size:.82rem;font-weight:800;color:var(--muted);cursor:pointer;transition:.15s;font-family:'Nunito',sans-serif;}
+.mr-chip:hover,.mr-chip.active{border-color:var(--gd);background:var(--gp);color:var(--gd);}
+/* ── Cards Grid ── */
+.mr-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;}
+.mr-card{background:var(--ws);border-radius:16px;border:1px solid var(--line);overflow:hidden;transition:.2s;}
+.mr-card:hover{box-shadow:0 6px 20px rgba(90,101,42,.12);transform:translateY(-2px);}
+.mr-card-top{display:flex;align-items:center;gap:12px;padding:14px 14px 10px;}
+.mr-pet-img{width:54px;height:54px;border-radius:12px;overflow:hidden;flex-shrink:0;background:var(--gp);border:2px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;}
+.mr-pet-img img{width:100%;height:100%;object-fit:cover;}
+.mr-pet-name{font-family:'Fredoka',sans-serif;font-size:1rem;font-weight:700;color:var(--gd);}
+.mr-pet-sub{font-size:.73rem;color:var(--muted);font-weight:700;margin-top:2px;}
+.mr-card-body{padding:0 14px 10px;}
+.mr-info-row{display:flex;justify-content:space-between;font-size:.77rem;padding:3px 0;border-bottom:.5px solid var(--line);}
+.mr-info-row:last-of-type{border-bottom:none;}
+.mr-info-lbl{color:var(--muted);font-weight:700;}
+.mr-info-val{font-weight:800;color:var(--text);}
+.mr-card-foot{padding:10px 14px;background:var(--gp);border-top:1px solid var(--b2);display:flex;justify-content:space-between;align-items:center;gap:6px;}
+.vacc-pill{display:inline-block;border-radius:999px;padding:2px 8px;font-size:.67rem;font-weight:800;}
+.has-med-badge{background:#e8f0fe;color:#1a3a8f;border:1px solid #c5d0e8;border-radius:999px;padding:2px 7px;font-size:.67rem;font-weight:800;}
+/* ── Record Modal ── */
+.rec-modal{max-width:620px;max-height:92vh;display:flex;flex-direction:column;overflow:hidden;}
+.rec-modal .modal-body{overflow-y:auto;flex:1;padding:0;}
+/* Hero */
+.rm-hero{display:flex;gap:14px;align-items:center;padding:1.1rem 1.2rem;background:var(--gp);border-bottom:1px solid var(--b2);}
+.rm-img{width:68px;height:68px;border-radius:13px;overflow:hidden;flex-shrink:0;background:var(--ws);border:2px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:1.9rem;}
+.rm-img img{width:100%;height:100%;object-fit:cover;}
+.rm-name{font-family:'Fredoka',sans-serif;font-size:1.1rem;font-weight:700;color:var(--gd);}
+.rm-sub{font-size:.76rem;color:#5f7430;font-weight:700;margin-top:2px;}
+/* Sections */
+.rm-sec{padding:.85rem 1.2rem;border-top:1px solid var(--line);}
+.rm-sec:first-of-type{border-top:none;}
+.rm-sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.rm-sec-title{font-family:'Fredoka',sans-serif;font-size:.86rem;font-weight:700;color:var(--gd);}
+/* Shared record block */
+.rm-shared{background:linear-gradient(135deg,#e8f0fe,#f0f4ff);border:1.5px solid #c5d0e8;border-radius:12px;padding:12px 14px;}
+.rm-shared-lbl{font-size:.7rem;font-weight:900;color:#1a3a8f;margin-bottom:6px;display:flex;align-items:center;gap:5px;}
+.rm-shared-text{font-size:.8rem;font-weight:700;color:#2d3a6d;line-height:1.75;white-space:pre-line;}
+/* Medical grid */
+.rm-med-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.rm-stat{background:var(--ws);border-radius:10px;padding:8px 10px;border:1px solid var(--line);}
+.rm-stat-lbl{font-size:.66rem;color:var(--muted);font-weight:700;margin-bottom:2px;}
+.rm-stat-val{font-size:.84rem;font-weight:800;color:var(--text);}
+/* Medical notes */
+.rm-notes-block{background:linear-gradient(135deg,var(--gp),#f0f7e0);border:1px solid var(--b2);border-radius:10px;padding:10px 12px;font-size:.8rem;font-weight:700;color:#3d4a2d;line-height:1.7;white-space:pre-line;}
+/* Behavior chips */
+.behav-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:6px;}
+.behav-chip{background:var(--gp);border:1px solid var(--b2);border-radius:999px;padding:2px 9px;font-size:.7rem;font-weight:800;color:var(--gd);}
+/* Edit form */
+.rm-edit-form{display:none;}
+.rm-edit-form.open{display:block;}
+/* Visit note block */
+.rm-visit-note{background:linear-gradient(135deg,#fff8e1,#fffde7);border:1.5px solid #ffe082;border-radius:12px;padding:12px 14px;margin-bottom:4px;}
+.rm-visit-note-lbl{font-size:.7rem;font-weight:900;color:#9b6000;margin-bottom:5px;}
+.rm-visit-note-text{font-size:.8rem;font-weight:700;color:#5d4037;line-height:1.7;white-space:pre-line;}
+/* Empty */
+.mr-empty{text-align:center;padding:3.5rem 2rem;color:var(--muted);font-weight:700;}
+/* Responsive */
+@@media(max-width:700px){
+    .mr-kpi{grid-template-columns:repeat(2,1fr);}
+    .rm-med-grid{grid-template-columns:1fr;}
+}
+@@media(max-width:480px){
+    .mr-grid{grid-template-columns:1fr;}
+    .mr-kpi{grid-template-columns:1fr 1fr;}
+    .rm-hero{flex-direction:column;text-align:center;}
+}
+</style>
+</head>
+<body class="admin-shell">
+<div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="wa-shell" id="waShell">
+
+@await Html.PartialAsync("_DoctorSidebar")
+
+<header class="wa-tn">
+    <button class="tn-toggle" type="button" onclick="toggleSidebar()">☰</button>
+    <div class="tn-bread"><span>Daily Management</span><span>/</span><b>Medical Records</b></div>
+    <div class="tn-center">
+        <div class="tn-center-main">Medical Records</div>
+        <div class="tn-center-sub">@clinicName</div>
+    </div>
+    <div class="tn-spacer"></div>
+    <div class="tn-right">
+        <div class="tn-identity">🏥 @clinicName</div>
+        <button class="tn-btn notif-btn" type="button">🔔</button>
+        <div class="tn-sep"></div>
+        <div class="tn-profile">
+            <div class="tn-av">@initials</div>
+            <div><div class="tn-pname">@userName</div><div class="tn-prole">👨‍⚕️ Doctor</div></div>
+        </div>
+    </div>
+</header>
+
+<main class="wa-main">
+<section class="page-hero">
+    <div><h1>Medical Records</h1><p>Completed visits — view and update patient medical data.</p></div>
+</section>
+<div class="page-body">
+
+    @if (!records.Any())
+    {
+        <div class="chart-card">
+            <div class="mr-empty">
+                <div style="font-size:3rem;margin-bottom:12px;">📄</div>
+                <div style="font-weight:800;font-size:.96rem;color:var(--text);margin-bottom:6px;">No records yet</div>
+                <div style="font-size:.84rem;">Records appear after completing appointments.</div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- KPIs -->
+        <div class="mr-kpi">
+            <div class="mr-kpi-card">
+                <div class="mr-kpi-val">@records.Count</div>
+                <div class="mr-kpi-lbl">📄 Total Records</div>
+            </div>
+            <div class="mr-kpi-card">
+                <div class="mr-kpi-val" style="color:#1a3a8f;">
+                    @records.Count(a => !string.IsNullOrEmpty(a.MedicalRecordNote))
+                </div>
+                <div class="mr-kpi-lbl">📋 With Shared Record</div>
+            </div>
+            <div class="mr-kpi-card">
+                <div class="mr-kpi-val" style="color:#e07b3c;">
+                    @records.Count(a => a.UrgencyLevel == "Urgent")
+                </div>
+                <div class="mr-kpi-lbl">🔴 Urgent Cases</div>
+            </div>
+            <div class="mr-kpi-card">
+                <div class="mr-kpi-val">
+                    @records.Select(a => a.IdPet).Where(id => id > 0).Distinct().Count()
+                </div>
+                <div class="mr-kpi-lbl">🐾 Unique Patients</div>
+            </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="mr-filter">
+            <div class="mr-search-wrap">
+                <span class="mr-search-icon">🔍</span>
+                <input class="mr-search" id="searchInput"
+                       placeholder="Search pet name or owner..." oninput="filterCards()">
+            </div>
+            <button class="mr-chip active" data-f="all"    onclick="setF(this,'all')">All</button>
+            <button class="mr-chip"        data-f="shared" onclick="setF(this,'shared')">📋 Shared Record</button>
+            <button class="mr-chip"        data-f="urgent" onclick="setF(this,'urgent')">🔴 Urgent</button>
+            <span style="margin-left:auto;font-size:.78rem;font-weight:700;color:var(--muted);"
+                  id="countLbl">@records.Count record(s)</span>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="mr-grid" id="mrGrid">
+            @foreach (var a in records)
+            {
+                var hasMed    = !string.IsNullOrEmpty(a.MedicalRecordNote);
+                var isUrgent  = a.UrgencyLevel == "Urgent";
+                var petNameE  = (a.PetName ?? "").Replace("'","&#39;");
+                <div class="mr-card"
+                     data-search="@($"{a.PetName} {a.UserFullName}".ToLower())"
+                     data-shared="@(hasMed?"1":"0")"
+                     data-urgent="@(isUrgent?"1":"0")"
+                     data-apptid="@a.Id"
+                     data-petid="@(a.IdPet ?? 0)">
+
+                    <div class="mr-card-top">
+                        <div class="mr-pet-img">
+                            @if (!string.IsNullOrEmpty(a.PetImageUrl))
+                            {<img src="@a.PetImageUrl" alt="@a.PetName">}
+                            else
+                            {@PetEmoji(a.PetSpecies)}
+                        </div>
+                        <div>
+                            <div class="mr-pet-name">
+                                @(a.PetName ?? "Unknown")
+                                @if (!string.IsNullOrEmpty(a.PetSpecies))
+                                {<span style="color:var(--muted);font-size:.82rem;"> · @a.PetSpecies</span>}
+                            </div>
+                            <div class="mr-pet-sub">
+                                👤 @(a.UserFullName ?? "—")
+                                @if (!string.IsNullOrEmpty(a.UserPhone))
+                                {<span> · @a.UserPhone</span>}
+                            </div>
+                            <div style="margin-top:4px;display:flex;gap:4px;flex-wrap:wrap;">
+                                @if (hasMed)
+                                {<span class="has-med-badge">📋 Record Shared</span>}
+                                @if (isUrgent)
+                                {<span style="background:#fef0e6;color:#e07b3c;border:1px solid #f0c4a0;border-radius:999px;padding:2px 7px;font-size:.67rem;font-weight:800;">🔴 Urgent</span>}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mr-card-body">
+                        <div class="mr-info-row">
+                            <span class="mr-info-lbl">🩺 Service</span>
+                            <span class="mr-info-val">@(a.ServiceName ?? "General")</span>
+                        </div>
+                        <div class="mr-info-row">
+                            <span class="mr-info-lbl">📅 Visit Date</span>
+                            <span class="mr-info-val">@a.AppointmentDate.ToString("dd MMM yyyy")</span>
+                        </div>
+                        <div class="mr-info-row">
+                            <span class="mr-info-lbl">👨‍⚕️ Doctor</span>
+                            <span class="mr-info-val">Dr. @userName</span>
+                        </div>
+                    </div>
+
+                    <div class="mr-card-foot">
+                        <span style="font-size:.72rem;color:var(--muted);font-weight:700;">
+                            🕐 @a.StartTime.ToString(@"hh\:mm")
+                        </span>
+                        <button type="button" class="btn btn-primary btn-sm"
+                                onclick="openRecord(@a.Id, @(a.IdPet ?? 0), '@petNameE')">
+                            📋 View Record
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+</div>
+</main>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     RECORD MODAL
+═══════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="recordModal">
+<div class="modal rec-modal">
+    <div class="modal-header">
+        <div class="modal-title" id="rmTitle">📋 Medical Record</div>
+        <button class="modal-close" type="button" onclick="closeModal('recordModal')">✕</button>
+    </div>
+    <div class="modal-body">
+
+        <!-- Hero -->
+        <div class="rm-hero">
+            <div class="rm-img" id="rmImg">🐾</div>
+            <div style="flex:1;">
+                <div class="rm-name" id="rmName">—</div>
+                <div class="rm-sub"  id="rmSub">—</div>
+                <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;" id="rmBadges"></div>
+            </div>
+        </div>
+
+        <!-- Loading state -->
+        <div id="rmLoading" style="padding:2rem;text-align:center;color:var(--muted);font-weight:700;">
+            ⏳ Loading pet record...
+        </div>
+
+        <!-- Content (shown after load) -->
+        <div id="rmContent" style="display:none;">
+
+            <!-- ① Appointment info -->
+            <div class="rm-sec">
+                <div class="rm-sec-title">📅 Visit Information</div>
+                <div class="rm-med-grid" style="margin-bottom:0;">
+                    <div class="rm-stat"><div class="rm-stat-lbl">Service</div><div class="rm-stat-val" id="rmService">—</div></div>
+                    <div class="rm-stat"><div class="rm-stat-lbl">Date</div><div class="rm-stat-val" id="rmDate">—</div></div>
+                    <div class="rm-stat"><div class="rm-stat-lbl">Urgency</div><div class="rm-stat-val" id="rmUrgency">—</div></div>
+                    <div class="rm-stat"><div class="rm-stat-lbl">Doctor</div><div class="rm-stat-val" id="rmDoctor">—</div></div>
+                </div>
+            </div>
+
+            <!-- ② Shared by owner (MedicalRecordNote from booking) -->
+            <div class="rm-sec" id="rmSharedSec" style="display:none;">
+                <div class="rm-sec-hd">
+                    <div class="rm-sec-title">📋 Patient's Medical Notes</div>
+                    <span style="font-size:.7rem;color:var(--muted);font-weight:700;">Read only</span>
+                </div>
+                <div class="rm-shared">
+                   
+                    <div class="rm-shared-text" id="rmSharedText"></div>
+                </div>
+            </div>
+
+            <!-- ③ Current pet medical data (VIEW mode) -->
+            <div class="rm-sec" id="rmMedViewSec">
+                <div class="rm-sec-hd">
+                    <div class="rm-sec-title">🩺 Pet Medical Record</div>
+                    <button type="button" class="btn btn-outline btn-sm"
+                            onclick="showEditMode()" id="rmEditBtn">
+                        ✏️ Edit
+                    </button>
+                </div>
+
+                <!-- Medical grid -->
+                <div class="rm-med-grid">
+                    <div class="rm-stat">
+                        <div class="rm-stat-lbl">💉 Vaccination</div>
+                        <div class="rm-stat-val" id="rmVacc">—</div>
+                    </div>
+                    <div class="rm-stat">
+                        <div class="rm-stat-lbl">✂️ Neutered</div>
+                        <div class="rm-stat-val" id="rmNeutered">—</div>
+                    </div>
+                    <div class="rm-stat">
+                        <div class="rm-stat-lbl">⚖️ Weight</div>
+                        <div class="rm-stat-val" id="rmWeight">—</div>
+                    </div>
+                    <div class="rm-stat">
+                        <div class="rm-stat-lbl">⚡ Energy</div>
+                        <div class="rm-stat-val" id="rmEnergy">—</div>
+                    </div>
+                    <div class="rm-stat">
+                        <div class="rm-stat-lbl">🎨 Color</div>
+                        <div class="rm-stat-val" id="rmColor">—</div>
+                    </div>
+                    <div class="rm-stat">
+                        <div class="rm-stat-lbl">🔖 Microchip</div>
+                        <div class="rm-stat-val" id="rmMicrochip">—</div>
+                    </div>
+                </div>
+                <!-- Behavior -->
+                <div class="behav-row" id="rmBehav"></div>
+                <!-- Medical notes -->
+                <div id="rmMedNotesSec" style="margin-top:10px;display:none;">
+                    <div style="font-size:.7rem;font-weight:900;color:var(--muted);margin-bottom:5px;">📋 Medical Notes</div>
+                    <div class="rm-notes-block" id="rmMedNotesText"></div>
+                    <div style="font-size:.68rem;color:var(--muted);font-weight:700;margin-top:4px;">
+                        💡 Updated by Dr. @userName — reflects on owner profile instantly
+                    </div>
+                </div>
+            </div>
+
+            <!-- ③ EDIT MODE -->
+            <div class="rm-sec rm-edit-form" id="rmEditForm">
+                <div class="rm-sec-hd">
+                    <div class="rm-sec-title">✏️ Edit Medical Record</div>
+                    <button type="button" class="btn btn-outline btn-sm"
+                            style="color:var(--wr);" onclick="hideEditMode()">
+                        ✕ Cancel
+                    </button>
+                </div>
+                
+                <div class="f-grid">
+                    <div class="f-group">
+                        <label class="f-label">💉 Vaccination Status</label>
+                        <select class="f-inp" id="editVacc">
+                            <option value="UpToDate">✅ Up to Date</option>
+                            <option value="Partial">⚠️ Partial</option>
+                            <option value="NotVaccinated">❌ Not Vaccinated</option>
+                            <option value="Unknown">❓ Unknown</option>
+                        </select>
+                    </div>
+                    <div class="f-group">
+                        <label class="f-label">⚖️ Weight (kg)</label>
+                        <input type="number" class="f-inp" id="editWeight"
+                               step="0.1" min="0" placeholder="e.g. 4.5">
+                    </div>
+                    <div class="f-group">
+                        <label class="f-label">⚡ Energy Level</label>
+                        <select class="f-inp" id="editEnergy">
+                            <option value="">— Not set —</option>
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                            <option value="Very High">Very High</option>
+                        </select>
+                    </div>
+                    <div class="f-group" style="display:flex;align-items:center;
+                                                gap:8px;padding-top:22px;">
+                        <input type="checkbox" id="editNeutered"
+                               style="width:16px;height:16px;accent-color:var(--gd);">
+                        <label for="editNeutered"
+                               style="font-size:.84rem;font-weight:700;cursor:pointer;">
+                            ✂️ Neutered / Spayed
+                        </label>
+                    </div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;
+                                background:var(--ws);border-radius:10px;
+                                padding:10px 12px;border:1px solid var(--line);"
+                         class="f-group f-full">
+                        <label style="display:flex;align-items:center;gap:6px;
+                                      cursor:pointer;font-size:.82rem;font-weight:700;">
+                            <input type="checkbox" id="editGoodChildren"
+                                   style="accent-color:var(--gd);">
+                            👶 Good with children
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;
+                                      cursor:pointer;font-size:.82rem;font-weight:700;">
+                            <input type="checkbox" id="editGoodPets"
+                                   style="accent-color:var(--gd);">
+                            🐾 Good with other pets
+                        </label>
+                        <label style="display:flex;align-items:center;gap:6px;
+                                      cursor:pointer;font-size:.82rem;font-weight:700;">
+                            <input type="checkbox" id="editTrained"
+                                   style="accent-color:var(--gd);">
+                            🎓 Trained
+                        </label>
+                    </div>
+                    <div class="f-group f-full">
+                        <label class="f-label">🎭 Traits / Personality</label>
+                        <input type="text" class="f-inp" id="editTraits"
+                               placeholder="e.g. Friendly, Playful, Calm...">
+                    </div>
+                    <div class="f-group f-full">
+                        <label class="f-label">📋 Medical Notes (ongoing conditions)</label>
+                        <textarea class="f-inp" id="editMedNotes" rows="3"
+                                  placeholder="Chronic conditions, allergies, medications, surgeries..."></textarea>
+                    </div>
+                </div>
+                <button type="button" onclick="savePetOnly()"
+                        style="width:100%;padding:10px;border-radius:10px;
+                               background:var(--gd);color:#fff;border:none;
+                               font-size:.86rem;font-weight:800;cursor:pointer;
+                               font-family:'Nunito',sans-serif;margin-top:4px;">
+                    💾 Save Pet Record
+                </button>
+            </div>
+
+            <!-- ④ Doctor's Diagnosis Notes -->
+            <div class="rm-sec" style="border-top:1px solid var(--line);">
+                <div class="rm-sec-title">🩺 Add Diagnosis Notes for This Visit</div>
+                <div style="background:var(--gp);border:1px solid var(--b2);border-radius:10px;
+                            padding:8px 10px;margin-bottom:12px;font-size:.78rem;
+                            font-weight:700;color:#5f7430;">
+                    💡 These notes are saved to this specific visit record.
+                </div>
+                <div class="f-grid">
+                    <div class="f-group f-full">
+                        <label class="f-label"><span class="req">*</span>Diagnosis / Findings</label>
+                        <textarea class="f-inp" id="diagDiagnosis" rows="3"
+                                  placeholder="Your diagnostic findings..."></textarea>
+                    </div>
+                    <div class="f-group f-full">
+                        <label class="f-label">Symptoms Observed</label>
+                        <textarea class="f-inp" id="diagSymptoms" rows="2"
+                                  placeholder="Symptoms during the visit..."></textarea>
+                    </div>
+                    <div class="f-group f-full">
+                        <label class="f-label">💊 Treatment Provided</label>
+                        <textarea class="f-inp" id="diagTreatment" rows="2"
+                                  placeholder="Procedures and treatment done..."></textarea>
+                    </div>
+                    <div class="f-group f-full">
+                        <label class="f-label">📋 Prescription</label>
+                        <textarea class="f-inp" id="diagPrescription" rows="2"
+                                  placeholder="Medication name, dose, duration..."></textarea>
+                    </div>
+                </div>
+                <div id="rmExistingDiagSec" style="display:none;margin-bottom:12px;">
+                    <div style="font-size:.7rem;font-weight:900;color:#9b6000;margin-bottom:5px;">
+                        📋 Previously saved diagnosis for this visit
+                    </div>
+                    <div class="rm-visit-note">
+                        <div class="rm-visit-note-text" id="rmExistingDiag"></div>
+                    </div>
+                </div>
+                <button type="button" onclick="saveDiagnosis()"
+                        id="diagSaveBtn"
+                        style="width:100%;padding:10px;border-radius:10px;
+                               background:var(--gd);color:#fff;border:none;
+                               font-size:.86rem;font-weight:800;cursor:pointer;
+                               font-family:'Nunito',sans-serif;">
+                    💾 Save Diagnosis Notes
+                </button>
+            </div>
+
+        </div><!-- /#rmContent -->
+    </div><!-- /.modal-body -->
+    <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('recordModal')">Close</button>
+    </div>
+</div>
+</div>
+
+<script>
+// ── Data from server ──────────────────────────────────────────────────
+const RECORDS = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+    records.Select(a => new {
+        apptId      = a.Id,
+        petId       = a.IdPet ?? 0,
+        petName     = a.PetName     ?? "",
+        petSpecies  = a.PetSpecies  ?? "",
+        petImg      = a.PetImageUrl ?? "",
+        ownerName   = a.UserFullName ?? "",
+        ownerPhone  = a.UserPhone   ?? "",
+        service     = a.ServiceName ?? "General",
+        visitDate   = a.AppointmentDate.ToString("dd MMM yyyy"),
+        visitTime   = a.StartTime.ToString(@"hh\:mm"),
+        urgency     = a.UrgencyLevel ?? "Normal",
+        sharedNote  = a.MedicalRecordNote ?? "",
+        reason      = a.Reason ?? "",
+        notes       = a.Notes  ?? ""
+    })
+));
+
+let currentApptId = 0;
+let currentPetId  = 0;
+let currentPetData = null;
+
+// ── Open Record Modal ─────────────────────────────────────────────────
+async function openRecord(apptId, petId, petName) {
+    currentApptId = apptId;
+    currentPetId  = petId;
+
+    const rec = RECORDS.find(r => r.apptId === apptId);
+    if (!rec) return;
+
+    // Hero
+    const imgEl = document.getElementById('rmImg');
+    imgEl.innerHTML = rec.petImg
+        ? `<img src="${rec.petImg}" style="width:100%;height:100%;object-fit:cover;" alt="${rec.petName}">`
+        : (rec.petSpecies.toLowerCase()==='dog'?'🐕':rec.petSpecies.toLowerCase()==='cat'?'🐈':'🐾');
+    document.getElementById('rmName').textContent = rec.petName || 'Unknown Pet';
+    document.getElementById('rmSub').textContent  =
+        [rec.petSpecies, rec.ownerName].filter(Boolean).join(' · ') || '—';
+
+    document.getElementById('rmTitle').textContent = `📋 ${rec.petName}'s Record`;
+
+    // Badges
+    const badges = document.getElementById('rmBadges');
+    badges.innerHTML = '';
+    if (rec.sharedNote) badges.innerHTML +=
+        '<span class="has-med-badge">📋 Record Shared</span>';
+    if (rec.urgency === 'Urgent') badges.innerHTML +=
+        '<span style="background:#fef0e6;color:#e07b3c;border:1px solid #f0c4a0;border-radius:999px;padding:2px 7px;font-size:.67rem;font-weight:800;margin-left:4px;">🔴 Urgent</span>';
+
+    // Visit info
+    document.getElementById('rmService').textContent  = rec.service;
+    document.getElementById('rmDate').textContent     = `${rec.visitDate} · ${rec.visitTime}`;
+    document.getElementById('rmUrgency').innerHTML    = rec.urgency === 'Urgent'
+        ? '<span style="color:#e07b3c;font-weight:900;">🔴 Urgent</span>'
+        : '<span style="color:var(--gd);font-weight:800;">🟢 Normal</span>';
+    document.getElementById('rmDoctor').textContent   = 'Dr. @userName';
+
+    // Shared note
+    const sharedSec = document.getElementById('rmSharedSec');
+    if (rec.sharedNote) {
+        document.getElementById('rmSharedText').textContent = rec.sharedNote;
+        sharedSec.style.display = 'block';
+    } else {
+        sharedSec.style.display = 'none';
+    }
+
+    // Show loading, hide content
+    document.getElementById('rmLoading').style.display  = 'block';
+    document.getElementById('rmContent').style.display  = 'none';
+    hideEditMode();
+
+    document.getElementById('recordModal').classList.add('open');
+
+    // Load pet record from DB
+    if (petId > 0) {
+        try {
+            const res = await fetch(`/DoctorAdmin/GetPetRecord?petId=${petId}`);
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            currentPetData = await res.json();
+            renderPetRecord(currentPetData);
+        } catch (e) {
+            document.getElementById('rmLoading').innerHTML =
+                `<span style="color:var(--wr);font-weight:700;">⚠️ Could not load pet data: ${e.message}</span>`;
+            return;
+        }
+    }
+
+    document.getElementById('rmLoading').style.display = 'none';
+    document.getElementById('rmContent').style.display = 'block';
+
+    // Clear diagnosis fields
+    ['diagDiagnosis','diagSymptoms','diagTreatment','diagPrescription']
+        .forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+    document.getElementById('rmExistingDiagSec').style.display = 'none';
+}
+
+// ── Render pet record (view mode) ─────────────────────────────────────
+function renderPetRecord(p) {
+    const vaccLabels = {
+        uptodate:'✅ Up to Date',partial:'⚠️ Partial',
+        notvaccinated:'❌ Not Vaccinated',unknown:'❓ Unknown'
+    };
+    document.getElementById('rmVacc').textContent     =
+        vaccLabels[(p.vaccinationStatus||'').toLowerCase()] || '❓ Unknown';
+    document.getElementById('rmNeutered').textContent = p.isNeutered ? '✅ Yes' : '❌ No';
+    document.getElementById('rmWeight').textContent   =
+        p.weight ? `${p.weight} kg` : '—';
+    document.getElementById('rmEnergy').textContent   = p.energyLevel || '—';
+    document.getElementById('rmColor').textContent    = p.color       || '—';
+    document.getElementById('rmMicrochip').textContent = p.microchipId || '—';
+
+    // Behavior
+    const behav = document.getElementById('rmBehav');
+    const chips = [
+        p.goodWithChildren ? '👶 Good with children' : null,
+        p.goodWithPets     ? '🐾 Good with other pets' : null,
+        p.isTrained        ? '🎓 Trained' : null
+    ].filter(Boolean);
+    behav.innerHTML = chips.map(c=>
+        `<span class="behav-chip">${c}</span>`).join('');
+
+    // Medical notes
+    const noteSec = document.getElementById('rmMedNotesSec');
+    if (p.medicalNotes) {
+        document.getElementById('rmMedNotesText').textContent = p.medicalNotes;
+        noteSec.style.display = 'block';
+    } else {
+        noteSec.style.display = 'none';
+    }
+}
+
+// ── Show / hide edit mode ─────────────────────────────────────────────
+function showEditMode() {
+    if (!currentPetData) return;
+    const p = currentPetData;
+
+    // Fill form
+    const vMap = {uptodate:'UpToDate',partial:'Partial',
+                  notvaccinated:'NotVaccinated',unknown:'Unknown'};
+    document.getElementById('editVacc').value =
+        vMap[(p.vaccinationStatus||'').toLowerCase()] || 'Unknown';
+    document.getElementById('editWeight').value   = p.weight  || '';
+    document.getElementById('editEnergy').value   = p.energyLevel || '';
+    document.getElementById('editNeutered').checked     = p.isNeutered     || false;
+    document.getElementById('editGoodChildren').checked = p.goodWithChildren || false;
+    document.getElementById('editGoodPets').checked     = p.goodWithPets    || false;
+    document.getElementById('editTrained').checked      = p.isTrained       || false;
+    document.getElementById('editTraits').value    = p.traits       || '';
+    document.getElementById('editMedNotes').value  = p.medicalNotes || '';
+
+    document.getElementById('rmMedViewSec').style.display = 'none';
+    document.getElementById('rmEditForm').classList.add('open');
+    document.getElementById('rmEditBtn').style.display = 'none';
+}
+
+function hideEditMode() {
+    document.getElementById('rmMedViewSec').style.display = 'block';
+    document.getElementById('rmEditForm').classList.remove('open');
+    document.getElementById('rmEditBtn').style.display = '';
+}
+
+// ── Save pet medical record ───────────────────────────────────────────
+async function savePetOnly() {
+    if (!currentPetId) return;
+    const btn = document.querySelector('#rmEditForm button[onclick="savePetOnly()"]');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Saving...'; }
+
+    const fd = new FormData();
+    fd.append('petId',             currentPetId);
+    fd.append('vaccinationStatus', document.getElementById('editVacc').value);
+    fd.append('isNeutered',        document.getElementById('editNeutered').checked);
+    fd.append('weight',            document.getElementById('editWeight').value || '');
+    fd.append('energyLevel',       document.getElementById('editEnergy').value);
+    fd.append('traits',            document.getElementById('editTraits').value);
+    fd.append('medicalNotes',      document.getElementById('editMedNotes').value);
+    fd.append('goodWithChildren',  document.getElementById('editGoodChildren').checked);
+    fd.append('goodWithPets',      document.getElementById('editGoodPets').checked);
+    fd.append('isTrained',         document.getElementById('editTrained').checked);
+
+    try {
+        const res  = await fetch('/DoctorAdmin/UpdatePetMedical',
+            { method: 'POST', body: fd });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Update failed');
+
+        // Reload pet data and switch back to view
+        const res2 = await fetch(`/DoctorAdmin/GetPetRecord?petId=${currentPetId}`);
+        currentPetData = await res2.json();
+        renderPetRecord(currentPetData);
+        hideEditMode();
+        showToast('✅ Pet medical record updated successfully!');
+    } catch (err) {
+        alert(`⚠️ ${err.message}`);
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '💾 Save Pet Record'; }
+    }
+}
+
+// ── Save diagnosis notes ──────────────────────────────────────────────
+async function saveDiagnosis() {
+    const diagnosis = document.getElementById('diagDiagnosis')?.value.trim();
+    if (!diagnosis) {
+        alert('⚠️ Please enter at least the diagnosis.');
+        return;
+    }
+    const btn = document.getElementById('diagSaveBtn');
+    if (btn) { btn.disabled = true; btn.textContent = '⏳ Saving...'; }
+
+    const fd = new FormData();
+  fd.append('appointmentId', currentApptId);
+fd.append('diagnosis',     diagnosis);
+fd.append('symptoms',      document.getElementById('diagSymptoms')?.value    || '');
+fd.append('treatment',     document.getElementById('diagTreatment')?.value   || '');
+fd.append('prescription',  document.getElementById('diagPrescription')?.value || '');
+
+    try {
+        const res  = await fetch('/DoctorAdmin/SaveDoctorNotes',
+            { method: 'POST', body: fd });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.message || 'Save failed');
+
+        // Show saved diagnosis
+        const savedText = [
+            diagnosis ? `🩺 Diagnosis: ${diagnosis}` : '',
+            document.getElementById('diagTreatment')?.value
+                ? `💊 Treatment: ${document.getElementById('diagTreatment').value}` : '',
+            document.getElementById('diagPrescription')?.value
+                ? `📋 Prescription: ${document.getElementById('diagPrescription').value}` : ''
+        ].filter(Boolean).join('\n');
+
+        document.getElementById('rmExistingDiag').textContent = savedText;
+        document.getElementById('rmExistingDiagSec').style.display = 'block';
+
+        ['diagDiagnosis','diagSymptoms','diagTreatment','diagPrescription']
+            .forEach(id => { const el = document.getElementById(id); if(el) el.value=''; });
+
+        showToast('✅ Diagnosis saved!');
+    } catch (err) {
+        alert(`⚠️ ${err.message}`);
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = '💾 Save Diagnosis Notes'; }
+    }
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────
+function showToast(msg) {
+    const el = document.createElement('div');
+    el.style.cssText =
+        'position:fixed;top:80px;right:20px;background:#eef4dd;' +
+        'border:1px solid #8da546;border-radius:12px;padding:10px 16px;' +
+        'font-weight:800;color:#5f7430;z-index:9999;font-size:.86rem;' +
+        'box-shadow:0 4px 12px rgba(0,0,0,.1);';
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 3500);
+}
+
+// ── Filter ────────────────────────────────────────────────────────────
+let activeF = 'all';
+function setF(btn, f) {
+    activeF = f;
+    document.querySelectorAll('.mr-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    filterCards();
+}
+function filterCards() {
+    const q = document.getElementById('searchInput').value.toLowerCase();
+    let vis = 0;
+    document.querySelectorAll('#mrGrid .mr-card').forEach(card => {
+        const sm = !q || card.dataset.search.includes(q);
+        const fm = activeF==='all'
+            || (activeF==='shared' && card.dataset.shared==='1')
+            || (activeF==='urgent' && card.dataset.urgent==='1');
+        const show = sm && fm;
+        card.style.display = show ? '' : 'none';
+        if (show) vis++;
+    });
+    document.getElementById('countLbl').textContent = `${vis} record(s)`;
+}
+
+// ── Modal / Sidebar ───────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o =>
+    o.addEventListener('click', e => { if (e.target===o) o.classList.remove('open'); })
+);
+function toggleSidebar(){const sb=document.getElementById("sidebar"),ov=document.getElementById("sidebarOverlay"),sh=document.getElementById("waShell");if(window.innerWidth<=992){sb?.classList.toggle("mob-open");ov?.classList.toggle("show");document.body.classList.toggle("sidebar-open")}else{sh?.classList.toggle("mini")}}
+function closeSidebar(){document.getElementById("sidebar")?.classList.remove("mob-open");document.getElementById("sidebarOverlay")?.classList.remove("show");document.body.classList.remove("sidebar-open");}
+document.addEventListener("DOMContentLoaded",()=>{
+    document.querySelectorAll(".wa-sb .sb-row").forEach(r=>r.addEventListener("click",()=>{if(window.innerWidth<=992)closeSidebar()}));
+    window.addEventListener("resize",()=>{if(window.innerWidth>992)closeSidebar()});
+});
+</script>
+</body>
+</html>

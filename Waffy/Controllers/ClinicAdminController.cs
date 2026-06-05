@@ -15,16 +15,26 @@ namespace Waffy.Controllers
         private readonly IWebHostEnvironment _env;
         private readonly IClinicImageRepository _imageRepo;
         private readonly IDoctorRepository _doctorRepo;
+        private readonly IAppointmentRepository _apptRepo; // ← جديد
+        private readonly INotificationRepository _notifRepo;
+        private readonly IPetRepository _petRepo;
+        private readonly IWalletRepository _walletRepo;
+
 
         public ClinicAdminController(IClinicRepository clinicRepo,
+        IWalletRepository walletRepo,
         ILocationRepository locationRepo,
         IClinicScheduleRepository scheduleRepo,
         IClinicServiceRepository serviceRepo,
         IClinicDocumentRepository docRepo,      
         IWebHostEnvironment env,
         IClinicImageRepository imageRepo,
-        IDoctorRepository doctorRepo)
+        IAppointmentRepository apptRepo,
+        INotificationRepository notifRepo,
+        IDoctorRepository doctorRepo,
+        IPetRepository petRepo)
         {
+            _walletRepo = walletRepo;
             _clinicRepo = clinicRepo;
             _locationRepo = locationRepo;
             _scheduleRepo = scheduleRepo;
@@ -33,6 +43,9 @@ namespace Waffy.Controllers
             _env = env;
             _imageRepo = imageRepo;
             _doctorRepo = doctorRepo;
+            _apptRepo = apptRepo;
+            _notifRepo = notifRepo;
+            _petRepo = petRepo;
         }
 
         // ══════════════════════════════════════════════════════════
@@ -102,25 +115,263 @@ namespace Waffy.Controllers
             return View();
         }
 
-        public IActionResult Appointments()
+
+        [HttpGet]
+        public async Task<IActionResult> Appointments(string? statusFilter = null)
         {
             var auth = RequireClinicAuth();
             if (auth != null) return auth;
-            return View();
+
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
+            // ── 1. جلب جميع المواعيد ─────────────────────────────
+            var all = (await _apptRepo.GetByClinicIdAsync(clinicId.Value)).ToList();
+
+            // ── 2. إثراء بصور الحيوانات ──────────────────────────
+            foreach (var a in all)
+            {
+                if (a.IdPet == null || a.IdPet <= 0) continue;
+                var pet = await _petRepo.GetByIdAsync(a.IdPet.Value);
+                if (pet == null) continue;
+                var imgs = (await _petRepo.GetImagesAsync(pet.IdPet)).ToList();
+                a.PetImageUrl = imgs.FirstOrDefault(i => i.IsMain)?.ImageUrl
+                             ?? imgs.FirstOrDefault()?.ImageUrl
+                             ?? pet.ImageUrl;
+            }
+
+            // ── 3. فلترة حسب الـ Status ──────────────────────────
+            var filtered = string.IsNullOrEmpty(statusFilter) || statusFilter == "All"
+                ? all
+                : all.Where(a => a.Status == statusFilter).ToList();
+
+            // ── 4. جلب أطباء العيادة + عدد مواعيد كل طبيب اليوم ─
+            var today = DateTime.Today;
+            var rawDoctors = (await _doctorRepo.GetByClinicIdAsync(clinicId.Value)).ToList();
+
+            var slimDoctors = rawDoctors.Select(d => new ClinicDoctorSlimDto
+            {
+                IdDoctor = d.IdDoctor,
+                FullName = d.FullName,
+                Specialization = d.Specialization,
+                WorkingDays = null,   // ← إذا غير موجود
+                MaxDailyAppointments = null,
+                IsAvailable = d.IsAvailable
+            }).ToList();
+
+            var docCounts = new Dictionary<int, int>();
+            foreach (var doc in rawDoctors)
+            {
+                var cnt = await _apptRepo.CountByDoctorAndDateAsync(doc.IdDoctor, today);
+                docCounts[doc.IdDoctor] = cnt;
+            }
+
+            // ── 5. بناء الـ ViewModel ─────────────────────────────
+            var vm = new ClinicAppointmentsViewModel
+            {
+                Appointments = filtered,
+                StatusFilter = statusFilter ?? "All",
+                TotalCount = all.Count,
+                TodayCount = all.Count(a => a.AppointmentDate.Date == today
+                                                      && a.Status != "Cancelled"),
+                ConfirmedCount = all.Count(a => a.Status == "Confirmed"),
+                CompletedCount = all.Count(a => a.Status == "Completed"),
+                CancelledCount = all.Count(a => a.Status == "Cancelled"),
+                DoctorNames = all
+                                            .Select(a => a.DoctorName)
+                                            .Where(n => !string.IsNullOrEmpty(n))
+                                            .Distinct()
+                                            .OrderBy(n => n)
+                                            .ToList()!,
+                AvailableDoctors = slimDoctors,
+                DoctorAppointmentCounts = docCounts
+            };
+            vm.TodayAppointments = all
+    .Where(a => a.AppointmentDate.Date == today
+             && a.Status != "Cancelled"
+             && a.Status != "NoShow")
+    .OrderBy(a => a.StartTime)
+    .ToList();
+            if (TempData["ApptSuccess"] != null) TempData.Keep("ApptSuccess");
+            if (TempData["ApptError"] != null) TempData.Keep("ApptError");
+
+            return View(vm);
+        }
+        // 3. Complete
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> CompleteAppointment(int id)
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            await _apptRepo.CompleteAsync(id);
+            TempData["ApptSuccess"] = "✅ Appointment marked as completed.";
+            return RedirectToAction("Appointments");
         }
 
-        public IActionResult Patients()
+        // 4. Cancel
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> CancelAppointment(int id, string reason)
         {
             var auth = RequireClinicAuth();
             if (auth != null) return auth;
-            return View();
+
+            // جلب الموعد أولاً للحصول على IdUser
+            var appt = await _apptRepo.GetByIdAsync(id);
+            if (appt == null)
+            {
+                TempData["ApptError"] = "Appointment not found.";
+                return RedirectToAction("Appointments");
+            }
+
+            // إلغاء الموعد
+            await _apptRepo.CancelAsync(id, reason);
+
+            // ★ إشعار لليوزر بأن العيادة ألغت موعده
+            var clinicName = HttpContext.Session.GetString("ClinicName") ?? "the clinic";
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = appt.IdUser,
+                Type = "AppointmentCancelledByClinic",
+                Title = "❌ Appointment Cancelled",
+                Message = $"Your appointment at {clinicName} on " +
+                                    $"{appt.AppointmentDate:dd MMM yyyy} at {appt.StartTime:hh\\:mm} " +
+                                    $"has been cancelled by the clinic." +
+                                    (!string.IsNullOrEmpty(reason) ? $" Reason: {reason}" : "") +
+                                    " Please book another appointment if needed.",
+                IsRead = false,
+                RelatedEntityType = "Appointment",
+                RelatedEntityId = id,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["ApptError"] = "❌ Appointment cancelled. User has been notified.";
+            return RedirectToAction("Appointments");
+        }
+        [HttpGet]
+        public async Task<IActionResult> Patients()
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
+            // جلب كل المواعيد التي عندها حيوان
+            var allAppts = (await _apptRepo.GetByClinicIdAsync(clinicId.Value))
+                .Where(a => a.IdPet.HasValue && a.IdPet > 0)
+                .ToList();
+
+            // تجميع بالحيوان
+            var groups = allAppts.GroupBy(a => a.IdPet!.Value).ToList();
+            var patients = new List<ClinicPatientDto>();
+
+            foreach (var g in groups)
+            {
+                var pet = await _petRepo.GetByIdAsync(g.Key);
+                if (pet == null) continue;
+
+                var imgs = (await _petRepo.GetImagesAsync(g.Key)).ToList();
+                var img = imgs.FirstOrDefault(i => i.IsMain)?.ImageUrl
+                        ?? imgs.FirstOrDefault()?.ImageUrl
+                        ?? pet.ImageUrl;
+
+                var latest = g.OrderByDescending(a => a.AppointmentDate).First();
+
+                patients.Add(new ClinicPatientDto
+                {
+                    IdPet = pet.IdPet,
+                    PetName = pet.Name ?? "Unknown",
+                    Species = pet.Species,
+                    Breed = pet.Breed,
+                    Gender = pet.Gender,
+                    Color = pet.Color,
+                    ImageUrl = img,
+                    AgeDisplay = pet.AgeDisplay,
+                    MicrochipId = pet.MicrochipId,
+                    Weight = pet.Weight,
+                    VaccinationStatus = pet.VaccinationStatus,
+                    IsNeutered = pet.IsNeutered,
+                    MedicalNotes = pet.MedicalNotes,
+                    Traits = pet.Traits,
+                    EnergyLevel = pet.EnergyLevel,
+                    GoodWithChildren = pet.GoodWithChildren,
+                    GoodWithPets = pet.GoodWithPets,
+                    IsTrained = pet.IsTrained,
+                    OwnerName = latest.UserFullName ?? "—",
+                    OwnerPhone = latest.UserPhone,
+                    LastVisitDate = g.Max(a => a.AppointmentDate),
+                    TotalVisits = g.Count(a => a.Status == "Completed"),
+                    FirstSeen = g.Min(a => a.CreatedAt),
+                    VisitHistory = g.OrderByDescending(a => a.AppointmentDate)
+                                        .Select(a => new PatientVisitDto
+                                        {
+                                            AppointmentId = a.Id,
+                                            VisitDate = a.AppointmentDate,
+                                            DoctorName = a.DoctorName,
+                                            ServiceName = a.ServiceName,
+                                            MedicalNote = a.MedicalRecordNote,
+                                            Status = a.Status
+                                        }).ToList()
+                });
+            }
+
+            var thisMonth = DateTime.Now.Month;
+            var vm = new ClinicPatientsViewModel
+            {
+                Patients = patients.OrderByDescending(p => p.LastVisitDate).ToList(),
+                TotalPatients = patients.Count,
+                PatientsWithExpiredVacc = patients.Count(p =>
+                    p.VaccinationStatus is "NotVaccinated" or "Partial" or null),
+                PatientsVisitedThisMonth = patients.Count(p =>
+                    p.LastVisitDate.HasValue &&
+                    p.LastVisitDate.Value.Month == thisMonth &&
+                    p.LastVisitDate.Value.Year == DateTime.Now.Year)
+            };
+
+            return View(vm);
         }
 
-        public IActionResult Medical_Records()
+        [HttpGet]
+        public async Task<IActionResult> Medical_Records()
         {
             var auth = RequireClinicAuth();
             if (auth != null) return auth;
-            return View();
+
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
+            // جلب جميع مواعيد العيادة
+            var all = (await _apptRepo.GetByClinicIdAsync(clinicId.Value)).ToList();
+
+            // إثراء بصور الحيوانات
+            foreach (var a in all)
+            {
+                if (a.IdPet == null || a.IdPet <= 0) continue;
+                var pet = await _petRepo.GetByIdAsync(a.IdPet.Value);
+                if (pet == null) continue;
+                var imgs = (await _petRepo.GetImagesAsync(pet.IdPet)).ToList();
+                a.PetImageUrl = imgs.FirstOrDefault(i => i.IsMain)?.ImageUrl
+                             ?? imgs.FirstOrDefault()?.ImageUrl
+                             ?? pet.ImageUrl;
+            }
+
+            // نستخدم ClinicAppointmentsViewModel — المشاهدة ستفلتر Completed
+            var today = DateTime.Today;
+            return View(new ClinicAppointmentsViewModel
+            {
+                Appointments = all,               // الفلتر يتم في الـ View
+                StatusFilter = "Completed",
+                TotalCount = all.Count,
+                TodayCount = all.Count(a => a.AppointmentDate.Date == today && a.Status != "Cancelled"),
+                ConfirmedCount = all.Count(a => a.Status == "Confirmed"),
+                CompletedCount = all.Count(a => a.Status == "Completed"),
+                CancelledCount = all.Count(a => a.Status == "Cancelled"),
+                DoctorNames = all.Select(a => a.DoctorName)
+                                    .Where(n => !string.IsNullOrEmpty(n))
+                                    .Distinct().OrderBy(n => n)
+                                    .ToList()!
+            });
         }
 
         [HttpGet]
@@ -253,7 +504,8 @@ namespace Waffy.Controllers
                 Description = clinic.Description,
                 Address = clinic.Address,
                 Latitude = clinic.Latitude,
-                Longitude = clinic.Longitude
+                Longitude = clinic.Longitude,
+                CliqNumber = clinic.CliqNumber   // ← أضيفي هذا
             };
 
             return View(vm);
@@ -291,7 +543,10 @@ namespace Waffy.Controllers
             clinic.Description = vm.Description;
             clinic.Address = vm.Address ?? "";
             clinic.Latitude = origLat;  
-            clinic.Longitude = origLng;  
+            clinic.Longitude = origLng;
+            clinic.CliqNumber = vm.CliqNumber?.Trim();
+            clinic.Latitude = vm.Latitude;
+            clinic.Longitude = vm.Longitude;
 
             await _clinicRepo.UpdateAsync(clinic);
 
@@ -524,16 +779,16 @@ namespace Waffy.Controllers
             });
 
             // ✅ تغيير VerificationStatus إلى "Under Review" فقط لو كانت Approved
-            var clinic = await _clinicRepo.GetByIdAsync(clinicId.Value);
-            if (clinic != null && clinic.VerificationStatus == "Approved")
-            {
-                var origLat = clinic.Latitude;
-                var origLng = clinic.Longitude;
-                clinic.VerificationStatus = "Under Review";
-                clinic.Latitude = origLat;
-                clinic.Longitude = origLng;
-                await _clinicRepo.UpdateAsync(clinic);
-            }
+           // var clinic = await _clinicRepo.GetByIdAsync(clinicId.Value);
+            //if (clinic != null && clinic.VerificationStatus == "Approved")
+           // {
+             //   var origLat = clinic.Latitude;
+              //  var origLng = clinic.Longitude;
+                //clinic.VerificationStatus = "Under Review";
+                //clinic.Latitude = origLat;
+                //clinic.Longitude = origLng;
+                //await _clinicRepo.UpdateAsync(clinic);
+            //}
 
             TempData["DocSuccess"] = "Document uploaded successfully. Awaiting SuperAdmin review.";
             return RedirectToAction("Documents_C");
@@ -701,6 +956,338 @@ namespace Waffy.Controllers
 
             return View(doctor);
         }
+
+       
+
+       
+        // ══════════════════════════════════════════════════════════════════════
+        // ملف: DoctorAdminController.cs  → أضيفي في نهاية الـ class
+        // ملف: ClinicAdminController.cs  → نفسه لكن RequireClinicAuth()
+        // ══════════════════════════════════════════════════════════════════════
+
+        // ── GET /DoctorAdmin/GetPetRecord?petId=X ─────────────────────────────
+        [HttpGet]
+        public async Task<IActionResult> GetPetRecord(int petId)
+        {
+            var auth = RequireClinicAuth();           // ClinicAdmin → RequireClinicAuth()
+            if (auth != null) return Unauthorized();
+
+            var pet = await _petRepo.GetByIdAsync(petId);
+            if (pet == null) return NotFound();
+
+            var images = (await _petRepo.GetImagesAsync(petId)).ToList();
+            var mainImage = images.FirstOrDefault(i => i.IsMain)?.ImageUrl
+                         ?? images.FirstOrDefault()?.ImageUrl
+                         ?? pet.ImageUrl;
+
+            return Json(new
+            {
+                idPet = pet.IdPet,
+                name = pet.Name ?? "—",
+                species = pet.Species ?? "—",
+                breed = pet.Breed ?? "—",
+                gender = pet.Gender ?? "—",
+                ageDisplay = pet.AgeDisplay,
+                color = pet.Color ?? "—",
+                microchipId = pet.MicrochipId ?? "—",
+                weight = pet.Weight,
+                vaccinationStatus = pet.VaccinationStatus ?? "Unknown",
+                isNeutered = pet.IsNeutered,
+                medicalNotes = pet.MedicalNotes ?? "",
+                traits = pet.Traits ?? "",
+                energyLevel = pet.EnergyLevel ?? "—",
+                goodWithChildren = pet.GoodWithChildren,
+                goodWithPets = pet.GoodWithPets,
+                isTrained = pet.IsTrained,
+                imageUrl = mainImage ?? ""
+            });
+        }
+
+        // ── POST /DoctorAdmin/UpdatePetMedical ────────────────────────────────
+        // ★ [IgnoreAntiforgeryToken] ضروري لأن الطلب AJAX بـ FormData
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public async Task<IActionResult> UpdatePetMedical(
+            int petId,
+            string? vaccinationStatus,
+            bool isNeutered,
+            string? medicalNotes,
+            string? traits,
+            string? energyLevel,
+            decimal? weight,
+            bool goodWithChildren,
+            bool goodWithPets,
+            bool isTrained)
+        {
+            var auth = RequireClinicAuth();           // ClinicAdmin → RequireClinicAuth()
+            if (auth != null) return Unauthorized();
+
+            var pet = await _petRepo.GetByIdAsync(petId);
+            if (pet == null) return Json(new { success = false, message = "Pet not found." });
+
+            // ✅ تحديث الحقول الطبية فقط — الاسم والنوع والفصيلة مسؤولية المالك
+            pet.VaccinationStatus = vaccinationStatus;
+            pet.IsNeutered = isNeutered;
+            pet.MedicalNotes = medicalNotes;
+            pet.Traits = traits;
+            pet.EnergyLevel = energyLevel;
+            pet.Weight = weight;
+            pet.GoodWithChildren = goodWithChildren;
+            pet.GoodWithPets = goodWithPets;
+            pet.IsTrained = isTrained;
+
+            await _petRepo.UpdateAsync(pet);
+
+            return Json(new { success = true });
+        }
+
+        // ── 3. حفظ ملاحظات الطبيب على الموعد ────────────────────────────
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveDoctorNotes(
+            int appointmentId,
+            string? diagnosis,
+            string? treatment,
+            string? prescription)
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return Unauthorized();
+
+            var note = new System.Text.StringBuilder();
+            if (!string.IsNullOrEmpty(diagnosis)) note.AppendLine($"🩺 Diagnosis: {diagnosis}");
+            if (!string.IsNullOrEmpty(treatment)) note.AppendLine($"💊 Treatment: {treatment}");
+            if (!string.IsNullOrEmpty(prescription)) note.AppendLine($"📋 Prescription: {prescription}");
+
+            await _apptRepo.UpdateMedicalNoteAsync(appointmentId, note.ToString().Trim());
+
+            return Json(new { success = true });
+        }
+
+        // ── Action: الموافقة + تعيين طبيب ────────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveAndAssign(int appointmentId, int assignedDoctorId)
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            // تحقق من توفر الطبيب
+            var appt = await _apptRepo.GetByIdAsync(appointmentId);
+            if (appt == null)
+            {
+                TempData["ApptError"] = "Appointment not found.";
+                return RedirectToAction("Appointments");
+            }
+
+            var slotFree = await _apptRepo.IsSlotAvailableAsync(
+                assignedDoctorId, appt.AppointmentDate, appt.StartTime);
+
+            if (!slotFree)
+            {
+                TempData["ApptError"] = "⚠️ Doctor is not available at this time slot.";
+                return RedirectToAction("Appointments");
+            }
+
+            var todayCount = await _apptRepo.CountByDoctorAndDateAsync(
+                assignedDoctorId, appt.AppointmentDate);
+            var docInfo = await _doctorRepo.GetFullInfoByDoctorIdAsync(assignedDoctorId);
+            var maxDaily = docInfo?.MaxDailyAppointments ?? 12;
+
+            if (todayCount >= maxDaily)
+            {
+                TempData["ApptError"] = $"⚠️ Doctor has reached daily limit ({maxDaily} appointments).";
+                return RedirectToAction("Appointments");
+            }
+
+            await _apptRepo.AssignDoctorAsync(appointmentId, assignedDoctorId);
+            // إشعار لليوزر
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = appt.IdUser,
+                Type = "AppointmentConfirmed",
+                Title = "✅ Appointment Confirmed!",
+                Message = $"Your appointment at {HttpContext.Session.GetString("ClinicName")} " +
+                                    $"on {appt.AppointmentDate:dd MMM yyyy} at {appt.StartTime:hh\\:mm} " +
+                                   $"A doctor has been assigned to your appointment on " +
+$"{appt.AppointmentDate:dd MMM yyyy} at {appt.StartTime:hh\\:mm}. " +
+$"Dr. {docInfo?.FullName} will review and confirm shortly. 🐾",
+                IsRead = false,
+                RelatedEntityType = "Appointment",
+                RelatedEntityId = appointmentId,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["ApptSuccess"] = $"✅ Assigned to Dr. {docInfo?.FullName}. Awaiting doctor confirmation.";
+            return RedirectToAction("Appointments");
+        }
+
+        // ── Action: رفض الموعد ───────────────────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectAppointment(int id, string reason)
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            var appt = await _apptRepo.GetByIdAsync(id);
+            if (appt == null) return RedirectToAction("Appointments");
+
+            await _apptRepo.CancelAsync(id, reason);
+
+            // إرجاع الإيداع فوراً
+            if (appt.DepositPaid && !appt.DepositReturned)
+            {
+                // -5 من محفظة العيادة لأن المبلغ رجع لليوزر
+await _clinicRepo.AddClinicBalanceAsync(appt.IdClinic, -appt.DepositAmount);
+            }
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = appt.IdUser,
+                Type = "AppointmentRejectedByClinic",
+                Title = "❌ Appointment Request Rejected",
+                Message = $"Your appointment request at " +
+                                    $"{HttpContext.Session.GetString("ClinicName") ?? "the clinic"} " +
+                                    $"was rejected. Reason: {reason}. " +
+                                    (appt.DepositPaid ? "Your 5 JOD deposit has been returned. " : "") +
+                                    "You can book another appointment.",
+                IsRead = false,
+                RelatedEntityType = "Appointment",
+                RelatedEntityId = id,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["ApptError"] = "❌ Appointment rejected." +
+                                    (appt.DepositPaid ? " Deposit returned to user." : "");
+            return RedirectToAction("Appointments");
+        }
+
+        // ── Action: تأكيد حضور المريض ────────────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmAttendance(int id)
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            var appt = await _apptRepo.GetByIdAsync(id);
+            if (appt == null) return RedirectToAction("Appointments");
+
+            await _apptRepo.CompleteAsync(id);
+            await _apptRepo.ConfirmAttendanceAsync(id);
+
+            if (appt.DepositPaid && !appt.DepositReturned)
+            {
+                await ReturnDepositToUserAsync(appt.IdUser, appt.DepositAmount, id);
+                // -5 من محفظة العيادة لأن المبلغ رجع لليوزر
+                await _clinicRepo.AddClinicBalanceAsync(appt.IdClinic, -appt.DepositAmount);
+            }
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = appt.IdUser,
+                Type = "AppointmentCompleted",
+                Title = "✅ Visit Complete — Deposit Returned",
+                Message = "Your visit is marked as complete. " +
+                                    "Your 5 JOD deposit has been returned to your wallet. 🐾",
+                IsRead = false,
+                RelatedEntityType = "Appointment",
+                RelatedEntityId = id,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["ApptSuccess"] = "✅ Attendance confirmed. Deposit returned.";
+            return RedirectToAction("Appointments");
+        }
+
+        // ── Action: تسجيل غياب ──────────────────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkNoShow(int id)
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            var appt = await _apptRepo.GetByIdAsync(id);
+            if (appt == null) return RedirectToAction("Appointments");
+
+            await _apptRepo.MarkNoShowAsync(id);
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = appt.IdUser,
+                Type = "AppointmentNoShow",
+                Title = "⚠️ Missed Appointment",
+                Message = $"You missed your appointment on {appt.AppointmentDate:dd MMM yyyy}. " +
+                                    "Your 5 JOD deposit has been retained per our cancellation policy.",
+                IsRead = false,
+                RelatedEntityType = "Appointment",
+                RelatedEntityId = id,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["ApptError"] = "⚠️ No-show recorded. Deposit retained.";
+            return RedirectToAction("Appointments");
+        }
+
+        // ── Helper: إرجاع الإيداع ────────────────────────────
+        private async Task ReturnDepositToUserAsync(int userId, decimal amount, int appointmentId)
+        {
+            var wallet = await _walletRepo.GetByUserIdAsync(userId);
+            if (wallet == null)
+            {
+                await _walletRepo.CreateWalletAsync(userId);
+                wallet = await _walletRepo.GetByUserIdAsync(userId);
+            }
+            if (wallet == null) return;
+
+            await _walletRepo.AddBalanceAsync(wallet.IdWallet, amount);
+            await _walletRepo.AddTransactionAsync(new WalletTransaction
+            {
+                IdWallet = wallet.IdWallet,
+                TransactionCode = $"DEP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                Type = "DepositReturn",
+                Amount = amount,
+                PaymentMethod = "Waffy Deposit",
+                Status = "Completed",
+                CreatedAt = DateTime.UtcNow
+            });
+            await _apptRepo.MarkDepositReturnedAsync(appointmentId);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmCliqPayment(int id)
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            var appt = await _apptRepo.GetByIdAsync(id);
+            if (appt == null) return RedirectToAction("Appointments");
+
+            // تأكيد الدفع
+            await _apptRepo.MarkDepositPaidAsync(id, "CliQ");
+
+            // تحديد الـ Status التالي بناءً على اختيار الطبيب الأصلي
+            var nextStatus = appt.IdDoctor > 0
+     ? "PendingDoctorApproval"
+     : "PendingClinicApproval";
+
+            await _apptRepo.SetStatusAsync(id, nextStatus);
+
+            // إشعار لليوزر
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = appt.IdUser,
+                Type = "CliQPaymentConfirmed",
+                Title = "✅ CliQ Payment Confirmed",
+                Message = nextStatus == "PendingDoctorApproval"
+                    ? "Your 5 JOD CliQ payment has been confirmed. The doctor will review your request shortly. 🐾"
+                    : "Your 5 JOD CliQ payment has been confirmed. The clinic will assign a doctor shortly. 🐾",
+                IsRead = false,
+                RelatedEntityType = "Appointment",
+                RelatedEntityId = id,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["ApptSuccess"] = $"✅ CliQ payment confirmed. Appointment moved to {nextStatus}.";
+            return RedirectToAction("Appointments");
+        }
         public IActionResult Revenue()
         {
             var auth = RequireClinicAuth();
@@ -770,5 +1357,7 @@ namespace Waffy.Controllers
             if (auth != null) return auth;
             return View();
         }
+
+
     }
 }

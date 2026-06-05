@@ -21,6 +21,8 @@
     <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
     <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
     <link rel="stylesheet" href="~/css/clinic-setting.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 </head>
 <body class="admin-shell">
 
@@ -213,7 +215,14 @@
                                 <label class="f-label"><span class="req">*</span>Phone Number</label>
                                 <input asp-for="Phone" class="f-inp" type="tel" required>
                             </div>
-
+                            <div class="f-group">
+                                <label class="f-label">📱 CliQ Number</label>
+                                <input asp-for="CliqNumber" class="f-inp" type="tel"
+                                       placeholder="e.g. 0791234567">
+                                <div class="f-hint">
+                                    💡 This number will be shown to patients for CliQ deposit payments
+                                </div>
+                            </div>
                             <div class="f-group">
                                 <label class="f-label">Email Address</label>
                                 <input asp-for="Email" class="f-inp" type="email">
@@ -244,6 +253,43 @@
                                 <textarea asp-for="Description" class="f-inp"></textarea>
                             </div>
 
+                            <!-- ── MAP PICKER ── -->
+                            <div class="f-group f-full">
+                                <label class="f-label">
+                                    📍 Clinic Location on Map
+                                    <span style="font-size:.72rem;color:var(--muted);font-weight:700;margin-left:6px;">
+                                        Click on the map to pin your clinic location
+                                    </span>
+                                </label>
+
+                                <!-- Current coordinates display -->
+                                <div id="coordsDisplay"
+                                     style="background:var(--gp);border:1px solid var(--b2);border-radius:10px;
+                padding:8px 12px;margin-bottom:8px;font-size:.8rem;font-weight:700;
+                color:var(--gd);display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+                                    <span>📍 Lat: <strong id="latDisplay">@(Model.Latitude?.ToString("F6") ?? "Not set")</strong></span>
+                                    <span>📍 Lng: <strong id="lngDisplay">@(Model.Longitude?.ToString("F6") ?? "Not set")</strong></span>
+                                    <button type="button" id="locateBtn"
+                                            style="margin-left:auto;padding:4px 12px;border-radius:8px;
+                       background:var(--gd);color:#fff;border:none;
+                       font-size:.76rem;font-weight:800;cursor:pointer;
+                       font-family:'Nunito',sans-serif;">
+                                        🎯 Use My Location
+                                    </button>
+                                </div>
+
+                                <!-- Map container -->
+                                <div id="clinicMap"
+                                     style="height:320px;border-radius:12px;border:1.5px solid var(--b2);
+                overflow:hidden;cursor:crosshair;">
+                                </div>
+                                <div class="f-hint">💡 Click anywhere on the map to set the clinic pin</div>
+
+                                <!-- Hidden inputs submitted with form -->
+                                <input type="hidden" asp-for="Latitude" id="latInput">
+                                <input type="hidden" asp-for="Longitude" id="lngInput">
+                            </div>
+
                         </div>
                     </div>
 
@@ -258,7 +304,90 @@
         const allGovs  = @Html.Raw(ViewBag.AllGovsJson ?? "[]");
         const allDists = @Html.Raw(ViewBag.AllDistsJson ?? "[]");
         const currentArea = "@Html.Raw(Model.Area ?? "")";
+                // ── MAP PICKER ────────────────────────────────────────
+        (function initMap() {
+            const defaultLat = @(Model.Latitude?.ToString("F6") ?? "31.9539")  + 0;
+            const defaultLng = @(Model.Longitude?.ToString("F6") ?? "35.9106") + 0;
+            const hasCoords  = @(Model.Latitude.HasValue ? "true" : "false");
 
+            // إنشاء الخريطة
+            const map = L.map('clinicMap').setView([defaultLat, defaultLng], hasCoords ? 15 : 10);
+
+            // طبقة OpenStreetMap (مجانية)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© OpenStreetMap contributors',
+                maxZoom: 19
+            }).addTo(map);
+
+            // أيقونة مخصصة
+            const pinIcon = L.divIcon({
+                html: '<div style="font-size:28px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.3));">📍</div>',
+                className: '',
+                iconAnchor: [14, 28],
+                popupAnchor: [0, -28]
+            });
+
+            // Marker — ضعه إذا كان عندنا إحداثيات
+            let marker = null;
+            if (hasCoords) {
+                marker = L.marker([defaultLat, defaultLng], { icon: pinIcon })
+                    .addTo(map)
+                    .bindPopup('🏥 Your clinic is here')
+                    .openPopup();
+            }
+
+            // دالة لتحديث المعلومات
+            function setLocation(lat, lng) {
+                lat = parseFloat(lat.toFixed(6));
+                lng = parseFloat(lng.toFixed(6));
+
+                // تحديث Hidden inputs
+                document.getElementById('latInput').value = lat;
+                document.getElementById('lngInput').value = lng;
+
+                // تحديث الـ display
+                document.getElementById('latDisplay').textContent = lat;
+                document.getElementById('lngDisplay').textContent = lng;
+
+                // تحريك الـ marker
+                if (marker) {
+                    marker.setLatLng([lat, lng]);
+                } else {
+                    marker = L.marker([lat, lng], { icon: pinIcon })
+                        .addTo(map)
+                        .bindPopup('🏥 Your clinic is here')
+                        .openPopup();
+                }
+
+                map.setView([lat, lng], 16);
+            }
+
+            // ── النقر على الخريطة ──────────────────────────────
+            map.on('click', function(e) {
+                setLocation(e.latlng.lat, e.latlng.lng);
+            });
+
+            // ── زر "Use My Location" ───────────────────────────
+            document.getElementById('locateBtn')?.addEventListener('click', function() {
+                if (!navigator.geolocation) {
+                    alert('Geolocation is not supported by your browser.');
+                    return;
+                }
+                this.textContent = '⏳ Locating...';
+                const btn = this;
+                navigator.geolocation.getCurrentPosition(
+                    function(pos) {
+                        setLocation(pos.coords.latitude, pos.coords.longitude);
+                        btn.textContent = '🎯 Use My Location';
+                    },
+                    function() {
+                        alert('Could not get your location. Please click on the map manually.');
+                        btn.textContent = '🎯 Use My Location';
+                    }
+                );
+            });
+        })();
+        // ─────────────────────────────────────────────────────
         // ── Update Area dropdown when City changes ─────────
         function updateAreas() {
             const cityVal   = document.getElementById("citySelect")?.value;

@@ -1023,14 +1023,11 @@
                         <div class="doctors-grid">
                             @foreach (var doc in Model.Doctors)
                             {
-                                <a asp-controller="Clinic" asp-action="DoctorDetail"
-                                   asp-route-id="@doc.IdDoctor"
-                                   class="doctor-card-v2">
+                                <div class="doctor-card-v2" style="cursor:default;">
                                     @if (!string.IsNullOrEmpty(doc.ProfileImageUrl))
                                     {
                                         <img src="@doc.ProfileImageUrl" alt="Dr. @doc.FullName"
-                                             class="doc-avatar"
-                                             style="object-fit:cover;font-size:0;">
+                                             class="doc-avatar" style="object-fit:cover;font-size:0;">
                                     }
                                     else
                                     {
@@ -1046,8 +1043,35 @@
                                     {
                                         <div class="doc-rating">★ @doc.Rating.Value.ToString("F1")</div>
                                     }
-                                    <span class="doc-link">View Profile →</span>
-                                </a>
+
+                                    <!-- ✅ أزرار داخل الكارد -->
+                                    <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:8px;">
+                                        <a asp-controller="Clinic" asp-action="DoctorDetail"
+                                           asp-route-id="@doc.IdDoctor"
+                                           class="doc-link">View Profile →</a>
+
+                                        @if (doc.IsAvailable == true)
+                                        {
+                                            <a asp-controller="Appointment" asp-action="Book"
+                                               asp-route-clinicId="@Model.IdClinic"
+                                               asp-route-doctorId="@doc.IdDoctor"
+                                               style="display:inline-block;padding:5px 14px;border-radius:999px;
+                                  background:linear-gradient(135deg,var(--wgl),var(--wg));
+                                  color:#fff;font-size:.76rem;font-weight:900;
+                                  text-decoration:none;border:none;transition:.18s;">
+                                                📅 Book
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span style="display:inline-block;padding:5px 14px;border-radius:999px;
+                                     background:rgba(200,106,92,.1);color:var(--wr);
+                                     font-size:.76rem;font-weight:800;">
+                                                🔴 Unavailable
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
                             }
                         </div>
                     </div>
@@ -1139,12 +1163,15 @@
             </div>
 
             <!-- Book Button -->
-            <button class="book-btn" onclick="showToast()">
+            <a asp-controller="Appointment" asp-action="Book"
+               asp-route-clinicId="@Model.IdClinic"
+               class="book-btn"
+               style="text-decoration:none;display:flex;
+          align-items:center;justify-content:center;gap:8px;">
                 <i class="fa-regular fa-calendar-check"></i>
                 Book Appointment
-            </button>
-            <div class="book-note">Online booking coming soon</div>
-
+            </a>
+            <div class="book-note">Choose doctor, date &amp; time →</div>
         </aside>
 
     </div>

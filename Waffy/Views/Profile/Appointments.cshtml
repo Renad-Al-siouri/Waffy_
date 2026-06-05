@@ -1,29 +1,542 @@
-﻿@{
-    ViewData["Title"] = "Appointments";
+﻿@model Waffy.Models.ViewModels.ProfileAppointmentsViewModel
+@{
+    ViewData["Title"] = "My Appointments — Waffy";
     Layout = null;
-    
+
+    ViewBag.SidebarName = Model.UserFullName;
+    ViewBag.SidebarEmail = Model.UserEmail;
+    ViewBag.SidebarProfileImage = Model.UserProfileImage;
+    ViewBag.SidebarBalance = Model.Balance.ToString("F2");
+    ViewBag.SidebarAppointmentsBadge = Model.UpcomingCount > 0
+                                       ? Model.UpcomingCount.ToString() : null;
+    ViewBag.SidebarWalletBadge = null;
+    ViewBag.SidebarRewardsBadge = null;
+    ViewBag.SidebarOrdersBadge = null;
+    ViewBag.SidebarLostBadge = null;
+    ViewBag.SidebarAdoptionBadge = null;
+    ViewBag.SidebarDonationsBadge = null;
+    ViewBag.SidebarDangerBadge = null;
+    ViewBag.SidebarComplaintsBadge = null;
+
+    var now = DateTime.Now;
+
+    var pending = Model.Appointments
+        .Where(a => a.Status is "PendingDoctorApproval"
+                              or "PendingClinicApproval"
+                              or "PendingPayment"
+                              or "PendingPaymentVerification")
+        .OrderBy(a => a.AppointmentDate).ToList();
+
+    var upcoming = Model.Appointments
+        .Where(a => a.AppointmentDate >= now.Date && a.Status == "Confirmed")
+        .OrderBy(a => a.AppointmentDate).ThenBy(a => a.StartTime).ToList();
+
+    var past = Model.Appointments
+        .Where(a => a.Status is "Completed" or "Cancelled" or "NoShow")
+        .OrderByDescending(a => a.AppointmentDate).ToList();
+
+    string BadgeCss(string s) => s switch
+    {
+        "Confirmed" => "badge-green",
+        "Completed" => "badge-blue",
+        "Cancelled" => "badge-red",
+        "NoShow" => "badge-red",
+        "PendingPayment" => "badge-orange",
+        "PendingPaymentVerification" => "badge-orange",
+        "PendingDoctorApproval" => "badge-orange",
+        "PendingClinicApproval" => "badge-orange",
+        _ => "badge-orange"
+    };
+    string BadgeLabel(string s) => s switch
+    {
+        "Confirmed" => "✅ Confirmed",
+        "Completed" => "🏁 Completed",
+        "Cancelled" => "❌ Cancelled",
+        "NoShow" => "🚫 No-Show",
+        "PendingDoctorApproval" => "⏳ Awaiting Doctor",
+        "PendingClinicApproval" => "⏳ Awaiting Clinic",
+        "PendingPayment" => "💳 Payment Required",
+        "PendingPaymentVerification" => "🔍 Verifying Payment",
+        _ => s
+    };
+    string PetEmoji(string? sp) => sp?.ToLower() switch
+    {
+        "dog" => "🐕",
+        "cat" => "🐈",
+        "bird" => "🐦",
+        "rabbit" => "🐇",
+        "fish" => "🐠",
+        "hamster" => "🐹",
+        _ => "🐾"
+    };
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Waffy | Appointments</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="~/css/waffy-shared.css">
     <link rel="stylesheet" href="~/css/waffy-responsive-patch.css">
+    <style>
+        /* ── KPI ── */
+        .appt-kpi-row {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .appt-kpi-box {
+            background: #fff;
+            border-radius: 14px;
+            border: 1px solid #e8efd8;
+            padding: .8rem .6rem;
+            text-align: center;
+        }
+
+        .appt-kpi-num {
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #5f7430;
+            line-height: 1.1;
+        }
+
+        .appt-kpi-lbl {
+            font-size: .68rem;
+            color: #8a9a6a;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        /* ── Appointment Card ── */
+        .appt-card {
+            display: grid;
+            grid-template-columns: 52px 46px 1fr auto;
+            grid-template-rows: auto auto;
+            gap: 0 10px;
+            align-items: start;
+            padding: 14px;
+            border-radius: 14px;
+            border: 1px solid #e8efd8;
+            background: #fff;
+            margin-bottom: 10px;
+            transition: box-shadow .2s, transform .2s;
+        }
+
+            .appt-card:hover {
+                box-shadow: 0 4px 14px rgba(90,101,42,.12);
+                transform: translateY(-1px);
+            }
+
+        .appt-pet-thumb {
+            grid-column: 1;
+            grid-row: 1 / 3;
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #eef4dd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            border: 1.5px solid #dbe8b8;
+            align-self: center;
+        }
+
+            .appt-pet-thumb img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .appt-date-box {
+            grid-column: 2;
+            grid-row: 1 / 3;
+            background: linear-gradient(180deg,#eef4dd,#dbe8b8);
+            border-radius: 10px;
+            padding: 7px 6px;
+            text-align: center;
+            align-self: center;
+        }
+
+            .appt-date-box.past {
+                background: linear-gradient(180deg,#f0ebe2,#e5ddd0);
+            }
+
+        .appt-day {
+            display: block;
+            font-family: 'Fredoka', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #5f7430;
+            line-height: 1;
+        }
+
+        .appt-date-box.past .appt-day {
+            color: #7b6c58;
+        }
+
+        .appt-mon {
+            display: block;
+            font-size: .62rem;
+            font-weight: 800;
+            color: #7d953d;
+            text-transform: uppercase;
+            margin-top: 1px;
+        }
+
+        .appt-date-box.past .appt-mon {
+            color: #a89688;
+        }
+
+        .appt-info {
+            grid-column: 3;
+            grid-row: 1;
+            min-width: 0;
+        }
+
+            .appt-info h4 {
+                font-size: .88rem;
+                font-weight: 800;
+                color: #3d3020;
+                margin: 0 0 3px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            .appt-info p {
+                font-size: .76rem;
+                color: #7b6c58;
+                font-weight: 700;
+                margin: 0 0 4px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+        .appt-actions {
+            grid-column: 4;
+            grid-row: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+
+        .appt-cliq-row {
+            grid-column: 3 / 5;
+            grid-row: 2;
+            margin-top: 6px;
+        }
+
+        .appt-med-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 3px;
+            font-size: .66rem;
+            font-weight: 800;
+            background: #dbe8b8;
+            color: #5f7430;
+            border-radius: 999px;
+            padding: 1px 7px;
+            border: 1px solid #c3d9a0;
+            margin-top: 3px;
+        }
+
+        .appt-urgent {
+            font-size: .66rem;
+            font-weight: 900;
+            color: #e07b3c;
+            background: #fef0e6;
+            border-radius: 999px;
+            padding: 1px 6px;
+            display: inline-block;
+        }
+
+        /* ── Cancel ── */
+        .cancel-toggle-btn {
+            background: none;
+            border: 1px solid #f5b8b8;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: .72rem;
+            font-weight: 800;
+            color: #c0392b;
+            cursor: pointer;
+            transition: .15s;
+            font-family: 'Nunito', sans-serif;
+            white-space: nowrap;
+        }
+
+            .cancel-toggle-btn:hover {
+                background: #fde8e8;
+            }
+
+        .cancel-drawer {
+            display: none;
+            background: #fff5f5;
+            border: 1px solid #f5b8b8;
+            border-radius: 12px;
+            padding: 10px 12px;
+            margin-top: 6px;
+        }
+
+            .cancel-drawer.open {
+                display: block;
+            }
+
+        .cancel-reason-inp {
+            width: 100%;
+            padding: 7px 10px;
+            border: 1.5px solid #e8ddd0;
+            border-radius: 8px;
+            font-family: 'Nunito', sans-serif;
+            font-size: .8rem;
+            font-weight: 700;
+            outline: none;
+            margin-bottom: 8px;
+            box-sizing: border-box;
+        }
+
+            .cancel-reason-inp:focus {
+                border-color: #c86a5c;
+            }
+
+        .cancel-confirm-row {
+            display: flex;
+            gap: 6px;
+        }
+
+        /* ── Book again ── */
+        .book-again-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 8px;
+            background: #eef4dd;
+            color: #5f7430;
+            font-size: .72rem;
+            font-weight: 800;
+            text-decoration: none;
+            border: 1px solid #dbe8b8;
+            white-space: nowrap;
+        }
+
+        /* ── Badges ── */
+        .badge-orange {
+            background: #fff3e0;
+            color: #e07b3c;
+            border: 1px solid #ffcc80;
+            border-radius: 999px;
+            padding: 2px 8px;
+            font-size: .7rem;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        /* ── Empty ── */
+        .appt-empty {
+            text-align: center;
+            padding: 2.5rem 1rem;
+            color: #a89688;
+        }
+
+        /* ── CliQ box ── */
+        .cliq-box {
+            background: #e8f0fe;
+            border: 1.5px solid #c5d0e8;
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+
+        .cliq-box-title {
+            font-size: .76rem;
+            font-weight: 800;
+            color: #1a3a8f;
+            margin-bottom: 6px;
+        }
+
+        .cliq-info-row {
+            background: #fff;
+            border-radius: 8px;
+            padding: 8px 10px;
+            border: 1px solid #c5d0e8;
+            margin-bottom: 8px;
+        }
+
+        .cliq-info-line {
+            display: flex;
+            justify-content: space-between;
+            font-size: .74rem;
+            font-weight: 700;
+            margin-bottom: 3px;
+            gap: 8px;
+        }
+
+            .cliq-info-line:last-child {
+                margin-bottom: 0;
+            }
+
+            .cliq-info-line strong {
+                word-break: break-all;
+            }
+
+        .cliq-steps {
+            font-size: .71rem;
+            color: #555;
+            font-weight: 600;
+            margin-bottom: 8px;
+            line-height: 1.8;
+        }
+
+        /* ══════════════════════════════════
+                   RESPONSIVE — TABLET
+                ══════════════════════════════════ */
+        @@media(max-width: 768px) {
+            .appt-kpi-row {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+        }
+
+        /* ══════════════════════════════════
+                   RESPONSIVE — MOBILE
+                ══════════════════════════════════ */
+        @@media(max-width: 540px) {
+            /* Card switches to stacked layout */
+            .appt-card {
+                grid-template-columns: 44px 1fr auto;
+                grid-template-rows: auto auto auto;
+                gap: 0 8px;
+                padding: 12px;
+            }
+
+            .appt-pet-thumb {
+                grid-column: 1;
+                grid-row: 1;
+                width: 44px;
+                height: 44px;
+                font-size: 1.2rem;
+                align-self: start;
+            }
+            /* Date box moves to be inline with info */
+            .appt-date-box {
+                display: none; /* hidden on very small — show date in info */
+            }
+
+            .appt-info {
+                grid-column: 2;
+                grid-row: 1;
+            }
+
+                .appt-info h4 {
+                    font-size: .84rem;
+                    white-space: normal;
+                    overflow: visible;
+                }
+
+                .appt-info p {
+                    font-size: .73rem;
+                    white-space: normal;
+                    overflow: visible;
+                }
+
+            .appt-actions {
+                grid-column: 3;
+                grid-row: 1;
+                align-items: flex-end;
+            }
+
+            .appt-cliq-row {
+                grid-column: 1 / 4;
+                grid-row: 3;
+            }
+            /* Show date as small text in info */
+            .appt-date-mobile {
+                display: inline-block;
+                font-size: .68rem;
+                font-weight: 800;
+                color: #7d953d;
+                margin-bottom: 2px;
+            }
+
+            .cancel-confirm-row {
+                flex-direction: column;
+            }
+
+                .cancel-confirm-row .btn {
+                    width: 100%;
+                    justify-content: center;
+                }
+        }
+
+        @@media(max-width: 380px) {
+            .appt-kpi-row {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 6px;
+            }
+
+            .appt-kpi-num {
+                font-size: 1.2rem;
+            }
+
+            .appt-kpi-lbl {
+                font-size: .62rem;
+            }
+
+            .appt-card {
+                padding: 10px;
+                gap: 0 6px;
+            }
+
+            .appt-pet-thumb {
+                width: 38px;
+                height: 38px;
+                font-size: 1rem;
+            }
+
+            .badge-orange {
+                font-size: .65rem;
+                padding: 2px 6px;
+            }
+
+            .cancel-toggle-btn {
+                font-size: .68rem;
+                padding: 3px 8px;
+            }
+        }
+
+        /* ── Date shown on mobile ── */
+        .appt-date-mobile {
+            display: none;
+        }
+
+        @@media(max-width: 540px) {
+            .appt-date-mobile {
+                display: block;
+            }
+        }
+    </style>
 </head>
 <body>
 
+    <!-- ══ NAVBAR ══ -->
     <div class="top-hero-area">
         <div class="top-hero-shell">
             <header class="topbar">
                 <div class="header-shell">
                     <nav class="navbar">
                         <div class="left-nav desktop-nav desktop-links">
-                            <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
+                            <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
                             <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                             <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
@@ -36,7 +549,7 @@
                             <div class="desktop-nav desktop-links desktop-right-links">
                                 <div class="services-dropdown" id="servicesDropdown">
                                     <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                        Services <span class="dropdown-arrow">&#9660;</span>
+                                        Services <span class="dropdown-arrow">▼</span>
                                     </button>
                                     <div class="dropdown-menu" id="servicesMenu">
                                         <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
@@ -54,33 +567,40 @@
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                             </div>
                             <div class="nav-actions">
-                                <a href="/Cart/Index" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
-                                <a href="/Notifications/Index" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
-                                <a href="/Profile/Edit_Profile" class="profile-btn">
-                                    <img src="~/Images/user.jpg" alt="Profile">
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></a>
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
+                                <a asp-controller="Account" asp-action="Profile" class="profile-btn">
+                                    @if (!string.IsNullOrEmpty(Model.UserProfileImage))
+                                    {
+                                        <img src="@Model.UserProfileImage" alt="Profile">
+                                    }
+                                    else
+                                    {
+
+                                        <img src="~/Images/user.jpg" alt="Profile">
+                                    }
                                 </a>
-                                <a href="/Account/Logout" class="nav-link login-btn">Log out</a>
+                                <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                             </div>
                             <div class="mobile-nav-wrap">
-                                <button class="menu-btn" id="menuBtn" type="button">&#9776;</button>
+                                <button class="menu-btn" id="menuBtn" type="button">☰</button>
                                 <div class="nav-links" id="navLinks">
                                     <div class="mobile-menu-logo"><img src="~/Images/logo.png" alt="Waffy"></div>
-                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link active">Home</a>
+                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                                     <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                                     <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                                     <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-                                    <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
                                     <div class="mobile-services-block" id="mobileServicesBlock">
                                         <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
-                                            <span>Services</span><span class="dropdown-arrow">&#9660;</span>
+                                            <span>Services</span><span class="dropdown-arrow">▼</span>
                                         </button>
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
                                             <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                             <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                             <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
                                             <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
-                                            <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
+                                            <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
                                     <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
@@ -94,59 +614,389 @@
         </div>
     </div>
 
+    <!-- ══ CONTENT ══ -->
     <div class="page-wrap">
-
         @await Html.PartialAsync("_ProfileSidebar")
-
         <main class="main-content">
-            <div class="page-header"><div><h2>Appointments &#128197;</h2><p>Upcoming and past vet visits</p></div></div>
 
-            <div class="s-card">
-                <div class="s-card-head"><span class="s-card-title">Upcoming</span><span class="badge badge-green">2 Scheduled</span></div>
-                <div class="s-card-body">
-                    <div class="appt-card">
-                        <div class="appt-date-box"><span class="appt-day">18</span><span class="appt-mon">Apr</span></div>
-                        <div class="appt-info"><h4>General Checkup &mdash; Buddy</h4><p>Dr. Rania Hassan &middot; Al Amanah Clinic &middot; 10:00 AM</p></div>
-                        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-                            <span class="badge badge-green">Confirmed</span>
-                            <button class="btn btn-danger btn-sm" onclick="cancelAppt(this)">Cancel</button>
-                        </div>
-                    </div>
-                    <div class="appt-card">
-                        <div class="appt-date-box"><span class="appt-day">25</span><span class="appt-mon">Apr</span></div>
-                        <div class="appt-info"><h4>Vaccination &mdash; Milo</h4><p>Dr. Khaled Noor &middot; PetCare Center &middot; 2:30 PM</p></div>
-                        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end">
-                            <span class="badge badge-orange">Pending</span>
-                            <button class="btn btn-danger btn-sm" onclick="cancelAppt(this)">Cancel</button>
-                        </div>
-                    </div>
+            <div class="page-header">
+                <div>
+                    <h2>Appointments 📅</h2>
+                    <p>Manage your scheduled vet visits</p>
+                </div>
+                <a asp-controller="Clinic" asp-action="Clinics"
+                   class="btn btn-primary"
+                   style="font-size:.84rem;text-decoration:none;flex-shrink:0;">
+                    + Book New
+                </a>
+            </div>
+
+            @if (ViewBag.SuccessMsg != null)
+            {
+                <div style="background:#f0fff0;border:1px solid #b2dfb2;color:#2d7a2d;
+                            padding:.7rem 1rem;border-radius:10px;margin-bottom:1rem;font-weight:700;font-size:.86rem;">
+                    ✅ @ViewBag.SuccessMsg
+                </div>
+            }
+            @if (ViewBag.ErrorMsg != null)
+            {
+                <div style="background:#fff0f0;border:1px solid #ffcccc;color:#c0392b;
+                            padding:.7rem 1rem;border-radius:10px;margin-bottom:1rem;font-weight:700;font-size:.86rem;">
+                    ⚠️ @ViewBag.ErrorMsg
+                </div>
+            }
+
+            <!-- KPIs -->
+            <div class="appt-kpi-row">
+                <div class="appt-kpi-box">
+                    <div class="appt-kpi-num">@Model.Appointments.Count</div>
+                    <div class="appt-kpi-lbl">Total</div>
+                </div>
+                <div class="appt-kpi-box">
+                    <div class="appt-kpi-num" style="color:#4a7a2c;">@Model.UpcomingCount</div>
+                    <div class="appt-kpi-lbl">Upcoming</div>
+                </div>
+                <div class="appt-kpi-box">
+                    <div class="appt-kpi-num" style="color:#2d7a2d;">@Model.CompletedCount</div>
+                    <div class="appt-kpi-lbl">Completed</div>
+                </div>
+                <div class="appt-kpi-box">
+                    <div class="appt-kpi-num" style="color:#c0392b;">@Model.CancelledCount</div>
+                    <div class="appt-kpi-lbl">Cancelled</div>
                 </div>
             </div>
 
-            <div class="s-card">
-                <div class="s-card-head"><span class="s-card-title">Past Appointments</span></div>
-                <div class="s-card-body">
-                    <div class="appt-card">
-                        <div class="appt-date-box" style="background:linear-gradient(180deg,#f0ebe2,#e5ddd0)"><span class="appt-day">05</span><span class="appt-mon">Mar</span></div>
-                        <div class="appt-info"><h4>Emergency Visit &mdash; Buddy</h4><p>Dr. Rania Hassan &middot; Al Amanah Clinic</p></div>
-                        <span class="badge badge-grey">Completed</span>
-                    </div>
-                    <div class="appt-card">
-                        <div class="appt-date-box" style="background:linear-gradient(180deg,#f0ebe2,#e5ddd0)"><span class="appt-day">18</span><span class="appt-mon">Feb</span></div>
-                        <div class="appt-info"><h4>Dental Cleaning &mdash; Milo</h4><p>Dr. Khaled Noor &middot; PetCare Center</p></div>
-                        <span class="badge badge-red">No-Show</span>
+            @if (!Model.Appointments.Any())
+            {
+                <div class="s-card">
+                    <div class="s-card-body">
+                        <div class="appt-empty">
+                            <div style="font-size:2.5rem;margin-bottom:10px;">📅</div>
+                            <div style="font-weight:800;color:#5a6e3a;font-size:1rem;margin-bottom:6px;">No appointments yet</div>
+                            <div style="font-size:.86rem;margin-bottom:16px;">Book your first appointment with a certified vet.</div>
+                            <a asp-controller="Clinic" asp-action="Clinics"
+                               style="display:inline-block;padding:10px 24px;background:#5a8f38;
+                                      color:#fff;border-radius:12px;font-weight:800;text-decoration:none;">
+                                🔍 Browse Clinics
+                            </a>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
+            else
+            {
+                @* ── PENDING ── *@
+                @if (pending.Any())
+                {
+                    <div class="s-card" style="border-color:#fde68a;">
+                        <div class="s-card-head" style="background:#fff8e1;">
+                            <span class="s-card-title">⏳ Pending</span>
+                            <span class="badge badge-orange">@pending.Count pending</span>
+                        </div>
+                        <div class="s-card-body">
+                            @foreach (var a in pending)
+                            {
+                                <div class="appt-card" style="border-color:#fde68a;background:#fffde7;" id="appt-@a.Id">
+
+                                    <div class="appt-pet-thumb">
+                                        @if (!string.IsNullOrEmpty(a.PetImageUrl))
+                                        {
+                                            <img src="@a.PetImageUrl" alt="@a.PetName">
+                                        }
+                                        else
+                                        {
+
+                                            @PetEmoji(a.PetSpecies)
+                                        }
+                                    </div>
+
+                                    <div class="appt-date-box">
+                                        <span class="appt-day">@a.AppointmentDate.Day</span>
+                                        <span class="appt-mon">@a.AppointmentDate.ToString("MMM")</span>
+                                    </div>
+
+                                    <div class="appt-info">
+                                        <span class="appt-date-mobile">
+                                            📅 @a.AppointmentDate.ToString("dd MMM") · @a.StartTime.ToString(@"hh\:mm")
+                                        </span>
+                                        <h4>
+                                            @(a.ServiceName ?? "General Checkup")
+                                            @if (!string.IsNullOrEmpty(a.PetName))
+                                            {
+                                                <text> — @a.PetName</text>
+                                            }
+                                        </h4>
+                                        <p>
+                                            @if (a.Status == "PendingDoctorApproval")
+                                            {
+                                                <text>Dr. @a.DoctorName · </text>
+                                            }
+                                            else
+                                            {
+
+                                                <text>Doctor TBA · </text>
+                                            }
+                                            @a.ClinicName
+                                        </p>
+                                    </div>
+
+                                    <div class="appt-actions">
+                                        <span class="badge badge-orange">@BadgeLabel(a.Status)</span>
+                                        @if (a.Status != "PendingPaymentVerification")
+                                        {
+                                            <button type="button" class="cancel-toggle-btn"
+                                                    onclick="toggleCancel(@a.Id)">
+                                                ✕ Cancel
+                                            </button>
+                                        }
+                                    </div>
+
+                                    @* CliQ / Deposit row (full width) *@
+                                    <div class="appt-cliq-row">
+                                        @if (a.Status == "PendingPayment")
+                                        {
+                                            <div class="cliq-box">
+                                                <div class="cliq-box-title">📱 Complete Your CliQ Payment</div>
+                                                <div class="cliq-info-row">
+                                                    <div class="cliq-info-line">
+                                                        <span style="color:#555;flex-shrink:0;">CliQ Number:</span>
+                                                        <strong style="color:#1a3a8f;">
+                                                            @(string.IsNullOrEmpty(a.ClinicCliqNumber) ? "Contact clinic" : a.ClinicCliqNumber)
+                                                        </strong>
+                                                    </div>
+                                                    <div class="cliq-info-line">
+                                                        <span style="color:#555;">Amount:</span>
+                                                        <strong style="color:#1a3a8f;">5.00 JOD</strong>
+                                                    </div>
+                                                    <div class="cliq-info-line">
+                                                        <span style="color:#555;flex-shrink:0;">Reference:</span>
+                                                        <strong style="color:#1a3a8f;">@(a.CliqReference ?? $"WF-{a.Id}")</strong>
+                                                    </div>
+                                                </div>
+                                                <div class="cliq-steps">
+                                                    1️⃣ Open your banking app<br>
+                                                    2️⃣ Send 5 JOD to the CliQ number above<br>
+                                                    3️⃣ Write <strong>@(a.CliqReference ?? $"WF-{a.Id}")</strong> in the note<br>
+                                                    4️⃣ Come back and tap "I've Paid" ✅
+                                                </div>
+                                                <form asp-controller="Profile" asp-action="CliqSubmitted" method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="appointmentId" value="@a.Id">
+                                                    <button type="submit"
+                                                            onclick="return confirm('Confirm you sent 5 JOD via CliQ?')"
+                                                            style="width:100%;padding:9px;border-radius:8px;
+                                                                               background:#1a3a8f;color:#fff;border:none;
+                                                                               font-size:.82rem;font-weight:800;cursor:pointer;
+                                                                               font-family:'Nunito',sans-serif;">
+                                                        ✅ I've Paid via CliQ
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        }
+                                        else if (a.Status == "PendingPaymentVerification")
+                                        {
+                                            <div style="background:#e8f5e9;border:1px solid #a5d6a7;
+                                                                    border-radius:10px;padding:8px 10px;
+                                                                    font-size:.76rem;font-weight:700;color:#2d7a2d;">
+                                                🔍 <strong>Payment submitted</strong> — Awaiting clinic verification.<br>
+                                                <span style="color:#555;font-weight:600;">We'll notify you once confirmed.</span>
+                                            </div>
+                                        }
+                                        else if (a.DepositPaid)
+                                        {
+                                            <span style="font-size:.72rem;font-weight:800;color:#5f7430;
+                                                                     background:#eef4dd;padding:2px 8px;border-radius:999px;
+                                                                     display:inline-block;">
+                                                💳 5 JOD Deposit Paid ✅
+                                            </span>
+                                        }
+                                    </div>
+                                </div>
+
+                                <div class="cancel-drawer" id="cancel-@a.Id">
+                                    <form asp-controller="Appointment" asp-action="Cancel" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@a.Id">
+                                        <input class="cancel-reason-inp" name="reason" placeholder="Reason (optional)...">
+                                        <div class="cancel-confirm-row">
+                                            <button type="button" class="btn btn-sm"
+                                                    onclick="toggleCancel(@a.Id)"
+                                                    style="background:#f0ebe2;color:#7b6c58;border:1px solid #e8ddd0;">
+                                                Back
+                                            </button>
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                    onclick="return confirm('Cancel this appointment?')">
+                                                Confirm Cancel
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @* ── UPCOMING ── *@
+                @if (upcoming.Any())
+                {
+                    <div class="s-card">
+                        <div class="s-card-head">
+                            <span class="s-card-title">🗓 Upcoming</span>
+                            <span class="badge badge-green">@upcoming.Count scheduled</span>
+                        </div>
+                        <div class="s-card-body">
+                            @foreach (var a in upcoming)
+                            {
+                                <div class="appt-card" id="appt-@a.Id">
+                                    <div class="appt-pet-thumb">
+                                        @if (!string.IsNullOrEmpty(a.PetImageUrl))
+                                        {
+                                            <img src="@a.PetImageUrl" alt="@a.PetName">
+                                        }
+                                        else
+                                        {
+
+                                            @PetEmoji(a.PetSpecies)
+                                        }
+                                    </div>
+                                    <div class="appt-date-box">
+                                        <span class="appt-day">@a.AppointmentDate.Day</span>
+                                        <span class="appt-mon">@a.AppointmentDate.ToString("MMM")</span>
+                                    </div>
+                                    <div class="appt-info">
+                                        <span class="appt-date-mobile">
+                                            📅 @a.AppointmentDate.ToString("dd MMM") · @a.StartTime.ToString(@"hh\:mm")
+                                        </span>
+                                        <h4>
+                                            @(a.ServiceName ?? "General Checkup")
+                                            @if (!string.IsNullOrEmpty(a.PetName))
+                                            {
+                                                <text> — @a.PetName</text>
+                                            }
+                                        </h4>
+                                        <p>Dr. @a.DoctorName · @a.ClinicName</p>
+                                        @if (a.UrgencyLevel == "Urgent")
+                                        {
+                                            <span class="appt-urgent">🔴 Urgent</span>
+                                        }
+                                        @if (!string.IsNullOrEmpty(a.MedicalRecordNote))
+                                        {
+                                            <span class="appt-med-chip">📋 Record Shared</span>
+                                        }
+                                    </div>
+                                    <div class="appt-actions">
+                                        <span class="badge @BadgeCss(a.Status)">@BadgeLabel(a.Status)</span>
+                                        <button type="button" class="cancel-toggle-btn"
+                                                onclick="toggleCancel(@a.Id)">
+                                            ✕ Cancel
+                                        </button>
+                                    </div>
+                                    <div class="appt-cliq-row"></div>
+                                </div>
+                                <div class="cancel-drawer" id="cancel-@a.Id">
+                                    <form asp-controller="Appointment" asp-action="Cancel" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@a.Id">
+                                        <input class="cancel-reason-inp" name="reason"
+                                               placeholder="Reason (optional)...">
+                                        <div class="cancel-confirm-row">
+                                            <button type="button" class="btn btn-sm"
+                                                    onclick="toggleCancel(@a.Id)"
+                                                    style="background:#f0ebe2;color:#7b6c58;border:1px solid #e8ddd0;">
+                                                Back
+                                            </button>
+                                            <button type="submit" class="btn btn-danger btn-sm"
+                                                    onclick="return confirm('Cancel this appointment?')">
+                                                Confirm Cancel
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @* ── PAST ── *@
+                @if (past.Any())
+                {
+                    <div class="s-card">
+                        <div class="s-card-head">
+                            <span class="s-card-title">📋 Past Appointments</span>
+                            <span class="badge badge-grey">@past.Count records</span>
+                        </div>
+                        <div class="s-card-body">
+                            @foreach (var a in past)
+                            {
+                                <div class="appt-card"
+                                     style="opacity:@(a.Status == "Cancelled" ? ".75" : "1")">
+                                    <div class="appt-pet-thumb">
+                                        @if (!string.IsNullOrEmpty(a.PetImageUrl))
+                                        {
+                                            <img src="@a.PetImageUrl" alt="@a.PetName">
+                                        }
+                                        else
+                                        {
+
+                                            @PetEmoji(a.PetSpecies)
+                                        }
+                                    </div>
+                                    <div class="appt-date-box past">
+                                        <span class="appt-day">@a.AppointmentDate.Day</span>
+                                        <span class="appt-mon">@a.AppointmentDate.ToString("MMM")</span>
+                                    </div>
+                                    <div class="appt-info">
+                                        <span class="appt-date-mobile">
+                                            📅 @a.AppointmentDate.ToString("dd MMM")
+                                        </span>
+                                        <h4>
+                                            @(a.ServiceName ?? "General Checkup")
+                                            @if (!string.IsNullOrEmpty(a.PetName))
+                                            {
+                                                <text> — @a.PetName</text>
+                                            }
+                                        </h4>
+                                        <p>Dr. @a.DoctorName · @a.ClinicName</p>
+                                        @if (a.Status == "Cancelled" && !string.IsNullOrEmpty(a.CancellationReason))
+                                        {
+                                            <div style="font-size:.71rem;color:#c0392b;font-weight:700;margin-top:2px;">
+                                                ❌ @a.CancellationReason
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="appt-actions">
+                                        <span class="badge @BadgeCss(a.Status)">@BadgeLabel(a.Status)</span>
+                                        <a asp-controller="Clinic" asp-action="ClinicDetail"
+                                           asp-route-id="@a.IdClinic"
+                                           class="book-again-btn">📅 Again</a>
+                                    </div>
+                                    <div class="appt-cliq-row"></div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+
         </main>
     </div>
 
-    <div class="mobile-bottom-nav" id="mobileBottomNav" aria-label="Mobile bottom navigation">
-        <a href="/Profile/Edit_Profile" class="mb-nav-item"><i class="fa-solid fa-user"></i><span>Edit</span></a>
-        <a href="/Profile/My_Wallet" class="mb-nav-item"><i class="fa-solid fa-wallet"></i><span>Wallet</span></a>
-        <a href="/Profile/Appointments" class="mb-nav-item active"><i class="fa-solid fa-calendar-check"></i><span>Appointments</span></a>
-        <a href="/Profile/Orders" class="mb-nav-item"><i class="fa-solid fa-box"></i><span>Orders</span></a>
-        <button type="button" class="mb-nav-item mb-more-btn" id="mbMoreBtn" aria-expanded="false" aria-controls="mbMoreDrawer">
+    <!-- ══ MOBILE BOTTOM NAV ══ -->
+    <div class="mobile-bottom-nav" id="mobileBottomNav">
+        <a asp-controller="Profile" asp-action="Edit_Profile" class="mb-nav-item">
+            <i class="fa-solid fa-user"></i><span>Edit</span>
+        </a>
+        <a asp-controller="Profile" asp-action="My_Wallet" class="mb-nav-item">
+            <i class="fa-solid fa-wallet"></i><span>Wallet</span>
+        </a>
+        <a asp-controller="Profile" asp-action="Appointments" class="mb-nav-item active">
+            <i class="fa-solid fa-calendar-check"></i><span>Appointments</span>
+        </a>
+        <a asp-controller="Profile" asp-action="Orders" class="mb-nav-item">
+            <i class="fa-solid fa-box"></i><span>Orders</span>
+        </a>
+        <button type="button" class="mb-nav-item mb-more-btn" id="mbMoreBtn"
+                aria-expanded="false" aria-controls="mbMoreDrawer">
             <i class="fa-solid fa-grid-2"></i><span>More</span>
         </button>
     </div>
@@ -155,59 +1005,100 @@
     <div class="mb-more-drawer" id="mbMoreDrawer" aria-hidden="true">
         <div class="mb-more-head">
             <h3>More Pages</h3>
-            <button type="button" class="mb-more-close" id="mbMoreClose" aria-label="Close menu"><i class="fa-solid fa-xmark"></i></button>
+            <button type="button" class="mb-more-close" id="mbMoreClose" aria-label="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
         </div>
         <div class="mb-more-grid">
-            <a href="/Profile/Contact_Info" class="mb-more-link"><i class="fa-solid fa-address-card"></i><span>Contact Info</span></a>
-            <a href="/Profile/Rewards" class="mb-more-link"><i class="fa-solid fa-gift"></i><span>Rewards</span></a>
-            <a href="/Profile/Lost_Reports" class="mb-more-link"><i class="fa-solid fa-magnifying-glass"></i><span>Lost Reports</span></a>
-            <a href="/Profile/Adoption_Ads" class="mb-more-link"><i class="fa-solid fa-paw"></i><span>Adoption Ads</span></a>
-            <a href="/Profile/Timeline" class="mb-more-link"><i class="fa-solid fa-clock-rotate-left"></i><span>Timeline</span></a>
-            <a href="/Profile/Complaints" class="mb-more-link"><i class="fa-solid fa-triangle-exclamation"></i><span>Complaints</span></a>
-            <a href="/Profile/Security" class="mb-more-link"><i class="fa-solid fa-lock"></i><span>Security</span></a>
+            <a asp-controller="Profile" asp-action="Contact_Info" class="mb-more-link"><i class="fa-solid fa-address-card"></i><span>Contact Info</span></a>
+            <a asp-controller="Profile" asp-action="Rewards" class="mb-more-link"><i class="fa-solid fa-gift"></i><span>Rewards</span></a>
+            <a asp-controller="Profile" asp-action="Lost_Reports" class="mb-more-link"><i class="fa-solid fa-magnifying-glass"></i><span>Lost Reports</span></a>
+            <a asp-controller="Profile" asp-action="Adoption_Ads" class="mb-more-link"><i class="fa-solid fa-paw"></i><span>Adoption Ads</span></a>
+            <a asp-controller="Profile" asp-action="Timeline" class="mb-more-link"><i class="fa-solid fa-clock-rotate-left"></i><span>Timeline</span></a>
+            <a asp-controller="Profile" asp-action="Complaints" class="mb-more-link"><i class="fa-solid fa-flag"></i><span>Complaints</span></a>
+            <a asp-controller="Profile" asp-action="Security" class="mb-more-link"><i class="fa-solid fa-lock"></i><span>Security</span></a>
         </div>
     </div>
 
     <div class="toast" id="toast"></div>
+
     <footer class="footer">
         <div class="container">
             <div class="footer-links">
-                <a href="/Home/Index">Home</a><span>|</span>
-                <a href="/Clinics/Index">Clinics</a><span>|</span>
-                <a href="/Stores/Index">Supplies</a><span>|</span>
-                <a href="/About/Index">About Us</a>
+                <a asp-controller="Home" asp-action="About">About Us</a><span>|</span>
+                <a asp-controller="Home" asp-action="About">Contact</a><span>|</span>
+                <a asp-controller="Home" asp-action="Faq">FAQ</a>
             </div>
-            <p>&#169; 2026 Waffy. All rights reserved.</p>
+            <p>© 2026 Waffy. All rights reserved.</p>
         </div>
     </footer>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-          const moreBtn = document.getElementById('mbMoreBtn');
-          const moreDrawer = document.getElementById('mbMoreDrawer');
-          const moreOverlay = document.getElementById('mbMoreOverlay');
-          const moreClose = document.getElementById('mbMoreClose');
-          if (!moreBtn || !moreDrawer || !moreOverlay) return;
-          function openMoreDrawer() { moreDrawer.classList.add('open'); moreOverlay.classList.add('open'); moreBtn.setAttribute('aria-expanded','true'); moreDrawer.setAttribute('aria-hidden','false'); document.body.classList.add('mb-menu-open'); }
-          function closeMoreDrawer() { moreDrawer.classList.remove('open'); moreOverlay.classList.remove('open'); moreBtn.setAttribute('aria-expanded','false'); moreDrawer.setAttribute('aria-hidden','true'); document.body.classList.remove('mb-menu-open'); }
-          function toggleMoreDrawer() { moreDrawer.classList.contains('open') ? closeMoreDrawer() : openMoreDrawer(); }
-          moreBtn.addEventListener('click', toggleMoreDrawer);
-          if (moreClose) moreClose.addEventListener('click', closeMoreDrawer);
-          moreOverlay.addEventListener('click', closeMoreDrawer);
-          document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMoreDrawer(); });
-          window.addEventListener('resize', () => { if (window.innerWidth >= 768) closeMoreDrawer(); });
+        function toggleCancel(id) {
+            document.getElementById('cancel-' + id)?.classList.toggle('open');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const sd = document.getElementById("servicesDropdown");
+            const st = document.getElementById("servicesToggle");
+            if (sd && st) {
+                st.addEventListener("click", e => { e.stopPropagation(); sd.classList.toggle("open"); });
+                document.addEventListener("click", () => sd.classList.remove("open"));
+            }
+            const mb = document.getElementById("menuBtn");
+            const nl = document.getElementById("navLinks");
+            if (mb && nl) {
+                mb.addEventListener("click", e => { e.stopPropagation(); nl.classList.toggle("open"); });
+                document.addEventListener("click", e => {
+                    if (!nl.contains(e.target) && e.target !== mb) nl.classList.remove("open");
+                });
+            }
+            const mt = document.getElementById("mobileServicesToggle");
+            const ms = document.getElementById("mobileServicesBlock");
+            if (mt && ms) mt.addEventListener("click", () => ms.classList.toggle("open"));
+
+            const moreBtn     = document.getElementById('mbMoreBtn');
+            const moreDrawer  = document.getElementById('mbMoreDrawer');
+            const moreOverlay = document.getElementById('mbMoreOverlay');
+            const moreClose   = document.getElementById('mbMoreClose');
+            if (!moreBtn) return;
+            const openMore  = () => {
+                moreDrawer.classList.add('open'); moreOverlay.classList.add('open');
+                moreBtn.setAttribute('aria-expanded','true');
+                moreDrawer.setAttribute('aria-hidden','false');
+                document.body.classList.add('mb-menu-open');
+            };
+            const closeMore = () => {
+                moreDrawer.classList.remove('open'); moreOverlay.classList.remove('open');
+                moreBtn.setAttribute('aria-expanded','false');
+                moreDrawer.setAttribute('aria-hidden','true');
+                document.body.classList.remove('mb-menu-open');
+            };
+            moreBtn.addEventListener('click', () =>
+                moreDrawer.classList.contains('open') ? closeMore() : openMore());
+            moreClose?.addEventListener('click', closeMore);
+            moreOverlay?.addEventListener('click', closeMore);
+            document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMore(); });
+            window.addEventListener('resize', () => { if (window.innerWidth >= 768) closeMore(); });
         });
-        function showToast(msg, duration = 3000) { const t = document.getElementById("toast"); if (!t) return; t.textContent = msg; t.classList.add("show"); clearTimeout(t._timer); t._timer = setTimeout(() => t.classList.remove("show"), duration); }
-        document.addEventListener("DOMContentLoaded", () => {
-          const menuBtn = document.getElementById("menuBtn"); const navLinks = document.getElementById("navLinks");
-          if (menuBtn && navLinks) { menuBtn.addEventListener("click", e => { e.stopPropagation(); navLinks.classList.toggle("open"); }); document.addEventListener("click", e => { if (!navLinks.contains(e.target) && e.target !== menuBtn) navLinks.classList.remove("open"); }); }
-          const sd = document.getElementById("servicesDropdown"); const st = document.getElementById("servicesToggle");
-          if (sd && st) { st.addEventListener("click", e => { e.stopPropagation(); sd.classList.toggle("open"); }); document.addEventListener("click", () => sd.classList.remove("open")); }
-          const mt = document.getElementById("mobileServicesToggle"); const mb = document.getElementById("mobileServicesBlock");
-          if (mt && mb) mt.addEventListener("click", () => mb.classList.toggle("open"));
-        });
-        function changeAvatar(input) { if (input.files && input.files[0]) { const r = new FileReader(); r.onload = e => { const sb = document.getElementById("sidebarAvatar"); if (sb) sb.innerHTML = `<img src="${e.target.result}" alt="Profile">`; const big = document.getElementById("bigAvatar"); if (big) big.innerHTML = `<img src="${e.target.result}" alt="Profile">`; }; r.readAsDataURL(input.files[0]); } }
-        function cancelAppt(btn) { if (!confirm("Cancel this appointment?")) return; const card = btn.closest(".appt-card"); card.style.opacity = ".4"; card.style.pointerEvents = "none"; showToast("✓ Appointment cancelled"); }
+
+        function changeAvatar(input) {
+            if (input.files && input.files[0]) {
+                const r = new FileReader();
+                r.onload = e => {
+                    const sb = document.getElementById("sidebarAvatar");
+                    if (sb) sb.innerHTML = `<img src="${e.target.result}" alt="Profile">`;
+                };
+                r.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function showToast(msg, d = 3000) {
+            const t = document.getElementById("toast");
+            if (!t) return;
+            t.textContent = msg; t.classList.add("show");
+            clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("show"), d);
+        }
     </script>
 </body>
 </html>

@@ -73,9 +73,12 @@ builder.Services.AddScoped<IClinicScheduleRepository, ClinicScheduleRepository>(
 builder.Services.AddScoped<IClinicServiceRepository, ClinicServiceRepository>();
 builder.Services.AddScoped<IClinicImageRepository, ClinicImageRepository>();
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 
 
 
+
+builder.Services.AddHostedService<Waffy.Services.AppointmentReminderService>();
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {

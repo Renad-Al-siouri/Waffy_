@@ -1,0 +1,1106 @@
+﻿@model Waffy.Models.ViewModels.DoctorAppointmentsViewModel
+@{
+    ViewData["Title"] = "Waffy — My Appointments";
+    Layout = null;
+    var userName = Context.Session.GetString("UserName") ?? "Doctor";
+    var clinicName = Context.Session.GetString("ClinicName") ?? "Clinic";
+    var initials = userName.Length > 0 ? userName[0].ToString().ToUpper() : "D";
+    var now = DateTime.Now;
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+    <style>
+        .appt-kpi {
+            display: grid;
+            grid-template-columns: repeat(4,1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .appt-kpi-card {
+            background: var(--ws);
+            border-radius: 16px;
+            border: 1px solid var(--line);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .appt-kpi-val {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--gd);
+        }
+
+        .appt-kpi-lbl {
+            font-size: .74rem;
+            color: var(--muted);
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .today-strip {
+            background: var(--gp);
+            border-radius: 14px;
+            border: 1px solid var(--b2);
+            padding: 1rem 1.2rem;
+            margin-bottom: 16px;
+            overflow-x: auto;
+        }
+
+        .today-strip-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: .88rem;
+            font-weight: 700;
+            color: var(--gd);
+            margin-bottom: 10px;
+        }
+
+        .today-slots {
+            display: flex;
+            gap: 8px;
+            flex-wrap: nowrap;
+            min-width: max-content;
+        }
+
+        .today-slot {
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid var(--b2);
+            padding: 7px 12px;
+            min-width: 140px;
+            cursor: pointer;
+            transition: .15s;
+        }
+
+            .today-slot:hover {
+                border-color: var(--gd);
+                background: var(--gp);
+            }
+
+        .ts-time {
+            font-size: .8rem;
+            font-weight: 900;
+            color: var(--gd);
+        }
+
+        .ts-pat {
+            font-size: .76rem;
+            font-weight: 700;
+            color: var(--text);
+            margin-top: 2px;
+        }
+
+        .ts-svc {
+            font-size: .7rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        .appt-filter {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+            align-items: center;
+        }
+
+        .filter-chip {
+            padding: 6px 14px;
+            border-radius: 10px;
+            border: 1.5px solid var(--line);
+            background: var(--ws);
+            font-size: .82rem;
+            font-weight: 800;
+            color: var(--muted);
+            cursor: pointer;
+            transition: .15s;
+            text-decoration: none;
+        }
+
+            .filter-chip:hover, .filter-chip.active {
+                border-color: var(--gd);
+                background: var(--gp);
+                color: var(--gd);
+            }
+
+        .f-chip-warn {
+            border-color: #e07b3c !important;
+            color: #e07b3c !important;
+            background: #fef0e6 !important;
+        }
+
+            .f-chip-warn.active, .f-chip-warn:hover {
+                background: #e07b3c !important;
+                color: #fff !important;
+            }
+
+        .appt-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .appt-table th {
+                font-size: .78rem;
+                font-weight: 900;
+                color: var(--muted);
+                padding: 8px 12px;
+                text-align: left;
+                border-bottom: 1.5px solid var(--line);
+                white-space: nowrap;
+            }
+
+            .appt-table td {
+                font-size: .84rem;
+                padding: 10px 12px;
+                border-bottom: .5px solid var(--line);
+                vertical-align: middle;
+            }
+
+            .appt-table tr:last-child td {
+                border-bottom: none;
+            }
+
+            .appt-table tr:hover td {
+                background: var(--gp);
+            }
+
+        .td-time {
+            font-family: 'Fredoka',sans-serif;
+            font-size: .9rem;
+            font-weight: 700;
+            color: var(--gd);
+        }
+
+        .td-date {
+            font-size: .72rem;
+            color: var(--muted);
+            font-weight: 700;
+            margin-top: 1px;
+        }
+
+        .pat-name {
+            font-weight: 900;
+            font-size: .88rem;
+            color: var(--text);
+        }
+
+        .pat-sub {
+            font-size: .74rem;
+            color: var(--muted);
+            font-weight: 700;
+            margin-top: 1px;
+        }
+
+        .act-row {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .pet-thumb-sm {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gp);
+            font-size: 1rem;
+            border: 1px solid var(--b2);
+            flex-shrink: 0;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+
+            .pet-thumb-sm img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .med-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            font-size: .68rem;
+            font-weight: 800;
+            background: var(--gp);
+            color: var(--gd);
+            border-radius: 999px;
+            padding: 2px 7px;
+            border: 1px solid var(--b2);
+            margin-top: 3px;
+        }
+
+        .dep-strip {
+            display: block;
+            width: 100%;
+            margin-bottom: 5px;
+            padding: 4px 7px;
+            border-radius: 7px;
+            font-size: .7rem;
+            font-weight: 800;
+        }
+        /* Details Modal */
+        .det-modal {
+            max-width: 540px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+            .det-modal .modal-body {
+                overflow-y: auto;
+                flex: 1;
+                padding: 0;
+            }
+
+        .det-pet-hero {
+            display: flex;
+            gap: 14px;
+            align-items: center;
+            padding: 1.2rem;
+            background: var(--gp);
+            border-bottom: 1px solid var(--b2);
+        }
+
+        .det-pet-img {
+            width: 64px;
+            height: 64px;
+            border-radius: 14px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: var(--ws);
+            border: 2px solid var(--b2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+        }
+
+            .det-pet-img img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .det-pet-name {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--gd);
+        }
+
+        .det-pet-sub {
+            font-size: .78rem;
+            color: #5f7430;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .det-section {
+            padding: .8rem 1.2rem;
+        }
+
+        .det-section-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: .82rem;
+            font-weight: 700;
+            color: var(--gd);
+            margin-bottom: 8px;
+        }
+
+        .det-row {
+            display: flex;
+            gap: 8px;
+            padding: 5px 0;
+            border-bottom: .5px solid var(--line);
+            font-size: .83rem;
+        }
+
+            .det-row:last-child {
+                border-bottom: none;
+            }
+
+        .det-lbl {
+            width: 110px;
+            color: var(--muted);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .det-val {
+            font-weight: 800;
+            color: var(--text);
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .med-rec-block {
+            background: var(--gp);
+            border: 1px solid var(--b2);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin: 0 1.2rem .8rem;
+            font-size: .8rem;
+            font-weight: 700;
+            color: #5f7430;
+            line-height: 1.7;
+            white-space: pre-line;
+        }
+        /* Confirm Modal */
+        .confirm-modal {
+            max-width: 400px;
+        }
+
+        .confirm-icon {
+            font-size: 2.2rem;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        .confirm-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            text-align: center;
+            margin-bottom: 4px;
+        }
+
+        .confirm-msg {
+            font-size: .86rem;
+            color: var(--muted);
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: .8rem;
+            line-height: 1.6;
+        }
+
+        .confirm-reason {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1.5px solid var(--line);
+            border-radius: 10px;
+            font-family: 'Nunito',sans-serif;
+            font-size: .84rem;
+            font-weight: 700;
+            outline: none;
+            margin-bottom: .8rem;
+            box-sizing: border-box;
+        }
+
+            .confirm-reason:focus {
+                border-color: var(--gd);
+            }
+
+        .appt-empty {
+            text-align: center;
+            padding: 3rem;
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        @@media(max-width:700px) {
+            .appt-kpi {
+                grid-template-columns: repeat(2,1fr);
+            }
+
+            .appt-table th:nth-child(4), .appt-table td:nth-child(4) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body class="admin-shell">
+    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="wa-shell" id="waShell">
+
+        @await Html.PartialAsync("_DoctorSidebar")
+
+        <header class="wa-tn">
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()">☰</button>
+            <div class="tn-bread"><span>Daily Management</span><span>/</span><b>Appointments</b></div>
+            <div class="tn-center">
+                <div class="tn-center-main">My Appointments</div>
+                <div class="tn-center-sub">@clinicName</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-identity">🏥 @clinicName</div>
+                <button class="tn-btn notif-btn" type="button">🔔</button>
+                <div class="tn-sep"></div>
+                <div class="tn-profile">
+                    <div class="tn-av">@initials</div>
+                    <div>
+                        <div class="tn-pname">@userName</div>
+                        <div class="tn-prole">👨‍⚕️ Doctor</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="wa-main">
+            <section class="page-hero">
+                <div><h1>My Appointments</h1><p>View and manage your scheduled patient visits.</p></div>
+            </section>
+
+            <div class="page-body">
+
+                @if (TempData["ApptSuccess"] != null)
+                {
+                    <div style="background:#eef4dd;border:1.5px solid #8da546;border-radius:14px;
+                                padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:12px;">
+                        <span style="font-size:1.2rem;">✅</span>
+                        <div>
+                            <div style="font-weight:900;color:#5f7430;font-size:.9rem;">Action Completed</div>
+                            <div style="font-weight:700;color:#5f7430;font-size:.84rem;margin-top:2px;">@TempData["ApptSuccess"]</div>
+                        </div>
+                    </div>
+                }
+                @if (TempData["ApptError"] != null)
+                {
+                    <div style="background:#faece8;border:1.5px solid #c86a5c;border-radius:14px;
+                                padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:12px;">
+                        <span style="font-size:1.2rem;">⚠️</span>
+                        <div>
+                            <div style="font-weight:900;color:#c86a5c;font-size:.9rem;">Action Notice</div>
+                            <div style="font-weight:700;color:#c86a5c;font-size:.84rem;margin-top:2px;">@TempData["ApptError"]</div>
+                        </div>
+                    </div>
+                }
+
+                <!-- KPIs -->
+                <div class="appt-kpi">
+                    <div class="appt-kpi-card">
+                        <div class="appt-kpi-val" style="color:#9b6000;">@Model.PendingCount</div>
+                        <div class="appt-kpi-lbl">⏳ Pending</div>
+                    </div>
+                    <div class="appt-kpi-card">
+                        <div class="appt-kpi-val" style="color:var(--gd);">@Model.ConfirmedCount</div>
+                        <div class="appt-kpi-lbl">✅ Confirmed</div>
+                    </div>
+                    <div class="appt-kpi-card">
+                        <div class="appt-kpi-val" style="color:#5f7430;">@Model.CompletedCount</div>
+                        <div class="appt-kpi-lbl">🏁 Completed</div>
+                    </div>
+                    <div class="appt-kpi-card">
+                        <div class="appt-kpi-val" style="color:var(--wr);">@Model.CancelledCount</div>
+                        <div class="appt-kpi-lbl">❌ Cancelled</div>
+                    </div>
+                </div>
+
+                <!-- Today Strip -->
+                @if (Model.TodayAppointments.Any())
+                {
+                    <div class="today-strip">
+                        <div class="today-strip-title">
+                            📅 Today — @now.ToString("dddd, MMMM dd")
+                            <span style="font-size:.74rem;color:var(--muted);font-weight:700;margin-left:6px;">
+                                (@Model.TodayCount appointments)
+                            </span>
+                        </div>
+                        <div class="today-slots">
+                            @foreach (var a in Model.TodayAppointments)
+                            {
+                                var passed = a.StartTime < now.TimeOfDay;
+                                var isNow = a.StartTime <= now.TimeOfDay && a.EndTime.HasValue && a.EndTime > now.TimeOfDay;
+                                <div class="today-slot" onclick="openDetails(@a.Id)"
+                                     style="@(passed ? "opacity:.55;" : "")">
+                                    <div class="ts-time">
+                                        @a.StartTime.ToString(@"hh\:mm")
+                                        @if (isNow)
+                                        {
+                                            <span style="background:var(--gd);color:#fff;border-radius:6px;
+                                                                 padding:1px 5px;font-size:.66rem;margin-left:4px;">NOW</span>
+                                        }
+                                    </div>
+                                    <div class="ts-pat">
+                                        @(a.PetName ?? a.UserFullName ?? "—")
+                                        @if (!string.IsNullOrEmpty(a.PetSpecies))
+                                        {
+                                            <span style="color:var(--muted);"> · @a.PetSpecies</span>
+                                        }
+                                    </div>
+                                    <div class="ts-svc">@(a.ServiceName ?? "General")</div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+
+                <!-- Filter Chips -->
+                <div class="appt-filter">
+                    <span style="font-size:.8rem;font-weight:800;color:var(--muted);">Filter:</span>
+                    @{
+                        var filterOptions = new[]
+                        {
+                                        (Label: "All",          Value: "All",                   Css: ""),
+                                        (Label: "⏳ Pending",   Value: "PendingDoctorApproval", Css: "f-chip-warn"),
+                                        (Label: "✅ Confirmed", Value: "Confirmed",              Css: ""),
+                                        (Label: "🏁 Completed", Value: "Completed",              Css: ""),
+                                        (Label: "❌ Cancelled", Value: "Cancelled",              Css: "")
+                                        };
+                    }
+                    @foreach (var f in filterOptions)
+                    {
+                        <a asp-controller="DoctorAdmin" asp-action="Appointments"
+                           asp-route-statusFilter="@f.Value"
+                           class="filter-chip @f.Css @(Model.StatusFilter == f.Value ? "active" : "")">
+                            @f.Label
+                            @if (f.Value == "PendingDoctorApproval" && Model.PendingCount > 0)
+                            {
+                                <span style="background:#e07b3c;color:#fff;border-radius:999px;
+                                                 padding:0 6px;font-size:.72rem;margin-left:3px;">
+                                    @Model.PendingCount
+                                </span>
+                            }
+                        </a>
+                    }
+                    <span style="margin-left:auto;font-size:.78rem;font-weight:700;color:var(--muted);">
+                        @Model.Appointments.Count result(s)
+                    </span>
+                </div>
+
+                <!-- Table -->
+                <div class="chart-card" style="padding:0;overflow:hidden;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;
+                            padding:.9rem 1.2rem;border-bottom:1px solid var(--line);">
+                        <div style="font-family:'Fredoka',sans-serif;font-size:.92rem;font-weight:700;color:var(--gd);">
+                            📋 Appointment List
+                        </div>
+                    </div>
+
+                    @if (!Model.Appointments.Any())
+                    {
+                        <div class="appt-empty">
+                            <div style="font-size:2rem;margin-bottom:8px;">📅</div>
+                            No appointments found.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-wrap">
+                            <table class="appt-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date / Time</th>
+                                        <th>Patient &amp; Owner</th>
+                                        <th>Service</th>
+                                        <th>Deposit</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="apptTbody">
+                                    @foreach (var a in Model.Appointments)
+                                    {
+                                        var isToday = a.AppointmentDate.Date == now.Date;
+                                        var petNameE = (a.PetName ?? "").Replace("'", "&#39;");
+                                        var ownerNameE = (a.UserFullName ?? "").Replace("'", "&#39;");
+                                        var medRecE = (a.MedicalRecordNote ?? "").Replace("'", "&#39;").Replace("\n", "\\n");
+
+                                        <tr data-id="@a.Id"
+                                            data-petid="@(a.IdPet ?? 0)"
+                                            data-share="@(a.ShareMedicalRecord ? "1" : "0")"
+                                            data-petname="@petNameE"
+                                            data-petimg="@(a.PetImageUrl ?? "")"
+                                            data-petspecies="@(a.PetSpecies ?? "")"
+                                            data-ownername="@ownerNameE"
+                                            data-ownerphone="@(a.UserPhone ?? "")"
+                                            data-date="@a.AppointmentDate.ToString("dd MMM yyyy")"
+                                            data-time="@a.StartTime.ToString(@"hh\:mm")"
+                                            data-endtime="@(a.EndTime?.ToString(@"hh\:mm") ?? "")"
+                                            data-service="@(a.ServiceName ?? "")"
+                                            data-urgency="@(a.UrgencyLevel ?? "Normal")"
+                                            data-reason="@((a.Reason ?? "").Replace("'", "&#39;"))"
+                                            data-notes="@((a.Notes ?? "").Replace("'", "&#39;"))"
+                                            data-medrec="@medRecE"
+                                            data-status="@a.Status"
+                                            data-cancel="@((a.CancellationReason ?? "").Replace("'", "&#39;"))"
+                                            data-depositmethod="@(a.DepositPayMethod ?? "")"
+                                            data-depositpaid="@(a.DepositPaid ? "1" : "0")"
+                                            data-cliqref="@(a.CliqReference ?? "")"
+                                            data-apptamount="@a.DepositAmount">
+
+                                            <!-- Date/Time -->
+                                            <td>
+                                                <div class="td-time">@a.StartTime.ToString(@"hh\:mm")</div>
+                                                <div class="td-date">
+                                                    @if (isToday)
+                                                    {
+                                                        <span style="color:var(--gd);font-weight:900;">Today</span>
+                                                    }
+                                                    else
+                                                    {
+
+                                                        @a.AppointmentDate.ToString("dd MMM yyyy")
+                                                    }
+                                                </div>
+                                            </td>
+
+                                            <!-- Patient & Owner -->
+                                            <td>
+                                                <div style="display:flex;align-items:center;">
+                                                    <div class="pet-thumb-sm">
+                                                        @if (!string.IsNullOrEmpty(a.PetImageUrl))
+                                                        {
+                                                            <img src="@a.PetImageUrl" alt="@a.PetName">
+                                                        }
+                                                        else
+                                                        {
+
+                                                            @(a.PetSpecies?.ToLower() switch { "dog" => "🐕", "cat" => "🐈", _ => "🐾" })
+                                                        }
+                                                    </div>
+                                                    <div>
+                                                        @if (!string.IsNullOrEmpty(a.PetName))
+                                                        {
+                                                            <div class="pat-name">
+                                                                🐾 @a.PetName
+                                                                @if (!string.IsNullOrEmpty(a.PetSpecies))
+                                                                {
+                                                                    <span style="color:var(--muted);font-size:.78rem;">(@a.PetSpecies)</span>
+                                                                }
+                                                            </div>
+                                                        }
+                                                        <div class="pat-sub">
+                                                            👤 @(a.UserFullName ?? "—")
+                                                            @if (!string.IsNullOrEmpty(a.UserPhone))
+                                                            {
+                                                                <span> · @a.UserPhone</span>
+                                                            }
+                                                        </div>
+                                                        @if (!string.IsNullOrEmpty(a.MedicalRecordNote))
+                                                        {
+                                                            <span class="med-chip">📋 Med Record</span>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <!-- Service -->
+                                            <td style="font-weight:800;font-size:.84rem;">
+                                                @(a.ServiceName ?? "General")
+                                                @if (a.UrgencyLevel == "Urgent")
+                                                {
+                                                    <div style="font-size:.7rem;color:#e07b3c;font-weight:900;">🔴 Urgent</div>
+                                                }
+                                            </td>
+
+                                            <!-- Deposit -->
+                                            <td>
+                                                @if (a.DepositPaid && a.DepositReturned)
+                                                {
+                                                    <span style="background:#eef4dd;color:#5f7430;border:1px solid #c3d9a0;
+                                                                     border-radius:999px;padding:2px 8px;font-size:.68rem;font-weight:800;">
+                                                        ✅ Returned
+                                                    </span>
+                                                }
+                                                else if (a.DepositPaid && a.DepositPayMethod == "Wallet")
+                                                {
+                                                    <span style="background:#eef4dd;color:#5f7430;border:1px solid #c3d9a0;
+                                                                     border-radius:999px;padding:2px 8px;font-size:.68rem;font-weight:800;">
+                                                        💳 Wallet · Paid
+                                                    </span>
+                                                }
+                                                else if (a.DepositPaid && a.DepositPayMethod == "CliQ")
+                                                {
+                                                    <span style="background:#eef4dd;color:#5f7430;border:1px solid #c3d9a0;
+                                                                     border-radius:999px;padding:2px 8px;font-size:.68rem;font-weight:800;">
+                                                        📱 CliQ · Paid
+                                                    </span>
+                                                }
+                                                else if (a.DepositPayMethod == "CliQ" && !a.DepositPaid)
+                                                {
+                                                    <span style="background:#fff8e1;color:#9b6000;border:1px solid #fde68a;
+                                                                     border-radius:999px;padding:2px 8px;font-size:.68rem;font-weight:800;">
+                                                        📱 CliQ · Pending
+                                                    </span>
+                                                }
+                                                else
+                                                {
+                                                    <span style="color:var(--muted);font-size:.74rem;">—</span>
+                                                }
+                                            </td>
+
+                                            <!-- Status -->
+                                            <td>
+                                                <span class="status @a.StatusCss" style="font-size:.76rem;">
+                                                    @a.StatusEmoji @a.Status
+                                                </span>
+                                            </td>
+
+                                            <!-- Actions -->
+                                            <td>
+                                                <div class="act-row" style="flex-direction:column;align-items:flex-start;">
+
+                                                    @* شريط حالة الإيداع للـ Pending فقط *@
+                                                    @if (a.Status == "PendingDoctorApproval")
+                                                    {
+                                                        <span class="dep-strip"
+                                                              style="@(a.DepositPaid
+                                                                                                                               ? "background:#eef4dd;color:#5f7430;border:1px solid #c3d9a0;"
+                                                                                                                               : a.DepositPayMethod == "CliQ"
+                                                                                                                                   ? "background:#fff8e1;color:#9b6000;border:1px solid #fde68a;"
+                                                                                                                                   : "background:#f5f5f5;color:#888;border:1px solid #ddd;")">
+                                                @if (a.DepositPaid)
+                                                            {
+                                                                <text>💳 Paid · @a.DepositPayMethod</text>
+                                                            }
+                                                            else if (a.DepositPayMethod == "CliQ")
+                                                            {
+
+                                                                <text>⏳ CliQ not confirmed yet</text>
+                                                            }
+                                                            else
+                                                            {
+
+                                                                <text>— No deposit info</text>
+                                                            }
+                                                        </span>
+                                                    }
+
+                                                    <div style="display:flex;gap:4px;flex-wrap:wrap;">
+                                                        <button type="button" class="btn btn-outline btn-sm"
+                                                                onclick="openDetails(@a.Id)" title="Details">
+                                                            👁
+                                                        </button>
+
+                                                        @* Pending — موافقة أو رفض *@
+                                                        @if (a.Status == "PendingDoctorApproval")
+                                                        {
+                                                            @if (a.DepositPayMethod == "CliQ" && !a.DepositPaid)
+                                                            {
+                                                                <span style="font-size:.7rem;font-weight:800;color:#9b6000;
+                                                                                     background:#fff8e1;padding:3px 7px;border-radius:7px;
+                                                                                     border:1px solid #fde68a;white-space:nowrap;">
+                                                                    ⏳ Awaiting CliQ
+                                                                </span>
+                                                                <button type="button" class="btn btn-red btn-sm"
+                                                                        onclick="openCancelModal(@a.Id,'@petNameE')">
+                                                                    ❌
+                                                                </button>
+                                                            }
+                                                            else
+                                                            {
+                                                                <button type="button" class="btn btn-primary btn-sm"
+                                                                        onclick="openApproveModal(@a.Id,'@petNameE')">
+                                                                    ✅ Approve
+                                                                </button>
+                                                                <button type="button" class="btn btn-red btn-sm"
+                                                                        onclick="openCancelModal(@a.Id,'@petNameE')">
+                                                                    ❌ Reject
+                                                                </button>
+                                                            }
+                                                        }
+
+                                                        @* Confirmed — حضور أو غياب *@
+                                                        else if (a.Status == "Confirmed")
+                                                        {
+                                                            <button type="button" class="btn btn-primary btn-sm"
+                                                                    onclick="openAttendedModal(@a.Id,'@petNameE')">
+                                                                🏁 Attended
+                                                            </button>
+                                                            <button type="button" class="btn btn-red btn-sm"
+                                                                    onclick="openNoShowModal(@a.Id,'@petNameE')">
+                                                                🚫 No-Show
+                                                            </button>
+                                                        }
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ═══ DETAILS MODAL ═══ -->
+    <div class="modal-overlay" id="detailsModal">
+        <div class="modal det-modal">
+            <div class="modal-header">
+                <div class="modal-title" id="detTitle">📅 Appointment Details</div>
+                <button class="modal-close" type="button" onclick="closeModal('detailsModal')">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="det-pet-hero">
+                    <div class="det-pet-img" id="detPetImg">🐾</div>
+                    <div>
+                        <div class="det-pet-name" id="detPetName">—</div>
+                        <div class="det-pet-sub" id="detPetSub">—</div>
+                    </div>
+                </div>
+                <div class="det-section">
+                    <div class="det-section-title">👤 Owner</div>
+                    <div class="det-row"><div class="det-lbl">Full Name</div><div class="det-val" id="detOwner">—</div></div>
+                    <div class="det-row"><div class="det-lbl">Phone</div><div class="det-val" id="detPhone">—</div></div>
+                </div>
+                <div class="det-section" style="border-top:1px solid var(--line);">
+                    <div class="det-section-title">📅 Appointment Info</div>
+                    <div class="det-row"><div class="det-lbl">Date</div><div class="det-val" id="detDate">—</div></div>
+                    <div class="det-row"><div class="det-lbl">Time</div><div class="det-val" id="detTime">—</div></div>
+                    <div class="det-row"><div class="det-lbl">Service</div><div class="det-val" id="detService">—</div></div>
+                    <div class="det-row"><div class="det-lbl">Urgency</div><div class="det-val" id="detUrgency">—</div></div>
+                    <div class="det-row"><div class="det-lbl">Status</div><div class="det-val" id="detStatus">—</div></div>
+                </div>
+                <div class="det-section" style="border-top:1px solid var(--line);">
+                    <div class="det-section-title">💳 Deposit</div>
+                    <div class="det-row"><div class="det-lbl">Method</div><div class="det-val" id="detDepMethod">—</div></div>
+                    <div class="det-row"><div class="det-lbl">Status</div><div class="det-val" id="detDepStatus">—</div></div>
+                </div>
+                <div id="detReasonSection" class="det-section" style="border-top:1px solid var(--line);display:none;">
+                    <div class="det-section-title">📝 Reason &amp; Notes</div>
+                    <div class="det-row" id="detReasonRow" style="display:none;"><div class="det-lbl">Reason</div><div class="det-val" id="detReason">—</div></div>
+                    <div class="det-row" id="detNotesRow" style="display:none;"><div class="det-lbl">Notes</div><div class="det-val" id="detNotes">—</div></div>
+                    <div class="det-row" id="detCancelRow" style="display:none;"><div class="det-lbl">Cancelled</div><div class="det-val" id="detCancelReason" style="color:var(--wr);">—</div></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeModal('detailsModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ APPROVE MODAL ═══ -->
+    <div class="modal-overlay" id="approveModal">
+        <div class="modal confirm-modal">
+            <div class="modal-header">
+                <div class="modal-title">✅ Approve Appointment</div>
+                <button class="modal-close" type="button" onclick="closeModal('approveModal')">✕</button>
+            </div>
+            <form asp-controller="DoctorAdmin" asp-action="ApproveAppointment" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="approveApptId">
+                <div class="modal-body" style="padding:1.4rem;">
+                    <div class="confirm-icon">✅</div>
+                    <div class="confirm-title">Approve Appointment?</div>
+                    <div class="confirm-msg" id="approveMsg">
+                        The patient will be notified of the confirmation.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('approveModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">✅ Confirm Approval</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══ ATTENDED MODAL ═══ -->
+    <div class="modal-overlay" id="attendedModal">
+        <div class="modal confirm-modal">
+            <div class="modal-header">
+                <div class="modal-title">🏁 Confirm Attendance</div>
+                <button class="modal-close" type="button" onclick="closeModal('attendedModal')">✕</button>
+            </div>
+            <form asp-controller="DoctorAdmin" asp-action="MarkAttended" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="attendedApptId">
+                <div class="modal-body" style="padding:1.4rem;">
+                    <div class="confirm-icon">🏁</div>
+                    <div class="confirm-title">Patient Attended?</div>
+                    <div class="confirm-msg" id="attendedMsg">
+                        Visit will be marked complete. The 5 JOD deposit will be
+                        returned to the patient's wallet immediately.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('attendedModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">🏁 Confirm &amp; Return Deposit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══ NO-SHOW MODAL ═══ -->
+    <div class="modal-overlay" id="noShowModal">
+        <div class="modal confirm-modal">
+            <div class="modal-header">
+                <div class="modal-title">🚫 Mark No-Show</div>
+                <button class="modal-close" type="button" onclick="closeModal('noShowModal')">✕</button>
+            </div>
+            <form asp-controller="DoctorAdmin" asp-action="MarkNoShow" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="noShowApptId">
+                <div class="modal-body" style="padding:1.4rem;">
+                    <div class="confirm-icon">🚫</div>
+                    <div class="confirm-title">Mark as No-Show?</div>
+                    <div class="confirm-msg" id="noShowMsg">
+                        The patient did not attend. The 5 JOD deposit
+                        will be retained per the no-show policy.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('noShowModal')">Cancel</button>
+                    <button type="submit" class="btn btn-red">🚫 Confirm No-Show</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══ CANCEL / REJECT MODAL ═══ -->
+    <div class="modal-overlay" id="cancelModal">
+        <div class="modal confirm-modal">
+            <div class="modal-header">
+                <div class="modal-title">❌ Cancel Appointment</div>
+                <button class="modal-close" type="button" onclick="closeModal('cancelModal')">✕</button>
+            </div>
+            <form asp-controller="DoctorAdmin" asp-action="CancelAppointment" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="cancelApptId">
+                <div class="modal-body" style="padding:1.4rem;">
+                    <div class="confirm-icon">❌</div>
+                    <div class="confirm-title">Cancel Appointment?</div>
+                    <div class="confirm-msg" id="cancelMsg">This action will notify the patient.</div>
+                    <select name="reason" class="confirm-reason">
+                        <option value="Doctor unavailable">Doctor unavailable</option>
+                        <option value="Emergency case">Emergency case</option>
+                        <option value="Rescheduled">Rescheduled</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal('cancelModal')">Back</button>
+                    <button type="submit" class="btn btn-red">❌ Confirm Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // ── Modal helpers ──────────────────────────────────────────────────
+        function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+        document.querySelectorAll('.modal-overlay').forEach(o =>
+            o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); })
+        );
+
+        // ── Details Modal ──────────────────────────────────────────────────
+        function openDetails(id) {
+            const row = document.querySelector(`#apptTbody tr[data-id="${id}"]`);
+            if (!row) return;
+            const d = row.dataset;
+
+            // Pet hero
+            const imgEl = document.getElementById('detPetImg');
+            imgEl.innerHTML = d.petimg
+                ? `<img src="${d.petimg}" alt="${d.petname}" style="width:100%;height:100%;object-fit:cover;">`
+                : (d.petspecies === 'dog' ? '🐕' : d.petspecies === 'cat' ? '🐈' : '🐾');
+            document.getElementById('detPetName').textContent = d.petname || 'No pet';
+            document.getElementById('detPetSub').textContent  = d.petspecies || '—';
+
+            // Owner
+            document.getElementById('detOwner').textContent = d.ownername  || '—';
+            document.getElementById('detPhone').textContent  = d.ownerphone || '—';
+
+            // Appointment
+            document.getElementById('detDate').textContent    = d.date || '—';
+            document.getElementById('detTime').textContent    = d.time + (d.endtime ? ` – ${d.endtime}` : '');
+            document.getElementById('detService').textContent = d.service || 'General';
+            document.getElementById('detUrgency').innerHTML   = d.urgency === 'Urgent'
+                ? '<span style="color:#e07b3c;font-weight:900;">🔴 Urgent</span>'
+                : '<span style="color:var(--gd);font-weight:800;">🟢 Normal</span>';
+            const sMap = { Confirmed: 's-confirmed', Completed: 's-completed', Cancelled: 's-cancelled' };
+            document.getElementById('detStatus').innerHTML =
+                `<span class="status ${sMap[d.status] || 's-pending'}">${d.status}</span>`;
+
+            // Deposit
+            document.getElementById('detDepMethod').textContent = d.depositmethod || '—';
+            const paid = d.depositpaid === '1';
+            document.getElementById('detDepStatus').innerHTML = paid
+                ? '<span style="color:var(--gd);font-weight:900;">✅ Paid</span>'
+                : (d.depositmethod === 'CliQ'
+                    ? '<span style="color:#9b6000;font-weight:900;">⏳ Pending clinic confirmation</span>'
+                    : '<span style="color:var(--muted);">Not paid</span>');
+
+            // Reason / Notes
+            const hasMeta = d.reason || d.notes || d.cancel;
+            document.getElementById('detReasonSection').style.display = hasMeta ? 'block' : 'none';
+            document.getElementById('detReasonRow').style.display  = d.reason ? 'flex' : 'none';
+            document.getElementById('detNotesRow').style.display   = d.notes  ? 'flex' : 'none';
+            document.getElementById('detCancelRow').style.display  = d.cancel ? 'flex' : 'none';
+            document.getElementById('detReason').textContent       = d.reason || '';
+            document.getElementById('detNotes').textContent        = d.notes  || '';
+            document.getElementById('detCancelReason').textContent = d.cancel || '';
+
+            document.getElementById('detTitle').textContent =
+                d.petname ? `📅 ${d.petname}'s Appointment` : '📅 Appointment Details';
+            document.getElementById('detailsModal').classList.add('open');
+        }
+
+        // ── Approve ────────────────────────────────────────────────────────
+        function openApproveModal(id, name) {
+            document.getElementById('approveApptId').value = id;
+            document.getElementById('approveMsg').textContent =
+                `Approve ${name || 'this'} appointment? Patient will be notified.`;
+            document.getElementById('approveModal').classList.add('open');
+        }
+
+        // ── Attended ───────────────────────────────────────────────────────
+        function openAttendedModal(id, name) {
+            document.getElementById('attendedApptId').value = id;
+            document.getElementById('attendedMsg').textContent =
+                `Confirm ${name || 'the patient'} attended. 5 JOD deposit will be returned.`;
+            document.getElementById('attendedModal').classList.add('open');
+        }
+
+        // ── No-Show ────────────────────────────────────────────────────────
+        function openNoShowModal(id, name) {
+            document.getElementById('noShowApptId').value = id;
+            document.getElementById('noShowMsg').textContent =
+                `${name || 'The patient'} did not attend. Deposit will be retained.`;
+            document.getElementById('noShowModal').classList.add('open');
+        }
+
+        // ── Cancel / Reject ────────────────────────────────────────────────
+        function openCancelModal(id, name) {
+            document.getElementById('cancelApptId').value = id;
+            document.getElementById('cancelMsg').textContent =
+                `Cancel ${name || 'this'} appointment? The patient will be notified.`;
+            document.getElementById('cancelModal').classList.add('open');
+        }
+
+        // ── Sidebar ────────────────────────────────────────────────────────
+        function toggleSidebar() {
+            const sb = document.getElementById("sidebar"),
+                  ov = document.getElementById("sidebarOverlay"),
+                  sh = document.getElementById("waShell");
+            if (window.innerWidth <= 992) {
+                sb?.classList.toggle("mob-open");
+                ov?.classList.toggle("show");
+                document.body.classList.toggle("sidebar-open");
+            } else {
+                sh?.classList.toggle("mini");
+            }
+        }
+        function closeSidebar() {
+            document.getElementById("sidebar")?.classList.remove("mob-open");
+            document.getElementById("sidebarOverlay")?.classList.remove("show");
+            document.body.classList.remove("sidebar-open");
+        }
+        document.addEventListener("DOMContentLoaded", () => {
+            document.querySelectorAll(".wa-sb .sb-row").forEach(r =>
+                r.addEventListener("click", () => { if (window.innerWidth <= 992) closeSidebar(); })
+            );
+            window.addEventListener("resize", () => { if (window.innerWidth > 992) closeSidebar(); });
+        });
+    </script>
+</body>
+</html>

@@ -22,5 +22,8 @@
         public string? LogoUrl { get; set; }
         public string? CoverImageUrl { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+        public string? CliqNumber { get; set; }
+        // في Models/Clinic.cs أضيفي:
+        public decimal WalletBalance { get; set; } = 0;
     }
 }

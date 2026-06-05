@@ -1,0 +1,126 @@
+﻿@model Waffy.Models.ViewModels.AppointmentDto
+@{
+    ViewData["Title"] = "Booking Confirmed";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        *{box-sizing:border-box;margin:0;padding:0;}
+        body{font-family:'Nunito',sans-serif;background:#f6f3ef;min-height:100vh;
+             display:flex;align-items:center;justify-content:center;padding:20px;}
+        .card{background:#fff;border-radius:24px;box-shadow:0 8px 32px rgba(0,0,0,.1);
+              max-width:480px;width:100%;overflow:hidden;}
+        .card-top{background:linear-gradient(135deg,#7d953d,#9ab451);
+                  padding:2rem;text-align:center;color:#fff;}
+        .card-top .icon{font-size:3rem;margin-bottom:.5rem;}
+        .card-top h1{font-family:'Fredoka',sans-serif;font-size:1.6rem;margin-bottom:.3rem;}
+        .card-top p{font-size:.86rem;opacity:.9;font-weight:700;}
+        .card-body{padding:1.5rem;}
+        .info-row{display:flex;gap:10px;padding:8px 0;
+                  border-bottom:.5px solid #ece8e2;font-size:.86rem;}
+        .info-row:last-child{border-bottom:none;}
+        .info-lbl{width:120px;color:#7b6c58;font-weight:700;flex-shrink:0;}
+        .info-val{font-weight:800;color:#45382e;}
+
+        @* CliQ section *@
+        .cliq-box{background:#e8f0fe;border:1.5px solid #c5d0e8;border-radius:14px;
+                  padding:1rem;margin:1rem 0;text-align:center;}
+        .cliq-title{font-family:'Fredoka',sans-serif;font-size:1rem;
+                    font-weight:700;color:#1a3a8f;margin-bottom:.5rem;}
+        .cliq-number{font-size:1.4rem;font-weight:900;color:#1a3a8f;
+                     letter-spacing:2px;margin-bottom:.3rem;}
+        .cliq-amount{font-size:.84rem;font-weight:700;color:#1a3a8f;}
+        .cliq-note{font-size:.76rem;color:#555;font-weight:700;margin-top:.4rem;}
+
+        .btn{display:block;width:100%;padding:12px;border-radius:12px;border:none;
+             font-family:'Nunito',sans-serif;font-size:.9rem;font-weight:800;
+             cursor:pointer;text-align:center;text-decoration:none;margin-top:8px;}
+        .btn-green{background:linear-gradient(135deg,#7d953d,#9ab451);color:#fff;}
+        .btn-outline{background:#f6f3ef;color:#7b6c58;border:1.5px solid #e8ddd0;}
+    </style>
+</head>
+<body>
+<div class="card">
+    <!-- Header -->
+    <div class="card-top">
+        <div class="icon">
+            @if (Model.Status == "PendingDoctorApproval") { <text>⏳</text> }
+            else { <text>⏳</text> }
+        </div>
+        <h1>Request Submitted!</h1>
+        <p>
+            @if (Model.Status == "PendingDoctorApproval")
+            { <text>Waiting for doctor's approval</text> }
+            else
+            { <text>Waiting for clinic to assign a doctor</text> }
+        </p>
+    </div>
+
+    <!-- Booking info -->
+    <div class="card-body">
+        <div class="info-row">
+            <div class="info-lbl">🏥 Clinic</div>
+            <div class="info-val">@Model.ClinicName</div>
+        </div>
+        <div class="info-row">
+            <div class="info-lbl">👨‍⚕️ Doctor</div>
+            <div class="info-val">
+                @if (Model.Status == "PendingClinicApproval")
+                { <text>To be assigned by clinic</text> }
+                else
+                { <text>Dr. @Model.DoctorName</text> }
+            </div>
+        </div>
+        <div class="info-row">
+            <div class="info-lbl">📅 Date</div>
+            <div class="info-val">@Model.AppointmentDate.ToString("dddd, dd MMM yyyy")</div>
+        </div>
+        <div class="info-row">
+            <div class="info-lbl">🕐 Time</div>
+            <div class="info-val">@Model.StartTime.ToString(@"hh\:mm")</div>
+        </div>
+        <div class="info-row">
+            <div class="info-lbl">🩺 Service</div>
+            <div class="info-val">@(Model.ServiceName ?? "General")</div>
+        </div>
+        <div class="info-row">
+            <div class="info-lbl">💳 Deposit</div>
+            <div class="info-val">
+                @@if (Model.DepositPaid)
+                { <text style="color:#7d953d;">✅ 5 JOD Paid (Wallet)</text> }
+                else
+                { <text style="color:#1a3a8f;">⏳ 5 JOD — CliQ Pending</text> }
+            </div>
+        </div>
+
+        <!-- CliQ instructions (show only if not paid yet) -->
+        @if (!Model.DepositPaid)
+        {
+            <div class="cliq-box">
+                <div class="cliq-title">📱 Complete Your Payment via CliQ</div>
+                <div class="cliq-number">07XXXXXXXX</div>
+                <div class="cliq-amount">Amount: 5.00 JOD</div>
+                <div class="cliq-note">
+                    ⚠️ Send exactly 5 JOD and include your booking ID
+                    <strong>#@Model.Id</strong> in the note.<br>
+                    The clinic will confirm your payment within 24 hours.
+                </div>
+            </div>
+        }
+
+        <a asp-controller="Profile" asp-action="Appointments" class="btn btn-green">
+            📅 View My Appointments
+        </a>
+        <a asp-controller="Home" asp-action="Home_After" class="btn btn-outline">
+            🏠 Back to Home
+        </a>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,1417 @@
+﻿@model Waffy.Models.ViewModels.BookAppointmentViewModel
+@{
+    ViewData["Title"] = $"Book — {Model.ClinicName}";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/stylev.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        :root {
+            --wg: #7d953d;
+            --wgl: #9ab451;
+            --wgp: #eef4dd;
+            --wgb: #dbe8b8;
+            --ws: #fbf6f1;
+            --ww: #fffdf9;
+            --wt: #45382e;
+            --wm: #7b6c58;
+            --wl: #e8ddd0;
+            --wr: #c86a5c;
+            --wgold: #efb83c;
+            --sh: 0 4px 14px rgba(90,75,49,.08);
+            --shh: 0 10px 28px rgba(90,75,49,.14);
+        }
+
+        .book-page {
+            max-width: 820px;
+            margin: 0 auto;
+            padding: 28px 16px 60px;
+        }
+
+        /* ─ Step Bar ─ */
+        .step-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+        }
+
+            .step-item:not(:last-child)::after {
+                content: '';
+                position: absolute;
+                top: 18px;
+                left: 60%;
+                width: 80%;
+                height: 2px;
+                background: var(--wl);
+                z-index: 0;
+            }
+
+            .step-item.done::after {
+                background: var(--wg);
+            }
+
+        .step-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--wl);
+            color: var(--wm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fredoka',sans-serif;
+            font-size: .9rem;
+            font-weight: 700;
+            z-index: 1;
+            transition: .2s;
+        }
+
+        .step-item.active .step-circle {
+            background: var(--wg);
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(125,149,61,.3);
+        }
+
+        .step-item.done .step-circle {
+            background: var(--wgb);
+            color: var(--wg);
+        }
+
+        .step-lbl {
+            font-size: .72rem;
+            font-weight: 800;
+            color: var(--wm);
+            margin-top: 5px;
+            text-align: center;
+        }
+
+        .step-item.active .step-lbl {
+            color: var(--wg);
+        }
+
+        /* ─ Wizard card ─ */
+        .wiz-card {
+            background: var(--ww);
+            border-radius: 20px;
+            border: 1px solid var(--wl);
+            box-shadow: var(--shh);
+            overflow: hidden;
+        }
+
+        .wiz-head {
+            padding: 1rem 1.3rem .7rem;
+            border-bottom: 1px solid var(--wl);
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--wg);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .wiz-body {
+            padding: 1.2rem 1.3rem;
+        }
+
+        .wiz-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: .9rem 1.3rem;
+            border-top: 1px solid var(--wl);
+        }
+
+        .step-panel {
+            display: none;
+        }
+
+            .step-panel.active {
+                display: block;
+            }
+
+        /* ─ Buttons ─ */
+        .wiz-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-family: 'Nunito',sans-serif;
+            font-size: .9rem;
+            font-weight: 800;
+            cursor: pointer;
+            transition: .18s;
+            border: none;
+        }
+
+        .wiz-btn-next {
+            background: linear-gradient(180deg,var(--wgl),var(--wg));
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(125,149,61,.25);
+        }
+
+            .wiz-btn-next:hover:not(:disabled) {
+                transform: translateY(-1px);
+                opacity: .92;
+            }
+
+            .wiz-btn-next:disabled {
+                opacity: .4;
+                cursor: not-allowed;
+            }
+
+        .wiz-btn-back {
+            background: var(--ws);
+            color: var(--wm);
+            border: 1.5px solid var(--wl);
+        }
+
+            .wiz-btn-back:hover {
+                background: var(--wl);
+            }
+
+        /* ─ Service chips ─ */
+        .svc-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .svc-chip {
+            padding: 8px 16px;
+            border-radius: 12px;
+            border: 1.5px solid var(--wl);
+            background: var(--ww);
+            font-size: .86rem;
+            font-weight: 800;
+            color: var(--wm);
+            cursor: pointer;
+            transition: .18s;
+        }
+
+            .svc-chip:hover, .svc-chip.sel {
+                border-color: var(--wg);
+                background: var(--wgp);
+                color: var(--wg);
+            }
+
+        /* ─ Urgency ─ */
+        .urg-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .urg-chip {
+            padding: 6px 14px;
+            border-radius: 10px;
+            border: 1.5px solid var(--wl);
+            background: var(--ww);
+            font-size: .82rem;
+            font-weight: 800;
+            color: var(--wm);
+            cursor: pointer;
+            transition: .15s;
+        }
+
+        .urg-normal {
+            border-color: var(--wg);
+            background: var(--wgp);
+            color: var(--wg);
+        }
+
+        .urg-urgent {
+            border-color: #e07b3c;
+            background: #fef0e6;
+            color: #e07b3c;
+        }
+
+        /* ─ Doctor grid ─ */
+        .doc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill,minmax(170px,1fr));
+            gap: 10px;
+        }
+
+        .doc-card {
+            border-radius: 14px;
+            border: 1.5px solid var(--wl);
+            background: var(--ww);
+            padding: .9rem;
+            cursor: pointer;
+            transition: .18s;
+            text-align: center;
+        }
+
+            .doc-card:hover {
+                border-color: var(--wg);
+                background: var(--wgp);
+            }
+
+            .doc-card.sel {
+                border-color: var(--wg);
+                background: var(--wgp);
+                outline: 2px solid var(--wg);
+            }
+
+        .doc-av {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg,var(--wgp),var(--wgb));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.2rem;
+            color: var(--wg);
+            font-weight: 700;
+            margin: 0 auto .6rem;
+            border: 2px solid var(--wgb);
+            overflow: hidden;
+        }
+
+            .doc-av img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+        .doc-name {
+            font-weight: 900;
+            font-size: .88rem;
+            color: var(--wt);
+        }
+
+        .doc-spec {
+            font-size: .74rem;
+            color: var(--wm);
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        /* ─ Calendar ─ */
+        .cal-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .cal-nav-btn {
+            padding: 5px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--wl);
+            background: var(--ww);
+            cursor: pointer;
+            font-size: .8rem;
+            font-weight: 800;
+            color: var(--wm);
+            transition: .15s;
+        }
+
+            .cal-nav-btn:hover {
+                background: var(--wgp);
+                border-color: var(--wg);
+                color: var(--wg);
+            }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7,1fr);
+            gap: 4px;
+        }
+
+        .cal-hd {
+            text-align: center;
+            font-size: .72rem;
+            font-weight: 900;
+            color: var(--wm);
+            padding: 4px 0;
+        }
+
+        .cal-day {
+            aspect-ratio: 1;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: .82rem;
+            font-weight: 800;
+            color: rgba(123,108,88,.3);
+        }
+
+            .cal-day.avail {
+                cursor: pointer;
+                color: var(--wt);
+                border: 1.5px solid var(--wl);
+                background: var(--ww);
+            }
+
+                .cal-day.avail:hover {
+                    border-color: var(--wg);
+                    background: var(--wgp);
+                    color: var(--wg);
+                }
+
+            .cal-day.sel {
+                background: var(--wg);
+                color: #fff;
+                border-color: var(--wg);
+            }
+
+            .cal-day.today-mark {
+                border: 2px solid var(--wgold);
+            }
+
+        /* ─ Slots ─ */
+        .slot-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            min-height: 60px;
+        }
+
+        .slot-btn {
+            padding: 7px 14px;
+            border-radius: 10px;
+            border: 1.5px solid var(--wl);
+            background: var(--ww);
+            font-size: .84rem;
+            font-weight: 900;
+            color: var(--wt);
+            cursor: pointer;
+            transition: .15s;
+        }
+
+            .slot-btn:hover {
+                border-color: var(--wg);
+                background: var(--wgp);
+                color: var(--wg);
+            }
+
+            .slot-btn.sel {
+                background: var(--wg);
+                color: #fff;
+                border-color: var(--wg);
+            }
+
+        .slots-msg {
+            text-align: center;
+            padding: 1.5rem;
+            color: var(--wm);
+            font-weight: 700;
+            font-size: .86rem;
+        }
+
+        /* ─ Pet grid ─ */
+        .pet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill,minmax(130px,1fr));
+            gap: 10px;
+        }
+
+        .pet-card {
+            border-radius: 14px;
+            border: 1.5px solid var(--wl);
+            background: var(--ww);
+            cursor: pointer;
+            transition: .18s;
+            overflow: hidden;
+        }
+
+            .pet-card:hover {
+                border-color: var(--wg);
+            }
+
+            .pet-card.sel {
+                border-color: var(--wg);
+                outline: 2px solid var(--wg);
+            }
+
+        .pet-card-img {
+            width: 100%;
+            height: 80px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .pet-card-ph {
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            background: linear-gradient(135deg,var(--wgp),var(--wgb));
+        }
+
+        .pet-card-info {
+            padding: 7px 8px;
+        }
+
+        .pet-card-name {
+            font-weight: 900;
+            font-size: .84rem;
+            color: var(--wt);
+        }
+
+        .pet-card-sub {
+            font-size: .72rem;
+            color: var(--wm);
+            font-weight: 700;
+            margin-top: 1px;
+        }
+
+        .pet-skip {
+            border-radius: 14px;
+            border: 1.5px dashed var(--wl);
+            background: var(--ws);
+            cursor: pointer;
+            transition: .18s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 5px;
+            padding: .9rem;
+            min-height: 120px;
+            text-align: center;
+            font-size: .82rem;
+            font-weight: 800;
+            color: var(--wm);
+        }
+
+            .pet-skip:hover, .pet-skip.sel {
+                border-color: var(--wg);
+                background: var(--wgp);
+                color: var(--wg);
+            }
+
+        /* ─ Medical Record ─ */
+        .med-rec-box {
+            background: var(--wgp);
+            border: 1.5px solid var(--wgb);
+            border-radius: 14px;
+            padding: 14px 16px;
+            margin-top: 16px;
+        }
+
+        .med-rec-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: .9rem;
+            font-weight: 700;
+            color: #5f7430;
+            margin-bottom: 10px;
+        }
+
+        .med-rec-lbl {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+            .med-rec-lbl input {
+                width: 18px;
+                height: 18px;
+                accent-color: var(--wg);
+                cursor: pointer;
+                flex-shrink: 0;
+            }
+
+        .med-rec-text div:first-child {
+            font-weight: 800;
+            font-size: .86rem;
+            color: #3d6b20;
+        }
+
+        .med-rec-text div:last-child {
+            font-size: .74rem;
+            color: var(--wg);
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .med-rec-preview {
+            display: none;
+            margin-top: 12px;
+            background: #fff;
+            border-radius: 10px;
+            padding: 10px 12px;
+            border: 1px solid var(--wgb);
+            font-size: .8rem;
+            color: #5a6e3a;
+            font-weight: 700;
+            line-height: 1.7;
+        }
+
+        /* ─ Summary ─ */
+        .sum-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: .5px solid var(--wl);
+            font-size: .86rem;
+        }
+
+            .sum-item:last-child {
+                border-bottom: none;
+            }
+
+        .sum-lbl {
+            width: 120px;
+            color: var(--wm);
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .sum-val {
+            font-weight: 800;
+            color: var(--wt);
+        }
+
+        .med-sum-box {
+            background: var(--wgp);
+            border: 1px solid var(--wgb);
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 14px;
+            display: none;
+        }
+
+        .med-sum-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .med-sum-title {
+            font-weight: 800;
+            font-size: .84rem;
+            color: #5f7430;
+        }
+
+        .med-sum-view {
+            font-size: .76rem;
+            font-weight: 800;
+            color: #5f7430;
+            background: var(--wgb);
+            padding: 3px 10px;
+            border-radius: 999px;
+            text-decoration: none;
+            border: 1px solid #c3d9a0;
+        }
+
+        .med-sum-content {
+            font-size: .78rem;
+            color: #5a6e3a;
+            font-weight: 700;
+            line-height: 1.6;
+            background: #fff;
+            border-radius: 8px;
+            padding: 8px 10px;
+            border: 1px solid var(--wgb);
+        }
+
+        @@media(max-width:540px) {
+            .doc-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .step-lbl {
+                display: none;
+            }
+
+            .pet-grid {
+                grid-template-columns: repeat(3,1fr);
+            }
+        }
+
+        #payWalletCard.sel, #payCliqCard.sel {
+            border-color: var(--wg) !important;
+            background: var(--wgp) !important;
+        }
+
+        #payWalletCheck.sel, #payCliqCheck.sel {
+            background: var(--wg);
+            border-color: var(--wg);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Navbar -->
+    <div class="top-hero-area">
+        <div class="top-hero-shell">
+            <header class="topbar">
+                <div class="header-shell">
+                    <nav class="navbar">
+                        <div class="left-nav desktop-nav desktop-links">
+                            <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
+                            <a asp-controller="Clinic" asp-action="Clinics" class="nav-link active">Clinics</a>
+                            <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
+                            <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
+                            <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
+                        </div>
+                        <div class="logo-center"><img src="~/Images/logo.png" alt="Waffy" class="main-logo"></div>
+                        <div class="right-nav">
+                            <div class="desktop-nav desktop-links desktop-right-links">
+                                <div class="services-dropdown" id="servicesDropdown">
+                                    <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">Services <span class="dropdown-arrow">▼</span></button>
+                                    <div class="dropdown-menu" id="servicesMenu">
+                                        <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
+                                        <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
+                                        <a asp-controller="Pet" asp-action="Adapt" class="dropdown-link">Adoption</a>
+                                        <a asp-controller="Map" asp-action="Gps" class="dropdown-link">Map</a>
+                                        <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
+                                    </div>
+                                </div>
+                                <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
+                            </div>
+                            <div class="nav-actions">
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon"><i class="fa-solid fa-bell"></i></a>
+                                <a asp-controller="Account" asp-action="Profile" class="profile-btn"><img src="~/Images/user.jpg" alt="Profile"></a>
+                                <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
+                            </div>
+                            <div class="mobile-nav-wrap">
+                                <button class="menu-btn" id="menuBtn" type="button">☰</button>
+                                <div class="nav-links" id="navLinks">
+                                    <div class="mobile-menu-logo"><img src="~/Images/logo.png" alt="Waffy"></div>
+                                    <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
+                                    <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
+                                    <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
+                                </div>
+                            </div>
+                        </div>
+                    </nav>
+                </div>
+            </header>
+        </div>
+    </div>
+
+    <main class="container">
+        <div class="book-page">
+
+            <a asp-controller="Clinic" asp-action="ClinicDetail" asp-route-id="@Model.ClinicId"
+               style="display:inline-flex;align-items:center;gap:6px;color:var(--wm);font-size:.84rem;font-weight:800;text-decoration:none;margin-bottom:1rem;">
+                <i class="fa-solid fa-arrow-left" style="font-size:11px;"></i> Back to @Model.ClinicName
+            </a>
+
+            <h2 style="font-family:'Fredoka',sans-serif;font-size:1.5rem;color:var(--wt);margin:0 0 4px;">📅 Book an Appointment</h2>
+            <p style="color:var(--wm);font-size:.88rem;font-weight:700;margin-bottom:1.4rem;">@Model.ClinicName</p>
+
+            @if (ViewBag.Error != null)
+            {
+                <div style="background:#faece8;border:1px solid rgba(200,106,92,.3);border-radius:12px;padding:10px 16px;margin-bottom:1rem;font-weight:800;color:#c86a5c;">⚠️ @ViewBag.Error</div>
+            }
+
+            <!-- Step bar -->
+            <div class="step-bar">
+                @{
+                    var stepLabels = new[] { ("1", "Service"), ("2", "Doctor"), ("3", "Date"), ("4", "Time"), ("5", "Pet"), ("6", "Confirm") };
+                }
+                @foreach (var (n, lbl) in stepLabels)
+                {
+                    <div class="step-item @(n == "1" ? "active" : "")" id="si@n">
+                        <div class="step-circle">@n</div>
+                        <div class="step-lbl">@lbl</div>
+                    </div>
+                }
+            </div>
+
+            <!-- ══ FORM ══ -->
+            <form asp-controller="Appointment" asp-action="Book" method="post" id="bookForm">
+                @Html.AntiForgeryToken()
+                <!-- All hidden inputs — ONE SET ONLY -->
+                <input type="hidden" name="ClinicId" value="@Model.ClinicId">
+                <input type="hidden" name="SelectedService" id="hSvc" value="">
+                <input type="hidden" name="SelectedDoctorId" id="hDoc" value="@(Model.PreSelectedDoctorId ?? 0)">
+                <input type="hidden" name="SelectedDate" id="hDate" value="">
+                <input type="hidden" name="SelectedTime" id="hTime" value="">
+                <input type="hidden" name="SelectedPetId" id="hPet" value="0">
+                <input type="hidden" name="UrgencyLevel" id="hUrg" value="Normal">
+                <input type="hidden" name="Reason" id="hReason" value="">
+                <input type="hidden" name="Notes" id="hNotes" value="">
+                <input type="hidden" name="ShareMedicalRecord" id="hShare" value="false">
+                <input type="hidden" name="DepositPayMethod" id="hDepMethod" value="">
+                <div class="wiz-card">
+
+                    <!-- ══ STEP 1: Service ══ -->
+                    <div class="step-panel active" id="step1">
+                        <div class="wiz-head">🩺 Step 1 — Select Service</div>
+                        <div class="wiz-body">
+                            <div class="svc-chips">
+                                @{
+                                    var svcList = Model.Services.Any()
+                                    ? Model.Services
+                                    : new List<string> { "General Checkup", "Vaccination", "Surgery", "Dentistry", "Lab Tests", "Grooming" };
+                                }
+                                @foreach (var s in svcList)
+                                {
+                                    <div class="svc-chip" data-v="@s" onclick="pickService(this)">@s</div>
+                                }
+                                @if (Model.Services.Any())
+                                {
+                                    <div class="svc-chip" data-v="General Checkup" onclick="pickService(this)">🐾 General Checkup</div>
+                                }
+                            </div>
+                            <div style="margin-top:1.2rem;">
+                                <div style="font-size:.82rem;font-weight:800;color:var(--wm);margin-bottom:8px;">⚡ Urgency Level</div>
+                                <div class="urg-row">
+                                    <div class="urg-chip urg-normal" id="urgN" onclick="pickUrgency('Normal')">🟢 Normal</div>
+                                    <div class="urg-chip" id="urgU" onclick="pickUrgency('Urgent')">🔴 Urgent</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wiz-nav">
+                            <span></span>
+                            <button type="button" class="wiz-btn wiz-btn-next" id="btn1" onclick="goStep(2)" disabled>
+                                Next <i class="fa-solid fa-arrow-right" style="font-size:11px;"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- ══ STEP 2: Doctor ══ -->
+                    <div class="step-panel" id="step2">
+                        <div class="wiz-head">👨‍⚕️ Step 2 — Select Doctor</div>
+                        <div class="wiz-body">
+                            <div class="doc-grid">
+                                @foreach (var doc in Model.Doctors)
+                                {
+                                    var ini = doc.FullName.Split(' ') is { Length: >= 2 } p2
+                                    ? $"{p2[0][0]}{p2[1][0]}".ToUpper()
+                                    : doc.FullName.Length > 0 ? doc.FullName[0].ToString().ToUpper() : "DR";
+                                    <div class="doc-card" data-id="@doc.IdDoctor" data-name="Dr. @doc.FullName" onclick="pickDoctor(this)">
+                                        <div class="doc-av">
+                                            @if (!string.IsNullOrEmpty(doc.ProfileImageUrl))
+                                            {
+                                                <img src="@doc.ProfileImageUrl" alt="@doc.FullName">
+                                            }
+                                            else
+                                            {
+
+                                                @ini
+                                            }
+                                        </div>
+                                        <div class="doc-name">Dr. @doc.FullName</div>
+                                        <div class="doc-spec">@(doc.Specialization ?? "Veterinary")</div>
+                                        @if (doc.IsAvailable == true)
+                                        {
+                                            <div style="margin-top:5px;font-size:.7rem;color:var(--wg);font-weight:900;">🟢 Available</div>
+                                        }
+                                    </div>
+                                }
+                                <!-- Any Doctor -->
+                                <div class="doc-card" data-id="-1" data-name="Any Available Doctor" onclick="pickDoctor(this)">
+                                    <div class="doc-av" style="font-size:1.4rem;">👨‍⚕️</div>
+                                    <div class="doc-name">Any Available</div>
+                                    <div class="doc-spec">Auto-assigned</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wiz-nav">
+                            <button type="button" class="wiz-btn wiz-btn-back" onclick="goStep(1)"><i class="fa-solid fa-arrow-left" style="font-size:11px;"></i> Back</button>
+                            <button type="button" class="wiz-btn wiz-btn-next" id="btn2" onclick="goStep(3)" disabled>Next <i class="fa-solid fa-arrow-right" style="font-size:11px;"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- ══ STEP 3: Date ══ -->
+                    <div class="step-panel" id="step3">
+                        <div class="wiz-head">📆 Step 3 — Select Date</div>
+                        <div class="wiz-body">
+                            <div class="cal-nav">
+                                <button type="button" class="cal-nav-btn" onclick="changeMonth(-1)">← Prev</button>
+                                <span id="calTitle" style="font-family:'Fredoka',sans-serif;font-weight:700;font-size:1rem;color:var(--wt);"></span>
+                                <button type="button" class="cal-nav-btn" onclick="changeMonth(1)">Next →</button>
+                            </div>
+                            <div class="cal-grid">
+                                @foreach (var d in new[] { "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat" })
+                                {
+                                    <div class="cal-hd">@d</div>
+                                }
+                            </div>
+                            <div class="cal-grid" id="calBody"></div>
+                            <div id="calMsg" style="font-size:.8rem;color:var(--wm);font-weight:700;margin-top:8px;"></div>
+                        </div>
+                        <div class="wiz-nav">
+                            <button type="button" class="wiz-btn wiz-btn-back" onclick="goStep(2)"><i class="fa-solid fa-arrow-left" style="font-size:11px;"></i> Back</button>
+                            <button type="button" class="wiz-btn wiz-btn-next" id="btn3" onclick="goStep(4)" disabled>Next <i class="fa-solid fa-arrow-right" style="font-size:11px;"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- ══ STEP 4: Time ══ -->
+                    <div class="step-panel" id="step4">
+                        <div class="wiz-head">🕐 Step 4 — Select Time</div>
+                        <div class="wiz-body">
+                            <div id="slotsArea"><div class="slots-msg">⏳ Loading available times…</div></div>
+                        </div>
+                        <div class="wiz-nav">
+                            <button type="button" class="wiz-btn wiz-btn-back" onclick="goStep(3)"><i class="fa-solid fa-arrow-left" style="font-size:11px;"></i> Back</button>
+                            <button type="button" class="wiz-btn wiz-btn-next" id="btn4" onclick="goStep(5)" disabled>Next <i class="fa-solid fa-arrow-right" style="font-size:11px;"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- ══ STEP 5: Pet ══ -->
+                    <div class="step-panel" id="step5">
+                        <div class="wiz-head">🐾 Step 5 — Select Pet (Optional)</div>
+                        <div class="wiz-body">
+                            <p style="font-size:.84rem;font-weight:700;color:var(--wm);margin-bottom:12px;">Choose which pet this appointment is for, or skip.</p>
+                            <div class="pet-grid">
+                                @foreach (var pet in Model.UserPets)
+                                {
+                                    <div class="pet-card" data-id="@pet.IdPet" data-name="@pet.Name" onclick="pickPet(this)">
+                                        @if (!string.IsNullOrEmpty(pet.ImageUrl))
+                                        {
+                                            <img src="@pet.ImageUrl" alt="@pet.Name" class="pet-card-img">
+                                        }
+                                        else
+                                        {
+
+                                            <div class="pet-card-ph">@(pet.Species?.ToLower() switch { "cat" => "🐈", "dog" => "🐕", "bird" => "🐦", _ => "🐾" })</div>
+                                        }
+                                        <div class="pet-card-info">
+                                            <div class="pet-card-name">@pet.Name</div>
+                                            <div class="pet-card-sub">@(pet.Species ?? "—")@(!string.IsNullOrEmpty(pet.Breed) ? $" · {pet.Breed}" : "")</div>
+                                            @if (!string.IsNullOrEmpty(pet.AgeDisplay))
+                                            {
+                                                <div style="font-size:.68rem;color:var(--wm);margin-top:2px;">@pet.AgeDisplay</div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                                <!-- Skip -->
+                                <div class="pet-skip sel" id="petSkip" data-id="0" data-name="No pet selected" onclick="pickPet(this)">
+                                    <div style="font-size:1.4rem;">➡️</div>
+                                    <div>Skip</div>
+                                </div>
+                            </div>
+
+                            <!-- ★ Medical Record Section (shows when pet selected) -->
+                            <div id="medSection" style="display:none;">
+                                <div class="med-rec-box">
+                                    <div class="med-rec-title">📋 Medical Record</div>
+                                    <label class="med-rec-lbl">
+                                        <input type="checkbox" id="shareCheck"
+                                               onchange="toggleMedPreview(this.checked)">
+                                        <div class="med-rec-text">
+                                            <div>Share <span id="petNameLabel">your pet</span>'s medical record with the doctor</div>
+                                            <div>Helps the doctor prepare for your visit 🩺</div>
+                                        </div>
+                                    </label>
+                                    <div id="medPreview" class="med-rec-preview"></div>
+                                </div>
+                            </div>
+
+                            <!-- Reason & Notes -->
+                            <div style="margin-top:1.2rem;">
+                                <label style="display:block;font-size:.82rem;font-weight:800;color:var(--wm);margin-bottom:5px;">📝 Reason for visit (optional)</label>
+                                <input type="text" id="reasonInp" placeholder="e.g. Annual vaccination, limping..."
+                                       style="width:100%;padding:10px 12px;border-radius:12px;border:1.5px solid var(--wl);background:var(--ws);font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:700;"
+                                       oninput="document.getElementById('hReason').value=this.value">
+                            </div>
+                            <div style="margin-top:.8rem;">
+                                <label style="display:block;font-size:.82rem;font-weight:800;color:var(--wm);margin-bottom:5px;">💬 Notes for the doctor (optional)</label>
+                                <textarea id="notesInp" rows="2" placeholder="Any extra info..."
+                                          style="width:100%;padding:10px 12px;border-radius:12px;border:1.5px solid var(--wl);background:var(--ws);font-family:'Nunito',sans-serif;font-size:.88rem;font-weight:700;resize:vertical;"
+                                          oninput="document.getElementById('hNotes').value=this.value"></textarea>
+                            </div>
+                        </div>
+                        <div class="wiz-nav">
+                            <button type="button" class="wiz-btn wiz-btn-back" onclick="goStep(4)"><i class="fa-solid fa-arrow-left" style="font-size:11px;"></i> Back</button>
+                            <button type="button" class="wiz-btn wiz-btn-next" onclick="goStep(6)">Review <i class="fa-solid fa-arrow-right" style="font-size:11px;"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- ══ STEP 6: Confirm ══ -->
+                    <div class="step-panel" id="step6">
+                        <div class="wiz-head">✅ Step 6 — Review & Confirm</div>
+                        <div class="wiz-body">
+
+                            <!-- Medical record summary (if shared) -->
+                            <div class="med-sum-box" id="medSummary">
+                                <div class="med-sum-head">
+                                    <div class="med-sum-title">📋 Medical Record Will Be Shared</div>
+                                    <a id="viewRecBtn" href="#" target="_blank" class="med-sum-view">👁 View Full Record</a>
+                                </div>
+                                <div class="med-sum-content" id="medSumContent"></div>
+                            </div>
+
+                            <!-- Appointment summary -->
+                            <div id="summaryArea"></div>
+
+                            <!-- ★ Deposit Section ───────────────────────────── -->
+                            <div style="background:#fff8e1;border:1.5px solid #fde68a;border-radius:14px;
+                    padding:14px 16px;margin-top:16px;">
+
+                                <!-- Header -->
+                                <div style="font-family:'Fredoka',sans-serif;font-size:.95rem;font-weight:700;
+                        color:#9b6000;margin-bottom:8px;">
+                                    💳 Booking Deposit — 5 JOD
+                                </div>
+
+                                <!-- Policy -->
+                                <div style="font-size:.8rem;font-weight:700;color:#7a5200;
+                        line-height:1.8;margin-bottom:12px;
+                        background:#fffde7;border-radius:10px;padding:10px 12px;
+                        border:1px solid #ffe082;">
+                                    ✅ Returned if: you attend the appointment OR appointment is cancelled by doctor/clinic<br>
+                                    ✅ Returned if: you cancel the appointment yourself<br>
+                                    ❌ Not returned if: you don't attend and don't cancel (no-show)
+                                </div>
+
+                                <!-- Payment method selection -->
+                                <div style="font-size:.82rem;font-weight:800;color:#9b6000;margin-bottom:8px;">
+                                    Choose payment method:
+                                </div>
+
+                                <!-- Wallet option -->
+                                <div id="payWalletCard"
+                                     onclick="selectPayMethod('Wallet')"
+                                     style="border:1.5px solid #e8ddd0;border-radius:12px;background:#fff;
+                        padding:12px 14px;cursor:pointer;transition:.18s;margin-bottom:8px;
+                        display:flex;align-items:center;justify-content:space-between;">
+                                    <div>
+                                        <div style="font-weight:900;font-size:.88rem;">💰 Pay from Wallet</div>
+                                        <div style="font-size:.76rem;color:#7b6c58;font-weight:700;margin-top:2px;">
+                                            Your balance:
+                                            <span id="walletBalDisplay"
+                                                  style="font-weight:900;color:#7d953d;">
+                                                @Model.WalletBalance.ToString("F2") JOD
+                                            </span>
+                                        </div>
+                                        <div id="walletInsufficientMsg"
+                                             style="display:none;font-size:.74rem;color:#c86a5c;
+                                font-weight:800;margin-top:2px;">
+                                            ⚠️ Insufficient balance — please top up or choose CliQ
+                                        </div>
+                                    </div>
+                                    <div id="payWalletCheck"
+                                         style="width:20px;height:20px;border-radius:50%;
+                            border:2px solid #e8ddd0;flex-shrink:0;"></div>
+                                </div>
+
+                                <!-- CliQ option -->
+                                <div id="payCliqCard"
+                                     onclick="selectPayMethod('CliQ')"
+                                     style="border:1.5px solid #e8ddd0;border-radius:12px;background:#fff;
+                        padding:12px 14px;cursor:pointer;transition:.18s;
+                        display:flex;align-items:center;justify-content:space-between;">
+                                    <div>
+                                        <div style="font-weight:900;font-size:.88rem;">📱 Pay via CliQ</div>
+                                        <div style="font-size:.76rem;color:#7b6c58;font-weight:700;margin-top:2px;">
+                                            Payment confirmed by clinic within 24 hours
+                                        </div>
+                                    </div>
+                                    <div id="payCliqCheck"
+                                         style="width:20px;height:20px;border-radius:50%;
+                            border:2px solid #e8ddd0;flex-shrink:0;"></div>
+                                </div>
+                            </div>
+
+                            <!-- Approval notice (dynamic) -->
+                            <div id="approvalNotice"
+                                 style="background:var(--wgp);border:1px solid var(--wgb);border-radius:12px;
+                    padding:10px 14px;margin-top:14px;font-size:.82rem;font-weight:700;
+                    color:var(--wg);display:none;">
+                            </div>
+
+                        </div>
+                        <div class="wiz-nav">
+                            <button type="button" class="wiz-btn wiz-btn-back" onclick="goStep(5)">
+                                <i class="fa-solid fa-arrow-left" style="font-size:11px;"></i> Back
+                            </button>
+                            <button type="submit" id="btnSubmit"
+                                    class="wiz-btn wiz-btn-next" disabled>
+                                <i class="fa-regular fa-calendar-check"></i>
+                                <span id="btnSubmitText">Select Payment Method</span>
+                            </button>
+                        </div>
+                    </div>
+
+                </div><!-- /.wiz-card -->
+            </form>
+
+        </div>
+    </main>
+
+    <script>
+        // ═══════════════════════════════════════════════════════════════
+        // CONFIG — من الـ Razor model
+        // ═══════════════════════════════════════════════════════════════
+        const clinicId      = @Model.ClinicId;
+        const clinicWorkDays = @Html.Raw(ViewBag.ClinicWorkDaysJson ?? "[]");
+        const petsData       = @Html.Raw(ViewBag.PetsJson ?? "[]");
+        const preDocId       = @(Model.PreSelectedDoctorId?.ToString() ?? "0");
+
+        // ═══════════════════════════════════════════════════════════════
+        // STATE — تتبع جميع الاختيارات
+        // ═══════════════════════════════════════════════════════════════
+        const S = {
+            service:    '',
+            urgency:    'Normal',
+            doctorId:   preDocId,
+            doctorName: '',
+            date:       '',
+            time:       '',
+            petId:      0,
+            petName:    'No pet selected',
+            shareRec:   false
+        };
+
+        let calYear  = new Date().getFullYear();
+        let calMonth = new Date().getMonth();
+        let docWorkDays = [];
+        let currentStep = 1;
+
+        // ═══════════════════════════════════════════════════════════════
+        // STEP NAVIGATION
+        // ═══════════════════════════════════════════════════════════════
+        function goStep(n) {
+            // Validation
+            if (n > currentStep) {
+                if (currentStep === 1 && !S.service)    return alert('Please select a service first.');
+                if (currentStep === 2 && !S.doctorId)   return alert('Please select a doctor.');
+                if (currentStep === 3 && !S.date)       return alert('Please select a date.');
+                if (currentStep === 4 && !S.time)       return alert('Please select a time slot.');
+            }
+
+            document.getElementById(`step${currentStep}`)?.classList.remove('active');
+            document.getElementById(`step${n}`)?.classList.add('active');
+
+            // Update step bar
+            document.querySelectorAll('.step-item').forEach(el => {
+                const s = parseInt(el.id.replace('si',''));
+                el.classList.remove('active','done');
+                if (s === n) el.classList.add('active');
+                else if (s < n) el.classList.add('done');
+            });
+
+            currentStep = n;
+            window.scrollTo(0, 0);
+
+            if (n === 3) renderCalendar();
+            if (n === 4) loadSlots();
+            if (n === 6) buildSummary();
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // STEP 1 — Service & Urgency
+        // ═══════════════════════════════════════════════════════════════
+        function pickService(el) {
+            document.querySelectorAll('.svc-chip').forEach(c => c.classList.remove('sel'));
+            el.classList.add('sel');
+            S.service = el.dataset.v;
+            document.getElementById('hSvc').value = S.service;
+            document.getElementById('btn1').disabled = false;
+        }
+
+        function pickUrgency(val) {
+            S.urgency = val;
+            document.getElementById('hUrg').value = val;
+            document.getElementById('urgN').className = 'urg-chip' + (val==='Normal' ? ' urg-normal' : '');
+            document.getElementById('urgU').className = 'urg-chip' + (val==='Urgent' ? ' urg-urgent' : '');
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // STEP 2 — Doctor
+        // ═══════════════════════════════════════════════════════════════
+        function pickDoctor(el) {
+            document.querySelectorAll('.doc-card').forEach(c => c.classList.remove('sel'));
+            el.classList.add('sel');
+            S.doctorId   = parseInt(el.dataset.id);
+            S.doctorName = el.dataset.name;
+            document.getElementById('hDoc').value  = S.doctorId;
+            document.getElementById('btn2').disabled = false;
+            docWorkDays = [];   // reset so calendar reloads
+        }
+
+        // Pre-select if came from DoctorDetail
+        document.addEventListener('DOMContentLoaded', () => {
+            if (preDocId > 0) {
+                const card = document.querySelector(`.doc-card[data-id="${preDocId}"]`);
+                if (card) { card.classList.add('sel'); S.doctorName = card.dataset.name; document.getElementById('btn2').disabled = false; }
+            }
+        });
+
+        // ═══════════════════════════════════════════════════════════════
+        // STEP 3 — Calendar
+        // ═══════════════════════════════════════════════════════════════
+        async function renderCalendar() {
+            if (S.doctorId > 0 && docWorkDays.length === 0) {
+                try {
+                    const r = await fetch(`/Appointment/GetDoctorSchedule?doctorId=${S.doctorId}`);
+                    const d = await r.json();
+                    docWorkDays = d.workDays || [];
+                } catch { docWorkDays = [0,1,2,3,4,5,6]; }
+            } else if (S.doctorId <= 0) {
+                docWorkDays = [0,1,2,3,4,5,6];
+            }
+            buildCal();
+        }
+
+        function buildCal() {
+            const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            document.getElementById('calTitle').textContent = `${months[calMonth]} ${calYear}`;
+            const today    = new Date(); today.setHours(0,0,0,0);
+            const firstDay = new Date(calYear, calMonth, 1).getDay();
+            const daysInM  = new Date(calYear, calMonth+1, 0).getDate();
+            let html = '';
+            for (let i=0; i<firstDay; i++) html += '<div class="cal-day"></div>';
+            for (let d=1; d<=daysInM; d++) {
+                const date    = new Date(calYear, calMonth, d);
+                const dow     = date.getDay();
+                const isPast  = date < today;
+                const avClnic = clinicWorkDays.length===0 || clinicWorkDays.includes(dow);
+                const avDoc   = docWorkDays.length===0    || docWorkDays.includes(dow);
+                const isAvail = !isPast && avClnic && avDoc;
+                const dateStr = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const todayCls = date.getTime()===today.getTime() ? ' today-mark' : '';
+                const selCls   = S.date===dateStr ? ' sel' : '';
+                if (isAvail)
+                    html += `<div class="cal-day avail${selCls}${todayCls}" onclick="pickDate(this,'${dateStr}')">${d}</div>`;
+                else
+                    html += `<div class="cal-day${todayCls}">${d}</div>`;
+            }
+            document.getElementById('calBody').innerHTML = html;
+        }
+
+        function changeMonth(dir) {
+            calMonth += dir;
+            if (calMonth>11){calMonth=0;calYear++;}
+            if (calMonth<0) {calMonth=11;calYear--;}
+            buildCal();
+        }
+
+        function pickDate(el, dateStr) {
+            document.querySelectorAll('.cal-day.avail').forEach(c => c.classList.remove('sel'));
+            el.classList.add('sel');
+            S.date = dateStr;
+            document.getElementById('hDate').value = dateStr;
+            document.getElementById('btn3').disabled = false;
+            document.getElementById('calMsg').textContent =
+                '✅ ' + new Date(dateStr).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // STEP 4 — Time Slots  ★ إصلاح Any Doctor
+        // ═══════════════════════════════════════════════════════════════
+        async function loadSlots() {
+            const area = document.getElementById('slotsArea');
+            area.innerHTML = '<div class="slots-msg">⏳ Loading available times…</div>';
+
+            if (!S.date) {
+                area.innerHTML = '<div class="slots-msg">Please go back and select a date first.</div>';
+                document.getElementById('btn4').disabled = true;
+                return;
+            }
+
+            try {
+                // ★ KEY FIX: S.doctorId == -1 → use GetAnyDoctorSlots
+                const url = (S.doctorId === -1)
+                    ? `/Appointment/GetAnyDoctorSlots?clinicId=${clinicId}&date=${S.date}`
+                    : `/Appointment/GetAvailableSlots?doctorId=${S.doctorId}&date=${S.date}`;
+
+                const res  = await fetch(url);
+                const data = await res.json();
+
+                if (!data.slots || data.slots.length === 0) {
+                    area.innerHTML = '<div class="slots-msg">😔 No available slots for this date. Please go back and choose another day.</div>';
+                    document.getElementById('btn4').disabled = true;
+                    return;
+                }
+
+                let html = '<div class="slot-wrap">';
+                data.slots.forEach(s => {
+                    const t = typeof s === 'string' ? s : s.time;
+                    const sel = S.time === t ? ' sel' : '';
+                    html += `<button type="button" class="slot-btn${sel}" onclick="pickSlot(this,'${t}')">${t}</button>`;
+                });
+                html += '</div>';
+                area.innerHTML = html;
+                if (S.time) document.getElementById('btn4').disabled = false;
+
+            } catch(e) {
+                area.innerHTML = '<div class="slots-msg">⚠️ Could not load slots. Please try again.</div>';
+            }
+        }
+
+        function pickSlot(el, time) {
+            document.querySelectorAll('.slot-btn').forEach(b => b.classList.remove('sel'));
+            el.classList.add('sel');
+            S.time = time;
+            document.getElementById('hTime').value = time;
+            document.getElementById('btn4').disabled = false;
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // STEP 5 — Pet & Medical Record
+        // ═══════════════════════════════════════════════════════════════
+        function pickPet(el) {
+            document.querySelectorAll('.pet-card,.pet-skip').forEach(c => c.classList.remove('sel'));
+            el.classList.add('sel');
+            S.petId   = parseInt(el.dataset.id);
+            S.petName = el.dataset.name;
+            document.getElementById('hPet').value = S.petId;
+
+            // Medical Record section
+            const medSec = document.getElementById('medSection');
+            if (S.petId > 0) {
+                document.getElementById('petNameLabel').textContent = S.petName;
+                document.getElementById('shareCheck').checked       = false;
+                document.getElementById('medPreview').style.display = 'none';
+                medSec.style.display = 'block';
+                // Store pet data for preview
+                window.activePetData = petsData.find(p => p.id === S.petId) || null;
+            } else {
+                medSec.style.display = 'none';
+                document.getElementById('shareCheck').checked = false;
+                window.activePetData = null;
+            }
+        }
+
+        function toggleMedPreview(isChecked) {
+            S.shareRec = isChecked;
+            document.getElementById('hShare').value = isChecked ? 'true' : 'false';
+            const prev = document.getElementById('medPreview');
+            if (!isChecked) { prev.style.display = 'none'; return; }
+            const pet = window.activePetData;
+            if (!pet) { prev.style.display = 'none'; return; }
+            let lines = [`<strong>🐾 ${pet.name || ''}</strong> · ${pet.species || ''}`];
+            if (pet.age)               lines.push(`📅 Age: ${pet.age}`);
+            if (pet.vaccinationStatus) lines.push(`💉 Vaccination: ${pet.vaccinationStatus}`);
+            lines.push(`✂️ Neutered: ${pet.isNeutered ? 'Yes' : 'No'}`);
+            if (pet.medicalNotes)      lines.push(`🏥 Medical Notes: ${pet.medicalNotes}`);
+            prev.innerHTML = lines.join('<br>');
+            prev.style.display = 'block';
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // STEP 6 — Summary
+        // ═══════════════════════════════════════════════════════════════
+               function buildSummary() {
+            document.getElementById('hShare').value = S.shareRec ? 'true' : 'false';
+
+            // Medical record summary
+            const medSummary = document.getElementById('medSummary');
+            if (S.shareRec && S.petId > 0) {
+                document.getElementById('medSumContent').innerHTML =
+                    document.getElementById('medPreview')?.innerHTML || '';
+                document.getElementById('viewRecBtn').href = `/Pet/Petrecord?petId=${S.petId}`;
+                medSummary.style.display = 'block';
+            } else {
+                medSummary.style.display = 'none';
+            }
+
+            const dateLabel = S.date
+                ? new Date(S.date).toLocaleDateString('en-US',
+                    {weekday:'long',year:'numeric',month:'long',day:'numeric'})
+                : '—';
+
+            // Doctor label
+            const docLabel = S.doctorId === -1
+                ? 'Any Available Doctor'
+                : (S.doctorName || '—');
+
+            const rows = [
+                ['🏥 Clinic',   '@Model.ClinicName'],
+                ['🩺 Service',  S.service    || '—'],
+                ['👨‍⚕️ Doctor', docLabel],
+                ['📆 Date',     dateLabel],
+                ['🕐 Time',     S.time       || '—'],
+                ['🐾 Pet',      S.petName],
+                ['⚡ Urgency',  S.urgency]
+            ];
+            if (document.getElementById('hReason').value)
+                rows.push(['📝 Reason', document.getElementById('hReason').value]);
+
+            document.getElementById('summaryArea').innerHTML = rows.map(([l,v]) =>
+                `<div class="sum-item">
+                    <div class="sum-lbl">${l}</div>
+                    <div class="sum-val">${v}</div>
+                </div>`
+            ).join('');
+
+            // Approval notice
+            const notice = document.getElementById('approvalNotice');
+            if (S.doctorId > 0 && S.doctorId !== -1) {
+                notice.innerHTML = '⏳ Your request will be sent to the doctor for approval. You will be notified once confirmed.';
+            } else {
+                notice.innerHTML = '⏳ Your request will be reviewed by the clinic team who will assign an available doctor.';
+            }
+            notice.style.display = 'block';
+
+            // Reset payment selection
+            selectPayMethod(null);
+        }
+
+        // ── Payment method selection ──────────────────────────────────────────
+        const walletBalance = @Model.WalletBalance;
+
+        function selectPayMethod(method) {
+            // Reset both cards
+            document.getElementById('payWalletCard').classList.remove('sel');
+            document.getElementById('payCliqCard').classList.remove('sel');
+            document.getElementById('payWalletCheck').classList.remove('sel');
+            document.getElementById('payCliqCheck').classList.remove('sel');
+            document.getElementById('walletInsufficientMsg').style.display = 'none';
+
+            if (!method) {
+                document.getElementById('hDepMethod').value = '';
+                document.getElementById('btnSubmit').disabled = true;
+                document.getElementById('btnSubmitText').textContent = 'Select Payment Method';
+                return;
+            }
+
+            if (method === 'Wallet') {
+                if (walletBalance < 5) {
+                    document.getElementById('walletInsufficientMsg').style.display = 'block';
+                    document.getElementById('btnSubmit').disabled = true;
+                    document.getElementById('btnSubmitText').textContent = 'Select Payment Method';
+                    return;
+                }
+                document.getElementById('payWalletCard').classList.add('sel');
+                document.getElementById('payWalletCheck').classList.add('sel');
+                document.getElementById('hDepMethod').value = 'Wallet';
+                document.getElementById('btnSubmit').disabled = false;
+                document.getElementById('btnSubmitText').textContent = 'Pay 5 JOD & Submit Request';
+            } else {
+                document.getElementById('payCliqCard').classList.add('sel');
+                document.getElementById('payCliqCheck').classList.add('sel');
+                document.getElementById('hDepMethod').value = 'CliQ';
+                document.getElementById('btnSubmit').disabled = false;
+                document.getElementById('btnSubmitText').textContent = 'Submit & Pay via CliQ';
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // NAVBAR
+        // ═══════════════════════════════════════════════════════════════
+        const sd = document.getElementById("servicesDropdown");
+        const st = document.getElementById("servicesToggle");
+        if (sd&&st){st.addEventListener("click",e=>{e.stopPropagation();sd.classList.toggle("open");});document.addEventListener("click",e=>{if(!sd.contains(e.target))sd.classList.remove("open");});}
+        const mb = document.getElementById("menuBtn");
+        const nl = document.getElementById("navLinks");
+        if (mb&&nl){mb.addEventListener("click",e=>{e.stopPropagation();nl.classList.toggle("open");});document.addEventListener("click",e=>{if(!nl.contains(e.target)&&e.target!==mb)nl.classList.remove("open");});}
+    </script>
+</body>
+</html>

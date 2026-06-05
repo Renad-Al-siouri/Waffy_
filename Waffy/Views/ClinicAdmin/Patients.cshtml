@@ -1,560 +1,631 @@
-﻿@{
+﻿@model Waffy.Models.ViewModels.ClinicPatientsViewModel
+@{
+    ViewData["Title"] = "Waffy — Patients";
     Layout = null;
+    var userName   = Context.Session.GetString("UserName")   ?? "Clinic Manager";
+    var clinicName = Context.Session.GetString("ClinicName") ?? "Clinic";
+    var initials   = userName.Length > 0 ? userName[0].ToString().ToUpper() : "C";
+
+    string VaccBadge(string? status) => status?.ToLower() switch {
+        "uptodate"       => "<span class='vacc-chip vacc-ok'>✅ Up to Date</span>",
+        "partial"        => "<span class='vacc-chip vacc-warn'>⚠️ Partial</span>",
+        "notvaccinated"  => "<span class='vacc-chip vacc-err'>❌ Not Vaccinated</span>",
+        _                => "<span class='vacc-chip vacc-unk'>❓ Unknown</span>"
+    };
+
+    string PetEmoji(string? s) => s?.ToLower() switch {
+        "dog"    => "🐕","cat"  => "🐈","bird"   => "🐦",
+        "rabbit" => "🐇","fish" => "🐠","hamster" => "🐹",
+        _ => "🐾"
+    };
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Waffy — Clinic &amp; Doctor Patients</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
-    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>@ViewData["Title"]</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
+<link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+<style>
+/* ── KPI ── */
+.pat-kpi { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:18px; }
+.pat-kpi-card { background:var(--ws); border-radius:16px; border:1px solid var(--line); padding:1rem 1.2rem; display:flex; align-items:center; gap:14px; }
+.pat-kpi-icon { font-size:1.6rem; }
+.pat-kpi-val  { font-family:'Fredoka',sans-serif; font-size:1.6rem; font-weight:700; color:var(--gd); line-height:1; }
+.pat-kpi-lbl  { font-size:.72rem; color:var(--muted); font-weight:700; margin-top:2px; }
+
+/* ── Filter bar ── */
+.pat-filter { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+.pat-search  { position:relative; flex:1; min-width:180px; max-width:300px; }
+.pat-search input { width:100%; padding:8px 12px 8px 32px; border:1.5px solid var(--line); border-radius:10px; background:var(--ws); font-family:'Nunito',sans-serif; font-size:.84rem; font-weight:700; outline:none; box-sizing:border-box; }
+.pat-search input:focus { border-color:var(--gd); }
+.pat-search .s-ico { position:absolute; left:10px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; }
+.pat-chip { padding:6px 14px; border-radius:10px; border:1.5px solid var(--line); background:var(--ws); font-size:.82rem; font-weight:800; color:var(--muted); cursor:pointer; transition:.15s; }
+.pat-chip:hover, .pat-chip.active { border-color:var(--gd); background:var(--gp); color:var(--gd); }
+.pat-chip-warn { border-color:#e07b3c!important; color:#e07b3c!important; background:#fef0e6!important; }
+.pat-chip-warn.active { background:#e07b3c!important; color:#fff!important; }
+
+/* ── Grid cards ── */
+.pat-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
+.pat-card  { background:var(--ws); border-radius:16px; border:1px solid var(--line); overflow:hidden; transition:box-shadow .2s, transform .2s; cursor:pointer; }
+.pat-card:hover { box-shadow:0 6px 20px rgba(90,101,42,.14); transform:translateY(-2px); }
+.pat-card-top  { display:flex; align-items:center; gap:12px; padding:14px 14px 10px; }
+.pat-avatar    { width:52px; height:52px; border-radius:12px; overflow:hidden; flex-shrink:0; background:var(--gp); border:2px solid var(--b2); display:flex; align-items:center; justify-content:center; font-size:1.5rem; }
+.pat-avatar img { width:100%; height:100%; object-fit:cover; }
+.pat-name  { font-family:'Fredoka',sans-serif; font-size:1rem; font-weight:700; color:var(--gd); line-height:1.2; }
+.pat-breed { font-size:.74rem; color:var(--muted); font-weight:700; }
+.pat-card-body { padding:0 14px 12px; }
+.pat-info-row  { display:flex; justify-content:space-between; font-size:.78rem; padding:3px 0; border-bottom:.5px solid var(--line); }
+.pat-info-row:last-of-type { border-bottom:none; }
+.pat-info-lbl { color:var(--muted); font-weight:700; }
+.pat-info-val { font-weight:800; color:var(--text); }
+.pat-card-foot { padding:10px 14px; background:var(--gp); border-top:1px solid var(--b2); display:flex; justify-content:space-between; align-items:center; }
+
+/* ── Vaccination chips ── */
+.vacc-chip { display:inline-block; border-radius:999px; padding:2px 8px; font-size:.68rem; font-weight:800; }
+.vacc-ok   { background:#eef4dd; color:#5f7430; border:1px solid #c3d9a0; }
+.vacc-warn { background:#fff3e0; color:#e07b3c; border:1px solid #ffcc80; }
+.vacc-err  { background:#fde8e8; color:#c0392b; border:1px solid #f5b8b8; }
+.vacc-unk  { background:#f5f5f5; color:#888;    border:1px solid #ddd; }
+
+/* ── Patient Modal ── */
+.pat-modal { max-width:600px; max-height:90vh; display:flex; flex-direction:column; overflow:hidden; }
+.pat-modal .modal-body { overflow-y:auto; flex:1; padding:0; }
+.pm-hero { display:flex; gap:16px; align-items:center; padding:1.2rem; background:var(--gp); border-bottom:1px solid var(--b2); }
+.pm-img  { width:72px; height:72px; border-radius:14px; overflow:hidden; flex-shrink:0; background:var(--ws); border:2px solid var(--b2); display:flex; align-items:center; justify-content:center; font-size:2rem; }
+.pm-img img { width:100%; height:100%; object-fit:cover; }
+.pm-name  { font-family:'Fredoka',sans-serif; font-size:1.15rem; font-weight:700; color:var(--gd); }
+.pm-breed { font-size:.78rem; color:#5f7430; font-weight:700; margin-top:2px; }
+.pm-sec   { padding:.8rem 1.2rem; }
+.pm-sec-title { font-family:'Fredoka',sans-serif; font-size:.84rem; font-weight:700; color:var(--gd); margin-bottom:8px; }
+.pm-row   { display:flex; gap:8px; padding:4px 0; border-bottom:.5px solid var(--line); font-size:.82rem; }
+.pm-row:last-child { border-bottom:none; }
+.pm-lbl   { width:120px; color:var(--muted); font-weight:700; flex-shrink:0; }
+.pm-val   { font-weight:800; color:var(--text); flex:1; }
+.pm-grid  { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px; }
+.pm-stat  { background:var(--ws); border-radius:10px; padding:8px 10px; border:1px solid var(--line); }
+.pm-stat-lbl { font-size:.66rem; color:var(--muted); font-weight:700; margin-bottom:2px; }
+.pm-stat-val { font-size:.86rem; font-weight:800; color:var(--text); }
+
+/* ── Visit History ── */
+.visit-timeline { padding:.8rem 1.2rem 1rem; border-top:1px solid var(--line); }
+.vt-item  { position:relative; padding-left:20px; margin-bottom:12px; }
+.vt-item::before { content:''; position:absolute; left:5px; top:0; bottom:-12px; width:2px; background:var(--b2); }
+.vt-item:last-child::before { display:none; }
+.vt-dot   { position:absolute; left:0; top:4px; width:12px; height:12px; border-radius:50%; background:var(--gd); border:2px solid var(--ws); box-shadow:0 0 0 2px var(--b2); }
+.vt-date  { font-size:.72rem; font-weight:900; color:var(--gd); }
+.vt-doc   { font-size:.75rem; color:var(--muted); font-weight:700; }
+.vt-note  { background:var(--gp); border-radius:8px; padding:6px 10px; margin-top:5px; font-size:.78rem; font-weight:700; color:#3d4a2d; line-height:1.6; white-space:pre-line; border:1px solid var(--b2); }
+.vt-empty { text-align:center; padding:1rem; color:var(--muted); font-size:.82rem; font-weight:700; }
+
+/* ── Behavior chips ── */
+.behav-chips { display:flex; gap:5px; flex-wrap:wrap; margin-top:5px; }
+.behav-chip  { background:var(--gp); border:1px solid var(--b2); border-radius:999px; padding:2px 9px; font-size:.7rem; font-weight:800; color:var(--gd); }
+
+/* ── Medical notes block ── */
+.med-notes-block { background:linear-gradient(135deg,var(--gp),#f0f7e0); border:1px solid var(--b2); border-radius:10px; padding:10px 12px; font-size:.8rem; font-weight:700; color:#3d4a2d; line-height:1.7; white-space:pre-line; }
+
+/* ── Responsive ── */
+@@media(max-width:768px) {
+    .pat-kpi { grid-template-columns:1fr 1fr; }
+    .pat-kpi-card:last-child { grid-column:span 2; }
+    .pat-grid { grid-template-columns:1fr; }
+    .pm-grid  { grid-template-columns:1fr; }
+}
+@@media(max-width:480px) {
+    .pat-kpi { grid-template-columns:1fr; }
+    .pat-kpi-card:last-child { grid-column:span 1; }
+    .pm-hero { flex-direction:column; text-align:center; }
+}
+</style>
 </head>
 <body class="admin-shell">
-    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-    <div class="wa-shell" id="waShell">
-        <aside class="wa-sb" id="sidebar">
-            <div class="sb-logo">
-                <div class="sb-mark">
-                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"
-                         onerror="this.remove(); this.parentElement.innerHTML='🐾'; this.parentElement.style.fontSize='2rem';">
-                </div>
-                <div class="sb-wordmark">
-                    <div class="sb-wm-name">Waffy</div>
-                    <div class="sb-wm-tag">Clinic Admin</div>
-                </div>
-            </div>
-            <nav class="sb-nav">
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Dashboard" data-tip="Dashboard">
-                        <span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Daily Management</div>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Appointments" data-tip="Appointments">
-                        <span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span><span class="sb-bdg bd-g">5</span>
-                    </a>
-                    <a class="sb-row active" asp-controller="ClinicAdmin" asp-action="Patients" data-tip="Patients">
-                        <span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span>
-                    </a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Medical_Records" data-tip="Medical Records">
-                        <span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group" id="managerSection">
-                    <div class="sb-grp-hd">Clinic Management</div>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Doctors" data-tip="Doctors">
-                        <span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span>
-                    </a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Basic_Information" data-tip="Clinic Settings">
-                        <span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span>
-                    </a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Revenue" data-tip="Revenue &amp; Payments">
-                        <span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Adoption" data-tip="Adoption">
-                        <span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Analytics</div>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reviews" data-tip="Reviews">
-                        <span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span><span class="sb-bdg bd-g">2</span>
-                    </a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reports" data-tip="Reports">
-                        <span class="sb-icon">📈</span><span class="sb-lbl">Reports</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row " asp-controller="ClinicAdmin" asp-action="Personal_nformation" data-tip="My Settings">
-                        <span class="sb-icon">⚙️</span>
-                        <span class="sb-lbl">My Settings</span>
-                    </a>
-                </div>
-            </nav>
-            <div class="sb-foot">
-                <div class="sb-user-row" onclick="openSidebarProfile()">
-                    <div class="sb-av">DC</div>
-                    <div class="sb-user-info">
-                        <div class="sb-user-name">Daniel Carter</div>
-                        <div class="sb-user-role">Clinic Manager 👑</div>
-                    </div>
-                </div>
-                <button class="sb-logout" onclick="doLogout()" type="button">
-                    <span class="sb-icon">↩</span><span class="sb-logout-lbl">Sign Out</span>
-                </button>
-            </div>
-        </aside>
+<div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+<div class="wa-shell" id="waShell">
 
-        <header class="wa-tn">
-            <button class="tn-toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
-            <div class="tn-bread" id="tnBread"><span>Daily Management</span><span>/</span><b id="tnCur">Patients</b></div>
-            <div class="tn-center">
-                <div class="tn-center-main" id="tnTitle">Patients</div>
-                <div class="tn-center-sub" id="tnSub">Waffy Clinic Dashboard</div>
+<aside class="wa-sb" id="sidebar">
+    <div class="sb-logo">
+        <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
+        <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Clinic Admin</div></div>
+    </div>
+    <nav class="sb-nav">
+        <div class="sb-group sb-group-flat">
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Dashboard"><span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span></a>
+        </div>
+        <div class="sb-hr"></div>
+        <div class="sb-group">
+            <div class="sb-grp-hd">Daily Management</div>
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Appointments"><span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span></a>
+            <a class="sb-row active" asp-controller="ClinicAdmin" asp-action="Patients"><span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span></a>
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Medical_Records"><span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span></a>
+        </div>
+        <div class="sb-hr"></div>
+        <div class="sb-group">
+            <div class="sb-grp-hd">Clinic Management</div>
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Doctors"><span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span></a>
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Basic_Information"><span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span></a>
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Revenue"><span class="sb-icon">💰</span><span class="sb-lbl">Revenue</span></a>
+        </div>
+        <div class="sb-hr"></div>
+        <div class="sb-group sb-group-flat">
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Adoption"><span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span></a>
+        </div>
+        <div class="sb-hr"></div>
+        <div class="sb-group">
+            <div class="sb-grp-hd">Analytics</div>
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reviews"><span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span></a>
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reports"><span class="sb-icon">📈</span><span class="sb-lbl">Reports</span></a>
+        </div>
+        <div class="sb-hr"></div>
+        <div class="sb-group sb-group-flat">
+            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Personal_nformation"><span class="sb-icon">⚙️</span><span class="sb-lbl">My Settings</span></a>
+        </div>
+    </nav>
+    <div class="sb-foot">
+        <div class="sb-user-row">
+            <div class="sb-av">@initials</div>
+            <div class="sb-user-info">
+                <div class="sb-user-name">@userName</div>
+                <div class="sb-user-role">Clinic Manager 👑</div>
             </div>
-            <div class="tn-spacer"></div>
-            <div class="tn-right">
-                <div class="tn-identity" id="tnIdentityPill">🏥 Al Amanah Veterinary Clinic</div>
-                <button class="tn-btn notif-btn" type="button" aria-label="Notifications">🔔<span class="tn-count">3</span></button>
-                <div class="tn-sep"></div>
-                <div class="tn-profile user-btn">
-                    <div class="tn-av" id="userAvaTop">M</div>
-                    <div>
-                        <div class="tn-pname" id="userNameTop">Clinic Manager</div>
-                        <div class="tn-prole" id="roleTagTop">Clinic Manager 👑</div>
-                    </div>
-                </div>
-            </div>
-        </header>
+        </div>
+        <a asp-controller="ClinicAdmin" asp-action="Logout" class="sb-logout">
+            <span class="sb-icon">↩</span><span class="sb-logout-lbl">Sign Out</span>
+        </a>
+    </div>
+</aside>
 
-        <main class="wa-main">
-            <section class="page-hero">
+<header class="wa-tn">
+    <button class="tn-toggle" type="button" onclick="toggleSidebar()">☰</button>
+    <div class="tn-bread"><span>Daily Management</span><span>/</span><b>Patients</b></div>
+    <div class="tn-center">
+        <div class="tn-center-main">Patients</div>
+        <div class="tn-center-sub">@clinicName</div>
+    </div>
+    <div class="tn-spacer"></div>
+    <div class="tn-right">
+        <div class="tn-identity">🏥 @clinicName</div>
+        <button class="tn-btn notif-btn" type="button">🔔</button>
+        <div class="tn-sep"></div>
+        <div class="tn-profile">
+            <div class="tn-av">@initials</div>
+            <div><div class="tn-pname">@userName</div><div class="tn-prole">Clinic Manager 👑</div></div>
+        </div>
+    </div>
+</header>
+
+<main class="wa-main">
+<section class="page-hero">
+    <div><h1>Patients</h1><p>Registered pets and their medical records.</p></div>
+</section>
+<div class="page-body">
+
+    @if (!Model.Patients.Any())
+    {
+        <div style="text-align:center;padding:4rem;color:var(--muted);">
+            <div style="font-size:3rem;margin-bottom:12px;">🐾</div>
+            <div style="font-weight:800;font-size:1rem;">No patients yet</div>
+            <div style="font-size:.86rem;margin-top:6px;">Patients appear here after their first completed appointment.</div>
+        </div>
+    }
+    else
+    {
+        <!-- KPIs -->
+        <div class="pat-kpi">
+            <div class="pat-kpi-card">
+                <div class="pat-kpi-icon">🐾</div>
                 <div>
-                    <h1 id="pageHeroTitle">Patients</h1>
-                    <p>Track pets, owners, and patient history with quick access to records.</p>
+                    <div class="pat-kpi-val">@Model.TotalPatients</div>
+                    <div class="pat-kpi-lbl">Total Patients</div>
                 </div>
-            </section>
-            <div class="page-body">
-                <div id="page-patients" class="page-content">
-                    <div class="page-header">
+            </div>
+            <div class="pat-kpi-card">
+                <div class="pat-kpi-icon">💉</div>
+                <div>
+                    <div class="pat-kpi-val" style="color:#e07b3c;">@Model.PatientsWithExpiredVacc</div>
+                    <div class="pat-kpi-lbl">Vaccination Due / Expired</div>
+                </div>
+            </div>
+            <div class="pat-kpi-card">
+                <div class="pat-kpi-icon">📅</div>
+                <div>
+                    <div class="pat-kpi-val" style="color:#5f7430;">@Model.PatientsVisitedThisMonth</div>
+                    <div class="pat-kpi-lbl">Visited This Month</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="pat-filter">
+            <div class="pat-search">
+                <span class="s-ico">🔍</span>
+                <input id="patSearch" placeholder="Search by pet name or owner..." oninput="filterPatients()">
+            </div>
+            <select id="speciesFilter" class="doc-sel" onchange="filterPatients()"
+                    style="padding:8px 12px;border:1.5px solid var(--line);border-radius:10px;
+                           background:var(--ws);font-family:'Nunito',sans-serif;font-size:.84rem;
+                           font-weight:700;color:var(--text);outline:none;cursor:pointer;">
+                <option value="">All Species</option>
+                <option value="dog">🐕 Dogs</option>
+                <option value="cat">🐈 Cats</option>
+                <option value="bird">🐦 Birds</option>
+                <option value="rabbit">🐇 Rabbits</option>
+            </select>
+            <button class="pat-chip active" data-filter="all" onclick="setFilter(this,'all')">All</button>
+            <button class="pat-chip pat-chip-warn" data-filter="vacc" onclick="setFilter(this,'vacc')">⚠️ Vaccination Due</button>
+            <span style="margin-left:auto;font-size:.78rem;font-weight:700;color:var(--muted);" id="patCount">
+                @Model.Patients.Count patient(s)
+            </span>
+        </div>
+
+        <!-- Patient Cards Grid -->
+        <div class="pat-grid" id="patGrid">
+            @foreach (var p in Model.Patients)
+            {
+                var vaccExpired = p.VaccinationStatus is "NotVaccinated" or "Partial" or null;
+                <div class="pat-card"
+                     data-name="@(p.PetName.ToLower())"
+                     data-owner="@(p.OwnerName.ToLower())"
+                     data-species="@(p.Species?.ToLower() ?? "")"
+                     data-vacc="@(vaccExpired ? "due" : "ok")"
+                     onclick="openPatient(@p.IdPet)">
+
+                    <div class="pat-card-top">
+                        <div class="pat-avatar">
+                            @if (!string.IsNullOrEmpty(p.ImageUrl))
+                            { <img src="@p.ImageUrl" alt="@p.PetName"> }
+                            else
+                            { @PetEmoji(p.Species) }
+                        </div>
                         <div>
-                            <div class="page-title">🐾 <span id="patientsTitle">Patient Records</span></div>
-                            <div class="page-sub" id="patientsSub">Registered pets in the clinic</div>
-                        </div>
-                        <button class="btn btn-primary" onclick="openModal('modalPet')">+ Add Patient</button>
-                    </div>
-                    <div class="filter-bar">
-                        <div class="search-input"><span>🔍</span><input placeholder="Search by pet or owner..."></div>
-                        <select class="filter-select">
-                            <option>All types</option>
-                            <option>Dogs</option>
-                            <option>Cats</option>
-                            <option>Birds</option>
-                            <option>Rabbits</option>
-                        </select>
-                        <button class="chip active" onclick="setChip(this)">All</button>
-                        <button class="chip" onclick="setChip(this)">Expired vaccination</button>
-                    </div>
-                    <div class="table-card">
-                        <div class="table-head-bar">
-                            <div class="chart-title">📋 Patient List</div>
-                            <span style="font-size:.82rem;color:var(--muted)">284 pets</span>
-                        </div>
-                        <div class="t-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Pet</th>
-                                        <th>Type / Breed</th>
-                                        <th>Age / Gender</th>
-                                        <th>Owner</th>
-                                        <th>Last visit</th>
-                                        <th>Vaccination</th>
-                                        <th>Action</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>🐕 <b>Max</b></td>
-                                        <td>Dog — Labrador</td>
-                                        <td>3 years — Male</td>
-                                        <td>Sarah Al-Khatib</td>
-                                        <td>10 March 2026</td>
-                                        <td><span class="status s-confirmed">Updated ✓</span></td>
-                                        <td>
-                                            <div style="display:flex;gap:4px">
-                                                <button class="btn btn-outline btn-sm">Record</button>
-                                                <button class="btn btn-outline btn-sm" onclick="openModal('modalPet')">✏️</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>🐈 <b>Luna</b></td>
-                                        <td>Cat — Persian</td>
-                                        <td>1 year — Female</td>
-                                        <td>Ahmad Mansour</td>
-                                        <td>5 March 2026</td>
-                                        <td><span class="status s-pending">Due soon ⚠</span></td>
-                                        <td>
-                                            <div style="display:flex;gap:4px">
-                                                <button class="btn btn-outline btn-sm">Record</button>
-                                                <button class="btn btn-outline btn-sm" onclick="openModal('modalPet')">✏️</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>🐕 <b>Buddy</b></td>
-                                        <td>Dog — Husky</td>
-                                        <td>2 years — Male</td>
-                                        <td>Rana Al-Salem</td>
-                                        <td>1 March 2026</td>
-                                        <td><span class="status s-confirmed">Updated ✓</span></td>
-                                        <td>
-                                            <div style="display:flex;gap:4px">
-                                                <button class="btn btn-outline btn-sm">Record</button>
-                                                <button class="btn btn-outline btn-sm" onclick="openModal('modalPet')">✏️</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>🐇 <b>Bebo</b></td>
-                                        <td>Rabbit —</td>
-                                        <td>8 months — Male</td>
-                                        <td>Khaled Nasr</td>
-                                        <td>20 February 2026</td>
-                                        <td><span class="status s-cancelled">Expired ✕</span></td>
-                                        <td>
-                                            <div style="display:flex;gap:4px">
-                                                <button class="btn btn-outline btn-sm">Record</button>
-                                                <button class="btn btn-outline btn-sm" onclick="openModal('modalPet')">✏️</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                            <div class="pat-name">@p.PetName</div>
+                            <div class="pat-breed">
+                                @p.Species @if (!string.IsNullOrEmpty(p.Breed)) {<text>· @p.Breed</text>}
+                            </div>
+                            <div style="margin-top:4px;">
+                                @Html.Raw(VaccBadge(p.VaccinationStatus))
+                            </div>
                         </div>
                     </div>
-                </div>
-            </div>
-        </main>
-    </div>
 
-    <!-- Modal: New/Edit Appointment -->
-    <div class="modal-overlay" id="modalAppt" onclick="closeOnBg(event,'modalAppt')">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title">📅 New Appointment / Edit Appointment</div>
-                <button class="modal-close" onclick="closeModal('modalAppt')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="f-grid">
-                    <div class="f-group">
-                        <label class="f-label"><span class="req">*</span>Pet (Patient)</label>
-                        <select class="f-inp">
-                            <option>Choose a pet...</option>
-                            <option>🐕 Max — Sarah Al-Khatib</option>
-                            <option>🐈 Luna — Ahmad Mansour</option>
-                            <option>🐕 Buddy — Rana Al-Salem</option>
-                        </select>
+                    <div class="pat-card-body">
+                        <div class="pat-info-row">
+                            <span class="pat-info-lbl">👤 Owner</span>
+                            <span class="pat-info-val">@p.OwnerName</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(p.OwnerPhone))
+                        {
+                            <div class="pat-info-row">
+                                <span class="pat-info-lbl">📱 Phone</span>
+                                <span class="pat-info-val">@p.OwnerPhone</span>
+                            </div>
+                        }
+                        <div class="pat-info-row">
+                            <span class="pat-info-lbl">🎂 Age</span>
+                            <span class="pat-info-val">@p.AgeDisplay</span>
+                        </div>
+                        <div class="pat-info-row">
+                            <span class="pat-info-lbl">📅 Last Visit</span>
+                            <span class="pat-info-val">
+                                @(p.LastVisitDate.HasValue
+                                    ? p.LastVisitDate.Value.ToString("dd MMM yyyy")
+                                    : "—")
+                            </span>
+                        </div>
+                        <div class="pat-info-row">
+                            <span class="pat-info-lbl">🏥 Visits</span>
+                            <span class="pat-info-val">@p.TotalVisits visit(s)</span>
+                        </div>
                     </div>
-                    <div class="f-group"><label class="f-label"><span class="req">*</span>Owner</label><input class="f-inp" placeholder="Owner name or phone number..."></div>
-                    <div class="f-group">
-                        <label class="f-label"><span class="req">*</span>Doctor</label>
-                        <select class="f-inp">
-                            <option>Choose a doctor...</option>
-                            <option>Dr. Ahmad Al-Zoubi</option>
-                            <option>Dr. Sarah Al-Hussein</option>
-                            <option>Dr. Mohammad Salameh</option>
-                        </select>
+
+                    <div class="pat-card-foot">
+                        <span style="font-size:.72rem;color:var(--muted);font-weight:700;">
+                            Since @p.FirstSeen.ToString("MMM yyyy")
+                        </span>
+                        <button type="button" class="btn btn-primary btn-sm"
+                                onclick="event.stopPropagation();openPatient(@p.IdPet)">
+                            📋 View Record
+                        </button>
                     </div>
-                    <div class="f-group">
-                        <label class="f-label"><span class="req">*</span>Service</label>
-                        <select class="f-inp">
-                            <option>Choose a service...</option>
-                            <option>General checkup</option>
-                            <option>Vaccination</option>
-                            <option>Surgery</option>
-                            <option>Dentistry</option>
-                            <option>Lab Tests</option>
-                            <option>X-Ray</option>
-                        </select>
-                    </div>
-                    <div class="f-group"><label class="f-label"><span class="req">*</span>Appointment date</label><input class="f-inp" type="date"></div>
-                    <div class="f-group"><label class="f-label"><span class="req">*</span>Appointment time</label><input class="f-inp" type="time" value="09:00"></div>
-                    <div class="f-group">
-                        <label class="f-label">Status</label>
-                        <select class="f-inp"><option>Scheduled</option><option>Completed</option><option>Cancelled</option></select>
-                    </div>
-                    <div class="f-group f-full"><label class="f-label">Notes</label><textarea class="f-inp" placeholder="Any notes about the appointment..."></textarea></div>
                 </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('modalAppt')">Cancel</button>
-                <button class="btn btn-primary">💾 Save Appointment</button>
+            }
+        </div>
+    }
+
+</div>
+</main>
+</div>
+
+<!-- ═══════════════════════════════
+     PATIENT DETAILS MODAL
+═══════════════════════════════ -->
+<div class="modal-overlay" id="patientModal">
+<div class="modal pat-modal">
+    <div class="modal-header">
+        <div class="modal-title" id="pmTitle">🐾 Patient Record</div>
+        <button class="modal-close" type="button" onclick="closeModal('patientModal')">✕</button>
+    </div>
+    <div class="modal-body">
+
+        <!-- Hero -->
+        <div class="pm-hero">
+            <div class="pm-img" id="pmImg">🐾</div>
+            <div>
+                <div class="pm-name" id="pmName">—</div>
+                <div class="pm-breed" id="pmBreed">—</div>
+                <div id="pmVacc" style="margin-top:5px;"></div>
             </div>
         </div>
-    </div>
 
-    <!-- Modal: Add/Edit Patient (Pet) -->
-    <div class="modal-overlay" id="modalPet" onclick="closeOnBg(event,'modalPet')">
-        <div class="modal modal-wide">
-            <div class="modal-header">
-                <div class="modal-title">🐾 Add / Edit Patient (Pet)</div>
-                <button class="modal-close" onclick="closeModal('modalPet')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="sec-label">🐾 Pet Information</div>
-                <div class="f-grid">
-                    <div class="f-group"><label class="f-label"><span class="req">*</span>Pet Name</label><input class="f-inp" placeholder="Example: Max"></div>
-                    <div class="f-group">
-                        <label class="f-label"><span class="req">*</span>Type</label>
-                        <select class="f-inp">
-                            <option>Choose a type...</option>
-                            <option>🐕 Dog</option>
-                            <option>🐈 Cat</option>
-                            <option>🐦 Bird</option>
-                            <option>🐇 Rabbit</option>
-                            <option>🐠 Fish</option>
-                            <option>🦎 Reptile</option>
-                            <option>Other</option>
-                        </select>
-                    </div>
-                    <div class="f-group"><label class="f-label"><span class="req">*</span>Breed / Family</label><input class="f-inp" placeholder="Example: Labrador"></div>
-                    <div class="f-group"><label class="f-label"><span class="req">*</span>Gender</label><select class="f-inp"><option>Male</option><option>Female</option></select></div>
-                    <div class="f-group"><label class="f-label"><span class="req">*</span>Age</label><input class="f-inp" placeholder="Example: 3 years / 6 months"></div>
-                    <div class="f-group">
-                        <label class="f-label">Microchip ID</label>
-                        <input class="f-inp" placeholder="Microchip number if available">
-                        <div class="f-hint">🔍 Used to track lost pets</div>
-                    </div>
+        <!-- Tabs -->
+        <div style="display:flex;border-bottom:1.5px solid var(--line);">
+            <button class="pm-tab active" data-tab="info" onclick="switchTab(this,'info')"
+                    style="flex:1;padding:10px;border:none;background:none;font-family:'Nunito',sans-serif;
+                           font-size:.84rem;font-weight:800;color:var(--gd);cursor:pointer;border-bottom:2.5px solid var(--gd);">
+                📋 Info
+            </button>
+            <button class="pm-tab" data-tab="medical" onclick="switchTab(this,'medical')"
+                    style="flex:1;padding:10px;border:none;background:none;font-family:'Nunito',sans-serif;
+                           font-size:.84rem;font-weight:800;color:var(--muted);cursor:pointer;">
+                🩺 Medical
+            </button>
+            <button class="pm-tab" data-tab="history" onclick="switchTab(this,'history')"
+                    style="flex:1;padding:10px;border:none;background:none;font-family:'Nunito',sans-serif;
+                           font-size:.84rem;font-weight:800;color:var(--muted);cursor:pointer;">
+                📅 Visit History
+            </button>
+        </div>
+
+        <!-- Tab: Info -->
+        <div id="tab-info" class="tab-content">
+            <div class="pm-sec">
+                <div class="pm-sec-title">🐾 Pet Details</div>
+                <div class="pm-grid">
+                    <div class="pm-stat"><div class="pm-stat-lbl">Species</div><div class="pm-stat-val" id="pmSpecies">—</div></div>
+                    <div class="pm-stat"><div class="pm-stat-lbl">Breed</div><div class="pm-stat-val" id="pmBreedVal">—</div></div>
+                    <div class="pm-stat"><div class="pm-stat-lbl">Gender</div><div class="pm-stat-val" id="pmGender">—</div></div>
+                    <div class="pm-stat"><div class="pm-stat-lbl">Age</div><div class="pm-stat-val" id="pmAge">—</div></div>
+                    <div class="pm-stat"><div class="pm-stat-lbl">Color</div><div class="pm-stat-val" id="pmColor">—</div></div>
+                    <div class="pm-stat"><div class="pm-stat-lbl">Weight</div><div class="pm-stat-val" id="pmWeight">—</div></div>
                 </div>
-                <hr class="sec-div">
-                <div class="sec-label">❤️ Health Status</div>
-                <div class="f-grid">
-                    <div class="f-group"><label class="f-label">Vaccination status</label><select class="f-inp"><option>Updated ✓</option><option>Expired — needs update</option><option>Unknown</option></select></div>
-                    <div class="f-group"><label class="f-label">Overall Health Status</label><select class="f-inp"><option>Healthy</option><option>Has a health issue</option><option>Under treatment</option></select></div>
-                    <div class="f-group f-full"><label class="f-label">Chronic health issues</label><textarea class="f-inp" placeholder="Example: diabetes, heart disease..."></textarea></div>
-                    <div class="f-group f-full"><label class="f-label">Allergies</label><textarea class="f-inp" placeholder="Example: allergy to some antibiotics..."></textarea></div>
-                </div>
-                <hr class="sec-div">
-                <div class="sec-label">👤 Owner Information</div>
-                <div class="f-grid">
-                    <div class="f-group"><label class="f-label"><span class="req">*</span>Owner Name</label><input class="f-inp" placeholder="Full name"></div>
-                    <div class="f-group"><label class="f-label"><span class="req">*</span>Phone Number</label><input class="f-inp" type="tel" placeholder="07XXXXXXXX"></div>
-                    <div class="f-group f-full"><label class="f-label">Email Address</label><input class="f-inp" type="email" placeholder="owner@email.com"></div>
-                </div>
-                <hr class="sec-div">
-                <div class="sec-label">🖼 Pet Photo</div>
-                <div class="upload-box">
-                    <div class="upload-icon">📸</div>
-                    <div class="upload-txt">Upload Pet Photo</div>
-                    <div class="upload-sub">JPG, PNG — max 5MB</div>
+                <div class="pm-row">
+                    <div class="pm-lbl">🔖 Microchip</div>
+                    <div class="pm-val" id="pmMicrochip">—</div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('modalPet')">Cancel</button>
-                <button class="btn btn-primary">💾 Save Patient</button>
+            <div class="pm-sec" style="border-top:1px solid var(--line);">
+                <div class="pm-sec-title">👤 Owner</div>
+                <div class="pm-row"><div class="pm-lbl">Name</div><div class="pm-val" id="pmOwner">—</div></div>
+                <div class="pm-row"><div class="pm-lbl">Phone</div><div class="pm-val" id="pmPhone">—</div></div>
+            </div>
+
+            
+            <div class="pm-sec" style="border-top:1px solid var(--line);">
+                <div class="pm-sec-title">📊 Visit Summary</div>
+                <div class="pm-row"><div class="pm-lbl">First Seen</div><div class="pm-val" id="pmFirstSeen">—</div></div>
+                <div class="pm-row"><div class="pm-lbl">Last Visit</div><div class="pm-val" id="pmLastVisit">—</div></div>
+                <div class="pm-row"><div class="pm-lbl">Total Visits</div><div class="pm-val" id="pmTotalVisits">—</div></div>
             </div>
         </div>
-    </div>
 
-    <!-- Modal: Add/Edit Medical Record -->
-    <div class="modal-overlay" id="modalRecord" onclick="closeOnBg(event,'modalRecord')">
-        <div class="modal modal-wide">
-            <div class="modal-header">
-                <div class="modal-title">📄 Add / Edit Medical Record</div>
-                <button class="modal-close" onclick="closeModal('modalRecord')">✕</button>
+        <!-- Tab: Medical -->
+        <div id="tab-medical" class="tab-content" style="display:none;">
+            <div class="pm-sec">
+                <div class="pm-sec-title">🩺 Medical Status</div>
+                <div class="pm-grid">
+                    <div class="pm-stat"><div class="pm-stat-lbl">💉 Vaccination</div><div class="pm-stat-val" id="pmVaccText">—</div></div>
+                    <div class="pm-stat"><div class="pm-stat-lbl">✂️ Neutered</div><div class="pm-stat-val" id="pmNeutered">—</div></div>
+                    <div class="pm-stat"><div class="pm-stat-lbl">⚡ Energy</div><div class="pm-stat-val" id="pmEnergy">—</div></div>
+                    <div class="pm-stat"><div class="pm-stat-lbl">⚖️ Weight</div><div class="pm-stat-val" id="pmWeightMed">—</div></div>
+                </div>
+                <div id="pmBehavior" class="behav-chips" style="margin-bottom:10px;"></div>
             </div>
-            <div class="modal-body">
-                <div class="sec-label">🐾 Visit Information</div>
-                <div class="f-grid">
-                    <div class="f-group"><label class="f-label"><span class="req">*</span>Pet</label><select class="f-inp"><option>Choose a pet...</option><option>🐕 Max</option><option>🐈 Luna</option><option>🐕 Buddy</option></select></div>
-                    <div class="f-group"><label class="f-label"><span class="req">*</span>Doctor</label><select class="f-inp"><option>Dr. Ahmad Al-Zoubi</option><option>Dr. Sarah Al-Hussein</option><option>Dr. Mohammad Salameh</option></select></div>
-                    <div class="f-group"><label class="f-label"><span class="req">*</span>Visit date</label><input class="f-inp" type="date"></div>
-                    <div class="f-group"><label class="f-label">Follow-up date</label><input class="f-inp" type="date"><div class="f-hint">📅 Added automatically to the calendar</div></div>
+            <div id="pmMedNotesSection" class="pm-sec" style="border-top:1px solid var(--line);display:none;">
+                <div class="pm-sec-title">📋 Medical Notes</div>
+                <div class="med-notes-block" id="pmMedNotes"></div>
+                <div style="font-size:.7rem;color:var(--muted);font-weight:700;margin-top:6px;">
+                    💡 Last updated by the treating doctor
                 </div>
-                <hr class="sec-div">
-                <div class="sec-label">🩺 Diagnosis</div>
-                <div class="f-grid">
-                    <div class="f-group f-full"><label class="f-label"><span class="req">*</span>Diagnosis</label><textarea class="f-inp" placeholder="Diagnostic findings..."></textarea></div>
-                    <div class="f-group f-full"><label class="f-label">Symptoms</label><textarea class="f-inp" placeholder="Symptoms noticed by the owner or doctor..."></textarea></div>
-                </div>
-                <hr class="sec-div">
-                <div class="sec-label">💊 Treatment</div>
-                <div class="f-grid">
-                    <div class="f-group f-full"><label class="f-label">Treatment provided</label><textarea class="f-inp" placeholder="Completed treatment procedures..."></textarea></div>
-                    <div class="f-group f-full"><label class="f-label">Prescription</label><textarea class="f-inp" placeholder="Medication: name, dose, duration..."></textarea></div>
-                </div>
-                <hr class="sec-div">
-                <div class="sec-label">💉 Vaccination</div>
-                <div class="f-grid">
-                    <div class="f-group"><label class="f-label">Vaccine name</label><input class="f-inp" placeholder="Example: Rabies, FVR..."></div>
-                    <div class="f-group"><label class="f-label">Next dose date</label><input class="f-inp" type="date"></div>
-                </div>
-                <hr class="sec-div">
-                <div class="sec-label">📄 Files &amp; Images</div>
-                <div class="f-grid">
-                    <div class="f-group"><div class="upload-box"><div class="upload-icon">🧪</div><div class="upload-txt">Lab Test Results</div><div class="upload-sub">PDF, JPG — max 10MB</div></div></div>
-                    <div class="f-group"><div class="upload-box"><div class="upload-icon">🩻</div><div class="upload-txt">X-Ray images</div><div class="upload-sub">DICOM, JPG — max 20MB</div></div></div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('modalRecord')">Cancel</button>
-                <button class="btn btn-primary">💾 Save Record</button>
             </div>
         </div>
-    </div>
 
-    <!-- Modal: Add Doctor -->
-    <div class="modal-overlay" id="modalDoctor" onclick="closeOnBg(event,'modalDoctor')">
-        <div class="modal modal-wide">
-            <div class="modal-header">
-                <div class="modal-title">👨‍⚕️ Add Doctor (Manually)</div>
-                <button class="modal-close" onclick="closeModal('modalDoctor')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="sec-label">👤 Personal Information</div>
-                <div class="f-grid">
-                    <div class="f-group"><label class="f-label"><span class="req">*</span>Doctor Name</label><input class="f-inp" placeholder="Dr. Full Name"></div>
-                    <div class="f-group"><label class="f-label"><span class="req">*</span>Phone Number</label><input class="f-inp" type="tel" placeholder="07XXXXXXXX"></div>
-                    <div class="f-group f-full"><label class="f-label"><span class="req">*</span>Email Address</label><input class="f-inp" type="email" placeholder="doctor@waffy.jo"></div>
-                    <div class="f-group f-full"><div class="upload-box"><div class="upload-icon">👤</div><div class="upload-txt">Professional profile image</div><div class="upload-sub">JPG, PNG — max 3MB</div></div></div>
-                </div>
-                <hr class="sec-div">
-                <div class="sec-label">🎓 Professional Information</div>
-                <div class="f-grid">
-                    <div class="f-group">
-                        <label class="f-label"><span class="req">*</span>Specialty</label>
-                        <select class="f-inp">
-                            <option>Choose a specialty...</option>
-                            <option>General Veterinary Medicine</option>
-                            <option>Veterinary Surgery</option>
-                            <option>Dermatology</option>
-                            <option>Veterinary Dentistry</option>
-                            <option>Bird &amp; Reptile Medicine</option>
-                        </select>
-                    </div>
-                    <div class="f-group">
-                        <label class="f-label"><span class="req">*</span>Years of experience</label>
-                        <select class="f-inp"><option>Less than 1 year</option><option>1–3 years</option><option>3–5 years</option><option>5–10 years</option><option>More than 10 years</option></select>
-                    </div>
-                    <div class="f-group f-full"><label class="f-label">Certifications &amp; Qualifications</label><textarea class="f-inp" placeholder="Bachelor of Veterinary Medicine, certifications..."></textarea></div>
-                </div>
-                <hr class="sec-div">
-                <div class="sec-label">🗓 Work Schedule</div>
-                <div class="f-group">
-                    <label class="f-label">Working Days</label>
-                    <div class="days-row">
-                        <div class="day-chip on" onclick="this.classList.toggle('on')">Sunday</div>
-                        <div class="day-chip on" onclick="this.classList.toggle('on')">Monday</div>
-                        <div class="day-chip on" onclick="this.classList.toggle('on')">Tuesday</div>
-                        <div class="day-chip on" onclick="this.classList.toggle('on')">Wednesday</div>
-                        <div class="day-chip on" onclick="this.classList.toggle('on')">Thursday</div>
-                        <div class="day-chip" onclick="this.classList.toggle('on')">Friday</div>
-                        <div class="day-chip" onclick="this.classList.toggle('on')">Saturday</div>
-                    </div>
-                </div>
-                <div class="f-grid">
-                    <div class="f-group"><label class="f-label">Start time</label><input class="f-inp" type="time" value="09:00"></div>
-                    <div class="f-group"><label class="f-label">End time</label><input class="f-inp" type="time" value="17:00"></div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('modalDoctor')">Cancel</button>
-                <button class="btn btn-primary">💾 Add Doctor</button>
+        <!-- Tab: Visit History -->
+        <div id="tab-history" class="tab-content" style="display:none;">
+            <div class="visit-timeline" id="pmVisitTimeline">
+                <div class="vt-empty">No visit history found.</div>
             </div>
         </div>
-    </div>
 
-    <!-- Modal: Edit Doctor -->
-    <div class="modal-overlay" id="modalDoctorEdit" onclick="closeOnBg(event,'modalDoctorEdit')">
-        <div class="modal modal-wide">
-            <div class="modal-header">
-                <div class="modal-title">✏️ Edit Doctor Information</div>
-                <button class="modal-close" onclick="closeModal('modalDoctorEdit')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="sec-label">👤 Personal Information</div>
-                <div class="f-grid">
-                    <div class="f-group"><label class="f-label">Doctor Name</label><input class="f-inp" value="Dr. Ahmad Al-Zoubi"></div>
-                    <div class="f-group"><label class="f-label">Phone Number</label><input class="f-inp" value="0791234567"></div>
-                    <div class="f-group f-full"><label class="f-label">Email Address</label><input class="f-inp" value="ahmed@clinic.jo"></div>
-                    <div class="f-group f-full"><div class="upload-box"><div class="upload-icon">👤</div><div class="upload-txt">Change profile image</div><div class="upload-sub">JPG, PNG — max 3MB</div></div></div>
-                </div>
-                <hr class="sec-div">
-                <div class="sec-label">🎓 Professional Information</div>
-                <div class="f-grid">
-                    <div class="f-group"><label class="f-label">Specialty</label><select class="f-inp"><option selected>Veterinary Surgery</option><option>General Veterinary Medicine</option><option>Dermatology</option></select></div>
-                    <div class="f-group"><label class="f-label">Years of experience</label><select class="f-inp"><option>5–10 years</option><option selected>More than 10 years</option></select></div>
-                    <div class="f-group f-full"><label class="f-label">Certifications</label><textarea class="f-inp">Bachelor of Veterinary Medicine — University of Jordan, Advanced Surgery Certificate</textarea></div>
-                </div>
-                <hr class="sec-div">
-                <div class="sec-label">🗓 Work Schedule</div>
-                <div class="f-group">
-                    <label class="f-label">Working Days</label>
-                    <div class="days-row">
-                        <div class="day-chip on" onclick="this.classList.toggle('on')">Sunday</div>
-                        <div class="day-chip on" onclick="this.classList.toggle('on')">Monday</div>
-                        <div class="day-chip on" onclick="this.classList.toggle('on')">Tuesday</div>
-                        <div class="day-chip on" onclick="this.classList.toggle('on')">Wednesday</div>
-                        <div class="day-chip on" onclick="this.classList.toggle('on')">Thursday</div>
-                        <div class="day-chip" onclick="this.classList.toggle('on')">Friday</div>
-                        <div class="day-chip" onclick="this.classList.toggle('on')">Saturday</div>
-                    </div>
-                </div>
-                <div class="f-grid">
-                    <div class="f-group"><label class="f-label">Start time</label><input class="f-inp" type="time" value="09:00"></div>
-                    <div class="f-group"><label class="f-label">End time</label><input class="f-inp" type="time" value="17:00"></div>
-                </div>
-                <hr class="sec-div">
-                <div class="sec-label" style="color:var(--red)">⚠️ Actions</div>
-                <div style="display:flex;gap:8px">
-                    <button class="btn btn-outline btn-sm" style="color:var(--ora);border-color:var(--ora)">🔒 Temporarily suspend account</button>
-                    <button class="btn btn-red btn-sm">🗑 Remove from Clinic</button>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('modalDoctorEdit')">Cancel</button>
-                <button class="btn btn-primary">💾 Save Changes</button>
-            </div>
-        </div>
     </div>
-
-    <!-- Modal: Adoption Pet Details -->
-    <div class="modal-overlay" id="adoptionPetModal">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title" id="adoptionPetModalTitle">🐾 Pet Details</div>
-                <button class="modal-close" onclick="closeModal('adoptionPetModal')">✕</button>
-            </div>
-            <div class="modal-body" id="adoptionPetModalBody"></div>
-            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('adoptionPetModal')">Close</button></div>
-        </div>
+    <div class="modal-footer">
+        <button class="btn btn-outline" onclick="closeModal('patientModal')">Close</button>
     </div>
+</div>
+</div>
 
-    <!-- Modal: Invite Doctor -->
-    <div class="modal-overlay" id="modalInvite" onclick="closeOnBg(event,'modalInvite')">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title">📨 Send Invite Code for a Doctor</div>
-                <button class="modal-close" onclick="closeModal('modalInvite')">✕</button>
-            </div>
-            <div class="modal-body">
-                <div style="background:linear-gradient(135deg,var(--gp),var(--gu));border-radius:12px;padding:1.2rem;text-align:center;margin-bottom:1.2rem">
-                    <div style="font-size:2rem;margin-bottom:8px">🔑</div>
-                    <div style="font-size:1.8rem;font-weight:800;color:var(--gd);letter-spacing:3px">WAFFY-DR-4X9K</div>
-                    <div style="font-size:.78rem;color:var(--muted);margin-top:6px">Invite code — valid for 7 days</div>
-                </div>
-                <div class="f-group"><label class="f-label">Invited Doctor Name</label><input class="f-inp" placeholder="Dr. Full Name"></div>
-                <div class="f-group"><label class="f-label">Send to</label><input class="f-inp" type="email" placeholder="doctor@email.com"></div>
-                <div class="f-group">
-                    <label class="f-label">Delivery method</label>
-                    <div style="display:flex;gap:8px;margin-top:6px">
-                        <button class="btn btn-outline btn-sm">📧 Email</button>
-                        <button class="btn btn-outline btn-sm">📱 WhatsApp</button>
-                        <button class="btn btn-outline btn-sm">📋 Copy code</button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-outline" onclick="closeModal('modalInvite')">Close</button>
-                <button class="btn btn-primary">📨 Send Invite</button>
-            </div>
-        </div>
-    </div>
+<script>
+// ── Patient data from server ──────────────────────────────────────────
+const PATIENTS = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+    Model.Patients.Select(p => new {
+        id          = p.IdPet,
+        name        = p.PetName,
+        species     = p.Species ?? "",
+        breed       = p.Breed ?? "",
+        gender      = p.Gender ?? "",
+        color       = p.Color ?? "",
+        age         = p.AgeDisplay,
+        img         = p.ImageUrl ?? "",
+        microchip   = p.MicrochipId ?? "",
+        weight      = p.Weight.HasValue ? $"{p.Weight:F1} kg" : "—",
+        vacc        = p.VaccinationStatus ?? "",
+        neutered    = p.IsNeutered,
+        medNotes    = p.MedicalNotes ?? "",
+        energy      = p.EnergyLevel ?? "",
+        traits      = p.Traits ?? "",
+        children    = p.GoodWithChildren,
+        pets        = p.GoodWithPets,
+        trained     = p.IsTrained,
+        owner       = p.OwnerName,
+        phone       = p.OwnerPhone ?? "",
+        firstSeen   = p.FirstSeen.ToString("dd MMM yyyy"),
+        lastVisit   = p.LastVisitDate.HasValue ? p.LastVisitDate.Value.ToString("dd MMM yyyy") : "—",
+        totalVisits = p.TotalVisits,
+        history     = p.VisitHistory.Select(v => new {
+            date    = v.VisitDate.ToString("dd MMM yyyy"),
+            doctor  = v.DoctorName ?? "",
+            service = v.ServiceName ?? "General",
+            note    = v.MedicalNote ?? "",
+            status  = v.Status
+        }).ToList()
+    })
+));
 
-    <script src="~/js/AdminClinicDoctor.js"></script>
+// ── Open patient modal ────────────────────────────────────────────────
+function openPatient(id) {
+    const p = PATIENTS.find(x => x.id === id);
+    if (!p) return;
+
+    // Hero
+    const imgEl = document.getElementById('pmImg');
+    imgEl.innerHTML = p.img
+        ? `<img src="${p.img}" style="width:100%;height:100%;object-fit:cover;" alt="${p.name}">`
+        : (p.species.toLowerCase() === 'dog' ? '🐕'
+          : p.species.toLowerCase() === 'cat' ? '🐈'
+          : p.species.toLowerCase() === 'bird' ? '🐦' : '🐾');
+    document.getElementById('pmName').textContent  = p.name;
+    document.getElementById('pmBreed').textContent =
+        [p.species, p.breed].filter(Boolean).join(' · ') || '—';
+
+    // Vacc badge
+    const vaccMap = {
+        uptodate: '<span class="vacc-chip vacc-ok">✅ Up to Date</span>',
+        partial:  '<span class="vacc-chip vacc-warn">⚠️ Partial</span>',
+        notvaccinated: '<span class="vacc-chip vacc-err">❌ Not Vaccinated</span>'
+    };
+    document.getElementById('pmVacc').innerHTML =
+        vaccMap[p.vacc.toLowerCase()] || '<span class="vacc-chip vacc-unk">❓ Unknown</span>';
+
+    // Info tab
+    document.getElementById('pmSpecies').textContent    = p.species || '—';
+    document.getElementById('pmBreedVal').textContent   = p.breed   || '—';
+    document.getElementById('pmGender').textContent     = p.gender  || '—';
+    document.getElementById('pmAge').textContent        = p.age     || '—';
+    document.getElementById('pmColor').textContent      = p.color   || '—';
+    document.getElementById('pmWeight').textContent     = p.weight;
+    document.getElementById('pmMicrochip').textContent  = p.microchip || '—';
+    document.getElementById('pmOwner').textContent      = p.owner;
+    document.getElementById('pmPhone').textContent      = p.phone || '—';
+    document.getElementById('pmFirstSeen').textContent  = p.firstSeen;
+    document.getElementById('pmLastVisit').textContent  = p.lastVisit;
+    document.getElementById('pmTotalVisits').textContent = `${p.totalVisits} visit(s)`;
+
+    // Medical tab
+    document.getElementById('pmVaccText').textContent  =
+        p.vacc === 'UpToDate' ? '✅ Up to Date' :
+        p.vacc === 'Partial'  ? '⚠️ Partial' :
+        p.vacc === 'NotVaccinated' ? '❌ Not Vaccinated' : '❓ Unknown';
+    document.getElementById('pmNeutered').textContent  = p.neutered ? '✅ Yes' : '❌ No';
+    document.getElementById('pmEnergy').textContent    = p.energy || '—';
+    document.getElementById('pmWeightMed').textContent = p.weight;
+
+    // Behavior chips
+    const behEl = document.getElementById('pmBehavior');
+    const chips = [
+        p.children ? '👶 Good with children' : null,
+        p.pets     ? '🐾 Good with other pets' : null,
+        p.trained  ? '🎓 Trained' : null
+    ].filter(Boolean);
+    behEl.innerHTML = chips.map(c =>
+        `<span class="behav-chip">${c}</span>`
+    ).join('');
+
+    // Medical notes
+    const noteSec = document.getElementById('pmMedNotesSection');
+    if (p.medNotes) {
+        document.getElementById('pmMedNotes').textContent = p.medNotes;
+        noteSec.style.display = 'block';
+    } else {
+        noteSec.style.display = 'none';
+    }
+
+    // Visit history
+    const timeline = document.getElementById('pmVisitTimeline');
+    if (p.history && p.history.length > 0) {
+        const statusColor = { Completed:'var(--gd)', Cancelled:'var(--wr)', NoShow:'#e07b3c', Confirmed:'#1a3a8f' };
+        timeline.innerHTML = p.history.map(v => `
+            <div class="vt-item">
+                <div class="vt-dot" style="background:${statusColor[v.status] || 'var(--gd)'}"></div>
+                <div class="vt-date">${v.date}</div>
+                <div class="vt-doc">
+                    ${v.doctor ? `👨‍⚕️ Dr. ${v.doctor}` : ''} · ${v.service}
+                    <span style="margin-left:6px;font-size:.68rem;
+                                 color:${statusColor[v.status] || 'var(--gd)'};font-weight:900;">
+                        ${v.status}
+                    </span>
+                </div>
+                ${v.note ? `<div class="vt-note">${v.note}</div>` : ''}
+            </div>
+        `).join('');
+    } else {
+        timeline.innerHTML = '<div class="vt-empty">📭 No visit history yet.</div>';
+    }
+
+    // Reset to first tab
+    switchTab(document.querySelector('.pm-tab[data-tab="info"]'), 'info');
+    document.getElementById('pmTitle').textContent = `🐾 ${p.name}'s Record`;
+    document.getElementById('patientModal').classList.add('open');
+}
+
+// ── Tab switching ─────────────────────────────────────────────────────
+function switchTab(btn, tab) {
+    document.querySelectorAll('.pm-tab').forEach(t => {
+        t.style.color = 'var(--muted)';
+        t.style.borderBottom = 'none';
+    });
+    btn.style.color = 'var(--gd)';
+    btn.style.borderBottom = '2.5px solid var(--gd)';
+    document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+    document.getElementById(`tab-${tab}`).style.display = 'block';
+}
+
+// ── Filter ────────────────────────────────────────────────────────────
+let activeFilter = 'all';
+function setFilter(btn, filter) {
+    activeFilter = filter;
+    document.querySelectorAll('.pat-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    filterPatients();
+}
+function filterPatients() {
+    const q       = document.getElementById('patSearch').value.toLowerCase();
+    const species = document.getElementById('speciesFilter').value.toLowerCase();
+    let visible   = 0;
+    document.querySelectorAll('#patGrid .pat-card').forEach(card => {
+        const nameMatch    = !q || card.dataset.name.includes(q) || card.dataset.owner.includes(q);
+        const speciesMatch = !species || card.dataset.species.includes(species);
+        const vaccMatch    = activeFilter !== 'vacc' || card.dataset.vacc === 'due';
+        const show = nameMatch && speciesMatch && vaccMatch;
+        card.style.display = show ? '' : 'none';
+        if (show) visible++;
+    });
+    document.getElementById('patCount').textContent = `${visible} patient(s)`;
+}
+
+// ── Modal helpers ─────────────────────────────────────────────────────
+function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o =>
+    o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); })
+);
+
+// ── Sidebar ───────────────────────────────────────────────────────────
+function toggleSidebar(){const sb=document.getElementById("sidebar"),ov=document.getElementById("sidebarOverlay"),sh=document.getElementById("waShell");if(window.innerWidth<=992){sb?.classList.toggle("mob-open");ov?.classList.toggle("show");document.body.classList.toggle("sidebar-open")}else{sh?.classList.toggle("mini")}}
+function closeSidebar(){document.getElementById("sidebar")?.classList.remove("mob-open");document.getElementById("sidebarOverlay")?.classList.remove("show");document.body.classList.remove("sidebar-open");}
+document.addEventListener("DOMContentLoaded",()=>{
+    document.querySelectorAll(".wa-sb .sb-row").forEach(r=>r.addEventListener("click",()=>{if(window.innerWidth<=992)closeSidebar()}));
+    window.addEventListener("resize",()=>{if(window.innerWidth>992)closeSidebar()});
+});
+</script>
 </body>
 </html>

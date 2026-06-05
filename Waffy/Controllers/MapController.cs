@@ -59,7 +59,7 @@ namespace Waffy.Controllers
     : s.WorkingDays
                 });
 
-            // ── Clinics ─────────────────────────────────────────
+            // ── Clinics ──────────────────────────────────────────
             var clinics = await _clinicRepo.GetAllAsync();
             var clinicsData = clinics
                 .Where(c => c.VerificationStatus == "Approved"
@@ -73,11 +73,13 @@ namespace Waffy.Controllers
                     city = c.City ?? "",
                     area = c.Area ?? "",
                     logo = c.LogoUrl ?? "",
-                    phone = c.Phone?.Trim() ?? "",
+                    image = c.CoverImageUrl ?? "",
+                    phone = c.Phone ?? "",
+                    description = c.Description ?? "",
                     hasEmergency = c.HasEmergency,
                     hours = (c.DefaultOpenTime.HasValue && c.DefaultCloseTime.HasValue)
-    ? $"{c.DefaultOpenTime.Value:hh\\:mm} – {c.DefaultCloseTime.Value:hh\\:mm}"
-    : null
+                                  ? $"{c.DefaultOpenTime.Value:hh\\:mm} – {c.DefaultCloseTime.Value:hh\\:mm}"
+                                  : null
                 });
 
             // ── Admin Markers ────────────────────────────────────

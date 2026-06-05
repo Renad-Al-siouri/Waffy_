@@ -940,10 +940,22 @@
 
                     <!-- Book Button -->
                     <div class="sb-card">
-                        <button class="book-btn" onclick="showBookToast()">
-                            <i class="fa-regular fa-calendar-check"></i>
-                            Book Appointment
-                        </button>
+                        @if (Model.IsAvailable == true && Model.IdClinic.HasValue)
+                        {
+                            <a asp-controller="Appointment" asp-action="Book"
+                               asp-route-clinicId="@Model.IdClinic"
+                               asp-route-doctorId="@Model.IdDoctor"
+                               class="book-btn" style="text-decoration:none;">
+                                <i class="fa-regular fa-calendar-check"></i>
+                                Book Appointment
+                            </a>
+                        }
+                        else
+                        {
+                            <button class="book-btn" style="opacity:.5;cursor:not-allowed;" disabled>
+                                🔴 Not Available
+                            </button>
+                        }
                         <div class="book-note">Online booking coming soon</div>
                     </div>
 

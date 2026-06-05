@@ -304,6 +304,39 @@ namespace Waffy.Repository
             await conn.ExecuteAsync(sql, new { Id = idPost, Status = adoptionStatus });
         }
 
+        public async Task<IEnumerable<TimeSpan>> GetClinicBookedSlotsAsync(int clinicId, DateTime date)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<TimeSpan>(@"
+        SELECT DISTINCT StartTime
+        FROM Appointment
+        WHERE IdClinic        = @ClinicId
+          AND AppointmentDate = @Date
+          AND Status NOT IN   ('Cancelled', 'NoShow')",
+                new { ClinicId = clinicId, Date = date.Date });
+        }
+
+        public async Task MarkCliqRefundPendingAsync(int appointmentId)
+        {
+            const string sql =
+                "UPDATE Appointment SET RefundStatus = 'PendingReturn' WHERE Id = @Id";
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(sql, new { Id = appointmentId });
+        }
+
+        public async Task AssignDoctorAsync(int appointmentId, int doctorId)
+        {
+            const string sql = @"
+        UPDATE Appointment
+        SET IdDoctor         = @DoctorId,
+            AssignedByClinic = 1,
+            Status           = 'PendingDoctorApproval'
+        WHERE Id = @Id";
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(sql, new { Id = appointmentId, DoctorId = doctorId });
+        }
+
+
 
     }
 }

@@ -36,6 +36,7 @@ namespace Waffy.Controllers
         private readonly IProductImageRepository _productImageRepo;
         private readonly IClinicDocumentRepository _clinicDocumentRepo;
         private readonly IDoctorRepository _doctorAdminRepo;
+        private readonly IAppointmentRepository _apptRepo;
         public SuperAdminController(
             IUserRepository userRepo,
             IStoreRepository storeRepo,
@@ -62,7 +63,8 @@ namespace Waffy.Controllers
             IProductImageRepository productImageRepo,
             IClinicDocumentRepository clinicDocumentRepo,
             IDoctorRepository doctorAdminRepo,
-            IPendingPaymentRepository paymentRepo)  
+            IPendingPaymentRepository paymentRepo,
+            IAppointmentRepository apptRepo)  
         {
             _userRepo = userRepo;
             _storeRepo = storeRepo;
@@ -90,6 +92,7 @@ namespace Waffy.Controllers
             _productImageRepo = productImageRepo;
             _clinicDocumentRepo = clinicDocumentRepo;
             _doctorAdminRepo = doctorAdminRepo;
+            _apptRepo = apptRepo;
         }
 
         // ── Guards ───────────────────────────────────────────────
@@ -2511,6 +2514,8 @@ namespace Waffy.Controllers
             var images = await _dangerRepo.GetImagesByReportIdAsync(reportId);
             return Json(images.Select(i => new { i.ImageUrl, i.SortOrder }));
         }
+
+
         public IActionResult Analytics_A() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Map() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Notifications() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }

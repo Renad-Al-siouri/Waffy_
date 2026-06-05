@@ -15,5 +15,8 @@ namespace Waffy.Interfaces
 
         // ✅ جديد: لجلب IdClinic الخاص بالطبيب
         Task<int?> GetClinicIdByDoctorUserIdAsync(int userId);
+
+        Task AddClinicBalanceAsync(int clinicId, decimal amount);
+        Task<decimal> GetClinicBalanceAsync(int clinicId);
     }
 }

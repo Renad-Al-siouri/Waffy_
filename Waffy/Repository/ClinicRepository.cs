@@ -69,6 +69,7 @@ namespace Waffy.Repositories
             DefaultOpenTime    = @DefaultOpenTime,
             DefaultCloseTime   = @DefaultCloseTime,
             HasEmergency       = @HasEmergency,
+            CliqNumber   = @CliqNumber,
             LogoUrl            = @LogoUrl,
             CoverImageUrl      = @CoverImageUrl,
             VerificationStatus = @VerificationStatus
@@ -124,5 +125,23 @@ namespace Waffy.Repositories
             return await connection.QueryFirstOrDefaultAsync<int?>(
                 sql, new { UserId = userId });
         }
+        public async Task AddClinicBalanceAsync(int clinicId, decimal amount)
+        {
+            const string sql = @"
+        UPDATE Clinic
+        SET WalletBalance = WalletBalance + @Amount
+        WHERE IdClinic = @ClinicId";
+            using var conn = new SqlConnection(_ConnectionString);
+            await conn.ExecuteAsync(sql, new { ClinicId = clinicId, Amount = amount });
+        }
+
+        public async Task<decimal> GetClinicBalanceAsync(int clinicId)
+        {
+            const string sql =
+                "SELECT WalletBalance FROM Clinic WHERE IdClinic = @ClinicId";
+            using var conn = new SqlConnection(_ConnectionString);
+            return await conn.ExecuteScalarAsync<decimal>(sql, new { ClinicId = clinicId });
+        }
+
     }
 }

@@ -137,6 +137,7 @@
                     <button class="category-btn" data-filter="reward">Rewards</button>
                     <button class="category-btn" data-filter="orders">Orders</button>
                     <button class="category-btn" data-filter="system">System</button>
+                    <button class="category-btn" data-filter="appointment">📅 Appointments</button>
                 </div>
                 <div class="actions-box">
                     @if (Model.UnreadCount > 0)
@@ -173,8 +174,18 @@
                     "warning" => "system",
                     "adoption" => "adoption",
                     "reward" => "reward",
+                    "appointmentconfirmed" => "adoption",
+                    "appointmentcancelledbydoctor" => "system",
+                    "appointmentcancelledbyclinic" => "system",
+                    "appointmentcompleted" => "reward",
+                    "appointmentnoshow" => "system",
+                    "appointmentreminder" => "adoption",
+                    "cliqpaymentsubmitted" => "adoption",
+                    "cliqpaymentconfirmed" => "reward",
+                    "depositreturn" => "reward",
                     _ => "system"
                 };
+
                 var icon = notif.Type?.ToLower() switch
                 {
                     "warning" => "fa-triangle-exclamation",
@@ -185,8 +196,18 @@
                     "orderdelivered" => "fa-box-open",
                     "ordercancelled" => "fa-circle-xmark",
                     "orderstatusupdate" => "fa-bag-shopping",
+                    "appointmentconfirmed" => "fa-calendar-check",
+                    "appointmentcancelledbydoctor" => "fa-calendar-xmark",
+                    "appointmentcancelledbyclinic" => "fa-calendar-xmark",
+                    "appointmentcompleted" => "fa-circle-check",
+                    "appointmentnoshow" => "fa-circle-exclamation",
+                    "appointmentreminder" => "fa-clock",
+                    "cliqpaymentsubmitted" => "fa-mobile-screen",
+                    "cliqpaymentconfirmed" => "fa-circle-check",
+                    "depositreturn" => "fa-wallet",
                     _ => "fa-bell"
                 };
+
                 var filterType = notif.Type?.ToLower() switch
                 {
                     "warning" => "warning",
@@ -197,6 +218,15 @@
                     "orderdelivered" => "orders",
                     "ordercancelled" => "orders",
                     "orderstatusupdate" => "orders",
+                    "appointmentconfirmed" => "appointment",
+                    "appointmentcancelledbydoctor" => "appointment",
+                    "appointmentcancelledbyclinic" => "appointment",
+                    "appointmentcompleted" => "appointment",
+                    "appointmentnoshow" => "appointment",
+                    "appointmentreminder" => "appointment",
+                    "cliqpaymentsubmitted" => "appointment",
+                    "cliqpaymentconfirmed" => "appointment",
+                    "depositreturn" => "appointment",
                     _ => "system"
                 };
                 var searchText = $"{notif.Title} {notif.Message} {notif.Type}".ToLower();

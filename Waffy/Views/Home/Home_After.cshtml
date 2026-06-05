@@ -140,20 +140,19 @@
 
                 <div class="stats">
                     <div class="stat">
-                        <strong>+4,250</strong>
+                        <strong>+@ViewBag.StatPetOwners</strong>
                         <span>Pet Owners</span>
                     </div>
-
                     <div class="stat">
-                        <strong>150</strong>
+                        <strong>@ViewBag.StatClinics</strong>
                         <span>Clinics</span>
                     </div>
                     <div class="stat">
-                        <strong>200</strong>
+                        <strong>@ViewBag.StatStores</strong>
                         <span>Stores</span>
                     </div>
                     <div class="stat">
-                        <strong>70</strong>
+                        <strong>@ViewBag.StatAdoptions</strong>
                         <span>Adoptions</span>
                     </div>
                 </div>
@@ -328,82 +327,7 @@
                         <a asp-controller="Clinic" asp-action="Clinics" class="view-all">View All Clinics</a>
                     </div>
 
-                    <div class="clinics-grid">
-                        <article class="clinic-card">
-                            <div class="clinic-thumb"><img src="../Images/Animals/clinic2.png" alt="Paws & Claws Veterinary"></div>
-                            <div class="clinic-body">
-                                <div class="clinic-title">Paws & Claws Veterinary</div>
-                                <div class="meta-row">
-                                    <span>📍 1.5 km</span>
-                                    <span>⏱ Open now</span>
-                                </div>
-                                <p class="note-text">Top veterinary services nearby for checkups and care.</p>
-                                <div class="clinic-actions">
-                                    <a asp-controller="Clinic" asp-action="Clinics" class="details-btn">View Details</a>
-                                </div>
-                            </div>
-                        </article>
-
-                        <article class="clinic-card">
-                            <div class="clinic-thumb"><img src="../Images/Animals/clinic3.png" alt="Happy Tail Clinic"></div>
-                            <div class="clinic-body">
-                                <div class="clinic-title">Happy Tail Clinic</div>
-                                <div class="meta-row">
-                                    <span>📍 2.1 km</span>
-                                    <span>⏱ Open now</span>
-                                </div>
-                                <p class="note-text">Vaccines, examinations, and pet treatment support.</p>
-                                <div class="clinic-actions">
-                                    <a asp-controller="Clinic" asp-action="Clinics" class="details-btn">View Details</a>
-                                </div>
-                            </div>
-                        </article>
-
-                        <article class="clinic-card">
-                            <div class="clinic-thumb"><img src="../Images/Animals/clinic4.png" alt="Pet Care Center"></div>
-                            <div class="clinic-body">
-                                <div class="clinic-title">Pet Care Center</div>
-                                <div class="meta-row">
-                                    <span>📍 2.8 km</span>
-                                    <span>⏱ Open now</span>
-                                </div>
-                                <p class="note-text">Trusted care and veterinary follow-up for your pet.</p>
-                                <div class="clinic-actions">
-                                    <a  asp-controller="Clinic" asp-action="Clinics" class="details-btn">View Details</a>
-                                </div>
-                            </div>
-                        </article>
-
-                        <article class="clinic-card">
-                            <div class="clinic-thumb"><img src="../Images/Animals/clinic5.png" alt="Healthy Paws"></div>
-                            <div class="clinic-body">
-                                <div class="clinic-title">Healthy Paws</div>
-                                <div class="meta-row">
-                                    <span>📍 3.0 km</span>
-                                    <span>⏱ Open now</span>
-                                </div>
-                                <p class="note-text">Nearby clinic with regular checkups and vaccinations.</p>
-                                <div class="clinic-actions">
-                                    <a asp-controller="Clinic" asp-action="Clinics" class="details-btn">View Details</a>
-                                </div>
-                            </div>
-                        </article>
-
-                        <article class="clinic-card">
-                            <div class="clinic-thumb"><img src="../Images/Animals/clinic1.png" alt="Animal Wellness Hub"></div>
-                            <div class="clinic-body">
-                                <div class="clinic-title">Animal Wellness Hub</div>
-                                <div class="meta-row">
-                                    <span>📍 3.3 km</span>
-                                    <span>⏱ Open now</span>
-                                </div>
-                                <p class="note-text">A balanced wellness center for different pet needs.</p>
-                                <div class="clinic-actions">
-                                    <a asp-controller="Clinic" asp-action="Clinics" class="details-btn">View Details</a>
-                                </div>
-                            </div>
-                        </article>
-                    </div>
+                    <div class="clinics-grid" id="homeClinicsGrid"></div>
 
                     <div class="section-head" id="mapSection" style="margin-top:10px;">
                         <div class="section-title-wrap">
@@ -1513,7 +1437,163 @@
                     overflow: hidden;
                     text-overflow: ellipsis;
                 }
+        /* Home Clinics Dynamic */
+        #homeClinicsGrid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 16px;
+            margin-bottom: 1rem;
+        }
 
+        .hc-card {
+            background: #fff;
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid #ddd1bf;
+            box-shadow: 0 4px 16px rgba(90,75,49,.08);
+            cursor: pointer;
+            transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s;
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+        }
+
+            .hc-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 14px 32px rgba(90,75,49,.14);
+            }
+
+        .hc-cover {
+            position: relative;
+            height: 120px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #dbe8b8, #8da546);
+            flex-shrink: 0;
+        }
+
+            .hc-cover img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+                transition: transform .4s ease;
+            }
+
+        .hc-card:hover .hc-cover img {
+            transform: scale(1.05);
+        }
+
+        .hc-cover-ph {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
+        }
+
+        .hc-status {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            font-size: .6rem;
+            font-weight: 800;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+
+        .hc-open {
+            background: rgba(125,149,61,.88);
+            color: #fff;
+        }
+
+        .hc-closed {
+            background: rgba(255,253,249,.92);
+            color: #c86a5c;
+            border: 1px solid rgba(200,106,92,.3);
+        }
+
+        .hc-emg {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-size: .58rem;
+            font-weight: 800;
+            background: rgba(200,106,92,.9);
+            color: #fff;
+            padding: 2px 7px;
+            border-radius: 20px;
+        }
+
+        .hc-body {
+            padding: 10px 12px 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .hc-name {
+            font-family: 'Fredoka', sans-serif;
+            font-size: .95rem;
+            font-weight: 700;
+            color: #45382e;
+            line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .hc-loc {
+            font-size: .68rem;
+            color: #7b6c58;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .hc-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            margin-top: auto;
+            padding-top: 6px;
+            border-top: 1px solid #ede3d6;
+        }
+
+        .hc-hours {
+            font-size: .62rem;
+            color: #7b6c58;
+            font-weight: 700;
+        }
+
+        .hc-rating {
+            font-size: .65rem;
+            font-weight: 800;
+            color: #7d953d;
+            background: #eef4dd;
+            padding: 2px 7px;
+            border-radius: 20px;
+        }
+
+        @@media (max-width: 600px) {
+            #homeClinicsGrid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+
+            .hc-cover {
+                height: 100px;
+            }
+        }
+
+        @@media (max-width: 380px) {
+            #homeClinicsGrid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 
     <script>
@@ -1786,6 +1866,46 @@
                 article.addEventListener('click', () => { window.location.href = '/Pet/Adapt'; });
 
                 grid.appendChild(article);
+            });
+        })();
+
+                (function () {
+            const clinics = @Html.Raw(ViewBag.HomeClinicsJson ?? "[]");
+            const grid    = document.getElementById('homeClinicsGrid');
+            if (!grid || !clinics.length) return;
+
+            clinics.forEach(c => {
+                const card = document.createElement('a');
+                card.className = 'hc-card';
+                card.href = '/Clinic/ClinicDetail/' + c.id;
+
+                const hours = (c.openTime && c.closeTime)
+                    ? c.openTime + ' – ' + c.closeTime
+                    : '—';
+                const stars = c.rating > 0
+                    ? '⭐ ' + parseFloat(c.rating).toFixed(1)
+                    : 'New';
+
+                card.innerHTML = `
+                    <div class="hc-cover">
+                        ${c.cover
+                            ? `<img src="${c.cover}" alt="${c.name}" loading="lazy">`
+                            : `<div class="hc-cover-ph">🏥</div>`}
+                        <span class="hc-status ${c.isOpen ? 'hc-open' : 'hc-closed'}">
+                            ${c.isOpen ? '● Open' : '● Closed'}
+                        </span>
+                        ${c.hasEmergency ? `<span class="hc-emg">🚨 Emergency</span>` : ''}
+                    </div>
+                    <div class="hc-body">
+                        <div class="hc-name">${c.name}</div>
+                        <div class="hc-loc">📍 ${c.city}${c.area ? ' — ' + c.area : ''}</div>
+                        <div class="hc-row">
+                            <span class="hc-hours">🕐 ${hours}</span>
+                            <span class="hc-rating">${stars}</span>
+                        </div>
+                    </div>`;
+
+                grid.appendChild(card);
             });
         })();
     </script>
