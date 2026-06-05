@@ -1,0 +1,593 @@
+﻿@model Waffy.Models.ViewModels.SuperAdminAppointmentsViewModel
+@{
+    ViewData["Title"] = "Waffy — Super Admin | Appointments";
+    Layout = null;
+    var adminName     = ViewBag.AdminName     as string ?? "Admin";
+    var adminInitials = ViewBag.AdminInitials as string ?? "AD";
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true"/>
+</head>
+<body>
+<div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
+<div class="wa-shell" id="waShell">
+
+<!-- ══ SIDEBAR ══ -->
+<aside class="wa-sb" id="waSb">
+    <div class="sb-logo">
+        <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
+        <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
+    </div>
+    <nav class="sb-nav">
+        <div class="sb-group sb-group-flat">
+            <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard">
+                <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
+                <span class="sb-lbl">Dashboard</span>
+            </a>
+        </div>
+        <div class="sb-hr"></div>
+        <div class="sb-group">
+            <div class="sb-grp-hd">Management</div>
+            <div>
+                <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button">
+                    <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></span>
+                    <span class="sb-lbl">Users</span>
+                    <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </button>
+                <div class="sb-sub" id="g-users"><div class="sb-sub-inner">
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Users"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a>
+                </div></div>
+            </div>
+            <div>
+                <button class="sb-row open active" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
+                    <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+                    <span class="sb-lbl">Clinics</span>
+                    @if (Model.PendingCount > 0) { <span class="sb-bdg bd-y">!</span> }
+                    <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </button>
+                <div class="sb-sub open" id="g-clinics" style="height:auto;"><div class="sb-sub-inner">
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
+                    <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Appointments_C"><span class="sb-dot"></span><span class="sb-child-lbl">Appointments</span></a>
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_C"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Doctors_C"><span class="sb-dot"></span><span class="sb-child-lbl">Doctors</span></a>
+                </div></div>
+            </div>
+            <div>
+                <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button">
+                    <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></span>
+                    <span class="sb-lbl">Shop</span>
+                    <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </button>
+                <div class="sb-sub" id="g-shop"><div class="sb-sub-inner">
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a>
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_S"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_S"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                </div></div>
+            </div>
+            <div>
+                <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button">
+                    <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+                    <span class="sb-lbl">Adoption</span>
+                    <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </button>
+                <div class="sb-sub" id="g-adopt"><div class="sb-sub-inner">
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Listings"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span></a>
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span></a>
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Adopted_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_A"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
+                </div></div>
+            </div>
+            <div>
+                <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" type="button">
+                    <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+                    <span class="sb-lbl">Reports</span>
+                    <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg></span>
+                </button>
+                <div class="sb-sub" id="g-rep"><div class="sb-sub-inner">
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span></a>
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span></a>
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span></a>
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Donations"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="System_Complaints"><span class="sb-dot"></span><span class="sb-child-lbl">System Complaints</span></a>
+                    <a class="sb-child" asp-controller="SuperAdmin" asp-action="Laws_Regulations"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
+                </div></div>
+            </div>
+        </div>
+        <div class="sb-hr"></div>
+        <div class="sb-group">
+            <div class="sb-grp-hd">Tools</div>
+            <a class="sb-row" asp-controller="SuperAdmin" asp-action="Map"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg></span><span class="sb-lbl">Map</span></a>
+            <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span><span class="sb-lbl">Notifications</span></a>
+            <a class="sb-row" asp-controller="SuperAdmin" asp-action="RewardLog"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/></svg></span><span class="sb-lbl">Reward Log</span></a>
+        </div>
+    </nav>
+    <div class="sb-foot">
+        <div class="sb-user-row">
+            <div class="sb-av">@adminInitials</div>
+            <div class="sb-user-info">
+                <div class="sb-user-name">@adminName</div>
+                <div class="sb-user-role">Super Admin</div>
+            </div>
+        </div>
+        <a class="sb-logout" asp-controller="Account" asp-action="Logout">
+            <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            <span class="sb-logout-lbl">Sign Out</span>
+        </a>
+    </div>
+</aside>
+
+<!-- ══ TOPNAV ══ -->
+<header class="wa-tn" id="waTn">
+    <button class="tn-toggle" onclick="toggleSb()" type="button">
+        <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
+    <nav class="tn-bread"><span>Clinics</span><span>/</span><b>Appointments</b></nav>
+    <div class="tn-center"><div class="tn-center-main">Clinic Appointments</div><div class="tn-center-sub">Super Admin Panel</div></div>
+    <div class="tn-spacer"></div>
+    <div class="tn-right">
+        <a class="tn-btn" asp-controller="SuperAdmin" asp-action="Notifications">
+            <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        </a>
+        <div class="tn-sep"></div>
+        <div class="tn-profile">
+            <div class="tn-av">@adminInitials</div>
+            <div><div class="tn-pname">@adminName</div><div class="tn-prole">Super Admin</div></div>
+        </div>
+    </div>
+</header>
+
+<!-- ══ MAIN ══ -->
+<main class="wa-main" id="waMain">
+
+    <section class="page-hero">
+        <div>
+            <h1>Clinic Appointments</h1>
+            <p>Monitor all appointments, deposits, and statuses across all clinics.</p>
+        </div>
+        <div class="page-hero-actions">
+            <button class="btn btn-outline btn-sm" onclick="exportAppts()">📥 Export</button>
+        </div>
+    </section>
+
+    <div class="page-body">
+
+        <!-- KPIs -->
+        <div class="kpi-grid kpi-grid-4">
+            <div class="kpi-card c1">
+                <div class="kpi-ico green">📅</div>
+                <div class="kpi-val">@Model.TotalCount</div>
+                <div class="kpi-label">Total Appointments</div>
+                <div class="kpi-chip chip-green">All time</div>
+            </div>
+            <div class="kpi-card c2">
+                <div class="kpi-ico yellow">⏳</div>
+                <div class="kpi-val">@Model.PendingCount</div>
+                <div class="kpi-label">Pending</div>
+                <div class="kpi-chip chip-yellow">Awaiting action</div>
+            </div>
+            <div class="kpi-card c3">
+                <div class="kpi-ico blue">✅</div>
+                <div class="kpi-val">@Model.ConfirmedCount</div>
+                <div class="kpi-label">Confirmed</div>
+                <div class="kpi-chip chip-blue">Upcoming visits</div>
+            </div>
+            <div class="kpi-card c4">
+                <div class="kpi-ico green">🏁</div>
+                <div class="kpi-val">@Model.CompletedCount</div>
+                <div class="kpi-label">Completed</div>
+                <div class="kpi-chip chip-green">Successful visits</div>
+            </div>
+        </div>
+
+        <!-- Deposit Stats -->
+        <div class="kpi-grid kpi-grid-4" style="margin-top:-6px;">
+            <div class="kpi-card" style="border-color:rgba(200,106,92,.2);">
+                <div class="kpi-ico red">❌</div>
+                <div class="kpi-val">@Model.CancelledCount</div>
+                <div class="kpi-label">Cancelled</div>
+                <div class="kpi-chip chip-red">@Model.NoShowCount no-shows</div>
+            </div>
+            <div class="kpi-card" style="border-color:rgba(47,158,95,.2);">
+                <div class="kpi-ico green">💳</div>
+                <div class="kpi-val" style="font-size:1.2rem;">@Model.TotalDepositsCollected.ToString("F2") JOD</div>
+                <div class="kpi-label">Deposits Collected</div>
+                <div class="kpi-chip chip-green">Total paid deposits</div>
+            </div>
+            <div class="kpi-card" style="border-color:rgba(90,158,207,.2);">
+                <div class="kpi-ico blue">💰</div>
+                <div class="kpi-val" style="font-size:1.2rem;">@Model.TotalDepositsReturned.ToString("F2") JOD</div>
+                <div class="kpi-label">Deposits Returned</div>
+                <div class="kpi-chip chip-blue">Refunded to users</div>
+            </div>
+            <div class="kpi-card" style="border-color:rgba(155,96,0,.2);">
+                <div class="kpi-ico" style="color:#9b6000;">🔒</div>
+                <div class="kpi-val" style="font-size:1.2rem;color:#9b6000;">@Model.TotalDepositsRetained.ToString("F2") JOD</div>
+                <div class="kpi-label">Deposits Retained</div>
+                <div class="kpi-chip" style="background:#fff9f0;color:#9b6000;">No-show penalty</div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+            <div class="search-wrap" style="flex:1 1 260px;">
+                <span style="color:var(--text-muted)">🔍</span>
+                <input type="text" id="searchInput"
+                       placeholder="Search by patient, clinic, doctor..."
+                       oninput="renderTable()"/>
+            </div>
+            <select class="sel-wrap" style="width:auto;min-width:150px;" id="statusFilter" onchange="renderTable()">
+                <option value="">All Statuses</option>
+                <option value="pendingclinicapproval">⏳ Pending Clinic</option>
+                <option value="pendingdoctorapproval">⏳ Pending Doctor</option>
+                <option value="pendingpayment">💳 Pending Payment</option>
+                <option value="pendingpaymentverification">🔍 Verifying Payment</option>
+                <option value="confirmed">✅ Confirmed</option>
+                <option value="completed">🏁 Completed</option>
+                <option value="cancelled">❌ Cancelled</option>
+                <option value="noshow">🚫 No-Show</option>
+            </select>
+            <select class="sel-wrap" style="width:auto;min-width:160px;" id="clinicFilter" onchange="renderTable()">
+                <option value="">All Clinics</option>
+                @foreach (var c in Model.AvailableClinics)
+                {
+                    <option value="@c.Name.ToLower()">@c.Name</option>
+                }
+            </select>
+            <select class="sel-wrap" style="width:auto;min-width:140px;" id="payFilter" onchange="renderTable()">
+                <option value="">All Payment Methods</option>
+                <option value="wallet">💚 Wallet</option>
+                <option value="cliq">📱 CliQ</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="resetFilters()">Reset</button>
+        </div>
+
+        <!-- Chips -->
+        <div class="chips-row" id="chipsRow">
+            <button class="filter-chip active" data-f="" onclick="setChip(this)">All <span id="chipAll"></span></button>
+            <button class="filter-chip" data-f="pending" onclick="setChip(this)">⏳ Pending <span id="chipPending"></span></button>
+            <button class="filter-chip" data-f="confirmed" onclick="setChip(this)">✅ Confirmed <span id="chipConfirmed"></span></button>
+            <button class="filter-chip" data-f="completed" onclick="setChip(this)">🏁 Completed <span id="chipCompleted"></span></button>
+            <button class="filter-chip" data-f="cancelled" onclick="setChip(this)">❌ Cancelled <span id="chipCancelled"></span></button>
+            <button class="filter-chip" data-f="noshow" onclick="setChip(this)">🚫 No-Show <span id="chipNoShow"></span></button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-card">
+            <div class="table-head-bar">
+                <div class="table-head-title">All Appointments</div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <span class="table-count" id="tableCount"></span>
+                    <select class="sel-wrap" style="height:36px;font-size:.78rem;width:auto;min-width:160px;"
+                            onchange="sortAppts(this.value)">
+                        <option value="newest">Newest First</option>
+                        <option value="date">By Date</option>
+                        <option value="clinic">By Clinic</option>
+                        <option value="status">By Status</option>
+                    </select>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Patient</th>
+                            <th>Pet</th>
+                            <th>Clinic / Doctor</th>
+                            <th>Date & Time</th>
+                            <th>Service</th>
+                            <th>Payment</th>
+                            <th>Deposit</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="apptsTBody"></tbody>
+                </table>
+            </div>
+            <div class="pagination-bar">
+                <div class="pag-info" id="pagInfo"></div>
+                <div class="pag-pages" id="pagPages"></div>
+            </div>
+        </div>
+
+    </div>
+</main>
+</div>
+
+<!-- ══ DETAIL PANEL ══ -->
+<div class="detail-overlay" id="apptDetailPanel">
+    <div class="detail-panel" style="max-width:680px;">
+        <div class="dp-header">
+            <div class="dp-title" id="dpTitle">📅 Appointment Details</div>
+            <button class="dp-close" onclick="closeM('apptDetailPanel')">✕</button>
+        </div>
+        <div class="dp-body" id="dpBody"></div>
+        <div class="dp-footer">
+            <button class="btn btn-outline btn-sm" onclick="closeM('apptDetailPanel')">Close</button>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
+<script>
+/* ═══════════════════════════════════════════════════
+   SERVER DATA
+═══════════════════════════════════════════════════ */
+const appts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+    Model.Appointments.Select(a => new {
+        id           = a.Id,
+        patient      = a.UserFullName ?? "—",
+        patientPhone = a.UserPhone ?? "—",
+        pet          = a.PetName ?? "—",
+        petSpecies   = a.PetSpecies ?? "—",
+        clinic       = a.ClinicName,
+        doctor       = a.DoctorName,
+        date         = a.AppointmentDate.ToString("yyyy-MM-dd"),
+        dateDisplay  = a.AppointmentDate.ToString("dd MMM yyyy"),
+        time         = a.StartTime.ToString(@"hh\:mm"),
+        service      = a.ServiceName ?? "General Checkup",
+        status       = a.Status.ToLower(),
+        statusLabel  = a.Status,
+        payMethod    = a.DepositPayMethod ?? "—",
+        depositPaid  = a.DepositPaid,
+        depositRet   = a.DepositReturned,
+        depositAmt   = a.DepositAmount,
+        urgency      = a.UrgencyLevel ?? "Normal",
+        cancelReason = a.CancellationReason ?? "",
+        cliqRef      = a.CliqReference ?? "",
+        createdAt    = a.CreatedAt.ToString("dd MMM yyyy")
+    })
+));
+
+/* ═══ STATE ═══ */
+let currentSort = 'newest';
+let currentChip = '';
+let currentPage = 1;
+const PAGE_SIZE = 10;
+
+/* ═══ HELPERS ═══ */
+function statusBadge(s) {
+    const m = {
+        confirmed:                 ['badge-success',  '✅ Confirmed'],
+        completed:                 ['badge-info',     '🏁 Completed'],
+        cancelled:                 ['badge-danger',   '❌ Cancelled'],
+        noshow:                    ['badge-danger',   '🚫 No-Show'],
+        pendingclinicapproval:     ['badge-warning',  '⏳ Pending Clinic'],
+        pendingdoctorapproval:     ['badge-warning',  '⏳ Pending Doctor'],
+        pendingpayment:            ['badge-warning',  '💳 Awaiting Payment'],
+        pendingpaymentverification:['badge-warning',  '🔍 Verifying']
+    };
+    const [cls, lbl] = m[s] || ['badge-muted', s];
+    return `<span class="badge ${cls}">${lbl}</span>`;
+}
+
+function depositBadge(a) {
+    if (!a.depositPaid)
+        return `<span style="font-size:.72rem;font-weight:800;color:var(--text-muted);">— not paid</span>`;
+    if (a.depositRet)
+        return `<span style="font-size:.72rem;font-weight:800;color:var(--success);background:var(--success-soft);padding:2px 7px;border-radius:20px;">↩️ Returned</span>`;
+    if (a.status === 'noshow')
+        return `<span style="font-size:.72rem;font-weight:800;color:#9b6000;background:#fff9f0;padding:2px 7px;border-radius:20px;">🔒 Retained</span>`;
+    return `<span style="font-size:.72rem;font-weight:800;color:var(--success);background:var(--success-soft);padding:2px 7px;border-radius:20px;">✅ ${a.depositAmt.toFixed(2)} JOD</span>`;
+}
+
+function petEmoji(sp) {
+    const m = {dog:'🐕',cat:'🐈',bird:'🐦',rabbit:'🐇',fish:'🐠',hamster:'🐹'};
+    return m[sp?.toLowerCase()] || '🐾';
+}
+
+/* ═══ FILTER ═══ */
+function isPending(s) {
+    return ['pendingclinicapproval','pendingdoctorapproval',
+            'pendingpayment','pendingpaymentverification'].includes(s);
+}
+
+function getFiltered() {
+    const q  = (document.getElementById('searchInput')?.value || '').toLowerCase();
+    const sf = document.getElementById('statusFilter')?.value || '';
+    const cf = document.getElementById('clinicFilter')?.value || '';
+    const pf = document.getElementById('payFilter')?.value || '';
+
+    return appts.filter(a => {
+        const mQ  = !q || [a.patient, a.clinic, a.doctor, a.pet, a.service]
+                         .some(v => v.toLowerCase().includes(q));
+        const mS  = sf ? a.status === sf : true;
+        const mCh = !currentChip ? true
+                   : currentChip === 'pending' ? isPending(a.status)
+                   : a.status === currentChip;
+        const mC  = cf ? a.clinic.toLowerCase().includes(cf) : true;
+        const mP  = pf ? (a.payMethod?.toLowerCase() || '').includes(pf) : true;
+        return mQ && mS && mCh && mC && mP;
+    }).sort((a, b) => {
+        if (currentSort === 'date')   return new Date(b.date) - new Date(a.date);
+        if (currentSort === 'clinic') return a.clinic.localeCompare(b.clinic);
+        if (currentSort === 'status') return a.status.localeCompare(b.status);
+        return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+}
+
+/* ═══ RENDER TABLE ═══ */
+function renderTable() {
+    const data  = getFiltered();
+    const total = data.length;
+    const pages = Math.ceil(total / PAGE_SIZE) || 1;
+    if (currentPage > pages) currentPage = 1;
+    const slice = data.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+    const tbody = document.getElementById('apptsTBody');
+
+    tbody.innerHTML = slice.length ? slice.map(a => `
+        <tr style="cursor:pointer;" onclick="openDetail(${a.id})">
+            <td style="font-size:.76rem;color:var(--text-muted);font-weight:700;">#${a.id}</td>
+            <td>
+                <div class="cell-title">${a.patient}</div>
+                <div class="cell-sub">${a.patientPhone}</div>
+            </td>
+            <td>
+                <div style="display:flex;align-items:center;gap:5px;">
+                    <span style="font-size:1.1rem;">${petEmoji(a.petSpecies)}</span>
+                    <div>
+                        <div class="cell-title">${a.pet}</div>
+                        <div class="cell-sub">${a.petSpecies}</div>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="cell-title">🏥 ${a.clinic}</div>
+                <div class="cell-sub">👨‍⚕️ Dr. ${a.doctor}</div>
+            </td>
+            <td>
+                <div class="cell-title">📅 ${a.dateDisplay}</div>
+                <div class="cell-sub">🕐 ${a.time}</div>
+            </td>
+            <td style="font-size:.8rem;font-weight:700;color:var(--text-2);">${a.service}</td>
+            <td style="font-size:.78rem;font-weight:800;color:var(--text-muted);">${a.payMethod || '—'}</td>
+            <td>${depositBadge(a)}</td>
+            <td>${statusBadge(a.status)}</td>
+        </tr>
+    `).join('')
+    : `<tr><td colspan="9" style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">No appointments found.</td></tr>`;
+
+    /* pagination */
+    document.getElementById('pagInfo').textContent =
+        total === 0 ? 'No appointments found'
+        : `Showing ${(currentPage-1)*PAGE_SIZE+1}–${Math.min(currentPage*PAGE_SIZE,total)} of ${total} appointments`;
+
+    const pagEl = document.getElementById('pagPages');
+    pagEl.innerHTML = '';
+    if (pages > 1) {
+        const addBtn = (lbl, pg, active=false, dis=false) => {
+            const b = document.createElement('button');
+            b.className = 'pag-btn' + (active ? ' active' : '');
+            b.textContent = lbl; b.disabled = dis;
+            b.onclick = () => { currentPage = pg; renderTable(); };
+            pagEl.appendChild(b);
+        };
+        addBtn('‹', currentPage-1, false, currentPage===1);
+        for (let i=1;i<=pages;i++){
+            if (pages>7&&i>2&&i<pages-1&&Math.abs(i-currentPage)>1){
+                if(i===3||i===pages-2){const s=document.createElement('button');s.className='pag-btn';s.textContent='…';s.disabled=true;pagEl.appendChild(s);}
+                continue;
+            }
+            addBtn(i, i, i===currentPage);
+        }
+        addBtn('›', currentPage+1, false, currentPage===pages);
+    }
+
+    /* chip counts */
+    document.getElementById('chipAll').textContent       = `(${appts.length})`;
+    document.getElementById('chipPending').textContent   = `(${appts.filter(a=>isPending(a.status)).length})`;
+    document.getElementById('chipConfirmed').textContent = `(${appts.filter(a=>a.status==='confirmed').length})`;
+    document.getElementById('chipCompleted').textContent = `(${appts.filter(a=>a.status==='completed').length})`;
+    document.getElementById('chipCancelled').textContent = `(${appts.filter(a=>a.status==='cancelled').length})`;
+    document.getElementById('chipNoShow').textContent    = `(${appts.filter(a=>a.status==='noshow').length})`;
+    document.getElementById('tableCount').textContent    = total + ' appointments';
+}
+
+/* ═══ DETAIL PANEL ═══ */
+function openDetail(id) {
+    const a = appts.find(x => x.id === id);
+    if (!a) return;
+    document.getElementById('dpTitle').textContent = `📅 Appointment #${a.id}`;
+    document.getElementById('dpBody').innerHTML = `
+        <div class="dp-profile">
+            <div class="dp-avatar" style="font-size:2rem;">${petEmoji(a.petSpecies)}</div>
+            <div style="flex:1;">
+                <div class="dp-name">${a.service}</div>
+                <div class="dp-meta">${a.clinic} · Dr. ${a.doctor}</div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;">
+                    ${statusBadge(a.status)}
+                    ${a.urgency === 'Urgent' ? '<span class="badge badge-danger">🔴 Urgent</span>' : ''}
+                </div>
+            </div>
+        </div>
+        <div class="dp-section">
+            <div class="dp-section-title">Patient & Pet</div>
+            <div class="dp-grid">
+                <div class="dp-info-item"><div class="dp-info-label">Patient</div><div class="dp-info-val">${a.patient}</div></div>
+                <div class="dp-info-item"><div class="dp-info-label">Phone</div><div class="dp-info-val">${a.patientPhone}</div></div>
+                <div class="dp-info-item"><div class="dp-info-label">Pet</div><div class="dp-info-val">${petEmoji(a.petSpecies)} ${a.pet} (${a.petSpecies})</div></div>
+                <div class="dp-info-item"><div class="dp-info-label">Booked On</div><div class="dp-info-val">${a.createdAt}</div></div>
+            </div>
+        </div>
+        <div class="dp-section">
+            <div class="dp-section-title">Appointment Info</div>
+            <div class="dp-grid">
+                <div class="dp-info-item"><div class="dp-info-label">Clinic</div><div class="dp-info-val">🏥 ${a.clinic}</div></div>
+                <div class="dp-info-item"><div class="dp-info-label">Doctor</div><div class="dp-info-val">👨‍⚕️ Dr. ${a.doctor}</div></div>
+                <div class="dp-info-item"><div class="dp-info-label">Date</div><div class="dp-info-val">📅 ${a.dateDisplay}</div></div>
+                <div class="dp-info-item"><div class="dp-info-label">Time</div><div class="dp-info-val">🕐 ${a.time}</div></div>
+                <div class="dp-info-item"><div class="dp-info-label">Service</div><div class="dp-info-val">${a.service}</div></div>
+                <div class="dp-info-item"><div class="dp-info-label">Urgency</div><div class="dp-info-val">${a.urgency}</div></div>
+            </div>
+        </div>
+        <div class="dp-section">
+            <div class="dp-section-title">Deposit & Payment</div>
+            <div class="dp-grid">
+                <div class="dp-info-item"><div class="dp-info-label">Method</div><div class="dp-info-val">${a.payMethod || '—'}</div></div>
+                <div class="dp-info-item"><div class="dp-info-label">Amount</div><div class="dp-info-val">${a.depositAmt.toFixed(2)} JOD</div></div>
+                <div class="dp-info-item"><div class="dp-info-label">Paid</div><div class="dp-info-val">${a.depositPaid ? '✅ Yes' : '❌ No'}</div></div>
+                <div class="dp-info-item"><div class="dp-info-label">Returned</div><div class="dp-info-val">${a.depositRet ? '✅ Yes' : '—'}</div></div>
+                ${a.cliqRef ? `<div class="dp-info-item"><div class="dp-info-label">CliQ Ref</div><div class="dp-info-val">${a.cliqRef}</div></div>` : ''}
+            </div>
+        </div>
+        ${a.cancelReason ? `
+        <div class="dp-section">
+            <div class="dp-section-title">Cancellation</div>
+            <div style="background:var(--danger-soft);border:1px solid rgba(200,106,92,.2);border-radius:10px;padding:12px;font-size:.82rem;font-weight:700;color:var(--danger);">
+                ❌ ${a.cancelReason}
+            </div>
+        </div>` : ''}
+    `;
+    openM('apptDetailPanel');
+}
+
+/* ═══ FILTER / SORT ═══ */
+function setChip(btn) {
+    document.querySelectorAll('#chipsRow .filter-chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    currentChip = btn.dataset.f;
+    document.getElementById('statusFilter').value = '';
+    currentPage = 1;
+    renderTable();
+}
+function sortAppts(v) { currentSort = v; currentPage = 1; renderTable(); }
+function resetFilters() {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('clinicFilter').value = '';
+    document.getElementById('payFilter').value = '';
+    currentChip = ''; currentPage = 1;
+    document.querySelectorAll('#chipsRow .filter-chip').forEach((c,i) => c.classList.toggle('active', i===0));
+    renderTable();
+}
+function exportAppts() { toast('Exporting ' + getFiltered().length + ' appointments...', 'success'); }
+
+/* ═══ MODAL HELPERS ═══ */
+function openM(id)  { document.getElementById(id)?.classList.add('open'); }
+function closeM(id) { document.getElementById(id)?.classList.remove('open'); }
+document.querySelectorAll('.modal-overlay,.detail-overlay')
+    .forEach(m => m.addEventListener('click', e => { if(e.target===m) m.classList.remove('open'); }));
+
+/* ═══ TOAST ═══ */
+function toast(msg, type='success') {
+    const bg  = {success:'var(--success-soft)',danger:'var(--danger-soft)',warning:'#fff9f0'};
+    const col = {success:'var(--success)',danger:'var(--danger)',warning:'#9b6000'};
+    const t   = document.createElement('div');
+    t.style.cssText = `position:fixed;bottom:24px;right:24px;z-index:9999;padding:14px 20px;border-radius:14px;background:${bg[type]};border:1px solid ${col[type]}40;color:${col[type]};font-weight:800;font-size:.86rem;font-family:'Nunito',sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.12);max-width:320px;`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 3200);
+}
+
+renderTable();
+</script>
+</body>
+</html>

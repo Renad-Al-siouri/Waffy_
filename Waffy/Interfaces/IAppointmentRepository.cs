@@ -53,5 +53,10 @@ namespace Waffy.Interfaces
         Task AssignDoctorAsync(int appointmentId, int doctorId);
         Task SetStatusAsync(int appointmentId, string status);
 
+        // IAppointmentRepository
+        Task<IEnumerable<AppointmentDto>> GetAllAsync(
+            string? statusFilter = null,
+            int? clinicId = null);
+
     }
 }

@@ -398,7 +398,43 @@ LEFT  JOIN Users  ud ON d.IdUser   = ud.UserId
             using var conn = new SqlConnection(_conn);
             await conn.ExecuteAsync(sql, new { Id = appointmentId, Status = status });
         }
-
+        public async Task<IEnumerable<AppointmentDto>> GetAllAsync(
+    string? statusFilter = null,
+    int? clinicId = null)
+        {
+            using var conn = new SqlConnection(_conn);
+            return await conn.QueryAsync<AppointmentDto>(@"
+        SELECT
+            a.Id, a.AppointmentDate, a.StartTime, a.EndTime,
+            a.ServiceName, a.Status, a.UrgencyLevel,
+            a.Reason, a.CancellationReason, a.CreatedAt,
+            a.IdUser, a.IdPet, a.IdDoctor, a.IdClinic,
+            a.DepositAmount, a.DepositPaid, a.DepositReturned,
+            a.DepositPayMethod, a.CliqReference, a.DepositCliqSubmitted,
+            a.AttendanceConfirmed, a.AssignedByClinic,
+            u.FullName   AS UserFullName,
+            u.Phone      AS UserPhone,
+            p.Name       AS PetName,
+            p.Species    AS PetSpecies,
+            cl.Name      AS ClinicName,
+            cl.CliqNumber AS ClinicCliqNumber,
+            ud.FullName  AS DoctorName,
+            d.Specialization AS DoctorSpecialization
+        FROM Appointment a
+        INNER JOIN Users  u  ON u.UserId    = a.IdUser
+        INNER JOIN Clinic cl ON cl.IdClinic = a.IdClinic
+        LEFT  JOIN Doctor d  ON d.IdDoctor  = a.IdDoctor
+        LEFT  JOIN Users  ud ON ud.UserId   = d.IdUser
+        LEFT  JOIN Pet    p  ON p.IdPet     = a.IdPet
+        WHERE (@StatusFilter IS NULL OR a.Status = @StatusFilter)
+          AND (@ClinicId     IS NULL OR a.IdClinic = @ClinicId)
+        ORDER BY a.AppointmentDate DESC, a.StartTime DESC",
+                new
+                {
+                    StatusFilter = string.IsNullOrEmpty(statusFilter) ? null : statusFilter,
+                    ClinicId = clinicId
+                });
+        }
 
     }
 }

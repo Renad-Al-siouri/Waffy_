@@ -229,4 +229,22 @@ namespace Waffy.Models.ViewModels
         public bool? IsAvailable { get; set; }
     }
 
+    public class SuperAdminAppointmentsViewModel
+    {
+        public List<AppointmentDto> Appointments { get; set; } = new();
+        public List<Clinic> AvailableClinics { get; set; } = new();
+
+        // KPIs
+        public int TotalCount { get; set; }
+        public int PendingCount { get; set; }
+        public int ConfirmedCount { get; set; }
+        public int CompletedCount { get; set; }
+        public int CancelledCount { get; set; }
+        public int NoShowCount { get; set; }
+
+        // Deposits
+        public decimal TotalDepositsCollected { get; set; }
+        public decimal TotalDepositsReturned { get; set; }
+        public decimal TotalDepositsRetained { get; set; }
+    }
 }

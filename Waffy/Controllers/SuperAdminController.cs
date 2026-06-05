@@ -2515,7 +2515,39 @@ namespace Waffy.Controllers
             return Json(images.Select(i => new { i.ImageUrl, i.SortOrder }));
         }
 
+        public async Task<IActionResult> Appointments_C()
+        {
+            if (!IsAdmin()) return NotAdmin();
+            SetAdminViewBag();
 
+            var appointments = (await _apptRepo.GetAllAsync()).ToList();
+            var clinics = (await _clinicRepo.GetAllAsync())
+                               .Where(c => c.VerificationStatus == "Approved")
+                               .ToList();
+
+            var vm = new SuperAdminAppointmentsViewModel
+            {
+                Appointments = appointments,
+                AvailableClinics = clinics,
+                TotalCount = appointments.Count,
+                PendingCount = appointments.Count(a => a.Status is
+                                        "PendingDoctorApproval" or "PendingClinicApproval" or
+                                        "PendingPayment" or "PendingPaymentVerification"),
+                ConfirmedCount = appointments.Count(a => a.Status == "Confirmed"),
+                CompletedCount = appointments.Count(a => a.Status == "Completed"),
+                CancelledCount = appointments.Count(a => a.Status == "Cancelled"),
+                NoShowCount = appointments.Count(a => a.Status == "NoShow"),
+                TotalDepositsCollected = appointments
+                    .Where(a => a.DepositPaid).Sum(a => a.DepositAmount),
+                TotalDepositsReturned = appointments
+                    .Where(a => a.DepositReturned).Sum(a => a.DepositAmount),
+                TotalDepositsRetained = appointments
+                    .Where(a => a.Status == "NoShow" && a.DepositPaid && !a.DepositReturned)
+                    .Sum(a => a.DepositAmount)
+            };
+
+            return View(vm);
+        }
         public IActionResult Analytics_A() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Map() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Notifications() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
