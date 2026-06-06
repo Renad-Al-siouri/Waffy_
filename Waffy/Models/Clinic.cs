@@ -25,5 +25,6 @@
         public string? CliqNumber { get; set; }
         // في Models/Clinic.cs أضيفي:
         public decimal WalletBalance { get; set; } = 0;
+        public bool IsSuspended { get; set; } = false;
     }
 }

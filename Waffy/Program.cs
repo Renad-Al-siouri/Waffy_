@@ -74,7 +74,7 @@ builder.Services.AddScoped<IClinicServiceRepository, ClinicServiceRepository>();
 builder.Services.AddScoped<IClinicImageRepository, ClinicImageRepository>();
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
-
+builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 
 
 

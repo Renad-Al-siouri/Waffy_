@@ -24,12 +24,14 @@ namespace Waffy.Controllers
         private readonly IClinicScheduleRepository _scheduleRepo;
         private readonly IClinicImageRepository _imageRepo;
         private readonly IDoctorRepository _doctorRepo;
+        private readonly IReviewRepository _reviewRepo;
 
         public ClinicController(
             IClinicRepository clinicRepo,
             IClinicServiceRepository serviceRepo,
             IClinicScheduleRepository scheduleRepo,
             IClinicImageRepository imageRepo,
+            IReviewRepository reviewRepo,
             IDoctorRepository doctorRepo)
         {
             _clinicRepo = clinicRepo;
@@ -37,6 +39,7 @@ namespace Waffy.Controllers
             _scheduleRepo = scheduleRepo;
             _imageRepo = imageRepo;
             _doctorRepo = doctorRepo;
+            _reviewRepo = reviewRepo;
         }
         // ══════════════════════════════════════════════════
         // GET /Clinic/Clinics
@@ -144,7 +147,11 @@ namespace Waffy.Controllers
             var doctors = (await _doctorRepo.GetByClinicIdAsync(id))
                 .Where(d => d.VerificationStatus == "Approved")
                 .ToList();
+            var reviews = (await _reviewRepo.GetByTargetAsync("Clinic", id)).ToList();
 
+            var currentUserId = HttpContext.Session.GetInt32("UserId");
+            var hasReviewed = currentUserId.HasValue
+                && await _reviewRepo.HasReviewedAsync(currentUserId.Value, "Clinic", id);
             var vm = new ClinicDetailViewModel
             {
                 IdClinic = clinic.IdClinic,
@@ -167,6 +174,9 @@ namespace Waffy.Controllers
                 Services = services,
                 Schedule = schedule,
                 GalleryImages = gallery,
+                Reviews = reviews,
+                CurrentUserHasReviewed= hasReviewed,
+                ReviewCount = reviews.Count,
                 Doctors = doctors
             };
 
@@ -179,14 +189,73 @@ namespace Waffy.Controllers
             var doctor = await _doctorRepo.GetDetailByIdAsync(id);
             if (doctor == null) return NotFound();
 
-            // ✅ جلب ملفات الشهادات
             var certDocs = (await _doctorRepo.GetDocumentsByDoctorIdAsync(id))
                 .Where(d => d.DocumentType == "Certification")
                 .ToList();
-
             doctor.CertificationDocs = certDocs;
 
-            return View(doctor);
+            var drReviews = (await _reviewRepo.GetByTargetAsync("Doctor", id)).ToList();
+
+            var currentUserId = HttpContext.Session.GetInt32("UserId"); // ← أضف هذا
+            var drHasReview = currentUserId.HasValue
+                && await _reviewRepo.HasReviewedAsync(currentUserId.Value, "Doctor", id);
+
+            // ← هذه الثلاثة يجب أن تكون قبل return
+            doctor.Reviews = drReviews;
+            doctor.CurrentUserHasReviewed = drHasReview;
+            doctor.ReviewCount = drReviews.Count;
+
+            return View(doctor); // ← الأخير
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SubmitReview(
+    string targetType, int targetId, int rating,
+    string? title, string? comment, string returnUrl = "")
+        {
+            // يجب تسجيل الدخول
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null)
+                return RedirectToAction("Login", "Account");
+
+            // تحقق من الـ rating
+            if (rating < 1 || rating > 5)
+            {
+                TempData["ReviewError"] = "Please select a rating between 1 and 5 stars.";
+                return targetType == "Clinic"
+                    ? RedirectToAction("ClinicDetail", new { id = targetId })
+                    : RedirectToAction("DoctorDetail", new { id = targetId });
+            }
+
+            // تحقق من التكرار
+            var already = await _reviewRepo.HasReviewedAsync(userId.Value, targetType, targetId);
+            if (already)
+            {
+                TempData["ReviewError"] = "You have already reviewed this " +
+                                          (targetType == "Clinic" ? "clinic." : "doctor.");
+                return targetType == "Clinic"
+                    ? RedirectToAction("ClinicDetail", new { id = targetId })
+                    : RedirectToAction("DoctorDetail", new { id = targetId });
+            }
+
+            await _reviewRepo.AddAsync(new Waffy.Models.Review
+            {
+                IdUser = userId.Value,
+                TargetType = targetType,
+                TargetId = targetId,
+                Rating = rating,
+                Title = title?.Trim(),
+                Comment = comment?.Trim(),
+                Status = "Active",
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["ReviewSuccess"] = "⭐ Thank you! Your review has been submitted.";
+
+            return targetType == "Clinic"
+                ? RedirectToAction("ClinicDetail", new { id = targetId })
+                : RedirectToAction("DoctorDetail", new { id = targetId });
         }
 
     }

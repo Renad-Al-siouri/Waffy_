@@ -1,0 +1,487 @@
+﻿@{
+    ViewData["Title"] = "Waffy — Clinic Admin | Complaints";
+    Layout = null;
+    var complaints = ViewBag.Complaints as List<Waffy.Models.Complaint> ?? new();
+    var statusFilter = (string)(ViewBag.StatusFilter ?? "All");
+    var total = (int)(ViewBag.TotalCount ?? 0);
+    var openCount = (int)(ViewBag.OpenCount ?? 0);
+    var resolvedCount = (int)(ViewBag.ResolvedCount ?? 0);
+    var invCount = (int)(ViewBag.InvestigatingCount ?? 0);
+
+    var statusOptions = new[] { "All", "Open", "Pending", "Investigating", "Resolved" };
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css" asp-append-version="true">
+    <style>
+        .comp-row {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+            border-left: 4px solid var(--line);
+            transition: box-shadow .18s;
+        }
+
+            .comp-row:hover {
+                box-shadow: var(--shadow-md);
+            }
+
+            .comp-row.high {
+                border-left-color: var(--red);
+            }
+
+            .comp-row.medium {
+                border-left-color: var(--ora);
+            }
+
+            .comp-row.low {
+                border-left-color: var(--gre);
+            }
+
+        .filter-chip {
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: .8rem;
+            font-weight: 800;
+            text-decoration: none;
+            border: 1.5px solid var(--line);
+            background: #fff;
+            color: var(--text-muted);
+            transition: .18s ease;
+        }
+
+            .filter-chip.active {
+                background: var(--olive-soft);
+                border-color: var(--olive);
+                color: var(--olive-dark);
+            }
+
+        .detail-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(30,45,14,.45);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+            .detail-overlay.open {
+                display: flex;
+            }
+
+        .detail-panel {
+            background: #fff;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 640px;
+            max-height: 88vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 30px 80px rgba(0,0,0,.2);
+        }
+
+        .dp-header {
+            padding: 1.2rem 1.4rem;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dp-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .dp-body {
+            padding: 1.4rem;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .dp-footer {
+            padding: 1rem 1.4rem;
+            border-top: 1px solid var(--line);
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+            background: var(--surface-2);
+        }
+
+        .dp-close {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            border: 1.5px solid var(--line);
+            background: #fff;
+            cursor: pointer;
+            font-size: .9rem;
+            display: grid;
+            place-items: center;
+        }
+
+        .dp-section {
+            margin-bottom: 1.1rem;
+        }
+
+        .dp-section-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: .88rem;
+            font-weight: 700;
+            color: var(--olive-dark);
+            margin-bottom: .6rem;
+        }
+
+        .dp-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .dp-info-item {
+            background: var(--surface-2);
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+
+        .dp-info-label {
+            font-size: .72rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            margin-bottom: 3px;
+        }
+
+        .dp-info-val {
+            font-size: .86rem;
+            font-weight: 900;
+            color: var(--text);
+        }
+    </style>
+</head>
+<body class="admin-shell">
+    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="wa-shell" id="waShell">
+
+        <!-- SIDEBAR -->
+        <aside class="wa-sb" id="sidebar">
+            <div class="sb-logo">
+                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img" onerror="this.remove();this.parentElement.innerHTML='🐾';"></div>
+                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Clinic Admin</div></div>
+            </div>
+            <nav class="sb-nav">
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" href="@Url.Action("Dashboard", "ClinicAdmin")"><span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Daily Management</div>
+                    <a class="sb-row" href="@Url.Action("Appointments", "ClinicAdmin")"><span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span></a>
+                    <a class="sb-row" href="@Url.Action("Patients", "ClinicAdmin")"><span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span></a>
+                    <a class="sb-row" href="@Url.Action("Medical_Records", "ClinicAdmin")"><span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Clinic Management</div>
+                    <a class="sb-row" href="@Url.Action("Doctors", "ClinicAdmin")"><span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span></a>
+                    <a class="sb-row" href="@Url.Action("Basic_Information", "ClinicAdmin")"><span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span></a>
+                    <a class="sb-row" href="@Url.Action("Revenue", "ClinicAdmin")"><span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group sb-group-flat">
+                    <a class="sb-row" href="@Url.Action("Adoption", "ClinicAdmin")"><span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span></a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Analytics</div>
+                    <a class="sb-row" href="@Url.Action("Reports", "ClinicAdmin")"><span class="sb-icon">📈</span><span class="sb-lbl">Reports</span></a>
+                    <a class="sb-row" href="@Url.Action("Reviews", "ClinicAdmin")"><span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span></a>
+                    <a class="sb-row active" href="@Url.Action("Complaints", "ClinicAdmin")">
+                        <span class="sb-icon">🚨</span><span class="sb-lbl">Complaints</span>
+                        @if (openCount > 0)
+                        {
+                            <span class="sb-bdg bd-o">@openCount</span>
+                        }
+                    </a>
+                </div>
+                <div class="sb-hr"></div>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Settings</div>
+                    <a class="sb-row" href="@Url.Action("Images", "ClinicAdmin")"><span class="sb-icon">🖼️</span><span class="sb-lbl">Images</span></a>
+                    <a class="sb-row" href="@Url.Action("Services", "ClinicAdmin")"><span class="sb-icon">🔧</span><span class="sb-lbl">Services</span></a>
+                    <a class="sb-row" href="@Url.Action("Working_Hours", "ClinicAdmin")"><span class="sb-icon">🕐</span><span class="sb-lbl">Working Hours</span></a>
+                    <a class="sb-row" href="@Url.Action("Documents_C", "ClinicAdmin")"><span class="sb-icon">📋</span><span class="sb-lbl">Documents</span></a>
+                    <a class="sb-row" href="@Url.Action("Notifications", "ClinicAdmin")"><span class="sb-icon">🔔</span><span class="sb-lbl">Notifications</span></a>
+                    <a class="sb-row" href="@Url.Action("Logout", "ClinicAdmin")"><span class="sb-icon">🚪</span><span class="sb-lbl">Logout</span></a>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- TOPNAV -->
+        <header class="wa-tn">
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()">☰</button>
+            <div class="tn-bread"><span>Clinic Admin</span><span>/</span><b>Complaints</b></div>
+            <div class="tn-center">
+                <div class="tn-center-main">Complaints</div>
+                <div class="tn-center-sub">Patient complaints about your clinic</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                <div class="tn-identity">🏥 @(Context.Session.GetString("ClinicName") ?? "Clinic")</div>
+            </div>
+        </header>
+
+        <!-- MAIN -->
+        <main class="wa-main">
+
+            <section class="page-hero page-hero-split">
+                <div>
+                    <h1>🚨 Complaints</h1>
+                    <p>
+                        @total complaint@(total != 1 ? "s" : "") total
+                        @if (openCount > 0)
+                        {
+                            <text> · <strong style="color:var(--red)">@openCount open</strong></text>
+                        }
+                        @if (resolvedCount > 0)
+                        {
+                            <text> · @resolvedCount resolved</text>
+                        }
+                    </p>
+                </div>
+            </section>
+
+            <div class="page-body">
+
+                <!-- KPI -->
+                <div class="kpi-grid kpi-4" style="margin-bottom:20px;">
+                    <div class="kpi-card red">
+                        <div class="kpi-top"><div class="kpi-icon red">🚨</div></div>
+                        <div class="kpi-val">@total</div>
+                        <div class="kpi-label">Total complaints</div>
+                    </div>
+                    <div class="kpi-card orange">
+                        <div class="kpi-top"><div class="kpi-icon orange">⏳</div></div>
+                        <div class="kpi-val">@openCount</div>
+                        <div class="kpi-label">Open / Pending</div>
+                    </div>
+                    <div class="kpi-card blue">
+                        <div class="kpi-top"><div class="kpi-icon blue">🔍</div></div>
+                        <div class="kpi-val">@invCount</div>
+                        <div class="kpi-label">Investigating</div>
+                    </div>
+                    <div class="kpi-card green">
+                        <div class="kpi-top"><div class="kpi-icon green">✅</div></div>
+                        <div class="kpi-val">@resolvedCount</div>
+                        <div class="kpi-label">Resolved</div>
+                    </div>
+                </div>
+
+                <!-- Info note -->
+                <div style="background:var(--orap);border:1px solid rgba(191,122,35,.2);
+                        border-radius:12px;padding:.75rem 1rem;margin-bottom:14px;
+                        font-size:.83rem;font-weight:800;color:var(--ora);
+                        display:flex;align-items:center;gap:8px;">
+                    ℹ️ Complaints are managed by Super Admin. You can view them here for transparency.
+                </div>
+
+                <!-- Filter chips -->
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
+                    @foreach (var s in statusOptions)
+                    {
+                        <a href="@Url.Action("Complaints", "ClinicAdmin", new { statusFilter = s })"
+                           class="filter-chip @(statusFilter == s ? "active" : "")">
+                            @s
+                            @if (s == "Open" && openCount > 0)
+                            {
+                                <text> (@openCount)</text>
+                            }
+                            @if (s == "Resolved" && resolvedCount > 0)
+                            {
+                                <text> (@resolvedCount)</text>
+                            }
+                        </a>
+                    }
+                </div>
+
+                <!-- List -->
+                @if (!complaints.Any())
+                {
+                    <div class="table-card" style="text-align:center;padding:52px 20px;">
+                        <div style="font-size:3rem;margin-bottom:12px;">✅</div>
+                        <div style="font-family:'Fredoka',sans-serif;font-size:1.15rem;font-weight:700;color:var(--text);">
+                            No complaints
+                        </div>
+                        <div style="font-size:.84rem;color:var(--text-muted);margin-top:6px;">
+                            @if (statusFilter == "All")
+                            {
+                                <text>Your clinic has no complaints yet. Keep up the great work!</text>
+                            }
+                            else
+                            {
+
+                                <text>No @statusFilter complaints found.</text>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    foreach (var c in complaints)
+                    {
+                        var priorityClass = c.Priority == "High" ? "high"
+                        : c.Priority == "Medium" ? "medium" : "low";
+                        var stBg = c.Status switch
+                        {
+                            "Resolved" => "var(--greap)",
+                            "Investigating" => "var(--orap)",
+                            "Open" => "var(--redp)",
+                            "Pending" => "var(--orap)",
+                            _ => "#f1f5f9"
+                        };
+                        var stColor = c.Status switch
+                        {
+                            "Resolved" => "var(--gre)",
+                            "Investigating" => "var(--ora)",
+                            "Open" => "var(--red)",
+                            "Pending" => "var(--ora)",
+                            _ => "#64748b"
+                        };
+
+                        <div class="comp-row @priorityClass"
+                             data-title="@(c.Title ?? "Complaint")"
+                             data-complainant="@(c.ComplainantName ?? $"User #{c.IdUser}")"
+                             data-date="@c.CreatedAt?.ToString("MMM dd, yyyy")"
+                             data-priority="@c.Priority"
+                             data-description="@c.Description"
+                             data-status-val="@c.Status">
+
+                            <div style="display:flex;align-items:flex-start;
+                                            justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+                                <div>
+                                    <div style="font-weight:900;font-size:.92rem;color:var(--text);">
+                                        @(c.Title ?? "Complaint")
+                                    </div>
+                                    <div style="font-size:.78rem;color:var(--text-muted);margin-top:3px;">
+                                        👤 @(c.ComplainantName ?? $"User #{c.IdUser}")
+                                        &nbsp;·&nbsp;
+                                        📅 @c.CreatedAt?.ToString("MMM dd, yyyy")
+                                    </div>
+                                </div>
+                                <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
+                                    @if (c.Priority != null)
+                                    {
+                                        var prBg = c.Priority == "High" ? "var(--redp)" : c.Priority == "Medium" ? "var(--orap)" : "var(--greap)";
+                                        var prColor = c.Priority == "High" ? "var(--red)" : c.Priority == "Medium" ? "var(--ora)" : "var(--gre)";
+                                        <span style="background:@prBg;color:@prColor;font-size:.7rem;font-weight:900;padding:3px 9px;border-radius:999px;">
+                                            @(c.Priority == "High" ? "🔴" : c.Priority == "Medium" ? "🟡" : "🟢") @c.Priority
+                                        </span>
+                                    }
+                                    <span style="background:@stBg;color:@stColor;font-size:.72rem;font-weight:900;padding:3px 10px;border-radius:999px;">
+                                        @c.Status
+                                    </span>
+                                </div>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(c.Description))
+                            {
+                                <div style="font-size:.83rem;color:var(--text-muted);font-weight:700;
+                                                    line-height:1.55;margin-bottom:10px;">
+                                    @(c.Description.Length > 120 ? c.Description[..120] + "…" : c.Description)
+                                </div>
+                            }
+
+                            <button type="button" class="btn btn-outline btn-sm"
+                                    onclick="openCompDetail(this.closest('.comp-row'))">
+                                👁 View Details
+                            </button>
+                        </div>
+                    }
+                }
+
+            </div>
+        </main>
+    </div>
+
+    <!-- Detail Panel -->
+    <div class="detail-overlay" id="compDetailPanel">
+        <div class="detail-panel">
+            <div class="dp-header">
+                <div class="dp-title" id="compDetailTitle">🚨 Complaint Details</div>
+                <button class="dp-close" onclick="closeDetail()">✕</button>
+            </div>
+            <div class="dp-body" id="compDetailBody"></div>
+            <div class="dp-footer">
+                <button class="btn btn-outline" onclick="closeDetail()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleSidebar() {
+            document.getElementById('waShell').classList.toggle('sb-open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+        function closeSidebar() {
+            document.getElementById('waShell').classList.remove('sb-open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+        function openCompDetail(row) {
+            var title       = row.dataset.title       || 'Complaint';
+            var complainant = row.dataset.complainant || '—';
+            var date        = row.dataset.date        || '—';
+            var priority    = row.dataset.priority    || '—';
+            var description = row.dataset.description || '—';
+            var status      = row.dataset.statusVal   || '—';
+
+            document.getElementById('compDetailTitle').textContent = '🚨 ' + title;
+
+            var prBadge = priority === 'High'
+                ? '<span style="background:var(--redp);color:var(--red);padding:2px 9px;border-radius:999px;font-size:.72rem;font-weight:900;">🔴 High</span>'
+                : priority === 'Medium'
+                ? '<span style="background:var(--orap);color:var(--ora);padding:2px 9px;border-radius:999px;font-size:.72rem;font-weight:900;">🟡 Medium</span>'
+                : '<span style="background:var(--greap);color:var(--gre);padding:2px 9px;border-radius:999px;font-size:.72rem;font-weight:900;">🟢 Low</span>';
+
+            document.getElementById('compDetailBody').innerHTML = `
+                <div class="dp-section">
+                    <div class="dp-section-title">Overview</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">${prBadge}</div>
+                    <div class="dp-grid">
+                        <div class="dp-info-item"><div class="dp-info-label">👤 Complainant</div><div class="dp-info-val">${complainant}</div></div>
+                        <div class="dp-info-item"><div class="dp-info-label">📅 Date</div><div class="dp-info-val">${date}</div></div>
+                        <div class="dp-info-item"><div class="dp-info-label">⚡ Priority</div><div class="dp-info-val">${priority}</div></div>
+                        <div class="dp-info-item"><div class="dp-info-label">📊 Status</div><div class="dp-info-val">${status}</div></div>
+                    </div>
+                </div>
+                <div class="dp-section">
+                    <div class="dp-section-title">Description</div>
+                    <div style="background:var(--surface-2);border-radius:12px;padding:14px;
+                                font-size:.86rem;line-height:1.7;color:var(--text-muted);font-weight:700;">
+                        ${description}
+                    </div>
+                </div>`;
+
+            document.getElementById('compDetailPanel').classList.add('open');
+        }
+        function closeDetail() {
+            document.getElementById('compDetailPanel').classList.remove('open');
+        }
+        document.getElementById('compDetailPanel').addEventListener('click', function(e) {
+            if (e.target === this) closeDetail();
+        });
+    </script>
+</body>
+</html>

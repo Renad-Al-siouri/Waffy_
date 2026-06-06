@@ -12,5 +12,7 @@ namespace Waffy.Interfaces
 
         Task AddBulkAsync(IEnumerable<int> userIds, string type,
     string title, string message, string? relatedEntityType, int? relatedEntityId);
+
+     
     }
 }

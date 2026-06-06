@@ -1,15 +1,14 @@
 ﻿@{
+    Layout = "~/Views/SuperAdmin/_SuperAdminLayout.cshtml";
     ViewData["Title"] = "Map Management — Waffy Admin";
-    Layout = null;
+    ViewData["ActiveSection"] = "map";
+    ViewData["ActivePage"] = "";
+    ViewData["PageTitle"] = "Live Map";
+    ViewData["BreadcrumbParent"] = "Tools";
+    ViewData["BreadcrumbCurrent"] = "Map";
 }
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
-    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+
+@section PageStyles {
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         html, body {
@@ -23,8 +22,8 @@
         }
 
         /* ══════════════════════════════════════════════════════
-                   SHELL — flex row on desktop, column on mobile
-                ══════════════════════════════════════════════════════ */
+                           SHELL — flex row on desktop, column on mobile
+                        ══════════════════════════════════════════════════════ */
         .amap-shell {
             display: flex;
             flex-direction: row;
@@ -39,8 +38,8 @@
         }
 
         /* ══════════════════════════════════════════════════════
-                   LEFT PANEL
-                ══════════════════════════════════════════════════════ */
+                           LEFT PANEL
+                        ══════════════════════════════════════════════════════ */
         .amap-left {
             width: 300px;
             flex-shrink: 0;
@@ -498,8 +497,8 @@
         }
 
         /* ══════════════════════════════════════════════════════
-                   MAP AREA
-                ══════════════════════════════════════════════════════ */
+                           MAP AREA
+                        ══════════════════════════════════════════════════════ */
         .amap-map {
             flex: 1;
             position: relative;
@@ -686,8 +685,8 @@
         }
 
         /* ══════════════════════════════════════════════════════
-                   TABLET PANEL TOGGLE (overlay mode)
-                ══════════════════════════════════════════════════════ */
+                           TABLET PANEL TOGGLE (overlay mode)
+                        ══════════════════════════════════════════════════════ */
         .panel-overlay {
             display: none;
             position: fixed;
@@ -740,8 +739,8 @@
             }
 
         /* ══════════════════════════════════════════════════════
-                   RIGHT PANEL
-                ══════════════════════════════════════════════════════ */
+                           RIGHT PANEL
+                        ══════════════════════════════════════════════════════ */
         .right-panel {
             position: absolute;
             top: 0;
@@ -1444,8 +1443,8 @@
                 }
 
         /* ══════════════════════════════════════════════════════
-                   FIX 1 — App sidebar must always be above map (Leaflet has high z-index)
-                ══════════════════════════════════════════════════════ */
+                           FIX 1 — App sidebar must always be above map (Leaflet has high z-index)
+                        ══════════════════════════════════════════════════════ */
         .wa-sb {
             z-index: 3000 !important;
         }
@@ -1455,16 +1454,16 @@
         }
 
         /* ══════════════════════════════════════════════════════
-                   RESPONSIVE
-                   • Desktop  >1100px  : panel 300px + map — side by side
-                   • Tablet   768-1100px: panel 240px + map — side by side (always visible)
-                   • Mobile   <768px   : stacked — map 50% top, panel 50% bottom
-                ══════════════════════════════════════════════════════ */
+                           RESPONSIVE
+                           • Desktop  >1100px  : panel 300px + map — side by side
+                           • Tablet   768-1100px: panel 240px + map — side by side (always visible)
+                           • Mobile   <768px   : stacked — map 50% top, panel 50% bottom
+                        ══════════════════════════════════════════════════════ */
 
         /* ── TABLET (768px – 1100px) ────────────────────────
-                   Panel stays IN the flow at 240px — always visible.
-                   No overlay, no toggle button needed.
-                ───────────────────────────────────────────────────── */
+                           Panel stays IN the flow at 240px — always visible.
+                           No overlay, no toggle button needed.
+                        ───────────────────────────────────────────────────── */
         @@media (min-width: 768px) and (max-width: 1100px) {
             .amap-left {
                 width: 240px;
@@ -1506,9 +1505,9 @@
         }
 
         /* ── MOBILE (<768px) : STACKED ──────────────────────
-                   Map fills top half, panel fills bottom half.
-                   Everything visible, no overlap possible.
-                ───────────────────────────────────────────────────── */
+                           Map fills top half, panel fills bottom half.
+                           Everything visible, no overlap possible.
+                        ───────────────────────────────────────────────────── */
         @@media (max-width: 767px) {
             .amap-shell {
                 flex-direction: column;
@@ -1621,179 +1620,128 @@
             }
         }
     </style>
-</head>
-<body>
-    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
-    <div class="wa-shell" id="waShell">
+}
 
-        <!-- SIDEBAR (app sidebar) -->
-        <aside class="wa-sb" id="waSb">
-            <div class="sb-logo">
-                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
-                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
-            </div>
-            <nav class="sb-nav">
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span><span class="sb-lbl">Dashboard</span></a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Management</div>
-                    <div><button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span><span class="sb-lbl">Users</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-users"><div class="sb-sub-inner"><a class="sb-child" asp-controller="SuperAdmin" asp-action="Users"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a></div></div></div>
-                    <div><button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span><span class="sb-lbl">Clinics</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-clinics"><div class="sb-sub-inner"><a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a></div></div></div>
-                    <div><button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span><span class="sb-lbl">Shop</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button><div class="sb-sub" id="g-shop"><div class="sb-sub-inner"><a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a></div></div></div>
-                    <div>
-                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" type="button"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span><span class="sb-lbl">Reports</span><span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span></button>
-                        <div class="sb-sub" id="g-rep">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Donations"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Tools</div>
-                    <a class="sb-row active" asp-controller="SuperAdmin" asp-action="Map"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /><line x1="8" y1="2" x2="8" y2="18" /><line x1="16" y1="6" x2="16" y2="22" /></svg></span><span class="sb-lbl">Map</span></a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span><span class="sb-lbl">Notifications</span></a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="RewardLog"><span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20 12V22H4V12" /><path d="M22 7H2v5h20V7z" /><path d="M12 22V7" /></svg></span><span class="sb-lbl">Reward Log</span></a>
-                </div>
-            </nav>
-            <div class="sb-foot">
-                <div class="sb-user-row"><div class="sb-av">@(ViewBag.AdminInitials ?? "AD")</div><div class="sb-user-info"><div class="sb-user-name">@(ViewBag.AdminName ?? "Admin")</div><div class="sb-user-role">Super Admin</div></div></div>
-                <a class="sb-logout" asp-controller="Account" asp-action="Logout"><svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg><span class="sb-logout-lbl">Sign Out</span></a>
-            </div>
-        </aside>
+@section TopNavActions {
+    <button onclick="startAddMode()"
+            style="display:flex;align-items:center;gap:9px;padding:9px 20px 9px 14px;border:none;border-radius:50px;background:linear-gradient(135deg,#5a7a3e,#3d5a2a);color:#fff;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:800;cursor:pointer;box-shadow:0 4px 18px rgba(58,100,38,.38);transition:all .2s"
+            onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+        <svg viewBox="0 0 24 24" fill="none" style="width:18px;height:18px" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+            <circle cx="12" cy="9" r="2.5" fill="currentColor" stroke="none" />
+        </svg>
+        Add Location
+    </button>
+}
 
-        <!-- TOPNAV -->
-        <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button"><svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg></button>
-            <nav class="tn-bread"><span>Tools</span><span>/</span><b>Map Management</b></nav>
-            <div class="tn-spacer"></div>
-            <div class="tn-right">
-                <button onclick="startAddMode()"
-                        style="display:flex;align-items:center;gap:9px;padding:9px 20px 9px 14px;border:none;border-radius:50px;background:linear-gradient(135deg,#5a7a3e,#3d5a2a);color:#fff;font-family:'DM Sans',sans-serif;font-size:.84rem;font-weight:800;cursor:pointer;box-shadow:0 4px 18px rgba(58,100,38,.38);transition:all .2s"
-                        onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
-                    <svg viewBox="0 0 24 24" fill="none" style="width:18px;height:18px" stroke="currentColor" stroke-width="2.2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" /><circle cx="12" cy="9" r="2.5" fill="currentColor" stroke="none" /></svg>
-                    Add Location
-                </button>
-                <a class="tn-btn" asp-controller="SuperAdmin" asp-action="Notifications"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></a>
-                <div class="tn-profile"><div class="tn-av">@(ViewBag.AdminInitials ?? "AD")</div><div><div class="tn-pname">@(ViewBag.AdminName ?? "Admin")</div><div class="tn-prole">Super Admin</div></div></div>
-            </div>
-        </header>
+<main class="wa-main" id="waMain">
+    <div class="amap-shell" id="amapShell">
 
-        <!-- MAIN -->
-        <main class="wa-main" id="waMain">
-            <div class="amap-shell" id="amapShell">
+        <!-- Tablet overlay (not used on mobile) -->
+        <div class="panel-overlay" id="panelOverlay" onclick="closePanelOverlay()"></div>
 
-                <!-- Tablet overlay (not used on mobile) -->
-                <div class="panel-overlay" id="panelOverlay" onclick="closePanelOverlay()"></div>
-
-                <!-- LEFT PANEL -->
-                <div class="amap-left" id="amapLeft">
-                    <div class="panel-hd">
-                        <div class="panel-hd-title">🗺️ Map Overview</div>
-                        <div class="filter-pills">
-                            <button class="fp active" data-f="all" onclick="applyFilter(this,'all')"><svg style="width:10px;height:10px;opacity:.6" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" /></svg>All</button>
-                            <button class="fp" data-f="clinic" onclick="applyFilter(this,'clinic')"><span class="fp-dot" style="background:#00c896"></span>Clinics</button>
-                            <button class="fp" data-f="store" onclick="applyFilter(this,'store')"><span class="fp-dot" style="background:#8b5cf6"></span>Stores</button>
-                            <button class="fp" data-f="friendly" onclick="applyFilter(this,'friendly')"><span class="fp-dot" style="background:#7fa85a"></span>Places</button>
-                            <button class="fp" data-f="danger" onclick="applyFilter(this,'danger')"><span class="fp-dot" style="background:#ef4444"></span>Reports</button>
-                        </div>
-                    </div>
-                    <div class="panel-search">
-                        <div class="ps-wrap">
-                            <svg style="width:13px;color:#c0b0a0;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
-                            <input type="text" placeholder="Search places…" oninput="filterList(this.value)" />
-                        </div>
-                    </div>
-                    <div class="panel-tabs">
-                        <button class="pt active" id="pt-places" onclick="switchTab('places')"><span class="pt-ico">📍</span>Places</button>
-                        <button class="pt" id="pt-danger" onclick="switchTab('danger')"><span class="pt-ico">🚨</span>Reports<span class="pt-cnt" id="dangerBadge">0</span></button>
-                        <button class="pt" id="pt-stats" onclick="switchTab('stats')"><span class="pt-ico">📊</span>Stats</button>
-                    </div>
-
-                    <!-- PLACES -->
-                    <div class="panel-sec active" id="sec-places">
-                        <div class="sec-label" style="padding-top:10px">
-                            <div class="sec-label-text">🏥 Clinics <span id="clinicCnt" style="font-weight:500"></span></div>
-                            <button class="sec-add-btn" onclick="startAddModeFor('clinic')">＋ Add</button>
-                        </div>
-                        <div class="sec-list" id="clinicList" style="max-height:160px;border-bottom:1px solid #f0ebe4"></div>
-                        <div class="sec-label" style="border-top:1px solid #f0ebe4;padding-top:8px">
-                            <div class="sec-label-text">🛍️ Stores <span id="storeCnt" style="font-weight:500"></span></div>
-                            <button class="sec-add-btn" onclick="startAddModeFor('store')">＋ Add</button>
-                        </div>
-                        <div class="sec-list" id="storeList" style="max-height:160px;border-bottom:1px solid #f0ebe4"></div>
-                        <div class="sec-label" style="border-top:1px solid #f0ebe4;padding-top:8px">
-                            <div class="sec-label-text">🌳 Pet-Friendly Places <span id="friendlyCnt" style="font-weight:500"></span></div>
-                            <button class="sec-add-btn" onclick="startAddModeFor('petfriendly')">＋ Add</button>
-                        </div>
-                        <div class="sec-list" id="friendlyList" style="flex:1"></div>
-                    </div>
-
-                    <!-- DANGER -->
-                    <div class="panel-sec" id="sec-danger">
-                        <div class="sec-label" style="padding-top:10px">
-                            <div class="sec-label-text">Active Reports</div>
-                            <a href="/SuperAdmin/Dangerous_Animals" style="font-size:.68rem;font-weight:700;color:#7fa85a;text-decoration:none">View All →</a>
-                        </div>
-                        <div class="sec-list" id="dangerList" style="flex:1"></div>
-                    </div>
-
-                    <!-- STATS -->
-                    <div class="panel-sec" id="sec-stats">
-                        <div class="stats-wrap"><div class="stat-grid" id="statsGrid"></div><div id="statsExtra"></div></div>
-                    </div>
-                </div>
-
-                <!-- MAP -->
-                <div class="amap-map">
-                    <!-- Tablet: thin tab to open/close panel -->
-                    <div class="panel-tab-btn" id="panelTabBtn" onclick="toggleTabletPanel()">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
-                            <polyline points="15 18 9 12 15 6" />
-                        </svg>
-                    </div>
-
-                    <div id="adminMap"></div>
-
-                    <div class="add-banner" id="addBanner">
-                        <div class="ab-pulse"></div>
-                        Click on the map to pin your location
-                        <button class="cancel-btn" onclick="cancelAddMode()">✕ Cancel</button>
-                    </div>
-
-                    <div class="map-legend">
-                        <div class="lg-hd">Legend</div>
-                        <div class="lg-row"><div class="lg-dot" style="background:#00c896"></div>Clinic</div>
-                        <div class="lg-row"><div class="lg-dot" style="background:#8b5cf6"></div>Store</div>
-                        <div class="lg-row"><div class="lg-dot" style="background:#7fa85a"></div>Pet-Friendly</div>
-                        <div class="lg-row"><div class="lg-dot" style="background:#10b981"></div>Park</div>
-                        <div class="lg-row"><div class="lg-dot" style="background:#ef4444"></div>Danger</div>
-                    </div>
-
-                    <!-- RIGHT PANEL -->
-                    <div class="right-panel" id="rightPanel">
-                        <div class="rp-hd">
-                            <button class="rp-back" id="rpBack" onclick="rpGoBack()">←</button>
-                            <div class="rp-title" id="rpTitle">Add Location</div>
-                            <button class="rp-close" onclick="closeRP()">✕</button>
-                        </div>
-                        <div class="rp-body" id="rpBody"></div>
-                    </div>
+        <!-- LEFT PANEL -->
+        <div class="amap-left" id="amapLeft">
+            <div class="panel-hd">
+                <div class="panel-hd-title">🗺️ Map Overview</div>
+                <div class="filter-pills">
+                    <button class="fp active" data-f="all" onclick="applyFilter(this,'all')"><svg style="width:10px;height:10px;opacity:.6" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" /></svg>All</button>
+                    <button class="fp" data-f="clinic" onclick="applyFilter(this,'clinic')"><span class="fp-dot" style="background:#00c896"></span>Clinics</button>
+                    <button class="fp" data-f="store" onclick="applyFilter(this,'store')"><span class="fp-dot" style="background:#8b5cf6"></span>Stores</button>
+                    <button class="fp" data-f="friendly" onclick="applyFilter(this,'friendly')"><span class="fp-dot" style="background:#7fa85a"></span>Places</button>
+                    <button class="fp" data-f="danger" onclick="applyFilter(this,'danger')"><span class="fp-dot" style="background:#ef4444"></span>Reports</button>
                 </div>
             </div>
-        </main>
+            <div class="panel-search">
+                <div class="ps-wrap">
+                    <svg style="width:13px;color:#c0b0a0;flex-shrink:0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+                    <input type="text" placeholder="Search places…" oninput="filterList(this.value)" />
+                </div>
+            </div>
+            <div class="panel-tabs">
+                <button class="pt active" id="pt-places" onclick="switchTab('places')"><span class="pt-ico">📍</span>Places</button>
+                <button class="pt" id="pt-danger" onclick="switchTab('danger')"><span class="pt-ico">🚨</span>Reports<span class="pt-cnt" id="dangerBadge">0</span></button>
+                <button class="pt" id="pt-stats" onclick="switchTab('stats')"><span class="pt-ico">📊</span>Stats</button>
+            </div>
+
+            <!-- PLACES -->
+            <div class="panel-sec active" id="sec-places">
+                <div class="sec-label" style="padding-top:10px">
+                    <div class="sec-label-text">🏥 Clinics <span id="clinicCnt" style="font-weight:500"></span></div>
+                    <button class="sec-add-btn" onclick="startAddModeFor('clinic')">＋ Add</button>
+                </div>
+                <div class="sec-list" id="clinicList" style="max-height:160px;border-bottom:1px solid #f0ebe4"></div>
+                <div class="sec-label" style="border-top:1px solid #f0ebe4;padding-top:8px">
+                    <div class="sec-label-text">🛍️ Stores <span id="storeCnt" style="font-weight:500"></span></div>
+                    <button class="sec-add-btn" onclick="startAddModeFor('store')">＋ Add</button>
+                </div>
+                <div class="sec-list" id="storeList" style="max-height:160px;border-bottom:1px solid #f0ebe4"></div>
+                <div class="sec-label" style="border-top:1px solid #f0ebe4;padding-top:8px">
+                    <div class="sec-label-text">🌳 Pet-Friendly Places <span id="friendlyCnt" style="font-weight:500"></span></div>
+                    <button class="sec-add-btn" onclick="startAddModeFor('petfriendly')">＋ Add</button>
+                </div>
+                <div class="sec-list" id="friendlyList" style="flex:1"></div>
+            </div>
+
+            <!-- DANGER -->
+            <div class="panel-sec" id="sec-danger">
+                <div class="sec-label" style="padding-top:10px">
+                    <div class="sec-label-text">Active Reports</div>
+                    <a href="/SuperAdmin/Dangerous_Animals" style="font-size:.68rem;font-weight:700;color:#7fa85a;text-decoration:none">View All →</a>
+                </div>
+                <div class="sec-list" id="dangerList" style="flex:1"></div>
+            </div>
+
+            <!-- STATS -->
+            <div class="panel-sec" id="sec-stats">
+                <div class="stats-wrap"><div class="stat-grid" id="statsGrid"></div><div id="statsExtra"></div></div>
+            </div>
+        </div>
+
+        <!-- MAP -->
+        <div class="amap-map">
+            <!-- Tablet: thin tab to open/close panel -->
+            <div class="panel-tab-btn" id="panelTabBtn" onclick="toggleTabletPanel()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <polyline points="15 18 9 12 15 6" />
+                </svg>
+            </div>
+
+            <div id="adminMap"></div>
+
+            <div class="add-banner" id="addBanner">
+                <div class="ab-pulse"></div>
+                Click on the map to pin your location
+                <button class="cancel-btn" onclick="cancelAddMode()">✕ Cancel</button>
+            </div>
+
+            <div class="map-legend">
+                <div class="lg-hd">Legend</div>
+                <div class="lg-row"><div class="lg-dot" style="background:#00c896"></div>Clinic</div>
+                <div class="lg-row"><div class="lg-dot" style="background:#8b5cf6"></div>Store</div>
+                <div class="lg-row"><div class="lg-dot" style="background:#7fa85a"></div>Pet-Friendly</div>
+                <div class="lg-row"><div class="lg-dot" style="background:#10b981"></div>Park</div>
+                <div class="lg-row"><div class="lg-dot" style="background:#ef4444"></div>Danger</div>
+            </div>
+
+            <!-- RIGHT PANEL -->
+            <div class="right-panel" id="rightPanel">
+                <div class="rp-hd">
+                    <button class="rp-back" id="rpBack" onclick="rpGoBack()">←</button>
+                    <div class="rp-title" id="rpTitle">Add Location</div>
+                    <button class="rp-close" onclick="closeRP()">✕</button>
+                </div>
+                <div class="rp-body" id="rpBody"></div>
+            </div>
+        </div>
     </div>
+</main>
 
-    <div id="toast"></div>
-    @Html.AntiForgeryToken()
+<div id="toast"></div>
+@Html.AntiForgeryToken()
 
+@section PageScripts {
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="~/js/Waffy-Shell.js"></script>
     <script>
         /* ════════════════════════════════════════════════════════════
            STATE
@@ -2318,5 +2266,4 @@
         window.addEventListener('resize',()=>{ if(map) map.invalidateSize(); });
         document.addEventListener('DOMContentLoaded',()=>{ initMap(); fetchData(); });
     </script>
-</body>
-</html>
+}

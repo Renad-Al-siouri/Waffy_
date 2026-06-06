@@ -1,21 +1,18 @@
 ﻿@model List<Waffy.Models.DangerousAnimalReport>
 @{
+    Layout = "~/Views/SuperAdmin/_SuperAdminLayout.cshtml";
     ViewData["Title"] = "Waffy — Super Admin | Dangerous Animals";
-    Layout = null;
+    ViewData["ActiveSection"] = "reports";
+    ViewData["ActivePage"] = "dangerous-animals";
+    ViewData["PageTitle"] = "Dangerous Animals";
+    ViewData["BreadcrumbParent"] = "Reports";
+    ViewData["BreadcrumbCurrent"] = "Dangerous Animals";
     var totalReports = (int)(ViewBag.TotalReports ?? 0);
     var openReports = (int)(ViewBag.OpenReports ?? 0);
     var highRisk = (int)(ViewBag.HighRisk ?? 0);
     var resolvedReports = (int)(ViewBag.ResolvedReports ?? 0);
 }
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" />
+@section PageStyles {
     <style>
         .sev-dot {
             width: 10px;
@@ -73,452 +70,287 @@
             color: var(--brand-dark);
         }
     </style>
-</head>
-<body>
+}
+<main class="wa-main" id="waMain">
+    <section class="page-hero">
+        <div>
+            <h1>🚨 Dangerous Animals</h1>
+            <p>Review and manage dangerous animal reports submitted by users.</p>
+        </div>
+    </section>
 
-    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
-    <div class="wa-shell" id="waShell">
+    <div class="page-body">
 
-        <!-- ══ SIDEBAR ══ -->
-        <aside class="wa-sb" id="waSb">
-            <div class="sb-logo">
-                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
-                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
+        @* رسائل النجاح والخطأ *@
+        @if (ViewBag.Success != null)
+        {
+            <div style="background:var(--success-soft);border:1px solid rgba(47,158,95,.25);
+                                    color:#2e7d32;padding:12px 16px;border-radius:14px;
+                                    font-weight:800;font-size:.86rem;margin-bottom:16px;">
+                @ViewBag.Success
             </div>
-            <nav class="sb-nav">
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
-                        <span class="sb-lbl">Dashboard</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Management</div>
-                    <div>
-                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span>
-                            <span class="sb-lbl">Users</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-users">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Users"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
-                            <span class="sb-lbl">Clinics</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-clinics">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_C"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
-                            <span class="sb-lbl">Shop</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-shop">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_S"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_S"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
-                            <span class="sb-lbl">Adoption</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-adopt">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Listings"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Adopted_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_A"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row open active" id="t-rep" onclick="acc('g-rep','t-rep')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
-                            <span class="sb-lbl">Reports</span>
-                            <span class="sb-bdg bd-r">@openReports</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub open" id="g-rep" style="height:auto;">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span></a>
-                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Dangerous_Animals">
-                                    <span class="sb-dot"></span>
-                                    <span class="sb-child-lbl">Dangerous Animals</span>
-                                    <span class="sb-bdg bd-r sb-child-bdg">@openReports</span>
-                                </a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Donations"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="System_Complaints">
-                                    <span class="sb-dot"></span>
-                                    <span class="sb-child-lbl">System Complaints</span>
-                                </a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Laws_Regulations"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Tools</div>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Map">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span>
-                        <span class="sb-lbl">Map</span>
-                    </a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
-                        <span class="sb-lbl">Notifications</span>
-                    </a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="RewardLog">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24">
-                                <path d="M20 12V22H4V12" />
-                                <path d="M22 7H2v5h20V7z" />
-                                <path d="M12 22V7" />
-                            </svg>
-                        </span>
-                        <span class="sb-lbl">Reward Log</span>
-                    </a>
-                </div>
-            </nav>
-            <div class="sb-foot">
-                <div class="sb-user-row">
-                    <div class="sb-av">@(ViewBag.AdminInitials ?? "AD")</div>
-                    <div class="sb-user-info">
-                        <div class="sb-user-name">@(ViewBag.AdminName ?? "Admin")</div>
-                        <div class="sb-user-role">Super Admin</div>
-                    </div>
-                </div>
-                <a class="sb-logout" asp-controller="Account" asp-action="Logout">
-                    <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-                    <span class="sb-logout-lbl">Sign Out</span>
-                </a>
+        }
+        @if (ViewBag.Error != null)
+        {
+            <div style="background:var(--danger-soft);border:1px solid rgba(217,83,79,.25);
+                                    color:var(--danger);padding:12px 16px;border-radius:14px;
+                                    font-weight:800;font-size:.86rem;margin-bottom:16px;">
+                @ViewBag.Error
             </div>
-        </aside>
+        }
 
-        <!-- ══ TOPNAV ══ -->
-        <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button">
-                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
-            </button>
-            <nav class="tn-bread"><span>Reports</span><span>/</span><b>Dangerous Animals</b></nav>
-            <div class="tn-center">
-                <div class="tn-center-main">Dangerous Animals</div>
-                <div class="tn-center-sub">Super Admin Panel</div>
+        @* KPI *@
+        <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
+            <div class="kpi-card c4">
+                <div class="kpi-ico red">🚨</div>
+                <div class="kpi-val">@openReports</div>
+                <div class="kpi-label">Open Reports</div>
+                <div class="kpi-chip chip-red">Needs action</div>
             </div>
-            <div class="tn-spacer"></div>
-            <div class="tn-right">
-                <a class="tn-btn" asp-controller="SuperAdmin" asp-action="Notifications">
-                    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-                </a>
-                <div class="tn-sep"></div>
-                <div class="tn-profile">
-                    <div class="tn-av">@(ViewBag.AdminInitials ?? "AD")</div>
-                    <div>
-                        <div class="tn-pname">@(ViewBag.AdminName ?? "Admin")</div>
-                        <div class="tn-prole">Super Admin</div>
-                    </div>
-                </div>
+            <div class="kpi-card c4">
+                <div class="kpi-ico red">🔴</div>
+                <div class="kpi-val">@highRisk</div>
+                <div class="kpi-label">High Risk</div>
+                <div class="kpi-chip chip-red">Urgent</div>
             </div>
-        </header>
+            <div class="kpi-card c1">
+                <div class="kpi-ico green">✅</div>
+                <div class="kpi-val">@resolvedReports</div>
+                <div class="kpi-label">Resolved</div>
+                <div class="kpi-chip chip-green">Closed</div>
+            </div>
+            <div class="kpi-card c2">
+                <div class="kpi-ico blue">📋</div>
+                <div class="kpi-val">@totalReports</div>
+                <div class="kpi-label">Total Reports</div>
+            </div>
+        </div>
 
-        <!-- ══ MAIN ══ -->
-        <main class="wa-main" id="waMain">
-            <section class="page-hero">
-                <div>
-                    <h1>🚨 Dangerous Animals</h1>
-                    <p>Review and manage dangerous animal reports submitted by users.</p>
-                </div>
-            </section>
+        @* Filters — JS ثانوي فقط للفلترة المرئية *@
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+            <div class="search-wrap" style="flex:1 1 200px;">
+                <span style="color:var(--text-muted);">🔍</span>
+                <input id="searchInput" placeholder="Search by type, city or area..." oninput="filterReports()" />
+            </div>
+            <select class="sel-wrap" id="sevFilter" onchange="filterReports()" style="height:48px;width:auto;min-width:140px;">
+                <option value="">All Severity</option>
+                <option value="High">🔴 High</option>
+                <option value="Medium">🟠 Medium</option>
+                <option value="Low">🟢 Low</option>
+            </select>
+            <select class="sel-wrap" id="statusFilter" onchange="filterReports()" style="height:48px;width:auto;min-width:140px;">
+                <option value="">All Statuses</option>
+                <option value="Pending">Pending</option>
+                <option value="Under Review">Under Review</option>
+                <option value="Resolved">Resolved</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="resetFilters()">Reset</button>
+        </div>
 
-            <div class="page-body">
-
-                @* رسائل النجاح والخطأ *@
-                @if (ViewBag.Success != null)
+        @* قائمة البلاغات *@
+        <div class="table-card">
+            <div class="table-head-bar">
+                <div class="table-head-title">Dangerous Animal Reports</div>
+                <span class="table-count">@totalReports reports</span>
+            </div>
+            <div id="reportList">
+                @if (!Model.Any())
                 {
-                    <div style="background:var(--success-soft);border:1px solid rgba(47,158,95,.25);
-                                color:#2e7d32;padding:12px 16px;border-radius:14px;
-                                font-weight:800;font-size:.86rem;margin-bottom:16px;">
-                        @ViewBag.Success
+                    <div style="text-align:center;padding:40px;color:var(--text-muted);">
+                        <div style="font-size:2.5rem;margin-bottom:12px;">🐾</div>
+                        <p style="font-weight:800;">No dangerous animal reports yet.</p>
                     </div>
                 }
-                @if (ViewBag.Error != null)
+                else
                 {
-                    <div style="background:var(--danger-soft);border:1px solid rgba(217,83,79,.25);
-                                color:var(--danger);padding:12px 16px;border-radius:14px;
-                                font-weight:800;font-size:.86rem;margin-bottom:16px;">
-                        @ViewBag.Error
-                    </div>
-                }
-
-                @* KPI *@
-                <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
-                    <div class="kpi-card c4">
-                        <div class="kpi-ico red">🚨</div>
-                        <div class="kpi-val">@openReports</div>
-                        <div class="kpi-label">Open Reports</div>
-                        <div class="kpi-chip chip-red">Needs action</div>
-                    </div>
-                    <div class="kpi-card c4">
-                        <div class="kpi-ico red">🔴</div>
-                        <div class="kpi-val">@highRisk</div>
-                        <div class="kpi-label">High Risk</div>
-                        <div class="kpi-chip chip-red">Urgent</div>
-                    </div>
-                    <div class="kpi-card c1">
-                        <div class="kpi-ico green">✅</div>
-                        <div class="kpi-val">@resolvedReports</div>
-                        <div class="kpi-label">Resolved</div>
-                        <div class="kpi-chip chip-green">Closed</div>
-                    </div>
-                    <div class="kpi-card c2">
-                        <div class="kpi-ico blue">📋</div>
-                        <div class="kpi-val">@totalReports</div>
-                        <div class="kpi-label">Total Reports</div>
-                    </div>
-                </div>
-
-                @* Filters — JS ثانوي فقط للفلترة المرئية *@
-                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-                    <div class="search-wrap" style="flex:1 1 200px;">
-                        <span style="color:var(--text-muted);">🔍</span>
-                        <input id="searchInput" placeholder="Search by type, city or area..." oninput="filterReports()" />
-                    </div>
-                    <select class="sel-wrap" id="sevFilter" onchange="filterReports()" style="height:48px;width:auto;min-width:140px;">
-                        <option value="">All Severity</option>
-                        <option value="High">🔴 High</option>
-                        <option value="Medium">🟠 Medium</option>
-                        <option value="Low">🟢 Low</option>
-                    </select>
-                    <select class="sel-wrap" id="statusFilter" onchange="filterReports()" style="height:48px;width:auto;min-width:140px;">
-                        <option value="">All Statuses</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Under Review">Under Review</option>
-                        <option value="Resolved">Resolved</option>
-                    </select>
-                    <button class="btn btn-outline btn-sm" onclick="resetFilters()">Reset</button>
-                </div>
-
-                @* قائمة البلاغات *@
-                <div class="table-card">
-                    <div class="table-head-bar">
-                        <div class="table-head-title">Dangerous Animal Reports</div>
-                        <span class="table-count">@totalReports reports</span>
-                    </div>
-                    <div id="reportList">
-                        @if (!Model.Any())
+                    @foreach (var r in Model)
+                    {
+                        var sevDot = r.Severity == "High" ? "sev-high" : r.Severity == "Medium" ? "sev-med" : "sev-low";
+                        var sevBadge = r.Severity == "High" ? "badge-danger" : r.Severity == "Medium" ? "badge-warning" : "badge-success";
+                        var sevLabel = r.Severity == "High" ? "🔴 High" : r.Severity == "Medium" ? "🟠 Medium" : "🟢 Low";
+                        var stBadge = r.Status == "Resolved" ? "badge-success" : r.Status == "Under Review" ? "badge-warning" : "badge-danger";
+                        var animalIcon = r.AnimalType switch
                         {
-                            <div style="text-align:center;padding:40px;color:var(--text-muted);">
-                                <div style="font-size:2.5rem;margin-bottom:12px;">🐾</div>
-                                <p style="font-weight:800;">No dangerous animal reports yet.</p>
-                            </div>
-                        }
-                        else
-                        {
-                            @foreach (var r in Model)
-                            {
-                                var sevDot = r.Severity == "High" ? "sev-high" : r.Severity == "Medium" ? "sev-med" : "sev-low";
-                                var sevBadge = r.Severity == "High" ? "badge-danger" : r.Severity == "Medium" ? "badge-warning" : "badge-success";
-                                var sevLabel = r.Severity == "High" ? "🔴 High" : r.Severity == "Medium" ? "🟠 Medium" : "🟢 Low";
-                                var stBadge = r.Status == "Resolved" ? "badge-success" : r.Status == "Under Review" ? "badge-warning" : "badge-danger";
-                                var animalIcon = r.AnimalType switch
-                                {
-                                    "Dog" => "🐕",
-                                    "Cat" => "🐈",
-                                    "Monkey" => "🐒",
-                                    "Reptile" => "🦎",
-                                    _ => "❓"
-                                };
+                            "Dog" => "🐕",
+                            "Cat" => "🐈",
+                            "Monkey" => "🐒",
+                            "Reptile" => "🦎",
+                            _ => "❓"
+                        };
 
-                                <div class="report-row"
-                                     data-type="@r.AnimalType"
-                                     data-problem="@r.ProblemType"
-                                     data-sev="@r.Severity"
-                                     data-status="@r.Status"
-                                     data-city="@r.City"
-                                     data-area="@(r.Area ?? "")"
-                                     data-desc="@(r.Description ?? "")"
-                                     data-code="@r.ReportCode"
-                                     data-date="@r.CreatedAt?.ToString("MMM dd, yyyy")"
-                                     onclick="openDetail(@r.IdDangReport)">
+                        <div class="report-row"
+                             data-type="@r.AnimalType"
+                             data-problem="@r.ProblemType"
+                             data-sev="@r.Severity"
+                             data-status="@r.Status"
+                             data-city="@r.City"
+                             data-area="@(r.Area ?? "")"
+                             data-desc="@(r.Description ?? "")"
+                             data-code="@r.ReportCode"
+                             data-date="@r.CreatedAt?.ToString("MMM dd, yyyy")"
+                             onclick="openDetail(@r.IdDangReport)">
 
-                                    <div style="display:flex;align-items:center;justify-content:space-between;
-                                                    gap:10px;margin-bottom:6px;flex-wrap:wrap;">
-                                        <div style="display:flex;align-items:center;gap:9px;">
-                                            <div class="sev-dot @sevDot"></div>
-                                            <div style="font-weight:900;font-size:.9rem;color:var(--brand-dark);">
-                                                @r.ProblemType — @animalIcon @r.AnimalType
-                                            </div>
-                                        </div>
-                                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                                            <span class="badge @sevBadge">@sevLabel</span>
-                                            <span class="badge @stBadge">@r.Status</span>
-                                        </div>
-                                    </div>
-
-                                    <div style="font-size:.78rem;color:var(--text-muted);font-weight:700;margin-bottom:7px;">
-                                        📍 @r.City @(!string.IsNullOrEmpty(r.Area) ? $"— {r.Area}" : "")
-                                        &nbsp;·&nbsp;
-                                        📅 @r.CreatedAt?.ToString("MMM dd, yyyy")
-                                        &nbsp;·&nbsp;
-                                        🔖 @r.ReportCode
-                                    </div>
-
-                                    @if (!string.IsNullOrEmpty(r.Description))
-                                    {
-                                        <div style="font-size:.82rem;color:var(--text-muted);font-weight:700;margin-bottom:10px;">
-                                            @(r.Description.Length > 120 ? r.Description[..120] + "…" : r.Description)
-                                        </div>
-                                    }
-
-                                    @* ✅ أزرار Status — HTML forms حقيقية *@
-                                    <div class="action-group">
-                                        @if (r.Status != "Under Review")
-                                        {
-                                            <form method="post"
-                                                  asp-controller="SuperAdmin"
-                                                  asp-action="UpdateDangerStatus"
-                                                  style="display:inline">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="reportId" value="@r.IdDangReport" />
-                                                <input type="hidden" name="status" value="Under Review" />
-                                                <button type="submit" class="btn btn-warning btn-xs">
-                                                    🔍 Under Review
-                                                </button>
-                                            </form>
-                                        }
-                                        @if (r.Status != "Resolved")
-                                        {
-                                            <form method="post"
-                                                  asp-controller="SuperAdmin"
-                                                  asp-action="UpdateDangerStatus"
-                                                  style="display:inline">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="reportId" value="@r.IdDangReport" />
-                                                <input type="hidden" name="status" value="Resolved" />
-                                                <button type="submit" class="btn btn-success btn-xs">
-                                                    ✅ Resolve
-                                                </button>
-                                            </form>
-                                        }
-                                        @if (r.Status != "Pending")
-                                        {
-                                            <form method="post"
-                                                  asp-controller="SuperAdmin"
-                                                  asp-action="UpdateDangerStatus"
-                                                  style="display:inline">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="reportId" value="@r.IdDangReport" />
-                                                <input type="hidden" name="status" value="Pending" />
-                                                <button type="submit" class="btn btn-outline btn-xs">
-                                                    🔄 Reopen
-                                                </button>
-                                            </form>
-                                        }
-                                        <button class="btn btn-outline btn-xs"
-                                                onclick="openDetail(@r.IdDangReport)">
-                                            👁 Details
-                                        </button>
+                            <div style="display:flex;align-items:center;justify-content:space-between;
+                                                            gap:10px;margin-bottom:6px;flex-wrap:wrap;">
+                                <div style="display:flex;align-items:center;gap:9px;">
+                                    <div class="sev-dot @sevDot"></div>
+                                    <div style="font-weight:900;font-size:.9rem;color:var(--brand-dark);">
+                                        @r.ProblemType — @animalIcon @r.AnimalType
                                     </div>
                                 </div>
+                                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                    <span class="badge @sevBadge">@sevLabel</span>
+                                    <span class="badge @stBadge">@r.Status</span>
+                                </div>
+                            </div>
+
+                            <div style="font-size:.78rem;color:var(--text-muted);font-weight:700;margin-bottom:7px;">
+                                📍 @r.City @(!string.IsNullOrEmpty(r.Area) ? $"— {r.Area}" : "")
+                                &nbsp;·&nbsp;
+                                📅 @r.CreatedAt?.ToString("MMM dd, yyyy")
+                                &nbsp;·&nbsp;
+                                🔖 @r.ReportCode
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(r.Description))
+                            {
+                                <div style="font-size:.82rem;color:var(--text-muted);font-weight:700;margin-bottom:10px;">
+                                    @(r.Description.Length > 120 ? r.Description[..120] + "…" : r.Description)
+                                </div>
                             }
-                        }
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
 
-    @* ══ DETAIL PANEL — للعرض فقط (JS ثانوي) ══ *@
-
-    @* ══ DETAIL PANEL ══ *@
-    <div class="detail-overlay" id="detailModal">
-        <div class="detail-panel" style="max-width:660px;">
-            <div class="dp-header">
-                <div class="dp-title" id="dTitle">🚨 Report Details</div>
-                <button class="dp-close" onclick="closeModal()">✕</button>
-            </div>
-            <div class="dp-body">
-
-                @* Severity Box *@
-                <div id="dSevBox" style="border-radius:var(--r);padding:12px 14px;
-                                     margin-bottom:14px;font-size:.84rem;font-weight:800;"></div>
-
-                @* Report Info *@
-                <div class="dp-section" id="dInfo"></div>
-
-                @* Send Internal Alert *@
-                <div class="dp-section" style="margin-top:14px;">
-                    <div class="dp-section-title">📢 Send Internal Alert</div>
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;
-                            gap:10px;margin-bottom:12px;">
-                        <button class="btn btn-success btn-sm"
-                                onclick="sendAlert('clinic')"
-                                style="justify-content:center;">
-                            🏥 Notify Clinics
-                        </button>
-                        <button class="btn btn-warning btn-sm"
-                                onclick="sendAlert('municipality')"
-                                style="justify-content:center;">
-                            🏛 Municipality
-                        </button>
-                        <button class="btn btn-info btn-sm"
-                                onclick="sendAlert('police')"
-                                style="justify-content:center;">
-                            🚔 Civil Defense
-                        </button>
-                    </div>
-                    <div class="field">
-                        <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">
-                            Admin Note (optional)
-                        </label>
-                        <textarea id="dNote"
-                                  placeholder="Add internal notes..."
-                                  style="width:100%;min-height:80px;border:1.5px solid var(--border);
-                                     border-radius:12px;background:#fff;padding:12px 14px;
-                                     font-weight:700;font-size:.86rem;outline:none;
-                                     font-family:'Nunito',sans-serif;resize:vertical;"></textarea>
-                    </div>
-                </div>
-
-                @* Change Status *@
-                <div class="dp-section" style="margin-top:14px;">
-                    <div class="dp-section-title">⚙️ Update Status</div>
-                    <div id="dStatusForms"></div>
-                </div>
-
-            </div>
-            <div class="dp-footer">
-                <button class="btn btn-outline btn-sm" onclick="closeModal()">Close</button>
+                            @* ✅ أزرار Status — HTML forms حقيقية *@
+                            <div class="action-group">
+                                @if (r.Status != "Under Review")
+                                {
+                                    <form method="post"
+                                          asp-controller="SuperAdmin"
+                                          asp-action="UpdateDangerStatus"
+                                          style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="reportId" value="@r.IdDangReport" />
+                                        <input type="hidden" name="status" value="Under Review" />
+                                        <button type="submit" class="btn btn-warning btn-xs">
+                                            🔍 Under Review
+                                        </button>
+                                    </form>
+                                }
+                                @if (r.Status != "Resolved")
+                                {
+                                    <form method="post"
+                                          asp-controller="SuperAdmin"
+                                          asp-action="UpdateDangerStatus"
+                                          style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="reportId" value="@r.IdDangReport" />
+                                        <input type="hidden" name="status" value="Resolved" />
+                                        <button type="submit" class="btn btn-success btn-xs">
+                                            ✅ Resolve
+                                        </button>
+                                    </form>
+                                }
+                                @if (r.Status != "Pending")
+                                {
+                                    <form method="post"
+                                          asp-controller="SuperAdmin"
+                                          asp-action="UpdateDangerStatus"
+                                          style="display:inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="reportId" value="@r.IdDangReport" />
+                                        <input type="hidden" name="status" value="Pending" />
+                                        <button type="submit" class="btn btn-outline btn-xs">
+                                            🔄 Reopen
+                                        </button>
+                                    </form>
+                                }
+                                <button class="btn btn-outline btn-xs"
+                                        onclick="openDetail(@r.IdDangReport)">
+                                    👁 Details
+                                </button>
+                            </div>
+                        </div>
+                    }
+                }
             </div>
         </div>
     </div>
+</main>
 
-    <div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+</div>
+
+@* ══ DETAIL PANEL — للعرض فقط (JS ثانوي) ══ *@
+
+@* ══ DETAIL PANEL ══ *@
+<div class="detail-overlay" id="detailModal">
+    <div class="detail-panel" style="max-width:660px;">
+        <div class="dp-header">
+            <div class="dp-title" id="dTitle">🚨 Report Details</div>
+            <button class="dp-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="dp-body">
+
+            @* Severity Box *@
+            <div id="dSevBox" style="border-radius:var(--r);padding:12px 14px;
+                                     margin-bottom:14px;font-size:.84rem;font-weight:800;"></div>
+
+            @* Report Info *@
+            <div class="dp-section" id="dInfo"></div>
+
+            @* Send Internal Alert *@
+            <div class="dp-section" style="margin-top:14px;">
+                <div class="dp-section-title">📢 Send Internal Alert</div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;
+                            gap:10px;margin-bottom:12px;">
+                    <button class="btn btn-success btn-sm"
+                            onclick="sendAlert('clinic')"
+                            style="justify-content:center;">
+                        🏥 Notify Clinics
+                    </button>
+                    <button class="btn btn-warning btn-sm"
+                            onclick="sendAlert('municipality')"
+                            style="justify-content:center;">
+                        🏛 Municipality
+                    </button>
+                    <button class="btn btn-info btn-sm"
+                            onclick="sendAlert('police')"
+                            style="justify-content:center;">
+                        🚔 Civil Defense
+                    </button>
+                </div>
+                <div class="field">
+                    <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);">
+                        Admin Note (optional)
+                    </label>
+                    <textarea id="dNote"
+                              placeholder="Add internal notes..."
+                              style="width:100%;min-height:80px;border:1.5px solid var(--border);
+                                     border-radius:12px;background:#fff;padding:12px 14px;
+                                     font-weight:700;font-size:.86rem;outline:none;
+                                     font-family:'Nunito',sans-serif;resize:vertical;"></textarea>
+                </div>
+            </div>
+
+            @* Change Status *@
+            <div class="dp-section" style="margin-top:14px;">
+                <div class="dp-section-title">⚙️ Update Status</div>
+                <div id="dStatusForms"></div>
+            </div>
+
+        </div>
+        <div class="dp-footer">
+            <button class="btn btn-outline btn-sm" onclick="closeModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
      background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;
      padding:11px 22px;border-radius:var(--pill);font-weight:800;font-size:.85rem;
      z-index:1999;display:none;align-items:center;gap:6px;
      box-shadow:0 8px 22px rgba(89,101,42,.3);white-space:nowrap;"></div>
 
-    <script src="~/js/Waffy-Shell.js"></script>
+
+@section PageScripts {
     <script>
         // ✅ منع تفجير الـ click من action-group للـ report-row
         document.querySelectorAll('.action-group').forEach(function(el) {
@@ -710,5 +542,4 @@
             setTimeout(function() { t.style.display = 'none'; }, 3000);
         }
     </script>
-</body>
-</html>
+}

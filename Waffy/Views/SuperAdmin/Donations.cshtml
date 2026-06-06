@@ -1,6 +1,12 @@
 ﻿@using Waffy.Models
 @{
-    Layout = null;
+    Layout = "~/Views/SuperAdmin/_SuperAdminLayout.cshtml";
+    ViewData["Title"] = "Waffy — Super Admin | Donations";
+    ViewData["ActiveSection"] = "reports";
+    ViewData["ActivePage"] = "donations";
+    ViewData["PageTitle"] = "Donations";
+    ViewData["BreadcrumbParent"] = "Reports";
+    ViewData["BreadcrumbCurrent"] = "Donations";
     var donations = ViewBag.Donations as List<Donation> ?? new List<Donation>();
     var animals = ViewBag.Animals as List<DonationAnimal> ?? new List<DonationAnimal>();
     var totalDon = (int)(ViewBag.TotalDonations ?? 0);
@@ -8,15 +14,8 @@
     var completedDon = (int)(ViewBag.CompletedDonations ?? 0);
     var activeAnimals = (int)(ViewBag.ActiveAnimals ?? 0);
 }
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Waffy — Super Admin | Donations</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" />
+
+@section PageStyles {
     <style>
         .don-ico {
             width: 40px;
@@ -155,625 +154,466 @@
                     box-shadow: 0 0 0 3px rgba(151,173,77,0.12);
                 }
     </style>
-</head>
-<body>
+}
 
-    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
-    <div class="wa-shell" id="waShell">
+<main class="wa-main" id="waMain">
+    <section class="page-hero">
+        <div>
+            <h1>❤️ Donations</h1>
+            <p>Track incoming donations and manage the animals available for targeted donations.</p>
+        </div>
+    </section>
 
-        <!-- ══ SIDEBAR ══ -->
-        <aside class="wa-sb" id="waSb">
-            <div class="sb-logo">
-                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
-                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
+    <div class="page-body">
+
+        @* رسائل النجاح والخطأ *@
+        @if (ViewBag.Success != null)
+        {
+            <div style="background:var(--success-soft);border:1px solid rgba(47,158,95,.25);
+                                    color:#2e7d32;padding:12px 16px;border-radius:14px;
+                                    font-weight:800;font-size:.86rem;margin-bottom:16px;">
+                @ViewBag.Success
             </div>
-            <nav class="sb-nav">
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
-                        <span class="sb-lbl">Dashboard</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Management</div>
-                    <div>
-                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span>
-                            <span class="sb-lbl">Users</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-users">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Users"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
-                            <span class="sb-lbl">Clinics</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-clinics">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_C"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
-                            <span class="sb-lbl">Shop</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-shop">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_S"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_S"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
-                            <span class="sb-lbl">Adoption</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-adopt">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Listings"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Adopted_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_A"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row open active" id="t-rep" onclick="acc('g-rep','t-rep')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
-                            <span class="sb-lbl">Reports</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub open" id="g-rep" style="height:auto;">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span></a>
-                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Donations">
-                                    <span class="sb-dot"></span>
-                                    <span class="sb-child-lbl">Donations</span>
-                                    <span class="sb-bdg bd-y sb-child-bdg">@pendingDon</span>
-                                </a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Laws_Regulations"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Tools</div>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Map">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span>
-                        <span class="sb-lbl">Map</span>
-                    </a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
-                        <span class="sb-lbl">Notifications</span>
-                    </a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="RewardLog">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24">
-                                <path d="M20 12V22H4V12" />
-                                <path d="M22 7H2v5h20V7z" />
-                                <path d="M12 22V7" />
-                            </svg>
-                        </span>
-                        <span class="sb-lbl">Reward Log</span>
-                    </a>
-                </div>
-            </nav>
-            <div class="sb-foot">
-                <div class="sb-user-row">
-                    <div class="sb-av">@(ViewBag.AdminInitials ?? "AD")</div>
-                    <div class="sb-user-info">
-                        <div class="sb-user-name">@(ViewBag.AdminName ?? "Admin")</div>
-                        <div class="sb-user-role">Super Admin</div>
-                    </div>
-                </div>
-                <a class="sb-logout" asp-controller="Account" asp-action="Logout">
-                    <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-                    <span class="sb-logout-lbl">Sign Out</span>
-                </a>
+        }
+        @if (ViewBag.Error != null)
+        {
+            <div style="background:var(--danger-soft);border:1px solid rgba(217,83,79,.25);
+                                    color:var(--danger);padding:12px 16px;border-radius:14px;
+                                    font-weight:800;font-size:.86rem;margin-bottom:16px;">
+                @ViewBag.Error
             </div>
-        </aside>
+        }
 
-        <!-- ══ TOPNAV ══ -->
-        <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button">
-                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
+        @* KPI — بيانات حقيقية *@
+        <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
+            <div class="kpi-card c1">
+                <div class="kpi-ico green">💰</div>
+                <div class="kpi-val">@totalDon</div>
+                <div class="kpi-label">Total Donations</div>
+            </div>
+            <div class="kpi-card c2">
+                <div class="kpi-ico blue">✅</div>
+                <div class="kpi-val">@completedDon</div>
+                <div class="kpi-label">Completed</div>
+                <div class="kpi-chip chip-green">Done</div>
+            </div>
+            <div class="kpi-card c3">
+                <div class="kpi-ico yellow">⏳</div>
+                <div class="kpi-val">@pendingDon</div>
+                <div class="kpi-label">Pending</div>
+                @if (pendingDon > 0)
+                {
+                    <div class="kpi-chip chip-yellow">Needs action</div>
+                }
+            </div>
+            <div class="kpi-card c1">
+                <div class="kpi-ico green">🐾</div>
+                <div class="kpi-val">@activeAnimals</div>
+                <div class="kpi-label">Active Animals</div>
+                <div class="kpi-chip chip-green">Visible to users</div>
+            </div>
+        </div>
+
+        @* Tabs *@
+        <div class="tabs-bar" style="margin-bottom:20px;">
+            <button class="tab-btn active" type="button" onclick="switchTab(this,'donations')">
+                💵 Donations Log
             </button>
-            <nav class="tn-bread"><span>Reports</span><span>/</span><b>Donations</b></nav>
-            <div class="tn-center">
-                <div class="tn-center-main">Donations</div>
-                <div class="tn-center-sub">Super Admin Panel</div>
+            <button class="tab-btn" type="button" onclick="switchTab(this,'animals')">
+                🐾 Donation Animals
+                <span class="tab-count">@activeAnimals active</span>
+            </button>
+        </div>
+
+        @* ══ TAB: Donations Log ══ *@
+        <div id="pane-donations">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                <div class="search-wrap" style="flex:1 1 200px;">
+                    <span style="color:var(--text-muted);">🔍</span>
+                    <input id="searchInput" placeholder="Search by reference or donor..." oninput="filterDonations()" />
+                </div>
+                <select class="sel-wrap" id="typeFilter" onchange="filterDonations()" style="height:48px;min-width:130px;">
+                    <option value="">All Types</option>
+                    <option value="money">💵 Money</option>
+                    <option value="food">🍖 Food</option>
+                    <option value="medicine">💊 Medicine</option>
+                    <option value="supplies">📦 Supplies</option>
+                </select>
+                <select class="sel-wrap" id="statusFilter" onchange="filterDonations()" style="height:48px;min-width:130px;">
+                    <option value="">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                </select>
+                <button class="btn btn-outline btn-sm" onclick="resetDonationFilters()">Reset</button>
             </div>
-            <div class="tn-spacer"></div>
-            <div class="tn-right">
-                <a class="tn-btn" asp-controller="SuperAdmin" asp-action="Notifications">
-                    <svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
-                </a>
-                <div class="tn-sep"></div>
-                <div class="tn-profile">
-                    <div class="tn-av">@(ViewBag.AdminInitials ?? "AD")</div>
-                    <div>
-                        <div class="tn-pname">@(ViewBag.AdminName ?? "Admin")</div>
-                        <div class="tn-prole">Super Admin</div>
-                    </div>
+
+            <div class="table-card">
+                <div class="table-head-bar">
+                    <div class="table-head-title">Donations List</div>
+                    <span class="table-count" id="donationCount">@totalDon donations</span>
                 </div>
-            </div>
-        </header>
-
-        <!-- ══ MAIN ══ -->
-        <main class="wa-main" id="waMain">
-            <section class="page-hero">
-                <div>
-                    <h1>❤️ Donations</h1>
-                    <p>Track incoming donations and manage the animals available for targeted donations.</p>
-                </div>
-            </section>
-
-            <div class="page-body">
-
-                @* رسائل النجاح والخطأ *@
-                @if (ViewBag.Success != null)
-                {
-                    <div style="background:var(--success-soft);border:1px solid rgba(47,158,95,.25);
-                                color:#2e7d32;padding:12px 16px;border-radius:14px;
-                                font-weight:800;font-size:.86rem;margin-bottom:16px;">
-                        @ViewBag.Success
-                    </div>
-                }
-                @if (ViewBag.Error != null)
-                {
-                    <div style="background:var(--danger-soft);border:1px solid rgba(217,83,79,.25);
-                                color:var(--danger);padding:12px 16px;border-radius:14px;
-                                font-weight:800;font-size:.86rem;margin-bottom:16px;">
-                        @ViewBag.Error
-                    </div>
-                }
-
-                @* KPI — بيانات حقيقية *@
-                <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
-                    <div class="kpi-card c1">
-                        <div class="kpi-ico green">💰</div>
-                        <div class="kpi-val">@totalDon</div>
-                        <div class="kpi-label">Total Donations</div>
-                    </div>
-                    <div class="kpi-card c2">
-                        <div class="kpi-ico blue">✅</div>
-                        <div class="kpi-val">@completedDon</div>
-                        <div class="kpi-label">Completed</div>
-                        <div class="kpi-chip chip-green">Done</div>
-                    </div>
-                    <div class="kpi-card c3">
-                        <div class="kpi-ico yellow">⏳</div>
-                        <div class="kpi-val">@pendingDon</div>
-                        <div class="kpi-label">Pending</div>
-                        @if (pendingDon > 0)
-                        {
-                            <div class="kpi-chip chip-yellow">Needs action</div>
-                        }
-                    </div>
-                    <div class="kpi-card c1">
-                        <div class="kpi-ico green">🐾</div>
-                        <div class="kpi-val">@activeAnimals</div>
-                        <div class="kpi-label">Active Animals</div>
-                        <div class="kpi-chip chip-green">Visible to users</div>
-                    </div>
-                </div>
-
-                @* Tabs *@
-                <div class="tabs-bar" style="margin-bottom:20px;">
-                    <button class="tab-btn active" type="button" onclick="switchTab(this,'donations')">
-                        💵 Donations Log
-                    </button>
-                    <button class="tab-btn" type="button" onclick="switchTab(this,'animals')">
-                        🐾 Donation Animals
-                        <span class="tab-count">@activeAnimals active</span>
-                    </button>
-                </div>
-
-                @* ══ TAB: Donations Log ══ *@
-                <div id="pane-donations">
-                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
-                        <div class="search-wrap" style="flex:1 1 200px;">
-                            <span style="color:var(--text-muted);">🔍</span>
-                            <input id="searchInput" placeholder="Search by reference or donor..." oninput="filterDonations()" />
-                        </div>
-                        <select class="sel-wrap" id="typeFilter" onchange="filterDonations()" style="height:48px;min-width:130px;">
-                            <option value="">All Types</option>
-                            <option value="money">💵 Money</option>
-                            <option value="food">🍖 Food</option>
-                            <option value="medicine">💊 Medicine</option>
-                            <option value="supplies">📦 Supplies</option>
-                        </select>
-                        <select class="sel-wrap" id="statusFilter" onchange="filterDonations()" style="height:48px;min-width:130px;">
-                            <option value="">All Statuses</option>
-                            <option value="pending">Pending</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                        <button class="btn btn-outline btn-sm" onclick="resetDonationFilters()">Reset</button>
-                    </div>
-
-                    <div class="table-card">
-                        <div class="table-head-bar">
-                            <div class="table-head-title">Donations List</div>
-                            <span class="table-count" id="donationCount">@totalDon donations</span>
-                        </div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Ref</th>
-                                        <th>Donor</th>
-                                        <th>Type</th>
-                                        <th>Amount</th>
-                                        <th>Target</th>
-                                        <th>Date</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @if (!donations.Any())
-                                    {
-                                        <tr>
-                                            <td colspan="8" style="text-align:center;padding:28px;color:var(--text-muted);">
-                                                No donations yet.
-                                            </td>
-                                        </tr>
-                                    }
-                                    else
-                                    {
-                                        @foreach (var d in donations)
-                                        {
-                                            var typeIcon = d.DonationType switch
-                                            {
-                                                "Money" => "💵",
-                                                "Food" => "🍖",
-                                                "Medicine" => "💊",
-                                                "Supplies" => "📦",
-                                                _ => "❤️"
-                                            };
-                                            var stBadge = d.Status == "Completed"
-                                            ? "badge-success" : "badge-warning";
-                                            var amountDisplay = d.DonationType == "Money"
-                                            ? $"{d.Amount:F2} JOD"
-                                            : $"{d.Quantity} {d.Unit}";
-
-                                            <tr data-ref="@d.ReferenceCode?.ToLower()"
-                                                data-donor="@((d.DonorName ?? $"User #{d.IdUser}").ToLower())"
-                                                data-type="@d.DonationType?.ToLower()"
-                                                data-status="@d.Status?.ToLower()">
-                                                <td style="font-size:.78rem;color:var(--text-muted);font-weight:800;">
-                                                    @d.ReferenceCode
-                                                </td>
-                                                <td>
-                                                    <div style="display:flex;align-items:center;gap:9px;">
-                                                        <div class="don-ico">@typeIcon</div>
-                                                        <div style="font-weight:900;color:var(--brand-dark);">
-                                                            @(d.DonorName ?? $"User #{d.IdUser}")
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td>@typeIcon @d.DonationType</td>
-                                                <td style="font-weight:900;color:var(--brand-dark);">
-                                                    @amountDisplay
-                                                </td>
-                                                <td>
-                                                    @if (string.IsNullOrEmpty(d.TargetType) || d.TargetType == "General")
-                                                    {
-                                                        <span class="badge badge-muted">🌍 General</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span style="font-weight:800;font-size:.84rem;">
-                                                             @if (d.TargetType == "Animal")
-                                                            {
-                                                                <span>🐾 @(d.AnimalName ?? "Animal")</span>
-                                                            }
-                                                                                                else if (d.TargetType == "General")
-                                                            {
-                                                                <span>🌍 General Support</span>
-                                                            }
-                                                            else
-                                                            {
-                                                                <span>@d.TargetType</span>
-                                                            }
-                                                        </span>
-                                                    }
-                                                </td>
-                                                <td style="font-size:.8rem;color:var(--text-muted);">
-                                                    @d.CreatedAt?.ToString("MMM dd, yyyy")
-                                                </td>
-                                                <td>
-                                                    <span class="badge @stBadge">@d.Status</span>
-                                                </td>
-                                                <td>
-                                                    @if (d.Status != "Completed")
-                                                    {
-                                                        <form method="post"
-                                                              asp-controller="SuperAdmin"
-                                                              asp-action="UpdateDonationStatus"
-                                                              style="display:inline">
-                                                            @Html.AntiForgeryToken()
-                                                            <input type="hidden" name="donationId" value="@d.Id" />
-                                                            <input type="hidden" name="status" value="Completed" />
-                                                            <button type="submit" class="btn btn-success btn-xs">
-                                                                📦 Mark Done
-                                                            </button>
-                                                        </form>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span style="font-size:.78rem;color:var(--text-muted);font-weight:800;">
-                                                            Done ✓
-                                                        </span>
-                                                    }
-                                                </td>
-                                            </tr>
-                                        }
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                @* ══ TAB: Donation Animals ══ *@
-                <div id="pane-animals" style="display:none;">
-
-                    @* Filters + Add Button *@
-                    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:stretch;">
-                        <div class="search-wrap" style="flex:1 1 200px;">
-                            <span style="color:var(--text-muted);">🔍</span>
-                            <input id="animalSearch" placeholder="Search animal name..." oninput="filterAnimals()" />
-                        </div>
-                        <select class="sel-wrap" id="animalTypeFilter" onchange="filterAnimals()" style="height:48px;min-width:130px;">
-                            <option value="">All Types</option>
-                            <option value="dog">🐕 Dogs</option>
-                            <option value="cat">🐈 Cats</option>
-                            <option value="bird">🐦 Birds</option>
-                            <option value="other">🐾 Others</option>
-                        </select>
-                        <select class="sel-wrap" id="animalStatusFilter" onchange="filterAnimals()" style="height:48px;min-width:130px;">
-                            <option value="">All Statuses</option>
-                            <option value="active">Active</option>
-                            <option value="paused">Paused</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                        <button class="btn btn-outline btn-sm" onclick="resetAnimalFilters()">Reset</button>
-                        <button class="btn btn-primary btn-sm" type="button" onclick="toggleAddForm()">
-                            ＋ Add Animal
-                        </button>
-                    </div>
-
-                    @* ✅ فورم إضافة حيوان — مخفي بالبداية *@
-                    <div id="addAnimalSection" style="display:none;margin-bottom:16px;">
-                        <div class="add-form-card">
-                            <div class="add-form-title">🐾 Add Donation Animal</div>
-                            <form method="post"
-                                  asp-controller="SuperAdmin"
-                                  asp-action="AddDonationAnimal">
-                                @Html.AntiForgeryToken()
-                                <div class="add-form-grid">
-                                    <label class="full">
-                                        Animal Name *
-                                        <input type="text" name="name" placeholder="e.g. Rex" required />
-                                    </label>
-                                    <label>
-                                        Type *
-                                        <select name="animalType" required>
-                                            <option value="">Select type</option>
-                                            <option value="Dog">🐕 Dog</option>
-                                            <option value="Cat">🐈 Cat</option>
-                                            <option value="Bird">🐦 Bird</option>
-                                            <option value="Other">🐾 Other</option>
-                                        </select>
-                                    </label>
-                                    <label>
-                                        Condition
-                                        <select name="condition">
-                                            <option>Injured</option>
-                                            <option>Sick</option>
-                                            <option>Stray — Needs Care</option>
-                                            <option>Post-Surgery</option>
-                                            <option>Malnourished</option>
-                                            <option>Healthy — General Support</option>
-                                        </select>
-                                    </label>
-                                    <label>
-                                        Location
-                                        <input type="text" name="location" placeholder="e.g. Amman Shelter" />
-                                    </label>
-                                    <label>
-                                        Goal Amount (JOD)
-                                        <input type="number" name="goalAmount" min="1" placeholder="e.g. 150" />
-                                    </label>
-                                    <label class="full">
-                                        Story / Description *
-                                        <textarea name="story" placeholder="Explain why this animal needs donations..." required></textarea>
-                                    </label>
-                                </div>
-                                <div style="display:flex;gap:8px;margin-top:16px;">
-                                    <button type="submit" class="btn btn-primary btn-sm">💾 Save Animal</button>
-                                    <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddForm()">Cancel</button>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-
-                    @* Animals Grid — Razor rendered *@
-                    <div class="table-card">
-                        <div class="table-head-bar">
-                            <div class="table-head-title">🐾 Animals Available for Donation</div>
-                            <span style="font-size:.78rem;font-weight:700;color:var(--text-muted);">
-                                These appear in the user-facing donation screen
-                            </span>
-                        </div>
-                        <div style="padding:16px;">
-                            @if (!animals.Any())
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Ref</th>
+                                <th>Donor</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Target</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!donations.Any())
                             {
-                                <div style="text-align:center;padding:40px;color:var(--text-muted);">
-                                    <div style="font-size:2.5rem;margin-bottom:12px;">🐾</div>
-                                    <p style="font-weight:800;">No animals added yet. Click "+ Add Animal" to get started.</p>
-                                </div>
+                                <tr>
+                                    <td colspan="8" style="text-align:center;padding:28px;color:var(--text-muted);">
+                                        No donations yet.
+                                    </td>
+                                </tr>
                             }
                             else
                             {
-                                <div class="animals-grid" id="animalsGrid">
-                                    @foreach (var a in animals)
+                                @foreach (var d in donations)
+                                {
+                                    var typeIcon = d.DonationType switch
                                     {
-                                        var animalEmoji = a.AnimalType?.ToLower() switch
-                                        {
-                                            "dog" => "🐕",
-                                            "cat" => "🐈",
-                                            "bird" => "🐦",
-                                            _ => "🐾"
-                                        };
-                                        var pct = (a.GoalAmount.HasValue && a.GoalAmount > 0)
-                                        ? (int)Math.Min(100, Math.Round(a.CollectedAmount / a.GoalAmount.Value * 100))
-                                        : 0;
-                                        var remaining = a.GoalAmount.HasValue
-                                        ? Math.Max(0, a.GoalAmount.Value - a.CollectedAmount)
-                                        : 0;
-                                        var stBadge = a.Status switch
-                                        {
-                                            "Active" => "badge-success",
-                                            "Paused" => "badge-warning",
-                                            "Completed" => "badge-info",
-                                            _ => "badge-muted"
-                                        };
-                                        var stLabel = a.Status switch
-                                        {
-                                            "Active" => "✅ Active",
-                                            "Paused" => "⏸ Paused",
-                                            "Completed" => "🎉 Completed",
-                                            _ => a.Status
-                                        };
+                                        "Money" => "💵",
+                                        "Food" => "🍖",
+                                        "Medicine" => "💊",
+                                        "Supplies" => "📦",
+                                        _ => "❤️"
+                                    };
+                                    var stBadge = d.Status == "Completed"
+                                    ? "badge-success" : "badge-warning";
+                                    var amountDisplay = d.DonationType == "Money"
+                                    ? $"{d.Amount:F2} JOD"
+                                    : $"{d.Quantity} {d.Unit}";
 
-                                        <div class="animal-card-da @(a.Status == "Paused" ? "paused" : "")"
-                                             data-name="@a.Name?.ToLower()"
-                                             data-type="@a.AnimalType?.ToLower()"
-                                             data-status="@a.Status?.ToLower()">
-
-                                            <div class="animal-ava">@animalEmoji</div>
-
-                                            <div style="flex:1;min-width:0;">
-                                                <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;">
-                                                    <div class="animal-name">@a.Name</div>
-                                                </div>
-                                                <div class="animal-meta">
-                                                    📍 @(a.Location ?? "—") · @a.Condition
-                                                </div>
-                                                <div style="font-size:.72rem;color:var(--text-muted);font-weight:700;
-                                                                margin-top:4px;margin-bottom:4px;line-height:1.4;">
-                                                    @(a.Story?.Length > 80 ? a.Story[..80] + "…" : a.Story)
-                                                </div>
-
-                                                @if (a.GoalAmount.HasValue)
-                                                {
-                                                    <div class="prog-wrap">
-                                                        <div class="prog-fill" style="width:@pct%"></div>
-                                                    </div>
-                                                    <div style="display:flex;justify-content:space-between;font-size:.72rem;font-weight:800;">
-                                                        <span style="color:var(--brand-dark);">
-                                                            @a.CollectedAmount.ToString("F0") / @a.GoalAmount.Value.ToString("F0") JOD
-                                                        </span>
-                                                        <span style="color:var(--text-muted);">
-                                                            @pct% @(remaining > 0 ? $"· {remaining:F0} JOD left" : "· Goal reached!")
-                                                        </span>
-                                                    </div>
-                                                }
-
-                                                <div style="display:flex;align-items:center;justify-content:space-between;
-                                                                margin-top:10px;gap:6px;flex-wrap:wrap;">
-                                                    <span class="badge @stBadge">@stLabel</span>
-
-                                                    <div class="action-group">
-                                                        @if (a.Status == "Active")
-                                                        {
-                                                            <form method="post"
-                                                                  asp-controller="SuperAdmin"
-                                                                  asp-action="UpdateDonationAnimalStatus"
-                                                                  style="display:inline">
-                                                                @Html.AntiForgeryToken()
-                                                                <input type="hidden" name="animalId" value="@a.Id" />
-                                                                <input type="hidden" name="status" value="Paused" />
-                                                                <button type="submit" class="btn btn-warning btn-xs">⏸ Pause</button>
-                                                            </form>
-                                                        }
-                                                        else if (a.Status == "Paused")
-                                                        {
-                                                            <form method="post"
-                                                                  asp-controller="SuperAdmin"
-                                                                  asp-action="UpdateDonationAnimalStatus"
-                                                                  style="display:inline">
-                                                                @Html.AntiForgeryToken()
-                                                                <input type="hidden" name="animalId" value="@a.Id" />
-                                                                <input type="hidden" name="status" value="Active" />
-                                                                <button type="submit" class="btn btn-success btn-xs">▶ Activate</button>
-                                                            </form>
-                                                        }
-                                                        @if (a.Status != "Completed")
-                                                        {
-                                                            <form method="post"
-                                                                  asp-controller="SuperAdmin"
-                                                                  asp-action="UpdateDonationAnimalStatus"
-                                                                  style="display:inline">
-                                                                @Html.AntiForgeryToken()
-                                                                <input type="hidden" name="animalId" value="@a.Id" />
-                                                                <input type="hidden" name="status" value="Completed" />
-                                                                <button type="submit" class="btn btn-info btn-xs">🎉 Complete</button>
-                                                            </form>
-                                                        }
-                                                        <form method="post"
-                                                              asp-controller="SuperAdmin"
-                                                              asp-action="DeleteDonationAnimal"
-                                                              style="display:inline">
-                                                            @Html.AntiForgeryToken()
-                                                            <input type="hidden" name="animalId" value="@a.Id" />
-                                                            <button type="submit" class="btn btn-danger btn-xs"
-                                                                    onclick="return confirm('Remove @a.Name from donation animals?')">
-                                                                🗑
-                                                            </button>
-                                                        </form>
-                                                    </div>
+                                    <tr data-ref="@d.ReferenceCode?.ToLower()"
+                                        data-donor="@((d.DonorName ?? $"User #{d.IdUser}").ToLower())"
+                                        data-type="@d.DonationType?.ToLower()"
+                                        data-status="@d.Status?.ToLower()">
+                                        <td style="font-size:.78rem;color:var(--text-muted);font-weight:800;">
+                                            @d.ReferenceCode
+                                        </td>
+                                        <td>
+                                            <div style="display:flex;align-items:center;gap:9px;">
+                                                <div class="don-ico">@typeIcon</div>
+                                                <div style="font-weight:900;color:var(--brand-dark);">
+                                                    @(d.DonorName ?? $"User #{d.IdUser}")
                                                 </div>
                                             </div>
+                                        </td>
+                                        <td>@typeIcon @d.DonationType</td>
+                                        <td style="font-weight:900;color:var(--brand-dark);">
+                                            @amountDisplay
+                                        </td>
+                                        <td>
+                                            @if (string.IsNullOrEmpty(d.TargetType) || d.TargetType == "General")
+                                            {
+                                                <span class="badge badge-muted">🌍 General</span>
+                                            }
+                                            else
+                                            {
+                                                <span style="font-weight:800;font-size:.84rem;">
+                                                    @if (d.TargetType == "Animal")
+                                                    {
+                                                        <span>🐾 @(d.AnimalName ?? "Animal")</span>
+                                                    }
+                                                    else if (d.TargetType == "General")
+                                                    {
+                                                        <span>🌍 General Support</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span>@d.TargetType</span>
+                                                    }
+                                                </span>
+                                            }
+                                        </td>
+                                        <td style="font-size:.8rem;color:var(--text-muted);">
+                                            @d.CreatedAt?.ToString("MMM dd, yyyy")
+                                        </td>
+                                        <td>
+                                            <span class="badge @stBadge">@d.Status</span>
+                                        </td>
+                                        <td>
+                                            @if (d.Status != "Completed")
+                                            {
+                                                <form method="post"
+                                                      asp-controller="SuperAdmin"
+                                                      asp-action="UpdateDonationStatus"
+                                                      style="display:inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="donationId" value="@d.Id" />
+                                                    <input type="hidden" name="status" value="Completed" />
+                                                    <button type="submit" class="btn btn-success btn-xs">
+                                                        📦 Mark Done
+                                                    </button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <span style="font-size:.78rem;color:var(--text-muted);font-weight:800;">
+                                                    Done ✓
+                                                </span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        @* ══ TAB: Donation Animals ══ *@
+        <div id="pane-animals" style="display:none;">
+
+            @* Filters + Add Button *@
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:stretch;">
+                <div class="search-wrap" style="flex:1 1 200px;">
+                    <span style="color:var(--text-muted);">🔍</span>
+                    <input id="animalSearch" placeholder="Search animal name..." oninput="filterAnimals()" />
+                </div>
+                <select class="sel-wrap" id="animalTypeFilter" onchange="filterAnimals()" style="height:48px;min-width:130px;">
+                    <option value="">All Types</option>
+                    <option value="dog">🐕 Dogs</option>
+                    <option value="cat">🐈 Cats</option>
+                    <option value="bird">🐦 Birds</option>
+                    <option value="other">🐾 Others</option>
+                </select>
+                <select class="sel-wrap" id="animalStatusFilter" onchange="filterAnimals()" style="height:48px;min-width:130px;">
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="paused">Paused</option>
+                    <option value="completed">Completed</option>
+                </select>
+                <button class="btn btn-outline btn-sm" onclick="resetAnimalFilters()">Reset</button>
+                <button class="btn btn-primary btn-sm" type="button" onclick="toggleAddForm()">
+                    ＋ Add Animal
+                </button>
+            </div>
+
+            @* ✅ فورم إضافة حيوان — مخفي بالبداية *@
+            <div id="addAnimalSection" style="display:none;margin-bottom:16px;">
+                <div class="add-form-card">
+                    <div class="add-form-title">🐾 Add Donation Animal</div>
+                    <form method="post"
+                          asp-controller="SuperAdmin"
+                          asp-action="AddDonationAnimal">
+                        @Html.AntiForgeryToken()
+                        <div class="add-form-grid">
+                            <label class="full">
+                                Animal Name *
+                                <input type="text" name="name" placeholder="e.g. Rex" required />
+                            </label>
+                            <label>
+                                Type *
+                                <select name="animalType" required>
+                                    <option value="">Select type</option>
+                                    <option value="Dog">🐕 Dog</option>
+                                    <option value="Cat">🐈 Cat</option>
+                                    <option value="Bird">🐦 Bird</option>
+                                    <option value="Other">🐾 Other</option>
+                                </select>
+                            </label>
+                            <label>
+                                Condition
+                                <select name="condition">
+                                    <option>Injured</option>
+                                    <option>Sick</option>
+                                    <option>Stray — Needs Care</option>
+                                    <option>Post-Surgery</option>
+                                    <option>Malnourished</option>
+                                    <option>Healthy — General Support</option>
+                                </select>
+                            </label>
+                            <label>
+                                Location
+                                <input type="text" name="location" placeholder="e.g. Amman Shelter" />
+                            </label>
+                            <label>
+                                Goal Amount (JOD)
+                                <input type="number" name="goalAmount" min="1" placeholder="e.g. 150" />
+                            </label>
+                            <label class="full">
+                                Story / Description *
+                                <textarea name="story" placeholder="Explain why this animal needs donations..." required></textarea>
+                            </label>
+                        </div>
+                        <div style="display:flex;gap:8px;margin-top:16px;">
+                            <button type="submit" class="btn btn-primary btn-sm">💾 Save Animal</button>
+                            <button type="button" class="btn btn-outline btn-sm" onclick="toggleAddForm()">Cancel</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @* Animals Grid — Razor rendered *@
+            <div class="table-card">
+                <div class="table-head-bar">
+                    <div class="table-head-title">🐾 Animals Available for Donation</div>
+                    <span style="font-size:.78rem;font-weight:700;color:var(--text-muted);">
+                        These appear in the user-facing donation screen
+                    </span>
+                </div>
+                <div style="padding:16px;">
+                    @if (!animals.Any())
+                    {
+                        <div style="text-align:center;padding:40px;color:var(--text-muted);">
+                            <div style="font-size:2.5rem;margin-bottom:12px;">🐾</div>
+                            <p style="font-weight:800;">No animals added yet. Click "+ Add Animal" to get started.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="animals-grid" id="animalsGrid">
+                            @foreach (var a in animals)
+                            {
+                                var animalEmoji = a.AnimalType?.ToLower() switch
+                                {
+                                    "dog" => "🐕",
+                                    "cat" => "🐈",
+                                    "bird" => "🐦",
+                                    _ => "🐾"
+                                };
+                                var pct = (a.GoalAmount.HasValue && a.GoalAmount > 0)
+                                ? (int)Math.Min(100, Math.Round(a.CollectedAmount / a.GoalAmount.Value * 100))
+                                : 0;
+                                var remaining = a.GoalAmount.HasValue
+                                ? Math.Max(0, a.GoalAmount.Value - a.CollectedAmount)
+                                : 0;
+                                var stBadge = a.Status switch
+                                {
+                                    "Active" => "badge-success",
+                                    "Paused" => "badge-warning",
+                                    "Completed" => "badge-info",
+                                    _ => "badge-muted"
+                                };
+                                var stLabel = a.Status switch
+                                {
+                                    "Active" => "✅ Active",
+                                    "Paused" => "⏸ Paused",
+                                    "Completed" => "🎉 Completed",
+                                    _ => a.Status
+                                };
+
+                                <div class="animal-card-da @(a.Status == "Paused" ? "paused" : "")"
+                                     data-name="@a.Name?.ToLower()"
+                                     data-type="@a.AnimalType?.ToLower()"
+                                     data-status="@a.Status?.ToLower()">
+
+                                    <div class="animal-ava">@animalEmoji</div>
+
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;">
+                                            <div class="animal-name">@a.Name</div>
                                         </div>
-                                    }
+                                        <div class="animal-meta">
+                                            📍 @(a.Location ?? "—") · @a.Condition
+                                        </div>
+                                        <div style="font-size:.72rem;color:var(--text-muted);font-weight:700;
+                                                                        margin-top:4px;margin-bottom:4px;line-height:1.4;">
+                                            @(a.Story?.Length > 80 ? a.Story[..80] + "…" : a.Story)
+                                        </div>
+
+                                        @if (a.GoalAmount.HasValue)
+                                        {
+                                            <div class="prog-wrap">
+                                                <div class="prog-fill" style="width:@pct%"></div>
+                                            </div>
+                                            <div style="display:flex;justify-content:space-between;font-size:.72rem;font-weight:800;">
+                                                <span style="color:var(--brand-dark);">
+                                                    @a.CollectedAmount.ToString("F0") / @a.GoalAmount.Value.ToString("F0") JOD
+                                                </span>
+                                                <span style="color:var(--text-muted);">
+                                                    @pct% @(remaining > 0 ? $"· {remaining:F0} JOD left" : "· Goal reached!")
+                                                </span>
+                                            </div>
+                                        }
+
+                                        <div style="display:flex;align-items:center;justify-content:space-between;
+                                                                        margin-top:10px;gap:6px;flex-wrap:wrap;">
+                                            <span class="badge @stBadge">@stLabel</span>
+
+                                            <div class="action-group">
+                                                @if (a.Status == "Active")
+                                                {
+                                                    <form method="post"
+                                                          asp-controller="SuperAdmin"
+                                                          asp-action="UpdateDonationAnimalStatus"
+                                                          style="display:inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="animalId" value="@a.Id" />
+                                                        <input type="hidden" name="status" value="Paused" />
+                                                        <button type="submit" class="btn btn-warning btn-xs">⏸ Pause</button>
+                                                    </form>
+                                                }
+                                                else if (a.Status == "Paused")
+                                                {
+                                                    <form method="post"
+                                                          asp-controller="SuperAdmin"
+                                                          asp-action="UpdateDonationAnimalStatus"
+                                                          style="display:inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="animalId" value="@a.Id" />
+                                                        <input type="hidden" name="status" value="Active" />
+                                                        <button type="submit" class="btn btn-success btn-xs">▶ Activate</button>
+                                                    </form>
+                                                }
+                                                @if (a.Status != "Completed")
+                                                {
+                                                    <form method="post"
+                                                          asp-controller="SuperAdmin"
+                                                          asp-action="UpdateDonationAnimalStatus"
+                                                          style="display:inline">
+                                                        @Html.AntiForgeryToken()
+                                                        <input type="hidden" name="animalId" value="@a.Id" />
+                                                        <input type="hidden" name="status" value="Completed" />
+                                                        <button type="submit" class="btn btn-info btn-xs">🎉 Complete</button>
+                                                    </form>
+                                                }
+                                                <form method="post"
+                                                      asp-controller="SuperAdmin"
+                                                      asp-action="DeleteDonationAnimal"
+                                                      style="display:inline">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="animalId" value="@a.Id" />
+                                                    <button type="submit" class="btn btn-danger btn-xs"
+                                                            onclick="return confirm('Remove @a.Name from donation animals?')">
+                                                        🗑
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             }
                         </div>
-                    </div>
+                    }
                 </div>
-
             </div>
-        </main>
-    </div>
+        </div>
 
-    <div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+    </div>
+</main>
+
+</div>
+
+<div id="toast" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
      background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;
      padding:11px 22px;border-radius:var(--pill);font-weight:800;font-size:.85rem;
      z-index:1999;display:none;align-items:center;gap:6px;
      box-shadow:0 8px 22px rgba(89,101,42,.3);white-space:nowrap;"></div>
 
-    <script src="~/js/Waffy-Shell.js"></script>
+
+@section PageScripts {
     <script>
         // ✅ setPageInfo صحيح
         setPageInfo('Donations', 'Super Admin Panel', 'Reports', 'Donations');
@@ -862,5 +702,4 @@
             }
         });
     </script>
-</body>
-</html>
+}

@@ -51,7 +51,7 @@
                 Description = post.Description ?? "",
                 Health = post.HealthStatus ?? "Healthy",
                 Likes = post.Likes,
-                Age = CalcAge(post.BirthDate),
+                Age = CalcAge(post.BirthDate, post.Age),
                 Size = ToSize(post.AnimalType),
                 Temperament = BuildTemperament(post),
                 Vaccinations = post.IsVaccinated
@@ -70,28 +70,37 @@
             };
         }
 
-        private static string CalcAge(DateTime? birthDate)
+        private static string CalcAge(DateTime? birthDate, int? directAge = null)
         {
-            if (!birthDate.HasValue) return "Unknown";
-            if (birthDate.Value > DateTime.Today) return "Newborn";
+            // ① إذا عندنا BirthDate نحسب منه (User flow)
+            if (birthDate.HasValue && birthDate.Value <= DateTime.Today)
+            {
+                var today = DateTime.Today;
+                var birth = birthDate.Value;
+                int years = today.Year - birth.Year;
+                int months = today.Month - birth.Month;
 
-            var today = DateTime.Today;
-            var birth = birthDate.Value;
-            int years = today.Year - birth.Year;
-            int months = today.Month - birth.Month;
+                if (today.Day < birth.Day) months--;
+                if (months < 0) { years--; months += 12; }
 
-            if (today.Day < birth.Day) months--;
-            if (months < 0) { years--; months += 12; }
+                if (years > 0 && months > 0)
+                    return $"{years} Year{(years > 1 ? "s" : "")} & {months} Month{(months > 1 ? "s" : "")}";
+                if (years > 0)
+                    return $"{years} Year{(years > 1 ? "s" : "")}";
+                if (months > 0)
+                    return $"{months} Month{(months > 1 ? "s" : "")}";
 
-            if (years > 0 && months > 0)
-                return $"{years} Year{(years > 1 ? "s" : "")} & {months} Month{(months > 1 ? "s" : "")}";
-            if (years > 0)
-                return $"{years} Year{(years > 1 ? "s" : "")}";
-            if (months > 0)
-                return $"{months} Month{(months > 1 ? "s" : "")}";
+                int days = (today - birth).Days;
+                return days <= 0 ? "Newborn" : $"{days} Day{(days > 1 ? "s" : "")}";
+            }
 
-            int days = (today - birth).Days;
-            return days <= 0 ? "Newborn" : $"{days} Day{(days > 1 ? "s" : "")}";
+            // ② Fallback: Age المباشر (Clinic flow)
+            if (directAge.HasValue && directAge.Value >= 0)
+                return directAge.Value == 0
+                    ? "Newborn"
+                    : $"{directAge.Value} Year{(directAge.Value > 1 ? "s" : "")}";
+
+            return "Unknown";
         }
 
         private static string ToSize(string? animalType) => animalType?.ToLower() switch

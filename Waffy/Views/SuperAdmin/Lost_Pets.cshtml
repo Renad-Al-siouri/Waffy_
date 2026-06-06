@@ -1,6 +1,12 @@
 ﻿@model Waffy.Models.ViewModels.SuperAdminLostViewModel
 @{
-    Layout = null;
+    Layout = "~/Views/SuperAdmin/_SuperAdminLayout.cshtml";
+    ViewData["Title"] = "Waffy — Super Admin | Lost Pets";
+    ViewData["ActiveSection"] = "reports";
+    ViewData["ActivePage"] = "lost-pets";
+    ViewData["PageTitle"] = "Lost Pets";
+    ViewData["BreadcrumbParent"] = "Reports";
+    ViewData["BreadcrumbCurrent"] = "Lost Pets";
     var pendingPayments = ViewBag.PendingPayments as
         List<Waffy.Models.ViewModels.PendingPaymentAdminDto>
         ?? new List<Waffy.Models.ViewModels.PendingPaymentAdminDto>();
@@ -12,15 +18,8 @@
     var approvedStores = ViewBag.ApprovedStores as IEnumerable<dynamic> ?? new List<dynamic>();
     var approvedClinics = ViewBag.ApprovedClinics as IEnumerable<dynamic> ?? new List<dynamic>();
 }
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Waffy — Super Admin | Lost Pets</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+
+@section PageStyles {
     <style>
         /* ── CSS :target Modal — No JS ── */
         .target-modal {
@@ -79,1007 +78,951 @@
                 resize: vertical;
             }
     </style>
-</head>
-<body>
-    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
-    <div class="wa-shell" id="waShell">
+}
 
-        <aside class="wa-sb" id="waSb">
-            <div class="sb-logo">
-                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
-                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
-            </div>
-            <nav class="sb-nav">
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
-                        <span class="sb-lbl">Dashboard</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Management</div>
-                    <div>
-                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
-                            <span class="sb-lbl">Adoption</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-adopt">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Listings"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Adopted_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row open active" id="t-rep" onclick="acc('g-rep','t-rep')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
-                            <span class="sb-lbl">Reports</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub open" id="g-rep" style="height:auto;">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Lost_Pets">
-                                    <span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span>
-                                    <span class="sb-bdg bd-y sb-child-bdg">@Model.ActiveCount</span>
-                                </a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Donations"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Laws_Regulations"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Tools</div>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Map">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span>
-                        <span class="sb-lbl">Map</span>
-                    </a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="RewardLog">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24">
-                                <path d="M20 12V22H4V12" />
-                                <path d="M22 7H2v5h20V7z" />
-                                <path d="M12 22V7" />
-                            </svg>
-                        </span>
-                        <span class="sb-lbl">Reward Log</span>
-                    </a>
-                </div>
-            </nav>
-            <div class="sb-foot">
-                <div class="sb-user-row">
-                    <div class="sb-av">@ViewBag.AdminInitials</div>
-                    <div class="sb-user-info">
-                        <div class="sb-user-name">@ViewBag.AdminName</div>
-                        <div class="sb-user-role">Super Admin</div>
-                    </div>
-                </div>
-                <form method="post" asp-controller="Account" asp-action="Logout" style="margin:0">
-                    @Html.AntiForgeryToken()
-                    <button class="sb-logout" type="submit">
-                        <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-                        <span class="sb-logout-lbl">Sign Out</span>
-                    </button>
-                </form>
-            </div>
-        </aside>
+<main class="wa-main" id="waMain">
 
-        <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button">
-                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
-            </button>
-            <nav class="tn-bread"><span>Reports</span><span>/</span><b>Lost Pets</b></nav>
-            <div class="tn-center">
-                <div class="tn-center-main">Lost Pets</div>
-                <div class="tn-center-sub">Super Admin Panel</div>
+    @if (ViewBag.Success != null)
+    {
+        <div style="margin:16px 24px 0;background:var(--success-soft);border:1px solid rgba(46,125,50,.2);
+                                    color:#2e7d32;padding:12px 16px;border-radius:var(--r);font-weight:800;font-size:.86rem;">
+            @ViewBag.Success
+        </div>
+    }
+    @if (ViewBag.Error != null)
+    {
+        <div style="margin:16px 24px 0;background:var(--danger-soft);border:1px solid rgba(220,38,38,.2);
+                                    color:var(--danger);padding:12px 16px;border-radius:var(--r);font-weight:800;font-size:.86rem;">
+            @ViewBag.Error
+        </div>
+    }
+
+    <section class="page-hero">
+        <div>
+            <h1>🔍 Lost Pets</h1>
+            <p>@Model.TotalCount total reports — @Model.ActiveCount active</p>
+        </div>
+    </section>
+
+    <div class="page-body">
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
+            <div class="kpi-card c3">
+                <div class="kpi-ico yellow">🔍</div>
+                <div class="kpi-val">@Model.ActiveCount</div>
+                <div class="kpi-label">Currently Active</div>
+                <div class="kpi-chip chip-yellow">Live reports</div>
             </div>
-            <div class="tn-spacer"></div>
-            <div class="tn-right">
-                <div class="tn-profile">
-                    <div class="tn-av">@ViewBag.AdminInitials</div>
-                    <div><div class="tn-pname">@ViewBag.AdminName</div><div class="tn-prole">Super Admin</div></div>
+            <div class="kpi-card c1">
+                <div class="kpi-ico green">✅</div>
+                <div class="kpi-val">@Model.FoundCount</div>
+                <div class="kpi-label">Found</div>
+                <div class="kpi-chip chip-green">Resolved</div>
+            </div>
+            <div class="kpi-card c4">
+                <div class="kpi-ico red">⏰</div>
+                <div class="kpi-val">@Model.ExpiredCount</div>
+                <div class="kpi-label">Expired</div>
+                <div class="kpi-chip chip-red">Auto-expired</div>
+            </div>
+            <div class="kpi-card c3">
+                <div class="kpi-ico yellow">🎁</div>
+                <div class="kpi-val">@Model.NoRewardConfirmedCount</div>
+                <div class="kpi-label">Awaiting Reward</div>
+                <div class="kpi-chip chip-yellow">No reward · Found</div>
+            </div>
+        </div>
+
+        <!-- Pending Payments -->
+        @if (pendingPayments.Any())
+        {
+            <div class="table-card" style="margin-bottom:16px;border:2px solid rgba(226,163,58,.3);">
+                <div class="table-head-bar" style="background:var(--warning-soft);">
+                    <div class="table-head-title">💳 Pending Payments (@pendingPayments.Count)</div>
+                    <span class="badge badge-warning">Requires action</span>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Receipt</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in pendingPayments)
+                            {
+                                <tr>
+                                    <td>
+                                        <div style="font-weight:800;font-size:.86rem;">@p.UserName</div>
+                                        <div class="cell-sub">@p.UserEmail</div>
+                                    </td>
+                                    <td style="font-weight:900;color:var(--brand-dark);">@p.Amount JOD</td>
+                                    <td><span class="badge badge-info">@p.PaymentMethod</span></td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(p.ReceiptImageUrl))
+                                        {
+                                            <a href="@p.ReceiptImageUrl" target="_blank" class="btn btn-outline btn-xs">🖼 View</a>
+                                        }
+                                        else
+                                        {
+                                            <span style="font-size:.76rem;color:var(--text-muted);">No receipt</span>
+                                        }
+                                    </td>
+                                    <td style="font-size:.78rem;color:var(--text-muted);">
+                                        @p.CreatedAt.ToString("MMM dd · hh:mm tt")
+                                    </td>
+                                    <td>
+                                        <div style="display:flex;gap:6px;">
+                                            <form method="post" asp-action="ConfirmPayment"
+                                                  asp-controller="SuperAdmin" style="display:inline"
+                                                  onsubmit="return confirm('Confirm this payment?')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="paymentId" value="@p.IdPayment" />
+                                                <button type="submit" class="btn btn-success btn-xs">✅ Confirm</button>
+                                            </form>
+                                            <a href="#rej_@p.IdPayment" class="btn btn-danger btn-xs">❌ Reject</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
             </div>
-        </header>
+        }
 
-        <main class="wa-main" id="waMain">
 
-            @if (ViewBag.Success != null)
+
+        <!-- Status Filter -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+            @foreach (var s in new[] { "All", "Active", "Found", "Expired", "Closed", "Rejected" })
             {
-                <div style="margin:16px 24px 0;background:var(--success-soft);border:1px solid rgba(46,125,50,.2);
-                                color:#2e7d32;padding:12px 16px;border-radius:var(--r);font-weight:800;font-size:.86rem;">
-                    @ViewBag.Success
-                </div>
+                var isActive = Model.StatusFilter == s;
+                <a asp-action="Lost_Pets" asp-route-statusFilter="@s"
+                   class="btn @(isActive ? "btn-primary" : "btn-outline") btn-sm">
+                    @s
+                </a>
             }
-            @if (ViewBag.Error != null)
-            {
-                <div style="margin:16px 24px 0;background:var(--danger-soft);border:1px solid rgba(220,38,38,.2);
-                                color:var(--danger);padding:12px 16px;border-radius:var(--r);font-weight:800;font-size:.86rem;">
-                    @ViewBag.Error
-                </div>
-            }
-
-            <section class="page-hero">
-                <div>
-                    <h1>🔍 Lost Pets</h1>
-                    <p>@Model.TotalCount total reports — @Model.ActiveCount active</p>
-                </div>
-            </section>
-
-            <div class="page-body">
-
-                <!-- KPI Cards -->
-                <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
-                    <div class="kpi-card c3">
-                        <div class="kpi-ico yellow">🔍</div>
-                        <div class="kpi-val">@Model.ActiveCount</div>
-                        <div class="kpi-label">Currently Active</div>
-                        <div class="kpi-chip chip-yellow">Live reports</div>
-                    </div>
-                    <div class="kpi-card c1">
-                        <div class="kpi-ico green">✅</div>
-                        <div class="kpi-val">@Model.FoundCount</div>
-                        <div class="kpi-label">Found</div>
-                        <div class="kpi-chip chip-green">Resolved</div>
-                    </div>
-                    <div class="kpi-card c4">
-                        <div class="kpi-ico red">⏰</div>
-                        <div class="kpi-val">@Model.ExpiredCount</div>
-                        <div class="kpi-label">Expired</div>
-                        <div class="kpi-chip chip-red">Auto-expired</div>
-                    </div>
-                    <div class="kpi-card c3">
-                        <div class="kpi-ico yellow">🎁</div>
-                        <div class="kpi-val">@Model.NoRewardConfirmedCount</div>
-                        <div class="kpi-label">Awaiting Reward</div>
-                        <div class="kpi-chip chip-yellow">No reward · Found</div>
-                    </div>
-                </div>
-
-                <!-- Pending Payments -->
-                @if (pendingPayments.Any())
-                {
-                    <div class="table-card" style="margin-bottom:16px;border:2px solid rgba(226,163,58,.3);">
-                        <div class="table-head-bar" style="background:var(--warning-soft);">
-                            <div class="table-head-title">💳 Pending Payments (@pendingPayments.Count)</div>
-                            <span class="badge badge-warning">Requires action</span>
-                        </div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>User</th>
-                                        <th>Amount</th>
-                                        <th>Method</th>
-                                        <th>Receipt</th>
-                                        <th>Date</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var p in pendingPayments)
-                                    {
-                                        <tr>
-                                            <td>
-                                                <div style="font-weight:800;font-size:.86rem;">@p.UserName</div>
-                                                <div class="cell-sub">@p.UserEmail</div>
-                                            </td>
-                                            <td style="font-weight:900;color:var(--brand-dark);">@p.Amount JOD</td>
-                                            <td><span class="badge badge-info">@p.PaymentMethod</span></td>
-                                            <td>
-                                                @if (!string.IsNullOrEmpty(p.ReceiptImageUrl))
-                                                {
-                                                    <a href="@p.ReceiptImageUrl" target="_blank" class="btn btn-outline btn-xs">🖼 View</a>
-                                                }
-                                                else
-                                                {
-                                                    <span style="font-size:.76rem;color:var(--text-muted);">No receipt</span>
-                                                }
-                                            </td>
-                                            <td style="font-size:.78rem;color:var(--text-muted);">
-                                                @p.CreatedAt.ToString("MMM dd · hh:mm tt")
-                                            </td>
-                                            <td>
-                                                <div style="display:flex;gap:6px;">
-                                                    <form method="post" asp-action="ConfirmPayment"
-                                                          asp-controller="SuperAdmin" style="display:inline"
-                                                          onsubmit="return confirm('Confirm this payment?')">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="paymentId" value="@p.IdPayment" />
-                                                        <button type="submit" class="btn btn-success btn-xs">✅ Confirm</button>
-                                                    </form>
-                                                    <a href="#rej_@p.IdPayment" class="btn btn-danger btn-xs">❌ Reject</a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                }
-
-
-
-                <!-- Status Filter -->
-                <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
-                    @foreach (var s in new[] { "All", "Active", "Found", "Expired", "Closed", "Rejected" })
-                    {
-                        var isActive = Model.StatusFilter == s;
-                        <a asp-action="Lost_Pets" asp-route-statusFilter="@s"
-                           class="btn @(isActive ? "btn-primary" : "btn-outline") btn-sm">
-                            @s
-                        </a>
-                    }
-                    <a asp-action="Lost_Pets" asp-route-statusFilter="NoRewardConfirmed"
-                       class="btn @(Model.StatusFilter == "NoRewardConfirmed" ? "btn-primary" : "btn-outline") btn-sm"
-                       style="background:@(Model.StatusFilter == "NoRewardConfirmed" ? "" : "var(--warning-soft)");
+            <a asp-action="Lost_Pets" asp-route-statusFilter="NoRewardConfirmed"
+               class="btn @(Model.StatusFilter == "NoRewardConfirmed" ? "btn-primary" : "btn-outline") btn-sm"
+               style="background:@(Model.StatusFilter == "NoRewardConfirmed" ? "" : "var(--warning-soft)");
                               border-color:rgba(226,163,58,.4);
                               color:@(Model.StatusFilter == "NoRewardConfirmed" ? "" : "#9b6000");">
-                        🎁 No Reward + Found
-                    </a>
-                </div>
+                🎁 No Reward + Found
+            </a>
+        </div>
 
-                <!-- Main Table -->
-                <div class="table-card">
-                    <div class="table-head-bar">
-                        <div class="table-head-title">Lost Pets List</div>
-                        <span class="table-count">@Model.Reports.Count() reports</span>
-                    </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Pet</th>
-                                    <th>Owner</th>
-                                    <th>City</th>
-                                    <th>Reward</th>
-                                    <th>Claims</th>
-                                    <th>Expiry</th>
-                                    <th>Status</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var r in Model.Reports)
-                                {
-                                    var stBadge = r.Status == "Active" ? "badge-success" :
-                                    r.Status == "Found" ? "badge-info" :
-                                    r.Status == "Expired" ? "badge-muted" :
-                                    r.Status == "Closed" ? "badge-danger" :
-                                    r.Status == "Rejected" ? "badge-danger" : "badge-warning";
-                                    var daysLeft = r.ExpiryDate.HasValue
-                                    ? (r.ExpiryDate.Value - DateTime.UtcNow).Days
-                                    : (int?)null;
-                                    <tr>
-                                        <td>
-                                            <div style="display:flex;align-items:center;gap:10px;">
-                                                <div style="width:38px;height:38px;border-radius:10px;
-                                                                background:var(--brand-xlight);display:grid;
-                                                                place-items:center;font-size:1rem;
-                                                                border:1px solid var(--brand-light);">
-                                                    @(r.AnimalType?.ToLower() == "cat" ? "🐈" :
-                                                                                                    r.AnimalType?.ToLower() == "dog" ? "🐕" :
-                                                                                                    r.AnimalType?.ToLower() == "bird" ? "🐦" : "🐾")
-                                            </div>
-                                            <div>
-                                                <div style="font-weight:800;font-size:.86rem;">@r.PetName</div>
-                                                <div class="cell-sub">
-                                                    @r.AnimalType
-                                                    @if (!string.IsNullOrEmpty(r.Breed))
-                                                        {
-                                                            <span> · @r.Breed</span>
-                                                        }
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            <div style="font-weight:800;font-size:.84rem;">@r.OwnerName</div>
-                                            <div class="cell-sub">📞 @r.OwnerPhone</div>
-                                        </td>
-                                        <td style="font-size:.82rem;">📍 @r.City@(!string.IsNullOrEmpty(r.Area) ? $" · {r.Area}" : "")</td>
-                                        <td style="font-weight:800;color:var(--brand-dark);">
-                                            @if (r.RewardAmount > 0)
-                                            {
-                                                <span>@r.RewardAmount JOD</span>
-                                            }
-                                            else if (r.HasSurpriseReward)
-                                            {
-                                                <span style="color:#9b6000;">🎁 Surprise</span>
-                                            }
-                                            else
-                                            {
-                                                <span style="color:var(--text-muted);">—</span>
-                                            }
-                                        </td>
-                                        <td>
-                                            <span class="badge @(r.ClaimCount > 0 ? "badge-info" : "badge-muted")">
-                                                @r.ClaimCount claim@(r.ClaimCount != 1 ? "s" : "")
-                                            </span>
-                                        </td>
-                                        <td style="font-size:.78rem;">
-                                            @if (daysLeft.HasValue)
-                                            {
-                                                var col = daysLeft <= 3 ? "var(--danger)" :
-                                                daysLeft <= 7 ? "#9b6000" : "var(--text-muted)";
-                                                <span style="color:@col;font-weight:800;">
-                                                    @if (daysLeft < 0)
-                                                    {
-                                                        <span>Expired</span>
-                                                    }
-                                                    else if (daysLeft == 0)
-                                                    {
-
-                                                        <span>Today</span>
-                                                    }
-                                                    else
-                                                    {
-
-                                                        <span>@daysLeft days</span>
-                                                    }
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                <span style="color:var(--text-muted);">—</span>
-                                            }
-                                        </td>
-                                        <td><span class="badge @stBadge">@r.Status</span></td>
-                                        <td>
-                                            <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                                                <a href="#det_@r.IdLostReport" class="btn btn-outline btn-xs">👁 Details</a>
-                                                @if (r.Status == "Active")
-                                                {
-                                                    <a asp-action="AlertModal"
-                                                       asp-controller="SuperAdmin"
-                                                       asp-route-reportId="@r.IdLostReport"
-                                                       class="btn btn-danger btn-xs">
-                                                        🚨 Alert
-                                                    </a>
-                                                }
-                                                @if (r.Status == "Found" && !(r.RewardAmount > 0) && r.ConfirmedClaimCount > 0)
-                                                {
-                                                    <a asp-action="AssignRewardModal"
-                                                       asp-controller="SuperAdmin"
-                                                       asp-route-reportId="@r.IdLostReport"
-                                                       class="btn btn-xs"
-                                                       style="background:var(--warning-soft);border:1px solid rgba(226,163,58,.4);color:#9b6000;">
-                                                        🎁 Assign Reward
-                                                    </a>
-                                                }
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                        @if (!Model.Reports.Any())
+        <!-- Main Table -->
+        <div class="table-card">
+            <div class="table-head-bar">
+                <div class="table-head-title">Lost Pets List</div>
+                <span class="table-count">@Model.Reports.Count() reports</span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pet</th>
+                            <th>Owner</th>
+                            <th>City</th>
+                            <th>Reward</th>
+                            <th>Claims</th>
+                            <th>Expiry</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var r in Model.Reports)
                         {
-                            <div style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">
-                                No reports found for this filter.
-                            </div>
+                            var stBadge = r.Status == "Active" ? "badge-success" :
+                            r.Status == "Found" ? "badge-info" :
+                            r.Status == "Expired" ? "badge-muted" :
+                            r.Status == "Closed" ? "badge-danger" :
+                            r.Status == "Rejected" ? "badge-danger" : "badge-warning";
+                            var daysLeft = r.ExpiryDate.HasValue
+                            ? (r.ExpiryDate.Value - DateTime.UtcNow).Days
+                            : (int?)null;
+                            <tr>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:10px;">
+                                        @{
+                                            var repImgs = (ViewBag.ReportImages as Dictionary<int, List<string>>)
+                                            ?.GetValueOrDefault(r.IdLostReport) ?? new List<string>();
+                                        }
+                                        @if (!repImgs.Any())
+                                        {
+                                            <div style="width:38px;height:38px;border-radius:10px;flex-shrink:0;
+                                background:var(--brand-xlight);display:grid;
+                                place-items:center;font-size:1rem;
+                                border:1px solid var(--brand-light);">
+                                                @(r.AnimalType?.ToLower() == "cat" ? "🐈" :
+                                                                                        r.AnimalType?.ToLower() == "dog" ? "🐕" :
+                                                                                        r.AnimalType?.ToLower() == "bird" ? "🐦" : "🐾")
+                                    </div>
+                                                                        }
+                                        else
+                                        {
+                                            <div style="display:flex;gap:3px;align-items:center;flex-shrink:0;">
+                                                @foreach (var img in repImgs.Take(3))
+                                                {
+                                                    <img src="@img"
+                                                         style="width:34px;height:34px;border-radius:6px;
+                                            object-fit:cover;border:1px solid var(--border);" />
+                                                }
+                                                @if (repImgs.Count > 3)
+                                                {
+                                                    <span style="font-size:.7rem;font-weight:900;
+                                             color:var(--text-muted);">
+                                                        +@(repImgs.Count - 3)
+                                                    </span>
+                                                }
+                                            </div>
+                                        }
+                                        <div>
+                                            <div style="font-weight:800;font-size:.86rem;">@r.PetName</div>
+                                            <div class="cell-sub">
+                                                @r.AnimalType
+                                                @if (!string.IsNullOrEmpty(r.Breed))
+                                                {
+                                                    <span> · @r.Breed</span>
+                                                }
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="font-weight:800;font-size:.84rem;">@r.OwnerName</div>
+                                    <div class="cell-sub">📞 @r.OwnerPhone</div>
+                                </td>
+                                <td style="font-size:.82rem;">📍 @r.City@(!string.IsNullOrEmpty(r.Area) ? $" · {r.Area}" : "")</td>
+                                <td style="font-weight:800;color:var(--brand-dark);">
+                                    @if (r.RewardAmount > 0)
+                                    {
+                                        <span>@r.RewardAmount JOD</span>
+                                    }
+                                    else if (r.HasSurpriseReward)
+                                    {
+                                        <span style="color:#9b6000;">🎁 Surprise</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color:var(--text-muted);">—</span>
+                                    }
+                                </td>
+                                <td>
+                                    <span class="badge @(r.ClaimCount > 0 ? "badge-info" : "badge-muted")">
+                                        @r.ClaimCount claim@(r.ClaimCount != 1 ? "s" : "")
+                                    </span>
+                                </td>
+                                <td style="font-size:.78rem;">
+                                    @if (daysLeft.HasValue)
+                                    {
+                                        var col = daysLeft <= 3 ? "var(--danger)" :
+                                        daysLeft <= 7 ? "#9b6000" : "var(--text-muted)";
+                                        <span style="color:@col;font-weight:800;">
+                                            @if (daysLeft < 0)
+                                            {
+                                                <span>Expired</span>
+                                            }
+                                            else if (daysLeft == 0)
+                                            {
+
+                                                <span>Today</span>
+                                            }
+                                            else
+                                            {
+
+                                                <span>@daysLeft days</span>
+                                            }
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color:var(--text-muted);">—</span>
+                                    }
+                                </td>
+                                <td><span class="badge @stBadge">@r.Status</span></td>
+                                <td>
+                                    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                        <a href="#det_@r.IdLostReport" class="btn btn-outline btn-xs">👁 Details</a>
+                                        @if (r.Status == "Active")
+                                        {
+                                            <a asp-action="AlertModal"
+                                               asp-controller="SuperAdmin"
+                                               asp-route-reportId="@r.IdLostReport"
+                                               class="btn btn-danger btn-xs">
+                                                🚨 Alert
+                                            </a>
+                                        }
+                                        @if (r.Status == "Found" && !(r.RewardAmount > 0) && r.ConfirmedClaimCount > 0)
+                                        {
+                                            <a asp-action="AssignRewardModal"
+                                               asp-controller="SuperAdmin"
+                                               asp-route-reportId="@r.IdLostReport"
+                                               class="btn btn-xs"
+                                               style="background:var(--warning-soft);border:1px solid rgba(226,163,58,.4);color:#9b6000;">
+                                                🎁 Assign Reward
+                                            </a>
+                                        }
+                                    </div>
+                                </td>
+                            </tr>
                         }
+                    </tbody>
+                </table>
+                @if (!Model.Reports.Any())
+                {
+                    <div style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">
+                        No reports found for this filter.
                     </div>
-                </div>
+                }
+            </div>
+        </div>
 
-                <!-- Surprise Reward Pool -->
-                <div class="table-card" style="margin-top:24px;">
-                    <div class="table-head-bar">
-                        <div class="table-head-title">🎁 Surprise Reward Pool</div>
-                        <span class="badge @(surprisePool.Count(r => !r.IsUsed) > 0 ? "badge-success" : "badge-warning")">
-                            @surprisePool.Count(r => !r.IsUsed) available
-                        </span>
-                    </div>
-                    <div style="padding:16px;border-bottom:1px solid var(--border);">
+        <!-- Surprise Reward Pool -->
+        <div class="table-card" style="margin-top:24px;">
+            <div class="table-head-bar">
+                <div class="table-head-title">🎁 Surprise Reward Pool</div>
+                <span class="badge @(surprisePool.Count(r => !r.IsUsed) > 0 ? "badge-success" : "badge-warning")">
+                    @surprisePool.Count(r => !r.IsUsed) available
+                </span>
+            </div>
+            <div style="padding:16px;border-bottom:1px solid var(--border);">
 
 
-                        <details id="addRewardDetails">
-                            <summary style="cursor:pointer;font-size:.84rem;font-weight:900;
+                <details id="addRewardDetails">
+                    <summary style="cursor:pointer;font-size:.84rem;font-weight:900;
                     color:var(--brand-dark);user-select:none;">
-                                ➕ Add New Reward to Pool
-                            </summary>
-                            <div style="background:var(--surface-2);border-radius:12px;
+                        ➕ Add New Reward to Pool
+                    </summary>
+                    <div style="background:var(--surface-2);border-radius:12px;
                 padding:14px;margin-top:10px;">
 
-                                <form method="post" asp-action="AddSurpriseReward"
-                                      asp-controller="SuperAdmin" id="addRewardForm">
-                                    @Html.AntiForgeryToken()
+                        <form method="post" asp-action="AddSurpriseReward"
+                              asp-controller="SuperAdmin" id="addRewardForm">
+                            @Html.AntiForgeryToken()
 
-                                    <div style="display:grid;grid-template-columns:1fr 1fr;
+                            <div style="display:grid;grid-template-columns:1fr 1fr;
                         gap:10px;margin-bottom:10px;">
 
-                                        @* ── Type ── *@
-                                        <div>
-                                            <label style="font-size:.76rem;font-weight:900;
+                                @* ── Type ── *@
+                                <div>
+                                    <label style="font-size:.76rem;font-weight:900;
                                   color:var(--brand-dark);display:block;margin-bottom:3px;">
-                                                Type
-                                            </label>
-                                            <select name="rewardType" id="rewardTypeSelect"
-                                                    onchange="onRewardTypeChange(this.value)"
-                                                    style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+                                        Type
+                                    </label>
+                                    <select name="rewardType" id="rewardTypeSelect"
+                                            onchange="onRewardTypeChange(this.value)"
+                                            style="width:100%;border:1.5px solid var(--border);border-radius:10px;
                                    padding:7px 10px;font-size:.82rem;font-weight:700;
                                    font-family:'Nunito',sans-serif;outline:none;background:#fff;">
-                                                <option value="StoreDiscount">🏪 Store Discount</option>
-                                                <option value="WalletCredit">💰 Wallet Credit</option>
-                                                <option value="ClinicSession">🏥 Clinic Session</option>
-                                                <option value="DeliveryVoucher">🚚 Delivery Voucher</option>
-                                            </select>
-                                        </div>
+                                        <option value="StoreDiscount">🏪 Store Discount</option>
+                                        <option value="WalletCredit">💰 Wallet Credit</option>
+                                        <option value="ClinicSession">🏥 Clinic Session</option>
+                                        <option value="DeliveryVoucher">🚚 Delivery Voucher</option>
+                                    </select>
+                                </div>
 
-                                        @* ── Partner — Store Dropdown ── *@
-                                        <div id="storePartnerWrap" style="display:block;">
-                                            <label style="font-size:.76rem;font-weight:900;
+                                @* ── Partner — Store Dropdown ── *@
+                                <div id="storePartnerWrap" style="display:block;">
+                                    <label style="font-size:.76rem;font-weight:900;
                                   color:var(--brand-dark);display:block;margin-bottom:3px;">
-                                                🏪 Select Store
-                                            </label>
-                                            <select id="storeSelect"
-                                                    onchange="setPartnerFromStore(this)"
-                                                    style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+                                        🏪 Select Store
+                                    </label>
+                                    <select id="storeSelect"
+                                            onchange="setPartnerFromStore(this)"
+                                            style="width:100%;border:1.5px solid var(--border);border-radius:10px;
                                    padding:7px 10px;font-size:.82rem;font-weight:700;
                                    font-family:'Nunito',sans-serif;outline:none;background:#fff;">
-                                                <option value="">— Select store —</option>
-                                                @foreach (var s in approvedStores)
-                                                {
-                                                    <option value="@s.name">@s.name</option>
-                                                }
-                                            </select>
-                                        </div>
+                                        <option value="">— Select store —</option>
+                                        @foreach (var s in approvedStores)
+                                        {
+                                            <option value="@s.name">@s.name</option>
+                                        }
+                                    </select>
+                                </div>
 
-                                        @* ── Partner — Clinic Dropdown ── *@
-                                        <div id="clinicPartnerWrap" style="display:none;">
-                                            <label style="font-size:.76rem;font-weight:900;
+                                @* ── Partner — Clinic Dropdown ── *@
+                                <div id="clinicPartnerWrap" style="display:none;">
+                                    <label style="font-size:.76rem;font-weight:900;
                                   color:var(--brand-dark);display:block;margin-bottom:3px;">
-                                                🏥 Select Clinic
-                                            </label>
-                                            <select id="clinicSelect"
-                                                    onchange="setPartnerFromClinic(this)"
-                                                    style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+                                        🏥 Select Clinic
+                                    </label>
+                                    <select id="clinicSelect"
+                                            onchange="setPartnerFromClinic(this)"
+                                            style="width:100%;border:1.5px solid var(--border);border-radius:10px;
                                    padding:7px 10px;font-size:.82rem;font-weight:700;
                                    font-family:'Nunito',sans-serif;outline:none;background:#fff;">
-                                                <option value="">— Select clinic —</option>
-                                                @foreach (var c in approvedClinics)
-                                                {
-                                                    <option value="@c.name">@c.name</option>
-                                                }
-                                            </select>
-                                        </div>
+                                        <option value="">— Select clinic —</option>
+                                        @foreach (var c in approvedClinics)
+                                        {
+                                            <option value="@c.name">@c.name</option>
+                                        }
+                                    </select>
+                                </div>
 
-                                        @* ── Partner — Manual (DeliveryVoucher/WalletCredit) ── *@
-                                        <div id="manualPartnerWrap" style="display:none;">
-                                            <label style="font-size:.76rem;font-weight:900;
+                                @* ── Partner — Manual (DeliveryVoucher/WalletCredit) ── *@
+                                <div id="manualPartnerWrap" style="display:none;">
+                                    <label style="font-size:.76rem;font-weight:900;
                                   color:var(--brand-dark);display:block;margin-bottom:3px;">
-                                                Partner Name (optional)
-                                            </label>
-                                            <input type="text" id="manualPartnerInput"
-                                                   placeholder="e.g. Aramex"
-                                                   style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+                                        Partner Name (optional)
+                                    </label>
+                                    <input type="text" id="manualPartnerInput"
+                                           placeholder="e.g. Aramex"
+                                           style="width:100%;border:1.5px solid var(--border);border-radius:10px;
                                   padding:7px 10px;font-size:.82rem;font-weight:700;
                                   font-family:'Nunito',sans-serif;outline:none;" />
-                                        </div>
+                                </div>
 
-                                        @* ── Hidden partnerName — يُملأ بالـ JS ── *@
-                                        <input type="hidden" name="partnerName" id="partnerNameHidden" />
+                                @* ── Hidden partnerName — يُملأ بالـ JS ── *@
+                                <input type="hidden" name="partnerName" id="partnerNameHidden" />
 
-                                        @* ── Title ── *@
-                                        <div>
-                                            <label style="font-size:.76rem;font-weight:900;
+                                @* ── Title ── *@
+                                <div>
+                                    <label style="font-size:.76rem;font-weight:900;
                                   color:var(--brand-dark);display:block;margin-bottom:3px;">
-                                                Title <span style="color:var(--danger);">*</span>
-                                            </label>
-                                            <input type="text" name="title"
-                                                   placeholder="e.g. 15% off your next purchase"
-                                                   required
-                                                   style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+                                        Title <span style="color:var(--danger);">*</span>
+                                    </label>
+                                    <input type="text" name="title"
+                                           placeholder="e.g. 15% off your next purchase"
+                                           required
+                                           style="width:100%;border:1.5px solid var(--border);border-radius:10px;
                                   padding:7px 10px;font-size:.82rem;font-weight:700;
                                   font-family:'Nunito',sans-serif;outline:none;" />
-                                        </div>
+                                </div>
 
-                                        @* ── Coupon Code ── *@
-                                        <div>
-                                            <label style="font-size:.76rem;font-weight:900;
+                                @* ── Coupon Code ── *@
+                                <div>
+                                    <label style="font-size:.76rem;font-weight:900;
                                   color:var(--brand-dark);display:block;margin-bottom:3px;">
-                                                Coupon Code (optional)
-                                            </label>
-                                            <input type="text" name="couponCode"
-                                                   placeholder="WAFFY2026"
-                                                   style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+                                        Coupon Code (optional)
+                                    </label>
+                                    <input type="text" name="couponCode"
+                                           placeholder="WAFFY2026"
+                                           style="width:100%;border:1.5px solid var(--border);border-radius:10px;
                                   padding:7px 10px;font-size:.82rem;font-weight:700;
                                   font-family:'Nunito',sans-serif;outline:none;" />
-                                        </div>
+                                </div>
 
-                                        @* ── Wallet Amount ── *@
-                                        <div id="valueWrap">
-                                            <label style="font-size:.76rem;font-weight:900;
+                                @* ── Wallet Amount ── *@
+                                <div id="valueWrap">
+                                    <label style="font-size:.76rem;font-weight:900;
                                   color:var(--brand-dark);display:block;margin-bottom:3px;">
-                                                Wallet Amount (JOD)
-                                            </label>
-                                            <input type="number" name="value" step="0.5" min="0"
-                                                   placeholder="e.g. 5"
-                                                   style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+                                        Wallet Amount (JOD)
+                                    </label>
+                                    <input type="number" name="value" step="0.5" min="0"
+                                           placeholder="e.g. 5"
+                                           style="width:100%;border:1.5px solid var(--border);border-radius:10px;
                                   padding:7px 10px;font-size:.82rem;font-weight:700;
                                   font-family:'Nunito',sans-serif;outline:none;" />
-                                        </div>
+                                </div>
 
-                                        @* ── Discount % ── *@
-                                        <div id="discountWrap">
-                                            <label style="font-size:.76rem;font-weight:900;
+                                @* ── Discount % ── *@
+                                <div id="discountWrap">
+                                    <label style="font-size:.76rem;font-weight:900;
                                   color:var(--brand-dark);display:block;margin-bottom:3px;">
-                                                Discount %
-                                            </label>
-                                            <input type="number" name="discountPercent" min="0" max="100"
-                                                   placeholder="e.g. 15"
-                                                   style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+                                        Discount %
+                                    </label>
+                                    <input type="number" name="discountPercent" min="0" max="100"
+                                           placeholder="e.g. 15"
+                                           style="width:100%;border:1.5px solid var(--border);border-radius:10px;
                                   padding:7px 10px;font-size:.82rem;font-weight:700;
                                   font-family:'Nunito',sans-serif;outline:none;" />
-                                        </div>
-                                    </div>
-
-                                    <button type="submit" class="btn btn-success btn-sm">
-                                        ➕ Add to Pool
-                                    </button>
-                                </form>
+                                </div>
                             </div>
-                        </details>
 
-
+                            <button type="submit" class="btn btn-success btn-sm">
+                                ➕ Add to Pool
+                            </button>
+                        </form>
                     </div>
-                    @if (surprisePool.Any())
-                    {
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr><th>Type</th><th>Title</th><th>Partner</th><th>Value</th><th>Coupon</th><th>Status</th><th>Action</th></tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var rw in surprisePool)
-                                    {
-                                        var rwBadge = rw.IsUsed ? "badge-muted" : "badge-success";
-                                        var rwLabel = rw.IsUsed ? "Used" : "Available";
-                                        <tr style="opacity:@(rw.IsUsed ? ".65" : "1");">
-                                            <td><span class="badge badge-info">@rw.RewardType</span></td>
-                                            <td style="font-weight:800;font-size:.84rem;">@rw.Title</td>
-                                            <td style="font-size:.8rem;color:var(--text-muted);">@(rw.PartnerName ?? "—")</td>
-                                            <td style="font-weight:800;">
-                                                @if (rw.Value.HasValue)
-                                                {
-                                                    <span>@rw.Value JOD</span>
-                                                }
-                                                else if (rw.DiscountPercent.HasValue)
-                                                {
+                </details>
 
-                                                    <span>@rw.DiscountPercent%</span>
-                                                }
-                                                else
-                                                {
-
-                                                    <span>—</span>
-                                                }
-                                            </td>
-                                            <td style="font-size:.78rem;font-family:monospace;">@(rw.CouponCode ?? "—")</td>
-                                            <td><span class="badge @rwBadge">@rwLabel</span></td>
-                                            <td>
-                                                @if (!rw.IsUsed)
-                                                {
-                                                    <div style="display:flex;gap:4px;">
-                                                
-                                                        <button type="button"
-                                                                class="btn btn-outline btn-xs"
-                                                                onclick="openEditModal(@rw.IdReward)"
-                                                                style="color:var(--brand);">
-                                                            ✏️
-                                                        </button>
-                                                        <form method="post"
-                                                              asp-action="DeleteSurpriseReward"
-                                                              asp-controller="SuperAdmin"
-                                                              onsubmit="return confirm('Delete this reward?')">
-                                                            @Html.AntiForgeryToken()
-                                                            <input type="hidden" name="rewardId" value="@rw.IdReward" />
-                                                            <button type="submit" class="btn btn-danger btn-xs">🗑</button>
-                                                        </form>
-                                                    </div>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                    else
-                    {
-                        <div style="text-align:center;padding:24px;color:var(--text-muted);font-weight:700;">
-                            Pool is empty. Add rewards above.
-                        </div>
-                    }
-                </div>
 
             </div>
-        </main>
+            @if (surprisePool.Any())
+            {
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr><th>Type</th><th>Title</th><th>Partner</th><th>Value</th><th>Coupon</th><th>Status</th><th>Action</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var rw in surprisePool)
+                            {
+                                var rwBadge = rw.IsUsed ? "badge-muted" : "badge-success";
+                                var rwLabel = rw.IsUsed ? "Used" : "Available";
+                                <tr style="opacity:@(rw.IsUsed ? ".65" : "1");">
+                                    <td><span class="badge badge-info">@rw.RewardType</span></td>
+                                    <td style="font-weight:800;font-size:.84rem;">@rw.Title</td>
+                                    <td style="font-size:.8rem;color:var(--text-muted);">@(rw.PartnerName ?? "—")</td>
+                                    <td style="font-weight:800;">
+                                        @if (rw.Value.HasValue)
+                                        {
+                                            <span>@rw.Value JOD</span>
+                                        }
+                                        else if (rw.DiscountPercent.HasValue)
+                                        {
+
+                                            <span>@rw.DiscountPercent%</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span>—</span>
+                                        }
+                                    </td>
+                                    <td style="font-size:.78rem;font-family:monospace;">@(rw.CouponCode ?? "—")</td>
+                                    <td><span class="badge @rwBadge">@rwLabel</span></td>
+                                    <td>
+                                        @if (!rw.IsUsed)
+                                        {
+                                            <div style="display:flex;gap:4px;">
+
+                                                <button type="button"
+                                                        class="btn btn-outline btn-xs"
+                                                        onclick="openEditModal(@rw.IdReward)"
+                                                        style="color:var(--brand);">
+                                                    ✏️
+                                                </button>
+                                                <form method="post"
+                                                      asp-action="DeleteSurpriseReward"
+                                                      asp-controller="SuperAdmin"
+                                                      onsubmit="return confirm('Delete this reward?')">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="rewardId" value="@rw.IdReward" />
+                                                    <button type="submit" class="btn btn-danger btn-xs">🗑</button>
+                                                </form>
+                                            </div>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div style="text-align:center;padding:24px;color:var(--text-muted);font-weight:700;">
+                    Pool is empty. Add rewards above.
+                </div>
+            }
+        </div>
+
     </div>
+</main>
+
+</div>
 
 
 
-    @* ══ Edit Reward MODALS ══════════════════════════════════════════ *@
-    <div id="editRewardModal"
-         style="display:none;position:fixed;inset:0;background:rgba(38,31,23,.5);
+@* ══ Edit Reward MODALS ══════════════════════════════════════════ *@
+<div id="editRewardModal"
+     style="display:none;position:fixed;inset:0;background:rgba(38,31,23,.5);
             backdrop-filter:blur(4px);z-index:1300;
             align-items:center;justify-content:center;padding:20px;">
-        <div style="background:#fff;border-radius:20px;padding:0;
+    <div style="background:#fff;border-radius:20px;padding:0;
                 max-width:480px;width:100%;
                 box-shadow:0 20px 60px rgba(0,0,0,.18);">
-            <div style="padding:18px 20px 14px;border-bottom:1px solid var(--border);
+        <div style="padding:18px 20px 14px;border-bottom:1px solid var(--border);
                     display:flex;align-items:center;justify-content:space-between;">
-                <div style="font-family:'Fredoka',sans-serif;font-size:1.1rem;
+            <div style="font-family:'Fredoka',sans-serif;font-size:1.1rem;
                         font-weight:700;color:var(--brand-dark);">
-                    ✏️ Edit Reward
-                </div>
-                <button onclick="closeEditModal()"
-                        style="width:30px;height:30px;border-radius:50%;
+                ✏️ Edit Reward
+            </div>
+            <button onclick="closeEditModal()"
+                    style="width:30px;height:30px;border-radius:50%;
                            background:var(--surface-2);border:none;cursor:pointer;
                            font-size:1rem;color:#888;">
-                    ✕
-                </button>
-            </div>
+                ✕
+            </button>
+        </div>
 
-            <form method="post" asp-action="EditSurpriseReward"
-                  asp-controller="SuperAdmin"
-                  style="padding:18px 20px;">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="idReward" id="editIdReward" />
+        <form method="post" asp-action="EditSurpriseReward"
+              asp-controller="SuperAdmin"
+              style="padding:18px 20px;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="idReward" id="editIdReward" />
 
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
-                    <div>
-                        <label style="font-size:.76rem;font-weight:900;color:var(--brand-dark);
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
+                <div>
+                    <label style="font-size:.76rem;font-weight:900;color:var(--brand-dark);
                                   display:block;margin-bottom:3px;">Type</label>
-                        <select name="rewardType" id="editRewardType"
-                                style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+                    <select name="rewardType" id="editRewardType"
+                            style="width:100%;border:1.5px solid var(--border);border-radius:10px;
                                    padding:7px 10px;font-size:.82rem;font-weight:700;
                                    font-family:'Nunito',sans-serif;outline:none;background:#fff;">
-                            <option value="StoreDiscount">🏪 Store Discount</option>
-                            <option value="WalletCredit">💰 Wallet Credit</option>
-                            <option value="ClinicSession">🏥 Clinic Session</option>
-                            <option value="DeliveryVoucher">🚚 Delivery Voucher</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="font-size:.76rem;font-weight:900;color:var(--brand-dark);
+                        <option value="StoreDiscount">🏪 Store Discount</option>
+                        <option value="WalletCredit">💰 Wallet Credit</option>
+                        <option value="ClinicSession">🏥 Clinic Session</option>
+                        <option value="DeliveryVoucher">🚚 Delivery Voucher</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size:.76rem;font-weight:900;color:var(--brand-dark);
                                   display:block;margin-bottom:3px;">Title *</label>
-                        <input type="text" name="title" id="editTitle" required
-                               style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+                    <input type="text" name="title" id="editTitle" required
+                           style="width:100%;border:1.5px solid var(--border);border-radius:10px;
                                   padding:7px 10px;font-size:.82rem;font-weight:700;
                                   font-family:'Nunito',sans-serif;outline:none;" />
-                    </div>
-                    <div>
-                        <label style="font-size:.76rem;font-weight:900;color:var(--brand-dark);
+                </div>
+                <div>
+                    <label style="font-size:.76rem;font-weight:900;color:var(--brand-dark);
                                   display:block;margin-bottom:3px;">Partner Name</label>
-                        <input type="text" name="partnerName" id="editPartnerName"
-                               style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+                    <input type="text" name="partnerName" id="editPartnerName"
+                           style="width:100%;border:1.5px solid var(--border);border-radius:10px;
                                   padding:7px 10px;font-size:.82rem;font-weight:700;
                                   font-family:'Nunito',sans-serif;outline:none;" />
-                    </div>
-                    <div>
-                        <label style="font-size:.76rem;font-weight:900;color:var(--brand-dark);
+                </div>
+                <div>
+                    <label style="font-size:.76rem;font-weight:900;color:var(--brand-dark);
                                   display:block;margin-bottom:3px;">Coupon Code</label>
-                        <input type="text" name="couponCode" id="editCouponCode"
-                               style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+                    <input type="text" name="couponCode" id="editCouponCode"
+                           style="width:100%;border:1.5px solid var(--border);border-radius:10px;
                                   padding:7px 10px;font-size:.82rem;font-weight:700;
                                   font-family:'Nunito',sans-serif;outline:none;" />
-                    </div>
-                    <div>
-                        <label style="font-size:.76rem;font-weight:900;color:var(--brand-dark);
+                </div>
+                <div>
+                    <label style="font-size:.76rem;font-weight:900;color:var(--brand-dark);
                                   display:block;margin-bottom:3px;">Wallet Amount (JOD)</label>
-                        <input type="number" name="value" id="editValue" step="0.5" min="0"
-                               style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+                    <input type="number" name="value" id="editValue" step="0.5" min="0"
+                           style="width:100%;border:1.5px solid var(--border);border-radius:10px;
                                   padding:7px 10px;font-size:.82rem;font-weight:700;
                                   font-family:'Nunito',sans-serif;outline:none;" />
-                    </div>
-                    <div>
-                        <label style="font-size:.76rem;font-weight:900;color:var(--brand-dark);
+                </div>
+                <div>
+                    <label style="font-size:.76rem;font-weight:900;color:var(--brand-dark);
                                   display:block;margin-bottom:3px;">Discount %</label>
-                        <input type="number" name="discountPercent" id="editDiscountPercent"
-                               min="0" max="100"
-                               style="width:100%;border:1.5px solid var(--border);border-radius:10px;
+                    <input type="number" name="discountPercent" id="editDiscountPercent"
+                           min="0" max="100"
+                           style="width:100%;border:1.5px solid var(--border);border-radius:10px;
                                   padding:7px 10px;font-size:.82rem;font-weight:700;
                                   font-family:'Nunito',sans-serif;outline:none;" />
-                    </div>
                 </div>
+            </div>
 
-                <div style="display:flex;gap:8px;justify-content:flex-end;">
-                    <button type="button" onclick="closeEditModal()"
-                            class="btn btn-outline btn-sm">
-                        Cancel
-                    </button>
-                    <button type="submit" class="btn btn-primary btn-sm">
-                        💾 Save Changes
-                    </button>
-                </div>
-            </form>
-        </div>
+            <div style="display:flex;gap:8px;justify-content:flex-end;">
+                <button type="button" onclick="closeEditModal()"
+                        class="btn btn-outline btn-sm">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary btn-sm">
+                    💾 Save Changes
+                </button>
+            </div>
+        </form>
     </div>
-    @* ══ DETAIL MODALS ══════════════════════════════════════════ *@
-    @foreach (var r in Model.Reports)
-    {
-        var icon = r.AnimalType?.ToLower() == "cat" ? "🐈" :
-        r.AnimalType?.ToLower() == "dog" ? "🐕" :
-        r.AnimalType?.ToLower() == "bird" ? "🐦" : "🐾";
-        var stBadge2 = r.Status == "Active" ? "badge-success" :
-        r.Status == "Found" ? "badge-info" :
-        r.Status == "Expired" ? "badge-muted" :
-        r.Status == "Rejected" ? "badge-danger" :
-        r.Status == "Closed" ? "badge-danger" : "badge-warning";
-        var paidBadge = r.IsPaid ? "badge-success" : "badge-warning";
-        var paidLabel = r.IsPaid ? "✅ Paid" : "⏳ Pending Payment";
+</div>
+@* ══ DETAIL MODALS ══════════════════════════════════════════ *@
+@foreach (var r in Model.Reports)
+{
+    var modalImgs = (ViewBag.ReportImages as Dictionary<int, List<string>>)
+                 ?.GetValueOrDefault(r.IdLostReport) ?? new List<string>();
+    var icon = r.AnimalType?.ToLower() == "cat" ? "🐈" :
+    r.AnimalType?.ToLower() == "dog" ? "🐕" :
+    r.AnimalType?.ToLower() == "bird" ? "🐦" : "🐾";
+    var stBadge2 = r.Status == "Active" ? "badge-success" :
+    r.Status == "Found" ? "badge-info" :
+    r.Status == "Expired" ? "badge-muted" :
+    r.Status == "Rejected" ? "badge-danger" :
+    r.Status == "Closed" ? "badge-danger" : "badge-warning";
+    var paidBadge = r.IsPaid ? "badge-success" : "badge-warning";
+    var paidLabel = r.IsPaid ? "✅ Paid" : "⏳ Pending Payment";
 
-        <div id="det_@r.IdLostReport" class="target-modal">
-            <div class="modal-box" style="max-width:680px;">
-                <div class="modal-head">
-                    <div class="modal-title">🐾 Report Details</div>
-                    <a href="@currentUrl" class="dp-close" title="Close">×</a>
-                </div>
-                <div class="modal-body" style="padding:0;">
-                    <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;
-                                    background:linear-gradient(135deg,var(--brand-xlight),#fff);
-                                    border-bottom:1px solid var(--border);">
-                        <div style="width:52px;height:52px;border-radius:16px;background:var(--brand-ghost);
-                                        border:1px solid var(--brand-light);display:grid;place-items:center;
-                                        font-size:1.6rem;flex-shrink:0;">
-                            @icon
+    <div id="det_@r.IdLostReport" class="target-modal">
+        <div class="modal-box" style="max-width:680px;">
+            <div class="modal-head">
+                <div class="modal-title">🐾 Report Details</div>
+                <a href="@currentUrl" class="dp-close" title="Close">×</a>
+            </div>
+            <div class="modal-body" style="padding:0;">
+                <div style="display:flex;align-items:center;gap:14px;padding:16px 20px;
+                                        background:linear-gradient(135deg,var(--brand-xlight),#fff);
+                                        border-bottom:1px solid var(--border);">
+                    <div style="width:52px;height:52px;border-radius:16px;background:var(--brand-ghost);
+                                            border:1px solid var(--brand-light);display:grid;place-items:center;
+                                            font-size:1.6rem;flex-shrink:0;">
+                        @icon
+                    </div>
+                    <div style="flex:1;min-width:0;">
+                        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                            <div style="font-family:'Fredoka',sans-serif;font-size:1.2rem;font-weight:700;color:var(--brand-dark);">@r.PetName</div>
+                            <span class="badge @stBadge2">@r.Status</span>
+                            <span class="badge @paidBadge">@paidLabel</span>
                         </div>
-                        <div style="flex:1;min-width:0;">
-                            <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                                <div style="font-family:'Fredoka',sans-serif;font-size:1.2rem;font-weight:700;color:var(--brand-dark);">@r.PetName</div>
-                                <span class="badge @stBadge2">@r.Status</span>
-                                <span class="badge @paidBadge">@paidLabel</span>
-                            </div>
-                            <div style="font-size:.8rem;color:var(--text-muted);font-weight:700;margin-top:3px;">
-                                @r.AnimalType@(!string.IsNullOrEmpty(r.Breed) ? $" · {r.Breed}" : "")
-                            </div>
-                        </div>
-                        <div style="font-family:monospace;font-size:.76rem;background:var(--surface-2);
-                                        border:1px solid var(--border);border-radius:8px;padding:4px 10px;
-                                        color:var(--brand-dark);font-weight:900;flex-shrink:0;">
-                            @(r.ReportCode ?? "—")
+                        <div style="font-size:.8rem;color:var(--text-muted);font-weight:700;margin-top:3px;">
+                            @r.AnimalType@(!string.IsNullOrEmpty(r.Breed) ? $" · {r.Breed}" : "")
                         </div>
                     </div>
-                    <div style="padding:18px 20px;display:flex;flex-direction:column;gap:14px;">
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                            <div class="inner-card" style="margin:0;">
-                                <div class="inner-card-head"><div class="inner-card-title">🐾 Pet Information</div></div>
-                                <div class="inner-card-body" style="padding:12px 14px;">
-                                    <div class="info-list">
-                                        <div class="info-line"><span>Animal Type</span><strong>@(r.AnimalType ?? "—")</strong></div>
-                                        <div class="info-line"><span>Breed</span><strong>@(r.Breed ?? "—")</strong></div>
-                                        <div class="info-line"><span>Color</span><strong>@(r.Color ?? "—")</strong></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="inner-card" style="margin:0;">
-                                <div class="inner-card-head"><div class="inner-card-title">📍 Location</div></div>
-                                <div class="inner-card-body" style="padding:12px 14px;">
-                                    <div class="info-list">
-                                        <div class="info-line"><span>City</span><strong>@(r.City ?? "—")</strong></div>
-                                        <div class="info-line"><span>Area</span><strong>@(r.Area ?? "—")</strong></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                            <div class="inner-card" style="margin:0;">
-                                <div class="inner-card-head"><div class="inner-card-title">👤 Owner</div></div>
-                                <div class="inner-card-body" style="padding:12px 14px;">
-                                    <div class="info-list">
-                                        <div class="info-line"><span>Name</span><strong>@r.OwnerName</strong></div>
-                                        <div class="info-line"><span>Phone</span><strong style="font-family:monospace;">@r.OwnerPhone</strong></div>
-                                        <div class="info-line"><span>Claims received</span><strong>@r.ClaimCount claim@(r.ClaimCount != 1 ? "s" : "")</strong></div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="inner-card" style="margin:0;">
-                                <div class="inner-card-head"><div class="inner-card-title">📋 Report Details</div></div>
-                                <div class="inner-card-body" style="padding:12px 14px;">
-                                    <div class="info-list">
-                                        <div class="info-line"><span>Created</span><strong>@r.CreatedAt.ToString("MMM dd, yyyy")</strong></div>
-                                        <div class="info-line">
-                                            <span>Expires</span>
-                                            <strong>@(r.ExpiryDate.HasValue? r.ExpiryDate.Value.ToString("MMM dd, yyyy") : "No expiry")</strong>
-                                        </div>
-                                        <div class="info-line">
-                                            <span>Payment</span>
-                                            <strong>@(r.IsPaid ? "✅ Confirmed" : "⏳ Awaiting")</strong>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                    <div style="font-family:monospace;font-size:.76rem;background:var(--surface-2);
+                                            border:1px solid var(--border);border-radius:8px;padding:4px 10px;
+                                            color:var(--brand-dark);font-weight:900;flex-shrink:0;">
+                        @(r.ReportCode ?? "—")
+                    </div>
+                </div>
+                <div style="padding:18px 20px;display:flex;flex-direction:column;gap:14px;">
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
                         <div class="inner-card" style="margin:0;">
-                            <div class="inner-card-head"><div class="inner-card-title">💰 Reward</div></div>
-                            <div class="inner-card-body" style="padding:12px 14px;">
-                                @if (r.RewardAmount > 0)
-                                {
-                                    <span style="color:var(--success);font-size:1.1rem;font-weight:900;">💰 @r.RewardAmount JOD</span>
-                                    <span style="font-size:.78rem;color:var(--text-muted);display:block;margin-top:3px;">Reserved for finder</span>
-                                }
-                                else if (r.HasSurpriseReward)
-                                {
-                                    <span style="color:#9b6000;font-size:1rem;font-weight:900;">🎁 Waffy Surprise Reward</span>
-                                    <span style="font-size:.78rem;color:var(--text-muted);display:block;margin-top:3px;">From reward pool</span>
-                                }
-                                else
-                                {
-                                    <span style="color:var(--text-muted);font-weight:700;">No reward offered</span>
-                                }
-                            </div>
-                        </div>
-                        <div class="inner-card" style="margin:0;border:1.5px solid rgba(155,96,0,.2);">
-                            <div class="inner-card-head" style="background:var(--warning-soft);">
-                                <div class="inner-card-title">
-                                    🔑 Secret Question
-                                    <span class="badge badge-warning" style="font-size:.66rem;margin-left:6px;">Admin Only</span>
-                                </div>
-                            </div>
-                            <div class="inner-card-body" style="padding:12px 14px;">
-                                <div style="font-size:.86rem;font-weight:800;color:#9b6000;line-height:1.5;">
-                                    @(r.SecretQuestion ?? "Not provided")
-                                </div>
-                            </div>
-                        </div>
-                        @if (r.Status == "Active" || r.Status == "Expired")
-                        {
-                            <div class="inner-card" style="margin:0;border:1.5px solid rgba(217,83,79,.2);">
-                                <div class="inner-card-head" style="background:var(--danger-soft);">
-                                    <div class="inner-card-title" style="color:var(--danger);">🔒 Close as Suspicious</div>
-                                </div>
-                                <div class="inner-card-body" style="padding:14px;">
-                                    <form method="post" asp-action="CloseSuspiciousReport" asp-controller="SuperAdmin">
-                                        @Html.AntiForgeryToken()
-                                        <input type="hidden" name="reportId" value="@r.IdLostReport" />
-                                        <div class="close-form-panel">
-                                            <label>Reason:</label>
-                                            <select name="reason">
-                                                <option>Suspected fake report</option>
-                                                <option>Duplicate listing</option>
-                                                <option>Incomplete information</option>
-                                                <option>Fraud suspected</option>
-                                                <option>Other</option>
-                                            </select>
-                                            <label>Message to owner:</label>
-                                            <textarea name="adminMessage" placeholder="Explain why the report is being closed..."></textarea>
-                                            <button type="submit" class="btn btn-danger btn-sm"
-                                                    onclick="return confirm('Close this report and notify owner?')">
-                                                🔒 Close &amp; Notify Owner
-                                            </button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        }
-                        <div class="inner-card" style="margin:0;">
-                            <div class="inner-card-head"><div class="inner-card-title">💳 Amount Paid</div></div>
+                            <div class="inner-card-head"><div class="inner-card-title">🐾 Pet Information</div></div>
                             <div class="inner-card-body" style="padding:12px 14px;">
                                 <div class="info-list">
+                                    <div class="info-line"><span>Animal Type</span><strong>@(r.AnimalType ?? "—")</strong></div>
+                                    <div class="info-line"><span>Breed</span><strong>@(r.Breed ?? "—")</strong></div>
+                                    <div class="info-line"><span>Color</span><strong>@(r.Color ?? "—")</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="inner-card" style="margin:0;">
+                            <div class="inner-card-head"><div class="inner-card-title">📍 Location</div></div>
+                            <div class="inner-card-body" style="padding:12px 14px;">
+                                <div class="info-list">
+                                    <div class="info-line"><span>City</span><strong>@(r.City ?? "—")</strong></div>
+                                    <div class="info-line"><span>Area</span><strong>@(r.Area ?? "—")</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                        <div class="inner-card" style="margin:0;">
+                            <div class="inner-card-head"><div class="inner-card-title">👤 Owner</div></div>
+                            <div class="inner-card-body" style="padding:12px 14px;">
+                                <div class="info-list">
+                                    <div class="info-line"><span>Name</span><strong>@r.OwnerName</strong></div>
+                                    <div class="info-line"><span>Phone</span><strong style="font-family:monospace;">@r.OwnerPhone</strong></div>
+                                    <div class="info-line"><span>Claims received</span><strong>@r.ClaimCount claim@(r.ClaimCount != 1 ? "s" : "")</strong></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="inner-card" style="margin:0;">
+                            <div class="inner-card-head"><div class="inner-card-title">📋 Report Details</div></div>
+                            <div class="inner-card-body" style="padding:12px 14px;">
+                                <div class="info-list">
+                                    <div class="info-line"><span>Created</span><strong>@r.CreatedAt.ToString("MMM dd, yyyy")</strong></div>
                                     <div class="info-line">
-                                        <span>Post Type</span>
-                                        <strong>
-                                            @if (r.IsFreePost)
-                                            {
-                                                <span style="color:#2d7a2d;">🎁 Free Post</span>
-                                            }
-                                            else
-                                            {
-
-                                                <span>💳 Paid Post</span>
-                                            }
-                                        </strong>
+                                        <span>Expires</span>
+                                        <strong>@(r.ExpiryDate.HasValue? r.ExpiryDate.Value.ToString("MMM dd, yyyy") : "No expiry")</strong>
                                     </div>
                                     <div class="info-line">
-                                        <span>Amount</span>
-                                        <strong>
-                                            @if (r.IsFreePost)
-                                            {
-                                                <span style="color:#2d7a2d;font-size:1rem;">0.00 JOD</span>
-                                            }
-                                            else
-                                            {
-
-                                                <span style="color:var(--brand-dark);font-size:1rem;">@r.AmountPaid.ToString("F2") JOD</span>
-                                            }
-                                        </strong>
-                                    </div>
-                                    <div class="info-line">
-                                        <span>Reward Reserved</span>
-                                        <strong>
-                                            @if (r.RewardReserved)
-                                            {
-                                                <span style="color:#9b6000;">🔒 @r.RewardAmount?.ToString("F2") JOD held</span>
-                                            }
-                                            else if (r.RewardAmount > 0)
-                                            {
-
-                                                <span style="color:var(--text-muted);">⚠️ Not reserved</span>
-                                            }
-                                            else
-                                            {
-
-                                                <span style="color:var(--text-muted);">—</span>
-                                            }
-                                        </strong>
+                                        <span>Payment</span>
+                                        <strong>@(r.IsPaid ? "✅ Confirmed" : "⏳ Awaiting")</strong>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <a href="@currentUrl" class="btn btn-outline btn-sm">Close</a>
-                </div>
-            </div>
-        </div>
-    }
-
-    @* ══ REJECT PAYMENT MODALS ════════════════════════════════════ *@
-    @foreach (var p in pendingPayments)
-    {
-        <div id="rej_@p.IdPayment" class="target-modal">
-            <div class="modal-box" style="max-width:460px;">
-                <div class="modal-head">
-                    <div class="modal-title">❌ Reject Payment</div>
-                    <a href="@currentUrl" class="dp-close" title="Close">×</a>
-                </div>
-                <div class="modal-body">
-                    <div style="display:flex;align-items:center;gap:12px;background:var(--surface-2);
-                                    border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;">
-                        <div style="width:42px;height:42px;border-radius:13px;background:var(--danger-soft);
-                                        border:1px solid rgba(217,83,79,.2);display:grid;place-items:center;
-                                        font-size:1.2rem;flex-shrink:0;">
-                            💳
+                    @if (modalImgs.Any())
+                    {
+                        <div class="inner-card" style="margin:0;">
+                            <div class="inner-card-head">
+                                <div class="inner-card-title">📸 Photos</div>
+                                <span class="badge badge-muted">@modalImgs.Count photo@(modalImgs.Count > 1 ? "s" : "")</span>
+                            </div>
+                            <div class="inner-card-body" style="padding:12px 14px;">
+                                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                    @foreach (var img in modalImgs)
+                                    {
+                                        <img src="@img"
+                                             style="width:80px;height:80px;border-radius:10px;
+                                            object-fit:cover;border:1px solid var(--border);
+                                            cursor:pointer;"
+                                             onclick="window.open('@img','_blank')"
+                                             title="Click to view full size" />
+                                    }
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <div style="font-weight:900;color:var(--brand-dark);font-size:.9rem;">@p.UserName</div>
-                            <div style="font-size:.76rem;color:var(--text-muted);margin-top:2px;">
-                                Payment of <strong style="color:var(--danger);">@p.Amount JOD</strong>
+                    }
+                    <div class="inner-card" style="margin:0;">
+                        <div class="inner-card-head"><div class="inner-card-title">💰 Reward</div></div>
+                        <div class="inner-card-body" style="padding:12px 14px;">
+                            @if (r.RewardAmount > 0)
+                            {
+                                <span style="color:var(--success);font-size:1.1rem;font-weight:900;">💰 @r.RewardAmount JOD</span>
+                                <span style="font-size:.78rem;color:var(--text-muted);display:block;margin-top:3px;">Reserved for finder</span>
+                            }
+                            else if (r.HasSurpriseReward)
+                            {
+                                <span style="color:#9b6000;font-size:1rem;font-weight:900;">🎁 Waffy Surprise Reward</span>
+                                <span style="font-size:.78rem;color:var(--text-muted);display:block;margin-top:3px;">From reward pool</span>
+                            }
+                            else
+                            {
+                                <span style="color:var(--text-muted);font-weight:700;">No reward offered</span>
+                            }
+                        </div>
+                    </div>
+                    <div class="inner-card" style="margin:0;border:1.5px solid rgba(155,96,0,.2);">
+                        <div class="inner-card-head" style="background:var(--warning-soft);">
+                            <div class="inner-card-title">
+                                🔑 Secret Question
+                                <span class="badge badge-warning" style="font-size:.66rem;margin-left:6px;">Admin Only</span>
+                            </div>
+                        </div>
+                        <div class="inner-card-body" style="padding:12px 14px;">
+                            <div style="font-size:.86rem;font-weight:800;color:#9b6000;line-height:1.5;">
+                                @(r.SecretQuestion ?? "Not provided")
                             </div>
                         </div>
                     </div>
-                    <div style="background:var(--warning-soft);border:1px solid rgba(226,163,58,.3);
-                                    border-radius:var(--r);padding:12px 14px;margin-bottom:16px;
-                                    display:flex;gap:10px;align-items:flex-start;">
-                        <span style="font-size:1.1rem;flex-shrink:0;">⚠️</span>
-                        <div style="font-size:.8rem;color:#9b6000;font-weight:700;line-height:1.5;">
-                            The report will be marked as <strong>Rejected</strong> and the user will receive a notification.
+                    @if (r.Status == "Active" || r.Status == "Expired")
+                    {
+                        <div class="inner-card" style="margin:0;border:1.5px solid rgba(217,83,79,.2);">
+                            <div class="inner-card-head" style="background:var(--danger-soft);">
+                                <div class="inner-card-title" style="color:var(--danger);">🔒 Close as Suspicious</div>
+                            </div>
+                            <div class="inner-card-body" style="padding:14px;">
+                                <form method="post" asp-action="CloseSuspiciousReport" asp-controller="SuperAdmin">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="reportId" value="@r.IdLostReport" />
+                                    <div class="close-form-panel">
+                                        <label>Reason:</label>
+                                        <select name="reason">
+                                            <option>Suspected fake report</option>
+                                            <option>Duplicate listing</option>
+                                            <option>Incomplete information</option>
+                                            <option>Fraud suspected</option>
+                                            <option>Other</option>
+                                        </select>
+                                        <label>Message to owner:</label>
+                                        <textarea name="adminMessage" placeholder="Explain why the report is being closed..."></textarea>
+                                        <button type="submit" class="btn btn-danger btn-sm"
+                                                onclick="return confirm('Close this report and notify owner?')">
+                                            🔒 Close &amp; Notify Owner
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    }
+                    <div class="inner-card" style="margin:0;">
+                        <div class="inner-card-head"><div class="inner-card-title">💳 Amount Paid</div></div>
+                        <div class="inner-card-body" style="padding:12px 14px;">
+                            <div class="info-list">
+                                <div class="info-line">
+                                    <span>Post Type</span>
+                                    <strong>
+                                        @if (r.IsFreePost)
+                                        {
+                                            <span style="color:#2d7a2d;">🎁 Free Post</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span>💳 Paid Post</span>
+                                        }
+                                    </strong>
+                                </div>
+                                <div class="info-line">
+                                    <span>Amount</span>
+                                    <strong>
+                                        @if (r.IsFreePost)
+                                        {
+                                            <span style="color:#2d7a2d;font-size:1rem;">0.00 JOD</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span style="color:var(--brand-dark);font-size:1rem;">@r.AmountPaid.ToString("F2") JOD</span>
+                                        }
+                                    </strong>
+                                </div>
+                                <div class="info-line">
+                                    <span>Reward Reserved</span>
+                                    <strong>
+                                        @if (r.RewardReserved)
+                                        {
+                                            <span style="color:#9b6000;">🔒 @r.RewardAmount?.ToString("F2") JOD held</span>
+                                        }
+                                        else if (r.RewardAmount > 0)
+                                        {
+
+                                            <span style="color:var(--text-muted);">⚠️ Not reserved</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span style="color:var(--text-muted);">—</span>
+                                        }
+                                    </strong>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <form method="post" asp-action="RejectPayment" asp-controller="SuperAdmin">
-                        @Html.AntiForgeryToken()
-                        <input type="hidden" name="paymentId" value="@p.IdPayment" />
-                        <div class="field" style="margin-bottom:16px;">
-                            <label>Reason for rejection</label>
-                            <select name="reason" class="sel-wrap" style="height:44px;border-radius:12px;">
-                                <option value="Payment not received">💸 Payment not received</option>
-                                <option value="Wrong amount transferred">💰 Wrong amount transferred</option>
-                                <option value="Invalid CliQ number">📱 Invalid CliQ number</option>
-                                <option value="Duplicate payment">🔁 Duplicate payment</option>
-                                <option value="Other">📝 Other</option>
-                            </select>
-                        </div>
-                        <div style="display:flex;gap:8px;justify-content:flex-end;">
-                            <a href="@currentUrl" class="btn btn-outline btn-sm">Cancel</a>
-                            <button type="submit" class="btn btn-danger btn-sm">❌ Confirm Rejection</button>
-                        </div>
-                    </form>
                 </div>
             </div>
+            <div class="modal-footer">
+                <a href="@currentUrl" class="btn btn-outline btn-sm">Close</a>
+            </div>
         </div>
-    }
+    </div>
+}
 
-    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
+@* ══ REJECT PAYMENT MODALS ════════════════════════════════════ *@
+@foreach (var p in pendingPayments)
+{
+    <div id="rej_@p.IdPayment" class="target-modal">
+        <div class="modal-box" style="max-width:460px;">
+            <div class="modal-head">
+                <div class="modal-title">❌ Reject Payment</div>
+                <a href="@currentUrl" class="dp-close" title="Close">×</a>
+            </div>
+            <div class="modal-body">
+                <div style="display:flex;align-items:center;gap:12px;background:var(--surface-2);
+                                        border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px;">
+                    <div style="width:42px;height:42px;border-radius:13px;background:var(--danger-soft);
+                                            border:1px solid rgba(217,83,79,.2);display:grid;place-items:center;
+                                            font-size:1.2rem;flex-shrink:0;">
+                        💳
+                    </div>
+                    <div>
+                        <div style="font-weight:900;color:var(--brand-dark);font-size:.9rem;">@p.UserName</div>
+                        <div style="font-size:.76rem;color:var(--text-muted);margin-top:2px;">
+                            Payment of <strong style="color:var(--danger);">@p.Amount JOD</strong>
+                        </div>
+                    </div>
+                </div>
+                <div style="background:var(--warning-soft);border:1px solid rgba(226,163,58,.3);
+                                        border-radius:var(--r);padding:12px 14px;margin-bottom:16px;
+                                        display:flex;gap:10px;align-items:flex-start;">
+                    <span style="font-size:1.1rem;flex-shrink:0;">⚠️</span>
+                    <div style="font-size:.8rem;color:#9b6000;font-weight:700;line-height:1.5;">
+                        The report will be marked as <strong>Rejected</strong> and the user will receive a notification.
+                    </div>
+                </div>
+                <form method="post" asp-action="RejectPayment" asp-controller="SuperAdmin">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="paymentId" value="@p.IdPayment" />
+                    <div class="field" style="margin-bottom:16px;">
+                        <label>Reason for rejection</label>
+                        <select name="reason" class="sel-wrap" style="height:44px;border-radius:12px;">
+                            <option value="Payment not received">💸 Payment not received</option>
+                            <option value="Wrong amount transferred">💰 Wrong amount transferred</option>
+                            <option value="Invalid CliQ number">📱 Invalid CliQ number</option>
+                            <option value="Duplicate payment">🔁 Duplicate payment</option>
+                            <option value="Other">📝 Other</option>
+                        </select>
+                    </div>
+                    <div style="display:flex;gap:8px;justify-content:flex-end;">
+                        <a href="@currentUrl" class="btn btn-outline btn-sm">Cancel</a>
+                        <button type="submit" class="btn btn-danger btn-sm">❌ Confirm Rejection</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
 
+
+
+@section PageScripts {
     <script>
         // ── Add Reward Form — Partner logic ────────────────────────
         function onRewardTypeChange(type) {
@@ -1156,5 +1099,4 @@
             if (sel) onRewardTypeChange(sel.value);
         });
     </script>
-</body>
-</html>
+}

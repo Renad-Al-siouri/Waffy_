@@ -19,7 +19,10 @@ namespace Waffy.Controllers
         private readonly INotificationRepository _notifRepo;
         private readonly IPetRepository _petRepo;
         private readonly IWalletRepository _walletRepo;
-
+        private readonly IAdoptionRepository _adoptionRepo;
+        private readonly IReservationRepository _reservationRepo;
+        private readonly IReviewRepository _reviewRepo;
+        private readonly IComplaintRepository _complaintRepo;
 
         public ClinicAdminController(IClinicRepository clinicRepo,
         IWalletRepository walletRepo,
@@ -32,6 +35,10 @@ namespace Waffy.Controllers
         IAppointmentRepository apptRepo,
         INotificationRepository notifRepo,
         IDoctorRepository doctorRepo,
+        IAdoptionRepository adoptionRepo,
+        IReservationRepository reservationRepo,
+        IReviewRepository reviewRepo,
+        IComplaintRepository complaintRepo,
         IPetRepository petRepo)
         {
             _walletRepo = walletRepo;
@@ -46,6 +53,10 @@ namespace Waffy.Controllers
             _apptRepo = apptRepo;
             _notifRepo = notifRepo;
             _petRepo = petRepo;
+            _adoptionRepo = adoptionRepo;
+            _reservationRepo = reservationRepo;
+            _reviewRepo = reviewRepo;
+            _complaintRepo = complaintRepo;
         }
 
         // ══════════════════════════════════════════════════════════
@@ -1295,17 +1306,320 @@ await _clinicRepo.AddClinicBalanceAsync(appt.IdClinic, -appt.DepositAmount);
             return View();
         }
 
-        public IActionResult Adoption()
+        // ── GET /ClinicAdmin/Adoption ─────────────────────────────
+        [HttpGet]
+        public async Task<IActionResult> Adoption(string? statusFilter = null)
         {
             var auth = RequireClinicAuth();
             if (auth != null) return auth;
-            return View();
+
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
+            // ① جلب كل منشورات العيادة
+            var all = (await _adoptionRepo.GetByClinicIdAsync(clinicId.Value)).ToList();
+
+            // ② فلترة
+            var filtered = string.IsNullOrEmpty(statusFilter) || statusFilter == "All"
+                ? all
+                : all.Where(p => p.Status == statusFilter).ToList();
+
+            // ③ جلب Reservations لكل post
+            var reservations = new Dictionary<int, List<AdoptionReservation>>();
+            foreach (var post in all)
+            {
+                var reqs = (await _reservationRepo.GetByPostIdAsync(post.IdPost)).ToList();
+                if (reqs.Any())
+                    reservations[post.IdPost] = reqs;
+            }
+
+            // ④ جلب أول صورة لكل post
+            var postImages = new Dictionary<int, string>();
+            foreach (var post in all)
+            {
+                var firstImg = await _adoptionRepo.GetFirstImageAsync(post.IdPost);
+                if (!string.IsNullOrEmpty(firstImg))
+                    postImages[post.IdPost] = firstImg;
+            }
+
+            // ⑤ جلب Locations للـ dropdowns
+            await LoadAdoptionLocationsAsync();
+
+            // ⑥ بناء الـ ViewModel
+            var vm = new ClinicAdoptionViewModel
+            {
+                Posts = filtered,
+                Reservations = reservations,
+                PostImages = postImages,
+                StatusFilter = statusFilter ?? "All",
+                TotalCount = all.Count,
+                PendingCount = all.Count(p => p.Status == "Pending"),
+                ApprovedCount = all.Count(p => p.Status == "Approved"),
+                ClosedCount = all.Count(p => p.Status == "Closed"),
+                RejectedCount = all.Count(p => p.Status == "Rejected")
+            };
+
+            return View(vm);
         }
 
-        public IActionResult Reviews()
+        // ── Helper: جلب Locations ──────────────────────────────────
+        private async Task LoadAdoptionLocationsAsync()
+        {
+            var governorates = (await _locationRepo.GetAllGovernoratesAsync()).ToList();
+            var districts = (await _locationRepo.GetAllDistrictsAsync()).ToList();
+
+            ViewBag.LocationsJson = System.Text.Json.JsonSerializer.Serialize(
+                governorates.Select(g => new
+                {
+                    id = g.Id,
+                    name = g.NameEn,
+                    districts = districts
+                        .Where(d => d.GovernorateId == g.Id)
+                        .OrderBy(d => d.NameEn)
+                        .Select(d => d.NameEn)
+                        .ToList()
+                })
+            );
+
+            ViewBag.Governorates = governorates;
+        }
+
+        // ── POST /ClinicAdmin/CreateAdoptionPost ──────────────────
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(52_428_800)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 52_428_800)]
+        public async Task<IActionResult> CreateAdoptionPost(
+            string petName, string animalType, string? breed, string? color,
+            int? age, string? gender, string? energyLevel,
+            bool goodWithChildren, bool goodWithPets,
+            string? healthStatus, bool isVaccinated, bool isNeutered,
+            string city, string? area,
+            string contactPhone,
+            string description, string reasonForAdoption)
         {
             var auth = RequireClinicAuth();
             if (auth != null) return auth;
+
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
+            // ── Validation ────────────────────────────────────────
+            if (string.IsNullOrWhiteSpace(petName) || petName.Length > 100)
+            { TempData["AdoptError"] = "Pet name is required (max 100 chars)."; return RedirectToAction("Adoption"); }
+            if (string.IsNullOrWhiteSpace(animalType))
+            { TempData["AdoptError"] = "Animal type is required."; return RedirectToAction("Adoption"); }
+            if (string.IsNullOrWhiteSpace(city))
+            { TempData["AdoptError"] = "City is required."; return RedirectToAction("Adoption"); }
+            if (string.IsNullOrWhiteSpace(contactPhone))
+            { TempData["AdoptError"] = "Contact phone is required."; return RedirectToAction("Adoption"); }
+            if (string.IsNullOrWhiteSpace(description))
+            { TempData["AdoptError"] = "Description is required."; return RedirectToAction("Adoption"); }
+            if (string.IsNullOrWhiteSpace(reasonForAdoption))
+            { TempData["AdoptError"] = "Reason for adoption is required."; return RedirectToAction("Adoption"); }
+
+            var clinicName = HttpContext.Session.GetString("ClinicName") ?? "Clinic";
+
+            var post = new AdoptionPost
+            {
+                PostedByType = "Clinic",
+                PostedById = clinicId.Value,
+                IdPet = null,
+                PetName = petName.Trim(),
+                AnimalType = animalType,
+                Breed = breed?.Trim(),
+                Color = color?.Trim(),
+                Age = age,          // ← نحفظ العمر مباشرة
+                Gender = gender,
+                EnergyLevel = energyLevel,
+                GoodWithChildren = goodWithChildren,
+                GoodWithPets = goodWithPets,
+                HealthStatus = healthStatus,
+                IsVaccinated = isVaccinated,
+                IsNeutered = isNeutered,
+                City = city,
+                Area = area?.Trim(),
+                ContactName = clinicName,
+                ContactPhone = contactPhone.Trim(),
+                Description = description.Trim(),
+                ReasonForAdoption = reasonForAdoption.Trim(),
+                Status = "Pending",
+                AdoptionStatus = "Available",
+                PostCode = $"WAFFY-C-{Guid.NewGuid().ToString()[..6].ToUpper()}",
+                CreatedAt = DateTime.UtcNow,
+                StoreName = clinicName
+            };
+
+            var newPostId = await _adoptionRepo.AddAsync(post);
+
+            // ── حفظ الصور (حتى 5) ────────────────────────────────
+            var photos = Request.Form.Files.GetFiles("photos");
+            foreach (var photo in photos.Where(f => f.Length > 0).Take(5))
+            {
+                var url = await SaveFileAsync(photo, "adoption-clinic");
+                if (url != null)
+                    await _adoptionRepo.AddImageAsync(newPostId, url);
+            }
+
+            TempData["AdoptSuccess"] =
+                $"✅ \"{petName}\" submitted for review. It will appear once approved by admin.";
+            return RedirectToAction("Adoption");
+        }
+
+        // ── POST /ClinicAdmin/DeleteAdoptionPost ──────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteAdoptionPost(int id)
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
+            var post = await _adoptionRepo.GetByIdAsync(id);
+            if (post == null || post.PostedById != clinicId.Value || post.PostedByType != "Clinic")
+            { TempData["AdoptError"] = "Post not found."; return RedirectToAction("Adoption"); }
+
+            if (post.Status == "Approved")
+            { TempData["AdoptError"] = "Cannot delete an approved post. Use Close instead."; return RedirectToAction("Adoption"); }
+
+            await _adoptionRepo.DeleteAsync(id);
+            TempData["AdoptSuccess"] = "Post deleted successfully.";
+            return RedirectToAction("Adoption");
+        }
+
+        // ── POST /ClinicAdmin/CloseAdoptionPost ───────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> CloseAdoptionPost(int id)
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
+            var post = await _adoptionRepo.GetByIdAsync(id);
+            if (post == null || post.PostedById != clinicId.Value || post.PostedByType != "Clinic")
+            { TempData["AdoptError"] = "Post not found."; return RedirectToAction("Adoption"); }
+
+            await _adoptionRepo.ClosePostAsync(id);
+            TempData["AdoptSuccess"] = "Post closed successfully.";
+            return RedirectToAction("Adoption");
+        }
+
+        // ── POST /ClinicAdmin/ApproveReservation ──────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveReservation(int reservationId)
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
+            var reservation = await _reservationRepo.GetByIdAsync(reservationId);
+            if (reservation == null) { TempData["AdoptError"] = "Reservation not found."; return RedirectToAction("Adoption"); }
+
+            var post = await _adoptionRepo.GetByIdAsync(reservation.IdPost);
+            if (post == null || post.PostedById != clinicId.Value || post.PostedByType != "Clinic")
+            { TempData["AdoptError"] = "Unauthorized."; return RedirectToAction("Adoption"); }
+
+            await _reservationRepo.ApproveAsync(reservationId);
+            await _adoptionRepo.UpdateStatusAsync(post.IdPost, "Reserved");
+
+            // رفض باقي الـ Pending تلقائياً
+            var otherPending = (await _reservationRepo.GetByPostIdAsync(post.IdPost))
+                .Where(r => r.Status == "Pending" && r.IdReservation != reservationId)
+                .ToList();
+
+            foreach (var other in otherPending)
+                await _reservationRepo.RejectAsync(other.IdReservation);
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = reservation.IdRequester,
+                Type = "AdoptionApproved",
+                Title = "🎉 Adoption Request Approved!",
+                Message = $"Your request to adopt \"{post.PetName}\" from " +
+                                    $"{HttpContext.Session.GetString("ClinicName") ?? "the clinic"} " +
+                                    "has been approved. Please contact the clinic to arrange pickup. 🐾",
+                IsRead = false,
+                RelatedEntityType = "AdoptionPost",
+                RelatedEntityId = post.IdPost,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["AdoptSuccess"] =
+                $"✅ Reservation approved. {otherPending.Count} other request(s) rejected automatically.";
+            return RedirectToAction("Adoption");
+        }
+
+        // ── POST /ClinicAdmin/RejectReservation ───────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectReservation(int reservationId)
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
+            var reservation = await _reservationRepo.GetByIdAsync(reservationId);
+            if (reservation == null) { TempData["AdoptError"] = "Reservation not found."; return RedirectToAction("Adoption"); }
+
+            var post = await _adoptionRepo.GetByIdAsync(reservation.IdPost);
+            if (post == null || post.PostedById != clinicId.Value || post.PostedByType != "Clinic")
+            { TempData["AdoptError"] = "Unauthorized."; return RedirectToAction("Adoption"); }
+
+            await _reservationRepo.RejectAsync(reservationId);
+
+            var stillPending = (await _reservationRepo.GetByPostIdAsync(post.IdPost))
+                .Any(r => r.Status == "Pending" && r.IdReservation != reservationId);
+
+            if (!stillPending && post.AdoptionStatus == "Reserved")
+                await _adoptionRepo.UpdateStatusAsync(post.IdPost, "Available");
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = reservation.IdRequester,
+                Type = "AdoptionRejected",
+                Title = "❌ Adoption Request Declined",
+                Message = $"Your request to adopt \"{post.PetName}\" from " +
+                                    $"{HttpContext.Session.GetString("ClinicName") ?? "the clinic"} " +
+                                    "was not approved. You can browse other pets. 🐾",
+                IsRead = false,
+                RelatedEntityType = "AdoptionPost",
+                RelatedEntityId = post.IdPost,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["AdoptSuccess"] = "Reservation rejected.";
+            return RedirectToAction("Adoption");
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> Reviews()
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
+            var reviews = (await _reviewRepo.GetByTargetAsync("Clinic", clinicId.Value)).ToList();
+
+            var avg = reviews.Any() ? reviews.Average(r => r.Rating) : 0.0;
+
+            ViewBag.Reviews = reviews;
+            ViewBag.TotalCount = reviews.Count;
+            ViewBag.AvgRating = Math.Round(avg, 1);
+            ViewBag.Star5 = reviews.Count(r => r.Rating == 5);
+            ViewBag.Star4 = reviews.Count(r => r.Rating == 4);
+            ViewBag.Star3 = reviews.Count(r => r.Rating == 3);
+            ViewBag.Star2 = reviews.Count(r => r.Rating == 2);
+            ViewBag.Star1 = reviews.Count(r => r.Rating == 1);
+
             return View();
         }
 
@@ -1351,11 +1665,81 @@ await _clinicRepo.AddClinicBalanceAsync(appt.IdClinic, -appt.DepositAmount);
             return View();
         }
 
-        public IActionResult Notifications()
+        // ── GET /ClinicAdmin/Complaints ───────────────────────────
+        [HttpGet]
+        public async Task<IActionResult> Complaints(string? statusFilter = null)
         {
             var auth = RequireClinicAuth();
             if (auth != null) return auth;
+
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
+            var all = (await _complaintRepo.GetByClinicIdAsync(clinicId.Value)).ToList();
+
+            var filtered = string.IsNullOrEmpty(statusFilter) || statusFilter == "All"
+                ? all
+                : all.Where(c => c.Status == statusFilter).ToList();
+
+            ViewBag.Complaints = filtered;
+            ViewBag.StatusFilter = statusFilter ?? "All";
+            ViewBag.TotalCount = all.Count;
+            ViewBag.OpenCount = all.Count(c => c.Status == "Open" || c.Status == "Pending");
+            ViewBag.ResolvedCount = all.Count(c => c.Status == "Resolved");
+            ViewBag.InvestigatingCount = all.Count(c => c.Status == "Investigating");
+
             return View();
+        }
+
+        // ── GET /ClinicAdmin/Notifications ────────────────────────
+        [HttpGet]
+        public async Task<IActionResult> Notifications()
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
+            // جلب الـ IdUser للعيادة لإرسال الإشعارات
+            var clinic = await _clinicRepo.GetByIdAsync(clinicId.Value);
+            if (clinic == null) return View(new List<Notification>());
+            var notifications = (await _notifRepo.GetByUserIdAsync(clinic.OwnerUserId))
+                            .OrderByDescending(n => n.CreatedAt)
+                            .ToList();
+
+            ViewBag.UnreadCount = notifications.Count(n => !n.IsRead);
+            ViewBag.TotalCount = notifications.Count;
+
+            return View(notifications);
+        }
+
+        // ── POST /ClinicAdmin/MarkNotificationRead ─────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkNotificationRead(int id)
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            await _notifRepo.MarkAsReadAsync(id);
+            return RedirectToAction("Notifications");
+        }
+
+        // ── POST /ClinicAdmin/MarkAllNotificationsRead ─────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkAllNotificationsRead()
+        {
+            var auth = RequireClinicAuth();
+            if (auth != null) return auth;
+
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
+            var clinic = await _clinicRepo.GetByIdAsync(clinicId.Value);
+            if (clinic != null)
+                await _notifRepo.MarkAllAsReadAsync(clinic.OwnerUserId);
+
+            return RedirectToAction("Notifications");
         }
 
 

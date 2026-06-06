@@ -335,7 +335,19 @@ namespace Waffy.Repository
             using var conn = new SqlConnection(_connectionString);
             await conn.ExecuteAsync(sql, new { Id = appointmentId, DoctorId = doctorId });
         }
+        public async Task<IEnumerable<AdoptionPost>> GetByClinicIdAsync(int clinicId)
+        {
+            const string sql = @"
+        SELECT ap.*, p.BirthDate
+        FROM   AdoptionPost ap
+        LEFT JOIN Pet p ON ap.IdPet = p.IdPet
+        WHERE  ap.PostedByType = 'Clinic'
+          AND  ap.PostedById   = @ClinicId
+        ORDER BY ap.CreatedAt DESC";
 
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryAsync<AdoptionPost>(sql, new { ClinicId = clinicId });
+        }
 
 
     }

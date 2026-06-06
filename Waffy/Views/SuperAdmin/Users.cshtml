@@ -1,19 +1,15 @@
 ﻿@model Waffy.Models.ViewModels.UserManagementViewModel
 @{
+    Layout = "~/Views/SuperAdmin/_SuperAdminLayout.cshtml";
     ViewData["Title"] = "Waffy — Super Admin | Users";
-    Layout = null;
-    var adminName = ViewBag.AdminName as string ?? "Admin";
-    var adminInitials = ViewBag.AdminInitials as string ?? "AD";
+    ViewData["ActiveSection"] = "users";
+    ViewData["ActivePage"] = "users";
+    ViewData["PageTitle"] = "User Management";
+    ViewData["BreadcrumbParent"] = "Management";
+    ViewData["BreadcrumbCurrent"] = "Users";
 }
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+
+@section PageStyles {
     <style>
         .avatar-cell {
             width: 38px;
@@ -75,503 +71,338 @@
             }
         }
     </style>
-</head>
-<body>
-    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
-    <div class="wa-shell" id="waShell">
+}
 
-        <!-- ══ SIDEBAR ══════════════════════════════════════════════ -->
-        <aside class="wa-sb" id="waSb">
-            <div class="sb-logo">
-                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
-                <div class="sb-wordmark">
-                    <div class="sb-wm-name">Waffy</div>
-                    <div class="sb-wm-tag">Super Admin</div>
+<main class="wa-main" id="waMain">
+
+    @if (ViewBag.Success != null)
+    {
+        <div class="flash-toast flash-success" id="flashMsg">@ViewBag.Success</div>
+    }
+    @if (ViewBag.Error != null)
+    {
+        <div class="flash-toast flash-danger" id="flashMsg">@ViewBag.Error</div>
+    }
+
+    <section class="page-hero">
+        <div>
+            <h1>User Management</h1>
+            <p>Monitor and manage all platform users — roles, status, and moderation actions.</p>
+        </div>
+    </section>
+
+    <div class="page-body">
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
+            <div class="kpi-card c1">
+                <div class="kpi-ico green">👥</div>
+                <div class="kpi-val">@Model.TotalUsers.ToString("N0")</div>
+                <div class="kpi-label">Total Users</div>
+                <div class="kpi-chip chip-green">All time</div>
+            </div>
+            <div class="kpi-card c2">
+                <div class="kpi-ico blue">🆕</div>
+                <div class="kpi-val">@Model.NewThisMonth</div>
+                <div class="kpi-label">New This Month</div>
+                <div class="kpi-chip chip-blue">↑ Growing</div>
+            </div>
+            <div class="kpi-card c3">
+                <div class="kpi-ico yellow">✅</div>
+                <div class="kpi-val">@Model.ActiveUsers</div>
+                <div class="kpi-label">Active</div>
+                <div class="kpi-chip chip-yellow">
+                    @(Model.TotalUsers > 0 ? $"{(int)((double)Model.ActiveUsers / Model.TotalUsers * 100)}%" : "0%") rate
                 </div>
             </div>
-            <nav class="sb-nav">
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
-                        <span class="sb-lbl">Dashboard</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Management</div>
-                    <div>
-                        <button class="sb-row open active" id="t-users" onclick="acc('g-users','t-users')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" /></svg></span>
-                            <span class="sb-lbl">Users</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub open" id="g-users" style="height:auto;">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Users">
-                                    <span class="sb-dot"></span><span class="sb-child-lbl">All Users</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
-                            <span class="sb-lbl">Clinics</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-clinics">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_C"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-shop" onclick="acc('g-shop','t-shop')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
-                            <span class="sb-lbl">Shop</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-shop">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_S"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_S"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
-                            <span class="sb-lbl">Adoption</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-adopt">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Listings"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Adopted_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_A"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
-                            <span class="sb-lbl">Reports</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-rep">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Donations"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="System_Complaints">
-                                    <span class="sb-dot"></span>
-                                    <span class="sb-child-lbl">System Complaints</span>
-                                </a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Laws_Regulations"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Tools</div>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Map">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span>
-                        <span class="sb-lbl">Map</span>
-                    </a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
-                        <span class="sb-lbl">Notifications</span>
-                    </a>
-
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="RewardLog">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24">
-                                <path d="M20 12V22H4V12" />
-                                <path d="M22 7H2v5h20V7z" />
-                                <path d="M12 22V7" />
-                            </svg>
-                        </span>
-                        <span class="sb-lbl">Reward Log</span>
-                    </a>
-                </div>
-            </nav>
-            <div class="sb-foot">
-                <div class="sb-user-row">
-                    <div class="sb-av">@adminInitials</div>
-                    <div class="sb-user-info">
-                        <div class="sb-user-name">@adminName</div>
-                        <div class="sb-user-role">Super Admin</div>
-                    </div>
-                </div>
-                <a class="sb-logout" asp-controller="Account" asp-action="Logout">
-                    <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-                    <span class="sb-logout-lbl">Sign Out</span>
-                </a>
+            <div class="kpi-card c4">
+                <div class="kpi-ico red">🔒</div>
+                <div class="kpi-val">@Model.SuspendedUsers</div>
+                <div class="kpi-label">Suspended</div>
+                <div class="kpi-chip chip-red">Blocked</div>
             </div>
-        </aside>
-
-        <!-- ══ TOPNAV ════════════════════════════════════════════════ -->
-        <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button">
-                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24">
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <line x1="3" y1="12" x2="21" y2="12" />
-                    <line x1="3" y1="18" x2="21" y2="18" />
-                </svg>
-            </button>
-            <nav class="tn-bread"><span>Management</span><span>/</span><b>Users</b></nav>
-            <div class="tn-center">
-                <div class="tn-center-main">User Management</div>
-                <div class="tn-center-sub">Super Admin Panel</div>
+            <div class="kpi-card c5">
+                <div class="kpi-ico purple">⏳</div>
+                <div class="kpi-val">@Model.PendingUsers</div>
+                <div class="kpi-label">Pending</div>
+                <div class="kpi-chip chip-red">Review needed</div>
             </div>
-            <div class="tn-spacer"></div>
-            <div class="tn-right">
-                <div class="tn-sep"></div>
-                <div class="tn-profile">
-                    <div class="tn-av">@adminInitials</div>
-                    <div>
-                        <div class="tn-pname">@adminName</div>
-                        <div class="tn-prole">Super Admin</div>
-                    </div>
+        </div>
+
+        <!-- ══ Filter Form ══════════════════════════════════ -->
+        @{
+            var fSearch = Model.SearchQuery ?? "";
+            var fStatus = Model.StatusFilter ?? "";
+            var fRole = Model.RoleFilter ?? "";
+            var fSort = Model.SortBy ?? "newest";
+        }
+
+        <form method="get" asp-controller="SuperAdmin" asp-action="Users">
+            <input type="hidden" name="page" value="1" />
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+
+                <div class="search-wrap" style="flex:1 1 260px;">
+                    <span style="color:var(--text-muted);">🔍</span>
+                    <input type="text" name="search" value="@fSearch"
+                           placeholder="Search name, email, phone..." />
                 </div>
+
+                <select class="sel-wrap" name="role" style="width:auto;min-width:160px;" onchange="this.form.submit()">
+                    <option value="">All Roles</option>
+                    <option value="User" selected="@(fRole == "User" ? "selected" : null)">🐾 Pet Owner</option>
+                    <option value="Doctor" selected="@(fRole == "Doctor" ? "selected" : null)">👨‍⚕️ Doctor</option>
+                    <option value="Store" selected="@(fRole == "Store" ? "selected" : null)">🏪 Store Owner</option>
+                    <option value="Clinic" selected="@(fRole == "Clinic" ? "selected" : null)">🏥 Clinic</option>
+                </select>
+
+                <select class="sel-wrap" name="status" style="width:auto;min-width:160px;" onchange="this.form.submit()">
+                    <option value="">All Statuses</option>
+                    <option value="Active" selected="@(fStatus == "Active" ? "selected" : null)">✅ Active</option>
+                    <option value="Suspended" selected="@(fStatus == "Suspended" ? "selected" : null)">🔒 Suspended</option>
+                    <option value="Pending" selected="@(fStatus == "Pending" ? "selected" : null)">⏳ Pending</option>
+                </select>
+
+                <button type="submit" class="btn btn-primary btn-sm">Search</button>
+                <a asp-controller="SuperAdmin" asp-action="Users" class="btn btn-outline btn-sm">Reset</a>
             </div>
-        </header>
+        </form>
 
-        <!-- ══ MAIN ══════════════════════════════════════════════════ -->
-        <main class="wa-main" id="waMain">
-
-            @if (ViewBag.Success != null)
-            {
-                <div class="flash-toast flash-success" id="flashMsg">@ViewBag.Success</div>
-            }
-            @if (ViewBag.Error != null)
-            {
-                <div class="flash-toast flash-danger" id="flashMsg">@ViewBag.Error</div>
-            }
-
-            <section class="page-hero">
-                <div>
-                    <h1>User Management</h1>
-                    <p>Monitor and manage all platform users — roles, status, and moderation actions.</p>
-                </div>
-            </section>
-
-            <div class="page-body">
-
-                <!-- KPI Cards -->
-                <div class="kpi-grid" style="grid-template-columns:repeat(5,1fr);">
-                    <div class="kpi-card c1">
-                        <div class="kpi-ico green">👥</div>
-                        <div class="kpi-val">@Model.TotalUsers.ToString("N0")</div>
-                        <div class="kpi-label">Total Users</div>
-                        <div class="kpi-chip chip-green">All time</div>
-                    </div>
-                    <div class="kpi-card c2">
-                        <div class="kpi-ico blue">🆕</div>
-                        <div class="kpi-val">@Model.NewThisMonth</div>
-                        <div class="kpi-label">New This Month</div>
-                        <div class="kpi-chip chip-blue">↑ Growing</div>
-                    </div>
-                    <div class="kpi-card c3">
-                        <div class="kpi-ico yellow">✅</div>
-                        <div class="kpi-val">@Model.ActiveUsers</div>
-                        <div class="kpi-label">Active</div>
-                        <div class="kpi-chip chip-yellow">
-                            @(Model.TotalUsers > 0 ? $"{(int)((double)Model.ActiveUsers / Model.TotalUsers * 100)}%" : "0%") rate
-                        </div>
-                    </div>
-                    <div class="kpi-card c4">
-                        <div class="kpi-ico red">🔒</div>
-                        <div class="kpi-val">@Model.SuspendedUsers</div>
-                        <div class="kpi-label">Suspended</div>
-                        <div class="kpi-chip chip-red">Blocked</div>
-                    </div>
-                    <div class="kpi-card c5">
-                        <div class="kpi-ico purple">⏳</div>
-                        <div class="kpi-val">@Model.PendingUsers</div>
-                        <div class="kpi-label">Pending</div>
-                        <div class="kpi-chip chip-red">Review needed</div>
-                    </div>
-                </div>
-
-                <!-- ══ Filter Form ══════════════════════════════════ -->
-                @{
-                    var fSearch = Model.SearchQuery ?? "";
-                    var fStatus = Model.StatusFilter ?? "";
-                    var fRole = Model.RoleFilter ?? "";
-                    var fSort = Model.SortBy ?? "newest";
-                }
-
-                <form method="get" asp-controller="SuperAdmin" asp-action="Users">
-                    <input type="hidden" name="page" value="1" />
-                    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-
-                        <div class="search-wrap" style="flex:1 1 260px;">
-                            <span style="color:var(--text-muted);">🔍</span>
-                            <input type="text" name="search" value="@fSearch"
-                                   placeholder="Search name, email, phone..." />
-                        </div>
-
-                        <select class="sel-wrap" name="role" style="width:auto;min-width:160px;" onchange="this.form.submit()">
-                            <option value="">All Roles</option>
-                            <option value="User" selected="@(fRole == "User" ? "selected" : null)">🐾 Pet Owner</option>
-                            <option value="Doctor" selected="@(fRole == "Doctor" ? "selected" : null)">👨‍⚕️ Doctor</option>
-                            <option value="Store" selected="@(fRole == "Store" ? "selected" : null)">🏪 Store Owner</option>
-                            <option value="Clinic" selected="@(fRole == "Clinic" ? "selected" : null)">🏥 Clinic</option>
-                        </select>
-
-                        <select class="sel-wrap" name="status" style="width:auto;min-width:160px;" onchange="this.form.submit()">
-                            <option value="">All Statuses</option>
-                            <option value="Active" selected="@(fStatus == "Active" ? "selected" : null)">✅ Active</option>
-                            <option value="Suspended" selected="@(fStatus == "Suspended" ? "selected" : null)">🔒 Suspended</option>
-                            <option value="Pending" selected="@(fStatus == "Pending" ? "selected" : null)">⏳ Pending</option>
-                        </select>
-
-                        <button type="submit" class="btn btn-primary btn-sm">Search</button>
-                        <a asp-controller="SuperAdmin" asp-action="Users" class="btn btn-outline btn-sm">Reset</a>
-                    </div>
-                </form>
-
-                <!-- ══ Table ════════════════════════════════════════ -->
-                <div class="table-card">
-                    <div class="table-head-bar">
-                        <div class="table-head-title">
-                            User List
-                            @if (!string.IsNullOrEmpty(fSearch) || !string.IsNullOrEmpty(fStatus) || !string.IsNullOrEmpty(fRole))
-                            {
-                                <span class="badge badge-info" style="margin-left:8px;font-size:.72rem;">Filtered</span>
-                            }
-                        </div>
-                        <div style="display:flex;gap:8px;align-items:center;">
-                            <span class="table-count">@Model.TotalFiltered users</span>
-
-                            <form method="get" asp-controller="SuperAdmin" asp-action="Users" style="margin:0;">
-                                <input type="hidden" name="search" value="@fSearch" />
-                                <input type="hidden" name="status" value="@fStatus" />
-                                <input type="hidden" name="role" value="@fRole" />
-                                <input type="hidden" name="page" value="1" />
-                                <select class="sel-wrap" name="sort"
-                                        style="height:36px;font-size:.78rem;width:auto;min-width:180px;"
-                                        onchange="this.form.submit()">
-                                    <option value="newest" selected="@(fSort == "newest" ? "selected" : null)">Latest Sign Up</option>
-                                    <option value="oldest" selected="@(fSort == "oldest" ? "selected" : null)">Oldest First</option>
-                                    <option value="name" selected="@(fSort == "name" ? "selected" : null)">Name A–Z</option>
-                                    <option value="status" selected="@(fSort == "status" ? "selected" : null)">Status</option>
-                                </select>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>User</th>
-                                    <th>Role</th>
-                                    <th>Status</th>
-                                    <th>City</th>
-                                    <th>Joined</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (!Model.Users.Any())
-                                {
-                                    <tr>
-                                        <td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">
-                                            😕 No users found.
-                                        </td>
-                                    </tr>
-                                }
-                                else
-                                {
-                                    foreach (var u in Model.Users)
-                                    {
-                                        var detailUrl = Url.Action("Details_U", "SuperAdmin", new
-                                        {
-                                            id = u.UserId,
-                                            returnSearch = fSearch,
-                                            returnStatus = fStatus,
-                                            returnRole = fRole,
-                                            returnPage = Model.CurrentPage
-                                        });
-
-                                        <tr style="cursor:pointer;" onclick="window.location.href='@detailUrl'">
-
-                                            @* User Cell *@
-                                            <td>
-                                                <div class="user-cell">
-                                                    <div class="avatar-cell">
-                                                        @if (!string.IsNullOrEmpty(u.ProfileImage))
-                                                        {
-                                                            <img src="~/uploads/@u.ProfileImage" alt="@u.FullName" />
-                                                        }
-                                                        else
-                                                        {
-                                                            @u.AvatarInitials
-                                                        }
-                                                    </div>
-                                                    <div>
-                                                        <div class="user-name">@u.FullName</div>
-                                                        <div class="user-sub">@u.Email · @u.Phone</div>
-                                                    </div>
-                                                </div>
-                                            </td>
-
-                                            @* Role *@
-                                            <td>
-                                                <span class="badge @u.RoleBadgeClass">@u.RoleIcon @u.RoleName</span>
-                                            </td>
-
-                                            @* Status *@
-                                            <td>
-                                                <span class="badge @u.StatusBadgeClass">@u.StatusIcon @u.AccountStatus</span>
-                                            </td>
-
-                                            @* City *@
-                                            <td style="color:var(--text-muted);font-size:.82rem;">
-                                                @(string.IsNullOrEmpty(u.City) ? "—" : u.City)
-                                                @if (!string.IsNullOrEmpty(u.Area))
-                                                {
-                                                    <text> — @u.Area</text>
-                                                }
-                                            </td>
-
-                                            @* Joined *@
-                                            <td style="color:var(--text-muted);font-size:.8rem;">@u.JoinedLabel</td>
-
-                                            @* Actions *@
-                                            <td onclick="event.stopPropagation()">
-                                                <div style="display:flex;gap:5px;flex-wrap:wrap;">
-
-                                                    @* View *@
-                                                    <a href="@detailUrl" class="btn btn-outline btn-xs">👁 View</a>
-
-
-                                                    <a asp-controller="SuperAdmin"
-                                                       asp-action="GiveRewardModal"
-                                                       asp-route-userId="@u.UserId"
-                                                       class="btn btn-outline btn-xs"
-                                                       style="background:var(--warning-soft);border-color:rgba(226,163,58,.4);color:#9b6000;">
-                                                        🎁 Give Reward
-                                                    </a>
-
-                                                    @* Suspend / Activate *@
-                                                    @if (u.AccountStatus == "Active" || u.AccountStatus == "Pending")
-                                                    {
-                                                        <form method="post"
-                                                              asp-controller="SuperAdmin"
-                                                              asp-action="SuspendUser"
-                                                              style="display:inline;"
-                                                              onsubmit="return confirm('Suspend this user?')">
-                                                            @Html.AntiForgeryToken()
-                                                            <input type="hidden" name="userId" value="@u.UserId" />
-                                                            <input type="hidden" name="returnSearch" value="@fSearch" />
-                                                            <input type="hidden" name="returnStatus" value="@fStatus" />
-                                                            <input type="hidden" name="returnRole" value="@fRole" />
-                                                            <input type="hidden" name="returnPage" value="@Model.CurrentPage" />
-                                                            <button type="submit" class="btn btn-warning btn-xs">🔒</button>
-                                                        </form>
-                                                    }
-                                                    else
-                                                    {
-                                                        <form method="post"
-                                                              asp-controller="SuperAdmin"
-                                                              asp-action="ActivateUser"
-                                                              style="display:inline;"
-                                                              onsubmit="return confirm('Activate this user?')">
-                                                            @Html.AntiForgeryToken()
-                                                            <input type="hidden" name="userId" value="@u.UserId" />
-                                                            <input type="hidden" name="returnSearch" value="@fSearch" />
-                                                            <input type="hidden" name="returnStatus" value="@fStatus" />
-                                                            <input type="hidden" name="returnRole" value="@fRole" />
-                                                            <input type="hidden" name="returnPage" value="@Model.CurrentPage" />
-                                                            <button type="submit" class="btn btn-outline btn-xs">✅</button>
-                                                        </form>
-                                                    }
-
-                                                    @* Delete *@
-                                                    <form method="post"
-                                                          asp-controller="SuperAdmin"
-                                                          asp-action="DeleteUser"
-                                                          style="display:inline;"
-                                                          onsubmit="return confirm('Delete this user permanently?')">
-                                                        @Html.AntiForgeryToken()
-                                                        <input type="hidden" name="userId" value="@u.UserId" />
-                                                        <input type="hidden" name="returnSearch" value="@fSearch" />
-                                                        <input type="hidden" name="returnStatus" value="@fStatus" />
-                                                        <input type="hidden" name="returnRole" value="@fRole" />
-                                                        <input type="hidden" name="returnPage" value="@Model.CurrentPage" />
-                                                        <button type="submit" class="btn btn-danger btn-xs">🗑</button>
-                                                    </form>
-
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    @if (Model.TotalFiltered > 0)
+        <!-- ══ Table ════════════════════════════════════════ -->
+        <div class="table-card">
+            <div class="table-head-bar">
+                <div class="table-head-title">
+                    User List
+                    @if (!string.IsNullOrEmpty(fSearch) || !string.IsNullOrEmpty(fStatus) || !string.IsNullOrEmpty(fRole))
                     {
-                        <div class="pagination-bar">
-                            <div class="pag-info">
-                                Showing @Model.FromItem–@Model.ToItem of @Model.TotalFiltered users
-                            </div>
+                        <span class="badge badge-info" style="margin-left:8px;font-size:.72rem;">Filtered</span>
+                    }
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;">
+                    <span class="table-count">@Model.TotalFiltered users</span>
 
-                            @if (Model.TotalPages > 1)
+                    <form method="get" asp-controller="SuperAdmin" asp-action="Users" style="margin:0;">
+                        <input type="hidden" name="search" value="@fSearch" />
+                        <input type="hidden" name="status" value="@fStatus" />
+                        <input type="hidden" name="role" value="@fRole" />
+                        <input type="hidden" name="page" value="1" />
+                        <select class="sel-wrap" name="sort"
+                                style="height:36px;font-size:.78rem;width:auto;min-width:180px;"
+                                onchange="this.form.submit()">
+                            <option value="newest" selected="@(fSort == "newest" ? "selected" : null)">Latest Sign Up</option>
+                            <option value="oldest" selected="@(fSort == "oldest" ? "selected" : null)">Oldest First</option>
+                            <option value="name" selected="@(fSort == "name" ? "selected" : null)">Name A–Z</option>
+                            <option value="status" selected="@(fSort == "status" ? "selected" : null)">Status</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>City</th>
+                            <th>Joined</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Users.Any())
+                        {
+                            <tr>
+                                <td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">
+                                    😕 No users found.
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            foreach (var u in Model.Users)
                             {
-                                <div class="pag-pages">
+                                var detailUrl = Url.Action("Details_U", "SuperAdmin", new
+                                {
+                                    id = u.UserId,
+                                    returnSearch = fSearch,
+                                    returnStatus = fStatus,
+                                    returnRole = fRole,
+                                    returnPage = Model.CurrentPage
+                                });
 
-                                    @if (Model.CurrentPage > 1)
-                                    {
-                                        <a href="?page=@(Model.CurrentPage - 1)&search=@fSearch&status=@fStatus&role=@fRole&sort=@fSort"
-                                           class="pag-btn">‹</a>
-                                    }
+                                <tr style="cursor:pointer;" onclick="window.location.href='@detailUrl'">
 
-                                    @for (int p = 1; p <= Model.TotalPages; p++)
-                                    {
-                                        if (Model.TotalPages > 7
-                                        && p > 2
-                                        && p < Model.TotalPages - 1
-                                        && Math.Abs(p - Model.CurrentPage) > 1)
+                                    @* User Cell *@
+                                    <td>
+                                        <div class="user-cell">
+                                            <div class="avatar-cell">
+                                                @if (!string.IsNullOrEmpty(u.ProfileImage))
+                                                {
+                                                    <img src="~/uploads/@u.ProfileImage" alt="@u.FullName" />
+                                                }
+                                                else
+                                                {
+                                                    @u.AvatarInitials
+                                                }
+                                            </div>
+                                            <div>
+                                                <div class="user-name">@u.FullName</div>
+                                                <div class="user-sub">@u.Email · @u.Phone</div>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    @* Role *@
+                                    <td>
+                                        <span class="badge @u.RoleBadgeClass">@u.RoleIcon @u.RoleName</span>
+                                    </td>
+
+                                    @* Status *@
+                                    <td>
+                                        <span class="badge @u.StatusBadgeClass">@u.StatusIcon @u.AccountStatus</span>
+                                    </td>
+
+                                    @* City *@
+                                    <td style="color:var(--text-muted);font-size:.82rem;">
+                                        @(string.IsNullOrEmpty(u.City) ? "—" : u.City)
+                                        @if (!string.IsNullOrEmpty(u.Area))
                                         {
-                                            if (p == 3 || p == Model.TotalPages - 2)
-                                            {
-                                                <button class="pag-btn" disabled>…</button>
-                                            }
-                                            continue;
+                                            <text> — @u.Area</text>
                                         }
-                                        <a href="?page=@p&search=@fSearch&status=@fStatus&role=@fRole&sort=@fSort"
-                                           class="pag-btn @(p == Model.CurrentPage ? "active" : "")">@p</a>
-                                    }
+                                    </td>
 
-                                    @if (Model.CurrentPage < Model.TotalPages)
-                                    {
-                                        <a href="?page=@(Model.CurrentPage + 1)&search=@fSearch&status=@fStatus&role=@fRole&sort=@fSort"
-                                           class="pag-btn">›</a>
-                                    }
+                                    @* Joined *@
+                                    <td style="color:var(--text-muted);font-size:.8rem;">@u.JoinedLabel</td>
 
-                                </div>
+                                    @* Actions *@
+                                    <td onclick="event.stopPropagation()">
+                                        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+
+                                            @* View *@
+                                            <a href="@detailUrl" class="btn btn-outline btn-xs">👁 View</a>
+
+
+                                            <a asp-controller="SuperAdmin"
+                                               asp-action="GiveRewardModal"
+                                               asp-route-userId="@u.UserId"
+                                               class="btn btn-outline btn-xs"
+                                               style="background:var(--warning-soft);border-color:rgba(226,163,58,.4);color:#9b6000;">
+                                                🎁 Give Reward
+                                            </a>
+
+                                            @* Suspend / Activate *@
+                                            @if (u.AccountStatus == "Active" || u.AccountStatus == "Pending")
+                                            {
+                                                <form method="post"
+                                                      asp-controller="SuperAdmin"
+                                                      asp-action="SuspendUser"
+                                                      style="display:inline;"
+                                                      onsubmit="return confirm('Suspend this user?')">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="userId" value="@u.UserId" />
+                                                    <input type="hidden" name="returnSearch" value="@fSearch" />
+                                                    <input type="hidden" name="returnStatus" value="@fStatus" />
+                                                    <input type="hidden" name="returnRole" value="@fRole" />
+                                                    <input type="hidden" name="returnPage" value="@Model.CurrentPage" />
+                                                    <button type="submit" class="btn btn-warning btn-xs">🔒</button>
+                                                </form>
+                                            }
+                                            else
+                                            {
+                                                <form method="post"
+                                                      asp-controller="SuperAdmin"
+                                                      asp-action="ActivateUser"
+                                                      style="display:inline;"
+                                                      onsubmit="return confirm('Activate this user?')">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="userId" value="@u.UserId" />
+                                                    <input type="hidden" name="returnSearch" value="@fSearch" />
+                                                    <input type="hidden" name="returnStatus" value="@fStatus" />
+                                                    <input type="hidden" name="returnRole" value="@fRole" />
+                                                    <input type="hidden" name="returnPage" value="@Model.CurrentPage" />
+                                                    <button type="submit" class="btn btn-outline btn-xs">✅</button>
+                                                </form>
+                                            }
+
+                                            @* Delete *@
+                                            <form method="post"
+                                                  asp-controller="SuperAdmin"
+                                                  asp-action="DeleteUser"
+                                                  style="display:inline;"
+                                                  onsubmit="return confirm('Delete this user permanently?')">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="userId" value="@u.UserId" />
+                                                <input type="hidden" name="returnSearch" value="@fSearch" />
+                                                <input type="hidden" name="returnStatus" value="@fStatus" />
+                                                <input type="hidden" name="returnRole" value="@fRole" />
+                                                <input type="hidden" name="returnPage" value="@Model.CurrentPage" />
+                                                <button type="submit" class="btn btn-danger btn-xs">🗑</button>
+                                            </form>
+
+                                        </div>
+                                    </td>
+                                </tr>
                             }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            @if (Model.TotalFiltered > 0)
+            {
+                <div class="pagination-bar">
+                    <div class="pag-info">
+                        Showing @Model.FromItem–@Model.ToItem of @Model.TotalFiltered users
+                    </div>
+
+                    @if (Model.TotalPages > 1)
+                    {
+                        <div class="pag-pages">
+
+                            @if (Model.CurrentPage > 1)
+                            {
+                                <a href="?page=@(Model.CurrentPage - 1)&search=@fSearch&status=@fStatus&role=@fRole&sort=@fSort"
+                                   class="pag-btn">‹</a>
+                            }
+
+                            @for (int p = 1; p <= Model.TotalPages; p++)
+                            {
+                                if (Model.TotalPages > 7
+                                && p > 2
+                                && p < Model.TotalPages - 1
+                                && Math.Abs(p - Model.CurrentPage) > 1)
+                                {
+                                    if (p == 3 || p == Model.TotalPages - 2)
+                                    {
+                                        <button class="pag-btn" disabled>…</button>
+                                    }
+                                    continue;
+                                }
+                                <a href="?page=@p&search=@fSearch&status=@fStatus&role=@fRole&sort=@fSort"
+                                   class="pag-btn @(p == Model.CurrentPage ? "active" : "")">@p</a>
+                            }
+
+                            @if (Model.CurrentPage < Model.TotalPages)
+                            {
+                                <a href="?page=@(Model.CurrentPage + 1)&search=@fSearch&status=@fStatus&role=@fRole&sort=@fSort"
+                                   class="pag-btn">›</a>
+                            }
+
                         </div>
                     }
-
                 </div>
-            </div>
-        </main>
-    </div>
+            }
 
-    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
+        </div>
+    </div>
+</main>
+
+</div>
+
+
+@section PageScripts {
     <script>
         const fm = document.getElementById('flashMsg');
         if (fm) {
@@ -579,5 +410,4 @@
             setTimeout(() => fm.remove(), 3400);
         }
     </script>
-</body>
-</html>
+}

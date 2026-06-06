@@ -1,321 +1,190 @@
 ﻿@model Waffy.Models.ViewModels.SuperAdminReservationViewModel
 @{
-    Layout = null;
+    Layout = "~/Views/SuperAdmin/_SuperAdminLayout.cshtml";
+    ViewData["Title"] = "Waffy — Super Admin | Adoption Reservations";
+    ViewData["ActiveSection"] = "adoption";
+    ViewData["ActivePage"] = "adopted-pets";
+    ViewData["PageTitle"] = "Adoption Reservations";
+    ViewData["BreadcrumbParent"] = "Adoption";
+    ViewData["BreadcrumbCurrent"] = "Adopted Pets";
     var statusOptions = new[] { "All", "Pending", "Approved", "Rejected", "Cancelled" };
 }
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Waffy — Super Admin | Adopted Pets</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
-</head>
-<body>
-    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
-    <div class="wa-shell" id="waShell">
 
-        <!-- ═══ SIDEBAR ═══ -->
-        <aside class="wa-sb" id="waSb">
-            <div class="sb-logo">
-                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
-                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
+<main class="wa-main" id="waMain">
+
+    <section class="page-hero">
+        <div>
+            <h1>🏠 Adoption Reservations</h1>
+            <p>Monitor all reservation requests — decisions belong to post owners</p>
+        </div>
+    </section>
+
+    <div class="page-body">
+
+        <!-- ── KPI Cards ── -->
+        <div class="kpi-grid kpi-grid-5" style="margin-bottom:20px;">
+            <div class="kpi-card c1">
+                <div class="kpi-ico green">📋</div>
+                <div class="kpi-val">@Model.TotalCount</div>
+                <div class="kpi-label">Total Requests</div>
+                <div class="kpi-chip chip-green">All time</div>
             </div>
-            <nav class="sb-nav">
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
-                        <span class="sb-lbl">Dashboard</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Management</div>
-                    <div>
-                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span>
-                            <span class="sb-lbl">Users</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-users">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Users"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row open active" id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" /></svg></span>
-                            <span class="sb-lbl">Adoption</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub open" id="g-adopt" style="height:auto;">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Listings"><span class="sb-dot"></span><span class="sb-child-lbl">Listings</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Flagged"><span class="sb-dot"></span><span class="sb-child-lbl">Flagged</span></a>
-                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Adopted_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Adopted Pets</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_A"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-rep" onclick="acc('g-rep','t-rep')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
-                            <span class="sb-lbl">Reports</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-rep">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Lost_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Lost Pets</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Found_Pets"><span class="sb-dot"></span><span class="sb-child-lbl">Found Pets</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Dangerous_Animals"><span class="sb-dot"></span><span class="sb-child-lbl">Dangerous Animals</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Donations"><span class="sb-dot"></span><span class="sb-child-lbl">Donations</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Laws_Regulations"><span class="sb-dot"></span><span class="sb-child-lbl">Laws &amp; Regulations</span></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Tools</div>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Map">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" /></svg></span>
-                        <span class="sb-lbl">Map</span>
-                    </a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
-                        <span class="sb-lbl">Notifications</span>
-                    </a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="RewardLog">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24">
-                                <path d="M20 12V22H4V12" />
-                                <path d="M22 7H2v5h20V7z" />
-                                <path d="M12 22V7" />
-                            </svg>
-                        </span>
-                        <span class="sb-lbl">Reward Log</span>
-                    </a>
-                </div>
-            </nav>
-            <div class="sb-foot">
-                <div class="sb-user-row">
-                    <div class="sb-av">@ViewBag.AdminInitials</div>
-                    <div class="sb-user-info">
-                        <div class="sb-user-name">@ViewBag.AdminName</div>
-                        <div class="sb-user-role">Super Admin</div>
-                    </div>
-                </div>
-                <form method="post" asp-controller="Account" asp-action="Logout" style="margin:0">
-                    @Html.AntiForgeryToken()
-                    <button class="sb-logout" type="submit">
-                        <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-                        <span class="sb-logout-lbl">Sign Out</span>
-                    </button>
-                </form>
+            <div class="kpi-card c3">
+                <div class="kpi-ico yellow">⏳</div>
+                <div class="kpi-val">@Model.PendingCount</div>
+                <div class="kpi-label">Pending</div>
+                <div class="kpi-chip chip-yellow">Awaiting owner</div>
             </div>
-        </aside>
-
-        <!-- ═══ TOPNAV ═══ -->
-        <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button">
-                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
-            </button>
-            <nav class="tn-bread"><span>Adoption</span><span>/</span><b>Adopted Pets</b></nav>
-            <div class="tn-center">
-                <div class="tn-center-main">Adoption Reservations</div>
-                <div class="tn-center-sub">Monitoring Only — Super Admin Panel</div>
+            <div class="kpi-card c1">
+                <div class="kpi-ico green">✅</div>
+                <div class="kpi-val">@Model.ApprovedCount</div>
+                <div class="kpi-label">Approved</div>
+                <div class="kpi-chip chip-green">Pet transferred</div>
             </div>
-            <div class="tn-spacer"></div>
-            <div class="tn-right">
-                <div class="tn-sep"></div>
-                <div class="tn-profile">
-                    <div class="tn-av">@ViewBag.AdminInitials</div>
-                    <div><div class="tn-pname">@ViewBag.AdminName</div><div class="tn-prole">Super Admin</div></div>
-                </div>
+            <div class="kpi-card c4">
+                <div class="kpi-ico red">❌</div>
+                <div class="kpi-val">@Model.RejectedCount</div>
+                <div class="kpi-label">Rejected</div>
+                <div class="kpi-chip chip-red">By owner</div>
             </div>
-        </header>
+            <div class="kpi-card c2">
+                <div class="kpi-ico blue">↩</div>
+                <div class="kpi-val">@Model.CancelledCount</div>
+                <div class="kpi-label">Cancelled</div>
+                <div class="kpi-chip chip-blue">By requester</div>
+            </div>
+        </div>
 
-        <!-- ═══ MAIN ═══ -->
-        <main class="wa-main" id="waMain">
-
-            <section class="page-hero">
-                <div>
-                    <h1>🏠 Adoption Reservations</h1>
-                    <p>Monitor all reservation requests — decisions belong to post owners</p>
-                </div>
-            </section>
-
-            <div class="page-body">
-
-                <!-- ── KPI Cards ── -->
-                <div class="kpi-grid kpi-grid-5" style="margin-bottom:20px;">
-                    <div class="kpi-card c1">
-                        <div class="kpi-ico green">📋</div>
-                        <div class="kpi-val">@Model.TotalCount</div>
-                        <div class="kpi-label">Total Requests</div>
-                        <div class="kpi-chip chip-green">All time</div>
-                    </div>
-                    <div class="kpi-card c3">
-                        <div class="kpi-ico yellow">⏳</div>
-                        <div class="kpi-val">@Model.PendingCount</div>
-                        <div class="kpi-label">Pending</div>
-                        <div class="kpi-chip chip-yellow">Awaiting owner</div>
-                    </div>
-                    <div class="kpi-card c1">
-                        <div class="kpi-ico green">✅</div>
-                        <div class="kpi-val">@Model.ApprovedCount</div>
-                        <div class="kpi-label">Approved</div>
-                        <div class="kpi-chip chip-green">Pet transferred</div>
-                    </div>
-                    <div class="kpi-card c4">
-                        <div class="kpi-ico red">❌</div>
-                        <div class="kpi-val">@Model.RejectedCount</div>
-                        <div class="kpi-label">Rejected</div>
-                        <div class="kpi-chip chip-red">By owner</div>
-                    </div>
-                    <div class="kpi-card c2">
-                        <div class="kpi-ico blue">↩</div>
-                        <div class="kpi-val">@Model.CancelledCount</div>
-                        <div class="kpi-label">Cancelled</div>
-                        <div class="kpi-chip chip-blue">By requester</div>
-                    </div>
-                </div>
-
-                <!-- ── Info Banner ── -->
-                <div style="background:var(--brand-xlight);border:1px solid var(--brand-light);
+        <!-- ── Info Banner ── -->
+        <div style="background:var(--brand-xlight);border:1px solid var(--brand-light);
                         border-radius:var(--r);padding:12px 16px;margin-bottom:14px;
                         display:flex;align-items:center;gap:10px;">
-                    <span style="font-size:1.2rem;">ℹ️</span>
-                    <span style="font-size:.83rem;font-weight:800;color:var(--brand-dark);">
-                        This page is read-only. Reservation approvals are managed by post owners from their profile.
-                    </span>
-                </div>
+            <span style="font-size:1.2rem;">ℹ️</span>
+            <span style="font-size:.83rem;font-weight:800;color:var(--brand-dark);">
+                This page is read-only. Reservation approvals are managed by post owners from their profile.
+            </span>
+        </div>
 
-                <!-- ── Filter ── -->
-                <form method="get" asp-action="Adopted_Pets" asp-controller="SuperAdmin"
-                      style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
-                    <span style="font-weight:800;font-size:.82rem;color:var(--text-muted);">Status:</span>
-                    <select name="statusFilter"
-                            style="height:44px;min-width:180px;border:1.5px solid var(--border);
+        <!-- ── Filter ── -->
+        <form method="get" asp-action="Adopted_Pets" asp-controller="SuperAdmin"
+              style="display:flex;gap:8px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+            <span style="font-weight:800;font-size:.82rem;color:var(--text-muted);">Status:</span>
+            <select name="statusFilter"
+                    style="height:44px;min-width:180px;border:1.5px solid var(--border);
                                border-radius:12px;background:#fff;padding:0 12px;
                                font-weight:700;font-size:.86rem;">
-                        @foreach (var s in statusOptions)
-                        {
-                            if (s == Model.StatusFilter)
-                            {
-                                <option value="@s" selected>@s</option>
-                            }
-                            else
-                            {
-                                <option value="@s">@s</option>
-                            }
-                        }
-                    </select>
-                    <button type="submit" class="btn btn-primary btn-sm">Apply</button>
-                    <a href="@Url.Action("Adopted_Pets", "SuperAdmin")" class="btn btn-outline btn-sm">Reset</a>
-                </form>
+                @foreach (var s in statusOptions)
+                {
+                    if (s == Model.StatusFilter)
+                    {
+                        <option value="@s" selected>@s</option>
+                    }
+                    else
+                    {
+                        <option value="@s">@s</option>
+                    }
+                }
+            </select>
+            <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+            <a href="@Url.Action("Adopted_Pets", "SuperAdmin")" class="btn btn-outline btn-sm">Reset</a>
+        </form>
 
-                <!-- ── Table ── -->
-                <div class="table-card">
-                    <div class="table-head-bar">
-                        <div class="table-head-title">Reservation Requests</div>
-                        <span class="table-count">@Model.Reservations.Count() requests</span>
-                    </div>
-                    <div class="table-wrap">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>Pet</th>
-                                    <th>Type</th>
-                                    <th>Source</th>
-                                    <th>Requester</th>
-                                    <th>Post Owner</th>
-                                    <th>Status</th>
-                                    <th>Message</th>
-                                    <th>Date</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (!Model.Reservations.Any())
-                                {
-                                    <tr>
-                                        <td colspan="8" style="text-align:center;padding:32px;
-                                        color:var(--text-muted);font-weight:700;">
-                                            No reservations found.
-                                        </td>
-                                    </tr>
-                                }
-                                @foreach (var r in Model.Reservations)
-                                {
-                                    <tr>
-                                        <td>
-                                            <div style="display:flex;align-items:center;gap:9px;">
-                                                <div style="width:34px;height:34px;border-radius:10px;
-                                                 background:var(--brand-xlight);display:grid;
-                                                 place-items:center;font-size:.95rem;
-                                                 border:1px solid var(--brand-light);">
-                                                    @(r.AnimalType?.ToLower() == "cat" ? "🐈" :
-                                                                                                    r.AnimalType?.ToLower() == "dog" ? "🐕" :
-                                                                                                    r.AnimalType?.ToLower() == "bird" ? "🐦" : "🐾")
-                                            </div>
-                                            <div class="cell-title">@r.PetName</div>
-                                        </div>
-                                    </td>
-                                    <td style="font-size:.82rem;">@r.AnimalType</td>
-                                    <td>
-                                        @{
-                                                var sc = r.PostedByType == "User" ? "badge-info" :
-                                                r.PostedByType == "Clinic" ? "badge-success" : "badge-purple";
-                                            }
-                                            <span class="badge @sc">@r.PostedByType</span>
-                                        </td>
-                                        <td>
-                                            <div style="font-weight:800;font-size:.86rem;
-                                             color:var(--brand-dark);">
-                                                @r.RequesterName
-                                            </div>
-                                        </td>
-                                        <td style="font-size:.82rem;color:var(--text-muted);">@r.OwnerName</td>
-                                        <td>
-                                            @{
-                                                var rc = r.Status == "Approved" ? "badge-success" :
-                                                r.Status == "Pending" ? "badge-warning" :
-                                                r.Status == "Rejected" ? "badge-danger" :
-                                                "badge-muted";
-                                            }
-                                            <span class="badge @rc">@r.Status</span>
-                                        </td>
-                                        <td style="font-size:.78rem;color:var(--text-muted);max-width:180px;">
-                                            @if (!string.IsNullOrEmpty(r.Message))
-                                            {
-                                                <span title="@r.Message">
-                                                    @(r.Message.Length > 40
-                                                                                                ? r.Message[..40] + "…"
-                                                                                                : r.Message)
-                                        </span>
-                                                                                }
-                                            else
-                                            {
-
-                                                <span>—</span>
-                                            }
-                                        </td>
-                                        <td style="font-size:.78rem;color:var(--text-muted);">
-                                            @r.CreatedAt.ToString("MMM dd, yyyy")
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
+        <!-- ── Table ── -->
+        <div class="table-card">
+            <div class="table-head-bar">
+                <div class="table-head-title">Reservation Requests</div>
+                <span class="table-count">@Model.Reservations.Count() requests</span>
             </div>
-        </main>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Pet</th>
+                            <th>Type</th>
+                            <th>Source</th>
+                            <th>Requester</th>
+                            <th>Post Owner</th>
+                            <th>Status</th>
+                            <th>Message</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (!Model.Reservations.Any())
+                        {
+                            <tr>
+                                <td colspan="8" style="text-align:center;padding:32px;
+                                            color:var(--text-muted);font-weight:700;">
+                                    No reservations found.
+                                </td>
+                            </tr>
+                        }
+                        @foreach (var r in Model.Reservations)
+                        {
+                            <tr>
+                                <td>
+                                    <div style="display:flex;align-items:center;gap:9px;">
+                                        <div style="width:34px;height:34px;border-radius:10px;
+                                                     background:var(--brand-xlight);display:grid;
+                                                     place-items:center;font-size:.95rem;
+                                                     border:1px solid var(--brand-light);">
+                                            @(r.AnimalType?.ToLower() == "cat" ? "🐈" :
+                                                                                    r.AnimalType?.ToLower() == "dog" ? "🐕" :
+                                                                                    r.AnimalType?.ToLower() == "bird" ? "🐦" : "🐾")
+                                    </div>
+                                    <div class="cell-title">@r.PetName</div>
+                                </div>
+                            </td>
+                            <td style="font-size:.82rem;">@r.AnimalType</td>
+                            <td>
+                                @{
+                                        var sc = r.PostedByType == "User" ? "badge-info" :
+                                        r.PostedByType == "Clinic" ? "badge-success" : "badge-purple";
+                                    }
+                                    <span class="badge @sc">@r.PostedByType</span>
+                                </td>
+                                <td>
+                                    <div style="font-weight:800;font-size:.86rem;
+                                                 color:var(--brand-dark);">
+                                        @r.RequesterName
+                                    </div>
+                                </td>
+                                <td style="font-size:.82rem;color:var(--text-muted);">@r.OwnerName</td>
+                                <td>
+                                    @{
+                                        var rc = r.Status == "Approved" ? "badge-success" :
+                                        r.Status == "Pending" ? "badge-warning" :
+                                        r.Status == "Rejected" ? "badge-danger" :
+                                        "badge-muted";
+                                    }
+                                    <span class="badge @rc">@r.Status</span>
+                                </td>
+                                <td style="font-size:.78rem;color:var(--text-muted);max-width:180px;">
+                                    @if (!string.IsNullOrEmpty(r.Message))
+                                    {
+                                        <span title="@r.Message">
+                                            @(r.Message.Length > 40
+                                                                                ? r.Message[..40] + "…"
+                                                                                : r.Message)
+                                </span>
+                                                                }
+                                    else
+                                    {
+
+                                        <span>—</span>
+                                    }
+                                </td>
+                                <td style="font-size:.78rem;color:var(--text-muted);">
+                                    @r.CreatedAt.ToString("MMM dd, yyyy")
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </div>
-    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
-</body>
-</html>
+</main>
+
+</div>

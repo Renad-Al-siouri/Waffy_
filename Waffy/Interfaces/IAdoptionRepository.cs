@@ -38,5 +38,6 @@ namespace Waffy.Interfaces
         // ← أضف هذين فقط
         Task<IEnumerable<AdoptionPost>> GetByStoreIdAsync(int storeId);
         Task ChangeAdoptionStatusAsync(int idPost, string adoptionStatus);
+        Task<IEnumerable<AdoptionPost>> GetByClinicIdAsync(int clinicId);
     }
 }

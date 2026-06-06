@@ -1,5 +1,11 @@
 ﻿@{
-    Layout = null;
+    Layout = "~/Views/SuperAdmin/_SuperAdminLayout.cshtml";
+    ViewData["Title"] = "Waffy — Super Admin | Assign Reward";
+    ViewData["ActiveSection"] = "reports";
+    ViewData["ActivePage"] = "lost-pets";
+    ViewData["PageTitle"] = "Assign Reward";
+    ViewData["BreadcrumbParent"] = "Reports";
+    ViewData["BreadcrumbCurrent"] = "Lost Pets";
     var report = ViewBag.Report as Waffy.Models.LostPetReport;
     var finder = ViewBag.Finder as Waffy.Models.User;
     var claim = ViewBag.FoundClaim as Waffy.Models.FoundPetClaim;
@@ -8,386 +14,304 @@
     bool hasRecent = (bool)(ViewBag.HasRecentReward ?? false);
     var currentUrl = Context.Request.Path + Context.Request.QueryString;
 }
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Waffy — Assign Finder Reward</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
-</head>
-<body>
-    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
-    <div class="wa-shell" id="waShell">
 
-        @* ── Sidebar ── *@
-        <aside class="wa-sb" id="waSb">
-            <div class="sb-logo">
-                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
-                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
-            </div>
-            <nav class="sb-nav">
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
-                        <span class="sb-lbl">Dashboard</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Management</div>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Users">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span>
-                        <span class="sb-lbl">Users</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Reports</div>
-                    <a class="sb-row active" asp-controller="SuperAdmin" asp-action="Lost_Pets">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
-                        <span class="sb-lbl">Lost Pets</span>
-                    </a>
-                </div>
-            </nav>
-            <div class="sb-foot">
-                <div class="sb-user-row">
-                    <div class="sb-av">@ViewBag.AdminInitials</div>
-                    <div class="sb-user-info">
-                        <div class="sb-user-name">@ViewBag.AdminName</div>
-                        <div class="sb-user-role">Super Admin</div>
+<main class="wa-main" id="waMain">
+
+    @if (ViewBag.Error != null)
+    {
+        <div style="margin:16px 24px 0;background:var(--danger-soft);border:1px solid rgba(220,38,38,.2);
+                                color:var(--danger);padding:12px 16px;border-radius:var(--r);font-weight:800;font-size:.86rem;">
+            @ViewBag.Error
+        </div>
+    }
+
+    <section class="page-hero">
+        <div>
+            <h1>🎁 Assign Finder Reward</h1>
+            <p>Manually select and assign a surprise reward to the confirmed finder</p>
+        </div>
+        <div class="page-hero-actions">
+            <a asp-controller="SuperAdmin" asp-action="Lost_Pets" class="btn btn-outline btn-sm">← Back to Lost Pets</a>
+        </div>
+    </section>
+
+    <div class="page-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
+
+            @* ── LEFT: Info Cards ── *@
+            <div style="display:flex;flex-direction:column;gap:14px;">
+
+                @* Pet Info *@
+                <div class="table-card">
+                    <div class="table-head-bar">
+                        <div class="table-head-title">🐾 Lost Pet Report</div>
+                        <span class="badge badge-muted">No Reward</span>
+                    </div>
+                    <div style="padding:16px 20px;">
+                        <div class="info-list">
+                            <div class="info-line"><span>Pet Name</span><strong>@report?.PetName</strong></div>
+                            <div class="info-line"><span>Animal Type</span><strong>@report?.AnimalType @report?.Breed</strong></div>
+                            <div class="info-line"><span>City</span><strong>@report?.City · @report?.Area</strong></div>
+                            <div class="info-line"><span>Report Code</span><strong style="font-family:monospace;">@report?.ReportCode</strong></div>
+                            <div class="info-line"><span>Owner</span><strong>@ViewBag.OwnerName</strong></div>
+                            <div class="info-line"><span>Owner Phone</span><strong>@ViewBag.OwnerPhone</strong></div>
+                            <div class="info-line"><span>Status</span><strong style="color:var(--success);">✅ @report?.Status</strong></div>
+                        </div>
                     </div>
                 </div>
-                <form method="post" asp-controller="Account" asp-action="Logout" style="margin:0">
-                    @Html.AntiForgeryToken()
-                    <button class="sb-logout" type="submit">
-                        <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-                        <span class="sb-logout-lbl">Sign Out</span>
-                    </button>
-                </form>
-            </div>
-        </aside>
 
-        @* ── Topnav ── *@
-        <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button">
-                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
-            </button>
-            <nav class="tn-bread">
-                <a asp-controller="SuperAdmin" asp-action="Lost_Pets" style="color:var(--text-muted);font-weight:800;">Lost Pets</a>
-                <span>/</span><b>Assign Finder Reward</b>
-            </nav>
-            <div class="tn-center">
-                <div class="tn-center-main">🎁 Assign Finder Reward</div>
-                <div class="tn-center-sub">No-reward post · Confirmed finder</div>
-            </div>
-            <div class="tn-spacer"></div>
-            <div class="tn-right">
-                <div class="tn-profile">
-                    <div class="tn-av">@ViewBag.AdminInitials</div>
-                    <div><div class="tn-pname">@ViewBag.AdminName</div><div class="tn-prole">Super Admin</div></div>
-                </div>
-            </div>
-        </header>
-
-        @* ── Main ── *@
-        <main class="wa-main" id="waMain">
-
-            @if (ViewBag.Error != null)
-            {
-                <div style="margin:16px 24px 0;background:var(--danger-soft);border:1px solid rgba(220,38,38,.2);
-                            color:var(--danger);padding:12px 16px;border-radius:var(--r);font-weight:800;font-size:.86rem;">
-                    @ViewBag.Error
-                </div>
-            }
-
-            <section class="page-hero">
-                <div>
-                    <h1>🎁 Assign Finder Reward</h1>
-                    <p>Manually select and assign a surprise reward to the confirmed finder</p>
-                </div>
-                <div class="page-hero-actions">
-                    <a asp-controller="SuperAdmin" asp-action="Lost_Pets" class="btn btn-outline btn-sm">← Back to Lost Pets</a>
-                </div>
-            </section>
-
-            <div class="page-body">
-                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;">
-
-                    @* ── LEFT: Info Cards ── *@
-                    <div style="display:flex;flex-direction:column;gap:14px;">
-
-                        @* Pet Info *@
-                        <div class="table-card">
-                            <div class="table-head-bar">
-                                <div class="table-head-title">🐾 Lost Pet Report</div>
-                                <span class="badge badge-muted">No Reward</span>
-                            </div>
-                            <div style="padding:16px 20px;">
-                                <div class="info-list">
-                                    <div class="info-line"><span>Pet Name</span><strong>@report?.PetName</strong></div>
-                                    <div class="info-line"><span>Animal Type</span><strong>@report?.AnimalType @report?.Breed</strong></div>
-                                    <div class="info-line"><span>City</span><strong>@report?.City · @report?.Area</strong></div>
-                                    <div class="info-line"><span>Report Code</span><strong style="font-family:monospace;">@report?.ReportCode</strong></div>
-                                    <div class="info-line"><span>Owner</span><strong>@ViewBag.OwnerName</strong></div>
-                                    <div class="info-line"><span>Owner Phone</span><strong>@ViewBag.OwnerPhone</strong></div>
-                                    <div class="info-line"><span>Status</span><strong style="color:var(--success);">✅ @report?.Status</strong></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        @* Finder Info *@
-                        <div class="table-card" style="border:2px solid rgba(46,125,50,.2);">
-                            <div class="table-head-bar" style="background:var(--success-soft);">
-                                <div class="table-head-title" style="color:#2e7d32;">✅ Confirmed Finder</div>
-                                <span class="badge badge-success">Verified</span>
-                            </div>
-                            <div style="padding:16px 20px;">
-                                <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
-                                    <div style="width:52px;height:52px;border-radius:16px;background:var(--success-soft);
+                @* Finder Info *@
+                <div class="table-card" style="border:2px solid rgba(46,125,50,.2);">
+                    <div class="table-head-bar" style="background:var(--success-soft);">
+                        <div class="table-head-title" style="color:#2e7d32;">✅ Confirmed Finder</div>
+                        <span class="badge badge-success">Verified</span>
+                    </div>
+                    <div style="padding:16px 20px;">
+                        <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;">
+                            <div style="width:52px;height:52px;border-radius:16px;background:var(--success-soft);
                                             border:2px solid rgba(46,125,50,.2);display:grid;
                                             place-items:center;font-size:1.4rem;flex-shrink:0;">
-                                        🏅
-                                    </div>
-                                    <div>
-                                        <div style="font-family:'Fredoka',sans-serif;font-size:1.1rem;
+                                🏅
+                            </div>
+                            <div>
+                                <div style="font-family:'Fredoka',sans-serif;font-size:1.1rem;
                                                 font-weight:700;color:#2e7d32;">
-                                            @(finder?.FullName ?? "—")
-                                        </div>
-                                        <div style="font-size:.78rem;color:var(--text-muted);font-weight:700;">
-                                            #@finder?.UserId · @finder?.City
-                                        </div>
-                                    </div>
+                                    @(finder?.FullName ?? "—")
                                 </div>
-                                <div class="info-list">
-                                    <div class="info-line"><span>Email</span><strong>@(finder?.Email ?? "—")</strong></div>
-                                    <div class="info-line"><span>Phone</span><strong>@(finder?.Phone ?? "—")</strong></div>
-                                    <div class="info-line"><span>City</span><strong>@(finder?.City ?? "—")</strong></div>
-                                    <div class="info-line"><span>Confirmed</span><strong>@claim?.CreatedAt?.ToString("MMM dd, yyyy")</strong></div>
+                                <div style="font-size:.78rem;color:var(--text-muted);font-weight:700;">
+                                    #@finder?.UserId · @finder?.City
                                 </div>
-
-                                @if (hasRecent)
-                                {
-                                    <div style="background:var(--warning-soft);border:1px solid rgba(226,163,58,.3);
-                                                border-radius:10px;padding:10px 12px;margin-top:10px;
-                                                font-size:.8rem;color:#9b6000;font-weight:700;">
-                                        ⚠️ This user received a reward within the last 30 days
-                                    </div>
-                                }
                             </div>
                         </div>
+                        <div class="info-list">
+                            <div class="info-line"><span>Email</span><strong>@(finder?.Email ?? "—")</strong></div>
+                            <div class="info-line"><span>Phone</span><strong>@(finder?.Phone ?? "—")</strong></div>
+                            <div class="info-line"><span>City</span><strong>@(finder?.City ?? "—")</strong></div>
+                            <div class="info-line"><span>Confirmed</span><strong>@claim?.CreatedAt?.ToString("MMM dd, yyyy")</strong></div>
+                        </div>
 
-                        @* Reward History *@
-                        @if (history.Any())
+                        @if (hasRecent)
                         {
-                            <div class="table-card">
-                                <div class="table-head-bar">
-                                    <div class="table-head-title">📋 Reward History</div>
-                                    <span class="badge badge-info">@history.Count rewards</span>
-                                </div>
-                                <div style="padding:0 8px;">
-                                    @foreach (var h in history.Take(3))
-                                    {
-                                        <div style="display:flex;gap:10px;align-items:center;
-                                                        padding:10px 12px;border-bottom:1px solid var(--border);">
-                                            <div style="font-size:1.1rem;">🎁</div>
-                                            <div style="flex:1;min-width:0;">
-                                                <div style="font-weight:800;font-size:.82rem;color:var(--brand-dark);">
-                                                    @h.RewardTitle
-                                                </div>
-                                                <div style="font-size:.74rem;color:var(--text-muted);font-weight:700;">
-                                                    @h.GiftTypeLabel · @h.CreatedAt.ToString("MMM dd, yyyy")
-                                                </div>
-                                            </div>
-                                            <div style="font-size:.76rem;font-weight:800;color:var(--text-muted);">
-                                                @h.RewardDisplay
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
+                            <div style="background:var(--warning-soft);border:1px solid rgba(226,163,58,.3);
+                                                    border-radius:10px;padding:10px 12px;margin-top:10px;
+                                                    font-size:.8rem;color:#9b6000;font-weight:700;">
+                                ⚠️ This user received a reward within the last 30 days
                             </div>
                         }
                     </div>
+                </div>
 
-                    @* ── RIGHT: Assign Form ── *@
-                    <div>
-                        <form method="post"
-                              asp-controller="SuperAdmin"
-                              asp-action="AssignReward"
-                              onsubmit="return confirmAssign()">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="reportId" value="@report?.IdLostReport" />
-                            <input type="hidden" name="claimId" value="@claim?.IdClaim" />
-                            <input type="hidden" name="recipientId" value="@finder?.UserId" />
-
-                            <div class="table-card" style="border:2px solid rgba(226,163,58,.3);">
-                                <div class="table-head-bar" style="background:var(--warning-soft);">
-                                    <div class="table-head-title">🎁 Select & Assign Reward</div>
-                                    <span class="badge badge-warning">@pool.Count available</span>
+                @* Reward History *@
+                @if (history.Any())
+                {
+                    <div class="table-card">
+                        <div class="table-head-bar">
+                            <div class="table-head-title">📋 Reward History</div>
+                            <span class="badge badge-info">@history.Count rewards</span>
+                        </div>
+                        <div style="padding:0 8px;">
+                            @foreach (var h in history.Take(3))
+                            {
+                                <div style="display:flex;gap:10px;align-items:center;
+                                                                padding:10px 12px;border-bottom:1px solid var(--border);">
+                                    <div style="font-size:1.1rem;">🎁</div>
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="font-weight:800;font-size:.82rem;color:var(--brand-dark);">
+                                            @h.RewardTitle
+                                        </div>
+                                        <div style="font-size:.74rem;color:var(--text-muted);font-weight:700;">
+                                            @h.GiftTypeLabel · @h.CreatedAt.ToString("MMM dd, yyyy")
+                                        </div>
+                                    </div>
+                                    <div style="font-size:.76rem;font-weight:800;color:var(--text-muted);">
+                                        @h.RewardDisplay
+                                    </div>
                                 </div>
-                                <div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px;">
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
 
-                                    @* Reason Category *@
-                                    <div>
-                                        <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);
+            @* ── RIGHT: Assign Form ── *@
+            <div>
+                <form method="post"
+                      asp-controller="SuperAdmin"
+                      asp-action="AssignReward"
+                      onsubmit="return confirmAssign()">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="reportId" value="@report?.IdLostReport" />
+                    <input type="hidden" name="claimId" value="@claim?.IdClaim" />
+                    <input type="hidden" name="recipientId" value="@finder?.UserId" />
+
+                    <div class="table-card" style="border:2px solid rgba(226,163,58,.3);">
+                        <div class="table-head-bar" style="background:var(--warning-soft);">
+                            <div class="table-head-title">🎁 Select & Assign Reward</div>
+                            <span class="badge badge-warning">@pool.Count available</span>
+                        </div>
+                        <div style="padding:16px 20px;display:flex;flex-direction:column;gap:14px;">
+
+                            @* Reason Category *@
+                            <div>
+                                <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);
                                                   display:block;margin-bottom:6px;">
-                                            📋 Reason for reward <span style="color:var(--danger);">*</span>
-                                        </label>
-                                        <select name="reasonCategory" required
-                                                style="width:100%;border:1.5px solid var(--border);border-radius:12px;
+                                    📋 Reason for reward <span style="color:var(--danger);">*</span>
+                                </label>
+                                <select name="reasonCategory" required
+                                        style="width:100%;border:1.5px solid var(--border);border-radius:12px;
                                                    background:#fff;padding:10px 14px;font-size:.84rem;
                                                    font-weight:700;font-family:'Nunito',sans-serif;outline:none;">
-                                            <option value="">— Select reason —</option>
-                                            <option value="Found a lost pet">🏅 Found a lost pet</option>
-                                            <option value="Quick response">⚡ Quick response to alert</option>
-                                            <option value="Helpful community member">🤝 Helpful community member</option>
-                                            <option value="Exceptional effort">⭐ Exceptional effort</option>
-                                            <option value="Other">📝 Other</option>
-                                        </select>
-                                    </div>
+                                    <option value="">— Select reason —</option>
+                                    <option value="Found a lost pet">🏅 Found a lost pet</option>
+                                    <option value="Quick response">⚡ Quick response to alert</option>
+                                    <option value="Helpful community member">🤝 Helpful community member</option>
+                                    <option value="Exceptional effort">⭐ Exceptional effort</option>
+                                    <option value="Other">📝 Other</option>
+                                </select>
+                            </div>
 
-                                    @* Optional Note *@
-                                    <div>
-                                        <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);
+                            @* Optional Note *@
+                            <div>
+                                <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);
                                                   display:block;margin-bottom:6px;">
-                                            📝 Additional note (optional)
-                                        </label>
-                                        <textarea name="reasonNote" rows="2"
-                                                  placeholder="Any extra details..."
-                                                  style="width:100%;border:1.5px solid var(--border);border-radius:12px;
+                                    📝 Additional note (optional)
+                                </label>
+                                <textarea name="reasonNote" rows="2"
+                                          placeholder="Any extra details..."
+                                          style="width:100%;border:1.5px solid var(--border);border-radius:12px;
                                                      background:#fff;padding:10px 14px;font-size:.84rem;
                                                      font-weight:700;font-family:'Nunito',sans-serif;
                                                      outline:none;resize:vertical;"></textarea>
-                                    </div>
+                            </div>
 
-                                    @* Reward Pool *@
-                                    <div>
-                                        <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);
+                            @* Reward Pool *@
+                            <div>
+                                <label style="font-size:.8rem;font-weight:900;color:var(--brand-dark);
                                                   display:block;margin-bottom:8px;">
-                                            🎁 Select reward from pool <span style="color:var(--danger);">*</span>
-                                        </label>
+                                    🎁 Select reward from pool <span style="color:var(--danger);">*</span>
+                                </label>
 
-                                        @if (!pool.Any())
+                                @if (!pool.Any())
+                                {
+                                    <div style="background:var(--danger-soft);border:1px solid rgba(220,38,38,.2);
+                                                            border-radius:12px;padding:14px;text-align:center;
+                                                            font-weight:700;color:var(--danger);">
+                                        ❌ No rewards available in pool.
+                                        <a asp-controller="SuperAdmin" asp-action="Lost_Pets"
+                                           style="display:block;margin-top:6px;font-size:.8rem;">
+                                            Add rewards in Lost Pets page →
+                                        </a>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div style="display:flex;flex-direction:column;gap:8px;">
+                                        @foreach (var r in pool)
                                         {
-                                            <div style="background:var(--danger-soft);border:1px solid rgba(220,38,38,.2);
-                                                        border-radius:12px;padding:14px;text-align:center;
-                                                        font-weight:700;color:var(--danger);">
-                                                ❌ No rewards available in pool.
-                                                <a asp-controller="SuperAdmin" asp-action="Lost_Pets"
-                                                   style="display:block;margin-top:6px;font-size:.8rem;">
-                                                    Add rewards in Lost Pets page →
-                                                </a>
-                                            </div>
-                                        }
-                                        else
-                                        {
-                                            <div style="display:flex;flex-direction:column;gap:8px;">
-                                                @foreach (var r in pool)
-                                                {
-                                                    var icon = r.RewardType switch
-                                                    {
-                                                        "WalletCredit" => "💰",
-                                                        "StoreDiscount" => "🏪",
-                                                        "ClinicSession" => "🏥",
-                                                        "DeliveryVoucher" => "🚚",
-                                                        _ => "🎁"
-                                                    };
-                                                    <label style="cursor:pointer;" onclick="selectReward(this, @r.IdReward)">
-                                                        <input type="radio" name="rewardId"
-                                                               value="@r.IdReward" required
-                                                               style="display:none;" />
-                                                        <div class="reward-option" id="ropt_@r.IdReward"
-                                                             style="border:2px solid var(--border);border-radius:14px;
-                                                                        padding:14px;background:#fff;transition:.18s;">
-                                                            <div style="display:flex;align-items:center;gap:12px;">
-                                                                <div style="width:44px;height:44px;border-radius:12px;
-                                                                                background:var(--brand-xlight);
-                                                                                display:grid;place-items:center;
-                                                                                font-size:1.3rem;flex-shrink:0;">
-                                                                    @icon
-                                                                </div>
-                                                                <div style="flex:1;min-width:0;">
-                                                                    <div style="font-weight:900;color:var(--brand-dark);font-size:.88rem;">
-                                                                        @r.Title
-                                                                    </div>
-                                                                    <div style="font-size:.76rem;color:var(--text-muted);
-                                                                                    font-weight:700;margin-top:2px;">
-                                                                        @r.RewardType
-                                                                        @if (r.PartnerName != null)
-                                                                        {
-                                                                            <text> · @r.PartnerName</text>
-                                                                        }
-                                                                        @if (r.ExpiryDate.HasValue)
-                                                                        {
-                                                                            <text> · Expires @r.ExpiryDate.Value.ToString("MMM dd")</text>
-                                                                        }
-                                                                    </div>
-                                                                </div>
-                                                                <div style="text-align:right;flex-shrink:0;">
-                                                                    @if (r.Value.HasValue)
-                                                                    {
-                                                                        <div style="font-family:'Fredoka',sans-serif;font-size:1rem;
-                                                                                            font-weight:700;color:var(--success);">
-                                                                            @r.Value.Value.ToString("F2") JOD
-                                                                        </div>
-                                                                    }
-                                                                    else if (r.DiscountPercent.HasValue)
-                                                                    {
-                                                                        <div style="font-family:'Fredoka',sans-serif;font-size:1rem;
-                                                                                            font-weight:700;color:#9b6000;">
-                                                                            @r.DiscountPercent%
-                                                                        </div>
-                                                                    }
-                                                                    @if (r.CouponCode != null)
-                                                                    {
-                                                                        <div style="font-family:monospace;font-size:.72rem;
-                                                                                            background:var(--surface-2);padding:2px 6px;
-                                                                                            border-radius:6px;margin-top:3px;">
-                                                                            @r.CouponCode
-                                                                        </div>
-                                                                    }
-                                                                </div>
+                                            var icon = r.RewardType switch
+                                            {
+                                                "WalletCredit" => "💰",
+                                                "StoreDiscount" => "🏪",
+                                                "ClinicSession" => "🏥",
+                                                "DeliveryVoucher" => "🚚",
+                                                _ => "🎁"
+                                            };
+                                            <label style="cursor:pointer;" onclick="selectReward(this, @r.IdReward)">
+                                                <input type="radio" name="rewardId"
+                                                       value="@r.IdReward" required
+                                                       style="display:none;" />
+                                                <div class="reward-option" id="ropt_@r.IdReward"
+                                                     style="border:2px solid var(--border);border-radius:14px;
+                                                                                padding:14px;background:#fff;transition:.18s;">
+                                                    <div style="display:flex;align-items:center;gap:12px;">
+                                                        <div style="width:44px;height:44px;border-radius:12px;
+                                                                                        background:var(--brand-xlight);
+                                                                                        display:grid;place-items:center;
+                                                                                        font-size:1.3rem;flex-shrink:0;">
+                                                            @icon
+                                                        </div>
+                                                        <div style="flex:1;min-width:0;">
+                                                            <div style="font-weight:900;color:var(--brand-dark);font-size:.88rem;">
+                                                                @r.Title
+                                                            </div>
+                                                            <div style="font-size:.76rem;color:var(--text-muted);
+                                                                                            font-weight:700;margin-top:2px;">
+                                                                @r.RewardType
+                                                                @if (r.PartnerName != null)
+                                                                {
+                                                                    <text> · @r.PartnerName</text>
+                                                                }
+                                                                @if (r.ExpiryDate.HasValue)
+                                                                {
+                                                                    <text> · Expires @r.ExpiryDate.Value.ToString("MMM dd")</text>
+                                                                }
                                                             </div>
                                                         </div>
-                                                    </label>
-                                                }
-                                            </div>
+                                                        <div style="text-align:right;flex-shrink:0;">
+                                                            @if (r.Value.HasValue)
+                                                            {
+                                                                <div style="font-family:'Fredoka',sans-serif;font-size:1rem;
+                                                                                                        font-weight:700;color:var(--success);">
+                                                                    @r.Value.Value.ToString("F2") JOD
+                                                                </div>
+                                                            }
+                                                            else if (r.DiscountPercent.HasValue)
+                                                            {
+                                                                <div style="font-family:'Fredoka',sans-serif;font-size:1rem;
+                                                                                                        font-weight:700;color:#9b6000;">
+                                                                    @r.DiscountPercent%
+                                                                </div>
+                                                            }
+                                                            @if (r.CouponCode != null)
+                                                            {
+                                                                <div style="font-family:monospace;font-size:.72rem;
+                                                                                                        background:var(--surface-2);padding:2px 6px;
+                                                                                                        border-radius:6px;margin-top:3px;">
+                                                                    @r.CouponCode
+                                                                </div>
+                                                            }
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </label>
                                         }
                                     </div>
+                                }
+                            </div>
 
-                                    @* Delivery Info *@
-                                    <div style="background:var(--surface-2);border:1px solid var(--border);
+                            @* Delivery Info *@
+                            <div style="background:var(--surface-2);border:1px solid var(--border);
                                             border-radius:12px;padding:12px 14px;font-size:.78rem;
                                             color:var(--text-muted);font-weight:700;">
-                                        <div style="font-weight:900;color:var(--brand-dark);margin-bottom:6px;">
-                                            📦 Delivery Method (Automatic)
-                                        </div>
-                                        <div>💰 WalletCredit → Added directly to wallet + notification</div>
-                                        <div>🏪 StoreDiscount → Notification with coupon code</div>
-                                        <div>🏥 ClinicSession → Notification with booking instructions</div>
-                                        <div>🚚 DeliveryVoucher → Notification with coupon code</div>
-                                    </div>
-
-                                    @* Submit *@
-                                    @if (pool.Any() && finder != null)
-                                    {
-                                        <button type="submit" class="btn btn-success btn-sm"
-                                                style="width:100%;justify-content:center;padding:12px;">
-                                            🎁 Assign Reward to @finder.FullName
-                                        </button>
-                                    }
+                                <div style="font-weight:900;color:var(--brand-dark);margin-bottom:6px;">
+                                    📦 Delivery Method (Automatic)
                                 </div>
+                                <div>💰 WalletCredit → Added directly to wallet + notification</div>
+                                <div>🏪 StoreDiscount → Notification with coupon code</div>
+                                <div>🏥 ClinicSession → Notification with booking instructions</div>
+                                <div>🚚 DeliveryVoucher → Notification with coupon code</div>
                             </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
 
-    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
+                            @* Submit *@
+                            @if (pool.Any() && finder != null)
+                            {
+                                <button type="submit" class="btn btn-success btn-sm"
+                                        style="width:100%;justify-content:center;padding:12px;">
+                                    🎁 Assign Reward to @finder.FullName
+                                </button>
+                            }
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</main>
+
+</div>
+
+
+@section PageScripts {
     <script>
         function selectReward(label, id) {
             // Reset all
@@ -413,5 +337,4 @@
             return confirm('Assign this reward to the finder? This action cannot be undone.');
         }
     </script>
-</body>
-</html>
+}

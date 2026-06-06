@@ -1,5 +1,11 @@
 ﻿@{
-    Layout = null;
+    Layout = "~/Views/SuperAdmin/_SuperAdminLayout.cshtml";
+    ViewData["Title"] = "Waffy — Super Admin | Reward Log";
+    ViewData["ActiveSection"] = "rewardlog";
+    ViewData["ActivePage"] = "";
+    ViewData["PageTitle"] = "Reward Log";
+    ViewData["BreadcrumbParent"] = "Tools";
+    ViewData["BreadcrumbCurrent"] = "Reward Log";
     var logs = ViewBag.Logs as List<Waffy.Models.ViewModels.RewardLogDto>
                ?? new List<Waffy.Models.ViewModels.RewardLogDto>();
     var totalWallet = ViewBag.TotalWallet as decimal? ?? 0;
@@ -9,306 +15,205 @@
     var typeFilter = ViewBag.TypeFilter as string ?? "All";
     var searchQuery = ViewBag.SearchQuery as string ?? "";
 }
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Waffy — Super Admin | Reward Log</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
-</head>
-<body>
-    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
-    <div class="wa-shell" id="waShell">
 
-        @* ── Sidebar ── *@
-        <aside class="wa-sb" id="waSb">
-            <div class="sb-logo">
-                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
-                <div class="sb-wordmark">
-                    <div class="sb-wm-name">Waffy</div>
-                    <div class="sb-wm-tag">Super Admin</div>
-                </div>
+<main class="wa-main" id="waMain">
+
+    <section class="page-hero">
+        <div>
+            <h1>🎁 Reward Log</h1>
+            <p>Complete history of all rewards issued through Waffy</p>
+        </div>
+        <div class="page-hero-actions">
+            <a asp-controller="SuperAdmin" asp-action="Lost_Pets"
+               class="btn btn-outline btn-sm">← Lost Pets</a>
+        </div>
+    </section>
+
+    <div class="page-body">
+
+        @* ── KPI Cards ── *@
+        <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
+            <div class="kpi-card c1">
+                <div class="kpi-ico green">🎁</div>
+                <div class="kpi-val">@totalCount</div>
+                <div class="kpi-label">Total Rewards</div>
+                <div class="kpi-chip chip-green">All time</div>
             </div>
-            <nav class="sb-nav">
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
-                        <span class="sb-lbl">Dashboard</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Management</div>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Users">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span>
-                        <span class="sb-lbl">Users</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Reports</div>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Lost_Pets">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
-                        <span class="sb-lbl">Lost Pets</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Tools</div>
-                    <a class="sb-row active" asp-controller="SuperAdmin" asp-action="RewardLog">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20 12V22H4V12" /><path d="M22 7H2v5h20V7z" /><path d="M12 22V7" /><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z" /><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" /></svg></span>
-                        <span class="sb-lbl">Reward Log</span>
-                    </a>
-                </div>
-            </nav>
-            <div class="sb-foot">
-                <div class="sb-user-row">
-                    <div class="sb-av">@ViewBag.AdminInitials</div>
-                    <div class="sb-user-info">
-                        <div class="sb-user-name">@ViewBag.AdminName</div>
-                        <div class="sb-user-role">Super Admin</div>
-                    </div>
-                </div>
-                <form method="post" asp-controller="Account" asp-action="Logout" style="margin:0">
-                    @Html.AntiForgeryToken()
-                    <button class="sb-logout" type="submit">
-                        <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-                        <span class="sb-logout-lbl">Sign Out</span>
-                    </button>
-                </form>
+            <div class="kpi-card c3">
+                <div class="kpi-ico yellow">💰</div>
+                <div class="kpi-val">@totalWallet.ToString("F2")</div>
+                <div class="kpi-label">Wallet Credits (JOD)</div>
+                <div class="kpi-chip chip-yellow">Cash given</div>
             </div>
-        </aside>
-
-        @* ── Topnav ── *@
-        <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button">
-                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24">
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <line x1="3" y1="12" x2="21" y2="12" />
-                    <line x1="3" y1="18" x2="21" y2="18" />
-                </svg>
-            </button>
-            <nav class="tn-bread"><span>Tools</span><span>/</span><b>Reward Log</b></nav>
-            <div class="tn-center">
-                <div class="tn-center-main">🎁 Reward Log</div>
-                <div class="tn-center-sub">All issued rewards — Finder & Manual</div>
+            <div class="kpi-card c2">
+                <div class="kpi-ico blue">🏅</div>
+                <div class="kpi-val">@finderCount</div>
+                <div class="kpi-label">Finder Rewards</div>
+                <div class="kpi-chip chip-blue">Lost pet found</div>
             </div>
-            <div class="tn-spacer"></div>
-            <div class="tn-right">
-                <div class="tn-profile">
-                    <div class="tn-av">@ViewBag.AdminInitials</div>
-                    <div>
-                        <div class="tn-pname">@ViewBag.AdminName</div>
-                        <div class="tn-prole">Super Admin</div>
-                    </div>
-                </div>
+            <div class="kpi-card c4">
+                <div class="kpi-ico red">🎀</div>
+                <div class="kpi-val">@manualCount</div>
+                <div class="kpi-label">Manual Gifts</div>
+                <div class="kpi-chip chip-red">Admin issued</div>
             </div>
-        </header>
+        </div>
 
-        @* ── Main ── *@
-        <main class="wa-main" id="waMain">
+        @* ── Filters ── *@
+        <form method="get" asp-controller="SuperAdmin" asp-action="RewardLog"
+              style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
 
-            <section class="page-hero">
-                <div>
-                    <h1>🎁 Reward Log</h1>
-                    <p>Complete history of all rewards issued through Waffy</p>
+            @* Search *@
+            <div class="search-wrap" style="flex:1;min-width:220px;">
+                <span style="color:var(--text-muted);">🔍</span>
+                <input type="text" name="search" value="@searchQuery"
+                       placeholder="Search recipient name or email..." />
+            </div>
+
+            @* Type Filter *@
+            @foreach (var f in new[] { "All", "FinderReward", "ManualGift" })
+            {
+                var label = f == "All" ? "All Types" :
+                f == "FinderReward" ? "🏅 Finder Rewards" : "🎀 Manual Gifts";
+                <a asp-action="RewardLog"
+                   asp-route-search="@searchQuery"
+                   asp-route-typeFilter="@f"
+                   class="btn @(typeFilter == f ? "btn-primary" : "btn-outline") btn-sm">
+                    @label
+                </a>
+            }
+
+            <button type="submit" class="btn btn-primary btn-sm">Search</button>
+            <a asp-action="RewardLog" class="btn btn-outline btn-sm">Reset</a>
+        </form>
+
+        @* ── Table ── *@
+        <div class="table-card">
+            <div class="table-head-bar">
+                <div class="table-head-title">Reward History</div>
+                <span class="table-count">@logs.Count records</span>
+            </div>
+
+            @if (!logs.Any())
+            {
+                <div style="text-align:center;padding:40px;color:var(--text-muted);font-weight:700;">
+                    🎁 No rewards issued yet.
                 </div>
-                <div class="page-hero-actions">
-                    <a asp-controller="SuperAdmin" asp-action="Lost_Pets"
-                       class="btn btn-outline btn-sm">← Lost Pets</a>
-                </div>
-            </section>
+            }
+            else
+            {
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Reward</th>
+                                <th>Recipient</th>
+                                <th>Type</th>
+                                <th>Reason</th>
+                                <th>Value</th>
+                                <th>Admin</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var log in logs)
+                            {
+                                var typeIcon = log.GiftType == "FinderReward" ? "🏅" : "🎀";
+                                var typeBadge = log.GiftType == "FinderReward" ? "badge-info" : "badge-success";
+                                var rewardIcon = log.RewardType switch
+                                {
+                                    "WalletCredit" => "💰",
+                                    "StoreDiscount" => "🏪",
+                                    "ClinicSession" => "🏥",
+                                    "DeliveryVoucher" => "🚚",
+                                    _ => "🎁"
+                                };
+                                <tr>
+                                    @* Reward *@
+                                    <td>
+                                        <div style="display:flex;align-items:center;gap:10px;">
+                                            <div style="width:36px;height:36px;border-radius:10px;
+                                                                            background:var(--brand-xlight);
+                                                                            display:grid;place-items:center;
+                                                                            font-size:1rem;flex-shrink:0;
+                                                                            border:1px solid var(--brand-light);">
+                                                @rewardIcon
+                                            </div>
+                                            <div>
+                                                <div style="font-weight:800;font-size:.86rem;color:var(--brand-dark);">
+                                                    @log.RewardTitle
+                                                </div>
+                                                <div class="cell-sub">@log.RewardType</div>
+                                            </div>
+                                        </div>
+                                    </td>
 
-            <div class="page-body">
+                                    @* Recipient *@
+                                    <td>
+                                        <div style="font-weight:800;font-size:.84rem;">
+                                            @log.RecipientName
+                                        </div>
+                                        <div class="cell-sub">@log.RecipientEmail</div>
+                                    </td>
 
-                @* ── KPI Cards ── *@
-                <div class="kpi-grid kpi-grid-4" style="margin-bottom:20px;">
-                    <div class="kpi-card c1">
-                        <div class="kpi-ico green">🎁</div>
-                        <div class="kpi-val">@totalCount</div>
-                        <div class="kpi-label">Total Rewards</div>
-                        <div class="kpi-chip chip-green">All time</div>
-                    </div>
-                    <div class="kpi-card c3">
-                        <div class="kpi-ico yellow">💰</div>
-                        <div class="kpi-val">@totalWallet.ToString("F2")</div>
-                        <div class="kpi-label">Wallet Credits (JOD)</div>
-                        <div class="kpi-chip chip-yellow">Cash given</div>
-                    </div>
-                    <div class="kpi-card c2">
-                        <div class="kpi-ico blue">🏅</div>
-                        <div class="kpi-val">@finderCount</div>
-                        <div class="kpi-label">Finder Rewards</div>
-                        <div class="kpi-chip chip-blue">Lost pet found</div>
-                    </div>
-                    <div class="kpi-card c4">
-                        <div class="kpi-ico red">🎀</div>
-                        <div class="kpi-val">@manualCount</div>
-                        <div class="kpi-label">Manual Gifts</div>
-                        <div class="kpi-chip chip-red">Admin issued</div>
-                    </div>
-                </div>
+                                    @* Gift Type *@
+                                    <td>
+                                        <span class="badge @typeBadge">
+                                            @typeIcon @log.GiftTypeLabel
+                                        </span>
+                                    </td>
 
-                @* ── Filters ── *@
-                <form method="get" asp-controller="SuperAdmin" asp-action="RewardLog"
-                      style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center;">
-
-                    @* Search *@
-                    <div class="search-wrap" style="flex:1;min-width:220px;">
-                        <span style="color:var(--text-muted);">🔍</span>
-                        <input type="text" name="search" value="@searchQuery"
-                               placeholder="Search recipient name or email..." />
-                    </div>
-
-                    @* Type Filter *@
-                    @foreach (var f in new[] { "All", "FinderReward", "ManualGift" })
-                    {
-                        var label = f == "All" ? "All Types" :
-                        f == "FinderReward" ? "🏅 Finder Rewards" : "🎀 Manual Gifts";
-                        <a asp-action="RewardLog"
-                           asp-route-search="@searchQuery"
-                           asp-route-typeFilter="@f"
-                           class="btn @(typeFilter == f ? "btn-primary" : "btn-outline") btn-sm">
-                            @label
-                        </a>
-                    }
-
-                    <button type="submit" class="btn btn-primary btn-sm">Search</button>
-                    <a asp-action="RewardLog" class="btn btn-outline btn-sm">Reset</a>
-                </form>
-
-                @* ── Table ── *@
-                <div class="table-card">
-                    <div class="table-head-bar">
-                        <div class="table-head-title">Reward History</div>
-                        <span class="table-count">@logs.Count records</span>
-                    </div>
-
-                    @if (!logs.Any())
-                    {
-                        <div style="text-align:center;padding:40px;color:var(--text-muted);font-weight:700;">
-                            🎁 No rewards issued yet.
-                        </div>
-                    }
-                    else
-                    {
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Reward</th>
-                                        <th>Recipient</th>
-                                        <th>Type</th>
-                                        <th>Reason</th>
-                                        <th>Value</th>
-                                        <th>Admin</th>
-                                        <th>Date</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var log in logs)
-                                    {
-                                        var typeIcon = log.GiftType == "FinderReward" ? "🏅" : "🎀";
-                                        var typeBadge = log.GiftType == "FinderReward" ? "badge-info" : "badge-success";
-                                        var rewardIcon = log.RewardType switch
+                                    @* Reason *@
+                                    <td>
+                                        <div style="font-size:.82rem;font-weight:700;color:var(--brand-dark);">
+                                            @log.ReasonCategory
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(log.ReasonNote))
                                         {
-                                            "WalletCredit" => "💰",
-                                            "StoreDiscount" => "🏪",
-                                            "ClinicSession" => "🏥",
-                                            "DeliveryVoucher" => "🚚",
-                                            _ => "🎁"
-                                        };
-                                        <tr>
-                                            @* Reward *@
-                                            <td>
-                                                <div style="display:flex;align-items:center;gap:10px;">
-                                                    <div style="width:36px;height:36px;border-radius:10px;
-                                                                    background:var(--brand-xlight);
-                                                                    display:grid;place-items:center;
-                                                                    font-size:1rem;flex-shrink:0;
-                                                                    border:1px solid var(--brand-light);">
-                                                        @rewardIcon
-                                                    </div>
-                                                    <div>
-                                                        <div style="font-weight:800;font-size:.86rem;color:var(--brand-dark);">
-                                                            @log.RewardTitle
-                                                        </div>
-                                                        <div class="cell-sub">@log.RewardType</div>
-                                                    </div>
-                                                </div>
-                                            </td>
+                                            <div class="cell-sub" style="font-style:italic;max-width:180px;
+                                                                                                      overflow:hidden;text-overflow:ellipsis;
+                                                                                                      white-space:nowrap;"
+                                                 title="@log.ReasonNote">
+                                                @log.ReasonNote
+                                            </div>
+                                        }
+                                    </td>
 
-                                            @* Recipient *@
-                                            <td>
-                                                <div style="font-weight:800;font-size:.84rem;">
-                                                    @log.RecipientName
-                                                </div>
-                                                <div class="cell-sub">@log.RecipientEmail</div>
-                                            </td>
+                                    @* Value *@
+                                    <td style="font-weight:900;color:var(--brand-dark);">
+                                        @log.RewardDisplay
+                                    </td>
 
-                                            @* Gift Type *@
-                                            <td>
-                                                <span class="badge @typeBadge">
-                                                    @typeIcon @log.GiftTypeLabel
-                                                </span>
-                                            </td>
+                                    @* Admin *@
+                                    <td>
+                                        <div style="font-size:.82rem;font-weight:700;">
+                                            @log.AdminName
+                                        </div>
+                                    </td>
 
-                                            @* Reason *@
-                                            <td>
-                                                <div style="font-size:.82rem;font-weight:700;color:var(--brand-dark);">
-                                                    @log.ReasonCategory
-                                                </div>
-                                                @if (!string.IsNullOrEmpty(log.ReasonNote))
-                                                {
-                                                    <div class="cell-sub" style="font-style:italic;max-width:180px;
-                                                                                          overflow:hidden;text-overflow:ellipsis;
-                                                                                          white-space:nowrap;"
-                                                         title="@log.ReasonNote">
-                                                        @log.ReasonNote
-                                                    </div>
-                                                }
-                                            </td>
+                                    @* Date *@
+                                    <td style="font-size:.78rem;color:var(--text-muted);white-space:nowrap;">
+                                        @log.CreatedAt.ToString("MMM dd, yyyy")
+                                        <div class="cell-sub">@log.CreatedAt.ToString("hh:mm tt")</div>
+                                    </td>
 
-                                            @* Value *@
-                                            <td style="font-weight:900;color:var(--brand-dark);">
-                                                @log.RewardDisplay
-                                            </td>
-
-                                            @* Admin *@
-                                            <td>
-                                                <div style="font-size:.82rem;font-weight:700;">
-                                                    @log.AdminName
-                                                </div>
-                                            </td>
-
-                                            @* Date *@
-                                            <td style="font-size:.78rem;color:var(--text-muted);white-space:nowrap;">
-                                                @log.CreatedAt.ToString("MMM dd, yyyy")
-                                                <div class="cell-sub">@log.CreatedAt.ToString("hh:mm tt")</div>
-                                            </td>
-
-                                            @* Status *@
-                                            <td>
-                                                <span class="badge @(log.DeliveryStatus == "Delivered" ? "badge-success" : "badge-warning")">
-                                                    @(log.DeliveryStatus == "Delivered" ? "✅ Delivered" : log.DeliveryStatus)
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
+                                    @* Status *@
+                                    <td>
+                                        <span class="badge @(log.DeliveryStatus == "Delivered" ? "badge-success" : "badge-warning")">
+                                            @(log.DeliveryStatus == "Delivered" ? "✅ Delivered" : log.DeliveryStatus)
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
                 </div>
+            }
+        </div>
 
-            </div>
-        </main>
     </div>
+</main>
 
-    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
-</body>
-</html>
+</div>
+

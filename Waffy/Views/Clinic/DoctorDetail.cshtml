@@ -515,40 +515,183 @@
                 transform: translateX(-50%) translateY(0);
             }
 
+        /* ── Reviews Section ── */
+        .review-form-card {
+            background: var(--ws);
+            border: 1px solid var(--wl);
+            border-radius: 16px;
+            padding: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .star-selector {
+            display: flex;
+            gap: 6px;
+            margin: .6rem 0 1rem;
+            flex-direction: row-reverse;
+            justify-content: flex-end;
+        }
+
+            .star-selector input[type="radio"] {
+                display: none;
+            }
+
+            .star-selector label {
+                font-size: 2rem;
+                color: #d8cbb8;
+                cursor: pointer;
+                transition: color .15s, transform .15s;
+                line-height: 1;
+            }
+
+                .star-selector input:checked ~ label,
+                .star-selector label:hover,
+                .star-selector label:hover ~ label {
+                    color: #efb83c;
+                    transform: scale(1.12);
+                }
+
+        .review-card {
+            background: var(--ww);
+            border: 1px solid var(--wl);
+            border-radius: 14px;
+            padding: 1rem 1.2rem;
+            margin-bottom: 10px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .reviewer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg,#9ab451,#7d953d);
+            color: #fff;
+            font-size: .85rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-family: 'Fredoka',sans-serif;
+        }
+
+        .review-stars-display {
+            color: #efb83c;
+            font-size: .9rem;
+            letter-spacing: 1px;
+        }
+
+        .review-empty-star {
+            color: #d8cbb8;
+            font-size: .9rem;
+        }
+
+        .review-meta {
+            font-size: .74rem;
+            color: var(--wm);
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .review-title {
+            font-size: .88rem;
+            font-weight: 900;
+            color: var(--wt);
+            margin: 4px 0 2px;
+        }
+
+        .review-comment {
+            font-size: .84rem;
+            color: var(--wm);
+            font-weight: 700;
+            line-height: 1.6;
+        }
+
+        .avg-rating-box {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: var(--ws);
+            border: 1px solid var(--wl);
+            border-radius: 14px;
+            padding: 1rem 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .avg-number {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            color: var(--wt);
+            line-height: 1;
+        }
+
+        .avg-stars {
+            color: #efb83c;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+        }
+
+        .avg-count {
+            font-size: .8rem;
+            color: var(--wm);
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .login-to-review {
+            background: var(--wgp);
+            border: 1px solid var(--wgb);
+            border-radius: 12px;
+            padding: .8rem 1rem;
+            font-size: .84rem;
+            font-weight: 800;
+            color: #5f7430;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .already-reviewed {
+            background: #fff8e8;
+            border: 1px solid #e7c56e;
+            border-radius: 12px;
+            padding: .8rem 1rem;
+            font-size: .84rem;
+            font-weight: 800;
+            color: #8a6d1e;
+        }
+
         /* Responsive */
         @@media (max-width: 900px) {
-            .doctor-detail-layout
+            .doctor-detail-layout {
+                grid-template-columns: 1fr;
+            }
 
-        {
-            grid-template-columns: 1fr;
+            .doctor-sidebar {
+                position: static;
+            }
+
+            .doctor-hero-card {
+                gap: 1.4rem;
+            }
         }
 
-        .doctor-sidebar {
-            position: static;
-        }
-
-        .doctor-hero-card {
-            gap: 1.4rem;
-        }
-
-        }
         @@media (max-width: 540px) {
-            .doctor-avatar-xl
+            .doctor-avatar-xl {
+                width: 80px;
+                height: 80px;
+                font-size: 1.8rem;
+            }
 
-        {
-            width: 80px;
-            height: 80px;
-            font-size: 1.8rem;
-        }
+            .doctor-hero-name {
+                font-size: 1.5rem;
+            }
 
-        .doctor-hero-name {
-            font-size: 1.5rem;
-        }
-
-        .doctor-hero-right {
-            width: 100%;
-        }
-
+            .doctor-hero-right {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -795,7 +938,6 @@
                                     </div>
                                 </div>
                             }
-                         
                         </div>
                     </div>
 
@@ -856,11 +998,9 @@
                                     </div>
                                 }
 
-                                <!-- Appointment Duration -->
                             </div>
                         </div>
                     }
-
 
                     @if (!string.IsNullOrEmpty(Model.Certifications) || Model.CertificationDocs.Any())
                     {
@@ -875,7 +1015,7 @@
                                 @if (!string.IsNullOrEmpty(Model.Certifications))
                                 {
                                     <div style="font-size:.88rem;color:var(--wm);font-weight:700;
-                                    line-height:1.8;margin-bottom:@(Model.CertificationDocs.Any() ? "16px" : "0");">
+                                            line-height:1.8;margin-bottom:@(Model.CertificationDocs.Any() ? "16px" : "0");">
                                         @foreach (var line in Model.Certifications.Split('\n',
                                                                         StringSplitOptions.RemoveEmptyEntries))
                                         {
@@ -900,8 +1040,8 @@
                                             var isImg = ext is ".jpg" or ".jpeg" or ".png" or ".webp";
                                             <a href="@cert.FileUrl" target="_blank"
                                                style="display:block;border-radius:12px;overflow:hidden;
-                                              border:1px solid var(--wl);text-decoration:none;
-                                              transition:.2s;box-shadow:var(--sh);"
+                                                          border:1px solid var(--wl);text-decoration:none;
+                                                          transition:.2s;box-shadow:var(--sh);"
                                                onmouseover="this.style.transform='translateY(-2px)'"
                                                onmouseout="this.style.transform='translateY(0)'">
                                                 @if (isImg)
@@ -912,8 +1052,8 @@
                                                 else
                                                 {
                                                     <div style="height:90px;display:flex;align-items:center;
-                                                            justify-content:center;font-size:2.2rem;
-                                                            background:var(--wgp);">
+                                                                            justify-content:center;font-size:2.2rem;
+                                                                            background:var(--wgp);">
                                                         📄
                                                     </div>
                                                 }
@@ -933,6 +1073,231 @@
                             </div>
                         </div>
                     }
+
+                    <!-- ── Reviews Section ── -->
+                    <div id="reviews" class="d-card fade-up">
+                        <div class="d-card-head">
+                            <i class="fa-solid fa-star" style="color:var(--wgold);font-size:14px;"></i>
+                            Reviews &amp; Ratings
+                            @if (Model.ReviewCount > 0)
+                            {
+                                <span style="font-size:.78rem;font-weight:700;color:var(--wm);margin-left:4px;">
+                                    (@Model.ReviewCount)
+                                </span>
+                            }
+                        </div>
+                        <div class="d-card-body">
+
+                            @* Alerts *@
+                            @if (TempData["ReviewSuccess"] != null)
+                            {
+                                <div style="background:var(--wgp);border:1px solid var(--wgb);color:#5f7430;
+                                                border-radius:10px;padding:.7rem 1rem;font-size:.84rem;
+                                                font-weight:800;margin-bottom:1rem;">
+                                    @TempData["ReviewSuccess"]
+                                </div>
+                            }
+                            @if (TempData["ReviewError"] != null)
+                            {
+                                <div style="background:rgba(200,106,92,.1);border:1px solid rgba(200,106,92,.3);
+                                                color:var(--wr);border-radius:10px;padding:.7rem 1rem;
+                                                font-size:.84rem;font-weight:800;margin-bottom:1rem;">
+                                    @TempData["ReviewError"]
+                                </div>
+                            }
+
+                            @* Average Rating Box *@
+                            @if (Model.ReviewCount > 0)
+                            {
+                                var avg = Model.Reviews.Average(r => r.Rating);
+                                var full = (int)Math.Floor(avg);
+                                var half = (avg - full) >= 0.5;
+                                var empty = 5 - full - (half ? 1 : 0);
+                                <div class="avg-rating-box">
+                                    <div class="avg-number">@avg.ToString("F1")</div>
+                                    <div>
+                                        <div class="avg-stars">
+                                            @for (int i = 0; i < full; i++)
+                                            {
+                                                <text>★</text>
+                                            }
+                                            @if (half)
+                                            {
+                                                <text>½</text>
+                                            }
+                                            @for (int i = 0; i < empty; i++)
+                                            {
+                                                <span class="review-empty-star">★</span>
+                                            }
+                                        </div>
+                                        <div class="avg-count">@Model.ReviewCount review@(Model.ReviewCount != 1 ? "s" : "")</div>
+                                    </div>
+                                </div>
+                            }
+
+                            @* Review Form *@
+                            @{
+                                var isLoggedIn = Context.Session.GetInt32("UserId") != null;
+                            }
+                            @if (!isLoggedIn)
+                            {
+                                <div class="login-to-review">
+                                    ⭐
+                                    <span>
+                                        <a asp-controller="Account" asp-action="Login"
+                                           style="color:#5f7430;font-weight:900;">Sign in</a>
+                                        to leave a review
+                                    </span>
+                                </div>
+                            }
+                            else if (Model.CurrentUserHasReviewed)
+                            {
+                                <div class="already-reviewed">
+                                    ✅ You've already reviewed this doctor. Thank you for your feedback!
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="review-form-card">
+                                    <div style="font-family:'Fredoka',sans-serif;font-size:.95rem;
+                                                    font-weight:700;color:var(--wg);margin-bottom:.4rem;">
+                                        ✍️ Write a Review
+                                    </div>
+                                    <form method="post"
+                                          asp-controller="Clinic"
+                                          asp-action="SubmitReview">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="targetType" value="Doctor" />
+                                        <input type="hidden" name="targetId" value="@Model.IdDoctor" />
+
+                                        @* Star selector *@
+                                        <div style="font-size:.8rem;font-weight:800;color:var(--wm);margin-bottom:4px;">
+                                            Your Rating <span style="color:var(--wr)">*</span>
+                                        </div>
+                                        <div class="star-selector">
+                                            @for (int s = 5; s >= 1; s--)
+                                            {
+                                                <input type="radio" name="rating"
+                                                       id="star@(s)_d" value="@s" required>
+                                                <label for="star@(s)_d" title="@s star@(s > 1 ? "s" : "")">★</label>
+                                            }
+                                        </div>
+
+                                        @* Title *@
+                                        <div style="margin-bottom:.7rem;">
+                                            <label style="font-size:.8rem;font-weight:800;color:var(--wm);
+                                                              display:block;margin-bottom:4px;">
+                                                Title (optional)
+                                            </label>
+                                            <input type="text" name="title"
+                                                   placeholder="Summarize your experience..."
+                                                   maxlength="200"
+                                                   style="width:100%;padding:9px 12px;border:1.5px solid rgba(151,173,77,.28);
+                                                              border-radius:10px;font-family:'Nunito',sans-serif;
+                                                              font-size:.86rem;color:var(--wt);background:#fff;outline:none;">
+                                        </div>
+
+                                        @* Comment *@
+                                        <div style="margin-bottom:.9rem;">
+                                            <label style="font-size:.8rem;font-weight:800;color:var(--wm);
+                                                              display:block;margin-bottom:4px;">
+                                                Comment (optional)
+                                            </label>
+                                            <textarea name="comment" rows="3"
+                                                  placeholder="Tell others about your experience..."
+                                                  maxlength="1000"
+                                                  style="width:100%;padding:9px 12px;border:1.5px solid rgba(151,173,77,.28);
+                                                             border-radius:10px;font-family:'Nunito',sans-serif;
+                                                             font-size:.86rem;color:var(--wt);background:#fff;
+                                                             outline:none;resize:vertical;"></textarea>
+                                        </div>
+
+                                        <button type="submit"
+                                                style="padding:10px 24px;background:linear-gradient(180deg,#9ab451,#7d953d);
+                                                           color:#fff;border:none;border-radius:12px;
+                                                           font-family:'Nunito',sans-serif;font-size:.88rem;
+                                                           font-weight:900;cursor:pointer;transition:.2s;">
+                                            ⭐ Submit Review
+                                        </button>
+                                    </form>
+                                </div>
+                            }
+
+                            @* Reviews List *@
+                            @if (!Model.Reviews.Any())
+                            {
+                                <div style="text-align:center;padding:2rem;color:var(--wm);">
+                                    <div style="font-size:2rem;margin-bottom:8px;">⭐</div>
+                                    <div style="font-weight:800;">No reviews yet</div>
+                                    <div style="font-size:.82rem;margin-top:4px;">Be the first to share your experience!</div>
+                                </div>
+                            }
+                            else
+                            {
+                                foreach (var rev in Model.Reviews)
+                                {
+                                    var fullS = rev.Rating;
+                                    var emptyS = 5 - fullS;
+                                    var revInitials = string.IsNullOrEmpty(rev.UserFullName)
+                                    ? "?"
+                                    : rev.UserFullName.Split(' ', StringSplitOptions.RemoveEmptyEntries) is { Length: >= 2 } rp
+                                    ? $"{rp[0][0]}{rp[1][0]}".ToUpper()
+                                    : rev.UserFullName[0].ToString().ToUpper();
+
+                                    <div class="review-card">
+                                        @* Avatar *@
+                                        @if (!string.IsNullOrEmpty(rev.UserProfileImage))
+                                        {
+                                            <img src="@rev.UserProfileImage" alt="@rev.UserFullName"
+                                                 class="reviewer-avatar"
+                                                 style="object-fit:cover;font-size:0;">
+                                        }
+                                        else
+                                        {
+                                            <div class="reviewer-avatar">@revInitials</div>
+                                        }
+
+                                        @* Content *@
+                                        <div style="flex:1;min-width:0;">
+                                            <div style="display:flex;align-items:center;
+                                                                justify-content:space-between;flex-wrap:wrap;gap:4px;">
+                                                <div style="font-weight:900;font-size:.88rem;color:var(--wt);">
+                                                    @(rev.UserFullName ?? "Anonymous")
+                                                </div>
+                                                <div class="review-meta">
+                                                    @rev.CreatedAt.ToString("MMM dd, yyyy")
+                                                </div>
+                                            </div>
+                                            <div style="margin-top:3px;">
+                                                <span class="review-stars-display">
+                                                    @for (int i = 0; i < fullS; i++)
+                                                    {
+                                                        <text>★</text>
+                                                    }
+                                                </span>
+                                                <span class="review-empty-star">
+                                                    @for (int i = 0; i < emptyS; i++)
+                                                    {
+                                                        <text>★</text>
+                                                    }
+                                                </span>
+                                            </div>
+                                            @if (!string.IsNullOrEmpty(rev.Title))
+                                            {
+                                                <div class="review-title">@rev.Title</div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(rev.Comment))
+                                            {
+                                                <div class="review-comment">@rev.Comment</div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            }
+
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- ── Sidebar ── -->
@@ -991,12 +1356,11 @@
                             <span class="sb-val">
                                 @if (Model.Rating.HasValue && Model.Rating > 0)
                                 {
-                                    <span style="color:var(--wgold);">★</span> 
+                                    <span style="color:var(--wgold);">★</span>
                                     @Model.Rating.Value.ToString("F1")
                                 }
                                 else
                                 {
-
                                     <span>New Doctor</span>
                                 }
                             </span>

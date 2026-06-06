@@ -1,0 +1,392 @@
+﻿@{
+    var adminName = ViewBag.AdminName as string ?? "Admin";
+    var adminInitials = ViewBag.AdminInitials as string ?? "AD";
+
+    var activeSection = (ViewData["ActiveSection"] as string ?? "").ToLower();
+    var activePage = (ViewData["ActivePage"] as string ?? "").ToLower();
+
+    // Helpers: is a section open? is a child active?
+    Func<string, string> SecClass = s => activeSection == s ? "open active" : "";
+    Func<string, string> SubStyle = s => activeSection == s ? "height:auto;" : "";
+    Func<string, string> SubClass = s => activeSection == s ? "sb-sub open" : "sb-sub";
+    Func<string, string> ChildCls = p => activePage == p ? "sb-child active" : "sb-child";
+    Func<string, string> RowDash = _ => activeSection == "dashboard" ? "sb-row active" : "sb-row";
+    Func<string, string> RowTool = t => activeSection == t ? "sb-row active" : "sb-row";
+
+    // Pending badge from ViewBag (optional – set in controller if needed)
+    int pendingClinics = (int)(ViewBag.PendingClinicsCount ?? 0);
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+    @await RenderSectionAsync("PageStyles", required: false)
+</head>
+<body>
+    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
+    <div class="wa-shell" id="waShell">
+
+        <!-- ══════════════════════════════════════════════════════
+             SIDEBAR  (single source of truth – edit here only)
+        ══════════════════════════════════════════════════════ -->
+        <aside class="wa-sb" id="waSb">
+
+            <!-- Logo -->
+            <div class="sb-logo">
+                <div class="sb-mark">
+                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img">
+                </div>
+                <div class="sb-wordmark">
+                    <div class="sb-wm-name">Waffy</div>
+                    <div class="sb-wm-tag">Super Admin</div>
+                </div>
+            </div>
+
+            <nav class="sb-nav">
+
+                <!-- ── Dashboard ─────────────────────────────── -->
+                <div class="sb-group sb-group-flat">
+                    <a class="@RowDash("")" asp-controller="SuperAdmin" asp-action="Dashboard">
+                        <span class="sb-icon">
+                            <svg class="ico" viewBox="0 0 24 24">
+                                <rect x="3" y="3" width="7" height="7" rx="1.5" />
+                                <rect x="14" y="3" width="7" height="7" rx="1.5" />
+                                <rect x="3" y="14" width="7" height="7" rx="1.5" />
+                                <rect x="14" y="14" width="7" height="7" rx="1.5" />
+                            </svg>
+                        </span>
+                        <span class="sb-lbl">Dashboard</span>
+                    </a>
+                </div>
+
+                <div class="sb-hr"></div>
+
+                <!-- ── Management group ──────────────────────── -->
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Management</div>
+
+                    <!-- Users -->
+                    <div>
+                        <button class="sb-row @SecClass("users")"
+                                id="t-users" onclick="acc('g-users','t-users')" type="button">
+                            <span class="sb-icon">
+                                <svg class="ico" viewBox="0 0 24 24">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                    <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
+                                </svg>
+                            </span>
+                            <span class="sb-lbl">Users</span>
+                            <span class="sb-chv">
+                                <svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="@SubClass("users")" id="g-users" style="@SubStyle("users")">
+                            <div class="sb-sub-inner">
+                                <a class="@ChildCls("users")"
+                                   asp-controller="SuperAdmin" asp-action="Users">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">All Users</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Clinics -->
+                    <div>
+                        <button class="sb-row @SecClass("clinics")"
+                                id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
+                            <span class="sb-icon">
+                                <svg class="ico" viewBox="0 0 24 24">
+                                    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                                    <polyline points="9 22 9 12 15 12 15 22" />
+                                </svg>
+                            </span>
+                            <span class="sb-lbl">Clinics</span>
+                            @if (pendingClinics > 0)
+                            {
+                                <span class="sb-bdg bd-y">@pendingClinics</span>
+                            }
+                            <span class="sb-chv">
+                                <svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="@SubClass("clinics")" id="g-clinics" style="@SubStyle("clinics")">
+                            <div class="sb-sub-inner">
+                                <a class="@ChildCls("clinics")"
+                                   asp-controller="SuperAdmin" asp-action="Clinics">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">All Clinics</span>
+                                    @if (pendingClinics > 0)
+                                    {
+                                        <span class="sb-bdg bd-y sb-child-bdg">@pendingClinics</span>
+                                    }
+                                </a>
+                                <a class="@ChildCls("complaints-clinic")"
+                                   asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">Reviews &amp; Complaints</span>
+                                </a>
+                                <a class="@ChildCls("doctors")"
+                                   asp-controller="SuperAdmin" asp-action="Doctors_C">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">Doctors</span>
+                                </a>
+                                <a class="@ChildCls("appointments")"
+                                   asp-controller="SuperAdmin" asp-action="Appointments_C">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">Appointments</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Shop -->
+                    <div>
+                        <button class="sb-row @SecClass("shop")"
+                                id="t-shop" onclick="acc('g-shop','t-shop')" type="button">
+                            <span class="sb-icon">
+                                <svg class="ico" viewBox="0 0 24 24">
+                                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                                    <line x1="3" y1="6" x2="21" y2="6" />
+                                    <path d="M16 10a4 4 0 0 1-8 0" />
+                                </svg>
+                            </span>
+                            <span class="sb-lbl">Shop</span>
+                            <span class="sb-chv">
+                                <svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="@SubClass("shop")" id="g-shop" style="@SubStyle("shop")">
+                            <div class="sb-sub-inner">
+                                <a class="@ChildCls("stores")"
+                                   asp-controller="SuperAdmin" asp-action="Stores">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">Stores</span>
+                                </a>
+                                <a class="@ChildCls("complaints-store")"
+                                   asp-controller="SuperAdmin" asp-action="Reviews_Complaints_S">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">Reviews &amp; Complaints</span>
+                                </a>
+                                <a class="@ChildCls("analytics-store")"
+                                   asp-controller="SuperAdmin" asp-action="Analytics_S">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">Analytics</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Adoption -->
+                    <div>
+                        <button class="sb-row @SecClass("adoption")"
+                                id="t-adopt" onclick="acc('g-adopt','t-adopt')" type="button">
+                            <span class="sb-icon">
+                                <svg class="ico" viewBox="0 0 24 24">
+                                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06
+                                             a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78
+                                             1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                                </svg>
+                            </span>
+                            <span class="sb-lbl">Adoption</span>
+                            <span class="sb-chv">
+                                <svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="@SubClass("adoption")" id="g-adopt" style="@SubStyle("adoption")">
+                            <div class="sb-sub-inner">
+                                <a class="@ChildCls("listings")"
+                                   asp-controller="SuperAdmin" asp-action="Listings">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">Listings</span>
+                                </a>
+                                <a class="@ChildCls("flagged")"
+                                   asp-controller="SuperAdmin" asp-action="Flagged">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">Flagged</span>
+                                </a>
+                                <a class="@ChildCls("adopted-pets")"
+                                   asp-controller="SuperAdmin" asp-action="Adopted_Pets">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">Adopted Pets</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Reports -->
+                    <div>
+                        <button class="sb-row @SecClass("reports")"
+                                id="t-rep" onclick="acc('g-rep','t-rep')" type="button">
+                            <span class="sb-icon">
+                                <svg class="ico" viewBox="0 0 24 24">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12
+                                             a2 2 0 0 0 2-2V8z" />
+                                    <polyline points="14 2 14 8 20 8" />
+                                </svg>
+                            </span>
+                            <span class="sb-lbl">Reports</span>
+                            <span class="sb-chv">
+                                <svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </span>
+                        </button>
+                        <div class="@SubClass("reports")" id="g-rep" style="@SubStyle("reports")">
+                            <div class="sb-sub-inner">
+                                <a class="@ChildCls("lost-pets")"
+                                   asp-controller="SuperAdmin" asp-action="Lost_Pets">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">Lost Pets</span>
+                                </a>
+                                <a class="@ChildCls("found-pets")"
+                                   asp-controller="SuperAdmin" asp-action="Found_Pets">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">Found Pets</span>
+                                </a>
+                                <a class="@ChildCls("dangerous-animals")"
+                                   asp-controller="SuperAdmin" asp-action="Dangerous_Animals">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">Dangerous Animals</span>
+                                </a>
+                                <a class="@ChildCls("donations")"
+                                   asp-controller="SuperAdmin" asp-action="Donations">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">Donations</span>
+                                </a>
+                                <a class="@ChildCls("system-complaints")"
+                                   asp-controller="SuperAdmin" asp-action="System_Complaints">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">System Complaints</span>
+                                </a>
+                                <a class="@ChildCls("laws")"
+                                   asp-controller="SuperAdmin" asp-action="Laws_Regulations">
+                                    <span class="sb-dot"></span>
+                                    <span class="sb-child-lbl">Laws &amp; Regulations</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sb-hr"></div>
+
+                <!-- ── Tools group ────────────────────────────── -->
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Tools</div>
+
+                    <a class="@RowTool("map")"
+                       asp-controller="SuperAdmin" asp-action="Map">
+                        <span class="sb-icon">
+                            <svg class="ico" viewBox="0 0 24 24">
+                                <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6" />
+                            </svg>
+                        </span>
+                        <span class="sb-lbl">Map</span>
+                    </a>
+
+                    <a class="@RowTool("rewardlog")"
+                       asp-controller="SuperAdmin" asp-action="RewardLog">
+                        <span class="sb-icon">
+                            <svg class="ico" viewBox="0 0 24 24">
+                                <path d="M20 12V22H4V12" />
+                                <path d="M22 7H2v5h20V7z" />
+                                <path d="M12 22V7" />
+                            </svg>
+                        </span>
+                        <span class="sb-lbl">Reward Log</span>
+                    </a>
+                </div>
+
+            </nav>
+
+            <!-- Footer / user row -->
+            <div class="sb-foot">
+                <div class="sb-user-row">
+                    <div class="sb-av">@adminInitials</div>
+                    <div class="sb-user-info">
+                        <div class="sb-user-name">@adminName</div>
+                        <div class="sb-user-role">Super Admin</div>
+                    </div>
+                </div>
+                <a class="sb-logout" asp-controller="Account" asp-action="Logout">
+                    <svg class="ico" viewBox="0 0 24 24">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    <span class="sb-logout-lbl">Sign Out</span>
+                </a>
+            </div>
+        </aside>
+        <!-- ── END SIDEBAR ──────────────────────────────────────── -->
+        <!-- ══════════════════════════════════════════════════════
+             TOP NAV
+        ══════════════════════════════════════════════════════ -->
+        <header class="wa-tn" id="waTn">
+            <button class="tn-toggle" onclick="toggleSb()" type="button">
+                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24">
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+            </button>
+
+            @* Breadcrumb — pages can override via ViewData["Breadcrumb"] *@
+            @if (ViewData["Breadcrumb"] != null)
+            {
+                @Html.Raw(ViewData["Breadcrumb"] as string)
+            }
+            else
+            {
+                <nav class="tn-bread">
+                    <span>@(ViewData["BreadcrumbParent"] ?? activeSection)</span>
+                    <span>/</span>
+                    <b>@(ViewData["BreadcrumbCurrent"] ?? ViewData["Title"])</b>
+                </nav>
+            }
+
+            <div class="tn-center">
+                <div class="tn-center-main">@(ViewData["PageTitle"] ?? ViewData["Title"])</div>
+                <div class="tn-center-sub">Super Admin Panel</div>
+            </div>
+            <div class="tn-spacer"></div>
+            <div class="tn-right">
+                @await RenderSectionAsync("TopNavActions", required: false)
+                <div class="tn-sep"></div>
+                <div class="tn-profile">
+                    <div class="tn-av">@adminInitials</div>
+                    <div>
+                        <div class="tn-pname">@adminName</div>
+                        <div class="tn-prole">Super Admin</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ══════════════════════════════════════════════════════
+             PAGE CONTENT  (each view renders here)
+        ══════════════════════════════════════════════════════ -->
+        @RenderBody()
+
+    </div><!-- /.wa-shell -->
+
+    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("PageScripts", required: false)
+</body>
+</html>

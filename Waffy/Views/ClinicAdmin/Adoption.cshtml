@@ -1,6 +1,69 @@
-﻿@{
-    ViewData["Title"] = "Waffy — Clinic & Doctor Adoption";
+﻿@model Waffy.Models.ViewModels.ClinicAdoptionViewModel
+@{
+    ViewData["Title"] = "Waffy — Clinic Admin | Adoption";
     Layout = null;
+    var statusOptions = new[] { "All", "Pending", "Approved", "Closed", "Rejected" };
+
+    string PostStatusBg(string? s) => s switch
+    {
+        "Approved" => "var(--greap)",
+        "Pending" => "var(--orap)",
+        "Rejected" => "var(--redp)",
+        "Closed" => "#f1f5f9",
+        _ => "#f1f5f9"
+    };
+    string PostStatusColor(string? s) => s switch
+    {
+        "Approved" => "var(--gre)",
+        "Pending" => "var(--ora)",
+        "Rejected" => "var(--red)",
+        _ => "#64748b"
+    };
+    string PostStatusLabel(string? s) => s switch
+    {
+        "Approved" => "✅ Approved",
+        "Pending" => "⏳ Pending",
+        "Rejected" => "❌ Rejected",
+        "Closed" => "🔒 Closed",
+        _ => s ?? ""
+    };
+    string AdoptBg(string? s) => s switch
+    {
+        "Available" => "var(--greap)",
+        "Reserved" => "var(--orap)",
+        "Adopted" => "#ede9fe",
+        _ => "#f1f5f9"
+    };
+    string AdoptColor(string? s) => s switch
+    {
+        "Available" => "var(--gre)",
+        "Reserved" => "var(--ora)",
+        "Adopted" => "#6d28d9",
+        _ => "#64748b"
+    };
+    string ReqBg(string? s) => s switch
+    {
+        "Pending" => "var(--orap)",
+        "Approved" => "var(--greap)",
+        "Rejected" => "var(--redp)",
+        _ => "#f1f5f9"
+    };
+    string ReqColor(string? s) => s switch
+    {
+        "Pending" => "var(--ora)",
+        "Approved" => "var(--gre)",
+        "Rejected" => "var(--red)",
+        _ => "#64748b"
+    };
+    string AnimalIcon(string? t) => t?.ToLower() switch
+    {
+        "cat" => "🐈",
+        "dog" => "🐕",
+        "bird" => "🐦",
+        "rabbit" => "🐇",
+        "hamster" => "🐹",
+        _ => "🐾"
+    };
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -10,14 +73,316 @@
     <title>@ViewData["Title"]</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css">
-    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css">
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css" asp-append-version="true">
+    <style>
+        /* ── Modal ── */
+        .adopt-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(30,45,14,.48);
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 2rem 1rem;
+        }
+
+            .adopt-modal-overlay.open {
+                display: block;
+            }
+
+        .adopt-modal {
+            background: #fff;
+            border-radius: 22px;
+            width: 100%;
+            max-width: 740px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 30px 80px rgba(0,0,0,.22);
+            animation: modalIn .22s ease;
+        }
+        @@keyframes modalIn {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(12px)
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0)
+        }
+
+        }
+
+        .adopt-modal-hd {
+            padding: 1.3rem 1.6rem;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-radius: 22px 22px 0 0;
+        }
+
+        .adopt-modal-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .adopt-modal-body {
+            padding: 1.4rem 1.6rem;
+        }
+
+        .adopt-modal-ft {
+            padding: 1rem 1.6rem;
+            border-top: 1px solid var(--line);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            background: var(--surface-2);
+            border-radius: 0 0 22px 22px;
+        }
+        /* ── Form sections ── */
+        .form-section {
+            background: var(--surface-2);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 1.1rem 1.2rem;
+            margin-bottom: 1rem;
+        }
+
+        .form-section-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: .95rem;
+            font-weight: 700;
+            color: var(--olive-dark);
+            margin-bottom: .9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        /* ── Photo slots ── */
+        .photo-slots {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .photo-slot {
+            width: 80px;
+            height: 80px;
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: .68rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            gap: 3px;
+            overflow: hidden;
+            position: relative;
+            transition: border-color .2s, background .2s;
+        }
+
+            .photo-slot:hover {
+                border-color: var(--olive);
+                background: var(--olive-soft);
+            }
+
+            .photo-slot img {
+                display: none;
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                border-radius: 10px;
+            }
+        /* ── Posts table ── */
+        .posts-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .posts-table thead th {
+                padding: 10px 14px;
+                font-size: .75rem;
+                font-weight: 900;
+                color: var(--olive-dark);
+                background: var(--surface-2);
+                border-bottom: 1px solid var(--line);
+                text-align: left;
+                white-space: nowrap;
+            }
+
+            .posts-table tbody tr {
+                border-bottom: 1px solid var(--line);
+                transition: background .15s;
+            }
+
+                .posts-table tbody tr:hover {
+                    background: var(--surface-2);
+                }
+
+                .posts-table tbody tr:last-child {
+                    border-bottom: none;
+                }
+
+            .posts-table tbody td {
+                padding: 12px 14px;
+                font-size: .84rem;
+                vertical-align: middle;
+            }
+        /* ── Reservation sub-row ── */
+        .res-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            padding: 9px 12px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            margin-bottom: 6px;
+        }
+
+            .res-row:last-child {
+                margin-bottom: 0;
+            }
+        /* ── Badge ── */
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: .72rem;
+            font-weight: 900;
+            white-space: nowrap;
+        }
+        /* ── Filter chips ── */
+        .filter-chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+        }
+
+        .filter-chip {
+            padding: 6px 16px;
+            border-radius: 999px;
+            font-size: .8rem;
+            font-weight: 800;
+            text-decoration: none;
+            border: 1.5px solid var(--line);
+            background: #fff;
+            color: var(--text-muted);
+            transition: .18s ease;
+        }
+
+            .filter-chip:hover {
+                border-color: var(--olive);
+                color: var(--olive-dark);
+            }
+
+            .filter-chip.active {
+                background: var(--olive-soft);
+                border-color: var(--olive);
+                color: var(--olive-dark);
+            }
+        /* ── Pet avatar ── */
+        .pet-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 11px;
+            background: var(--olive-soft);
+            display: grid;
+            place-items: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+            border: 1px solid rgba(151,173,77,.2);
+        }
+        /* ── Action btns xs ── */
+        .btn-xs {
+            padding: 5px 12px !important;
+            font-size: .74rem !important;
+            border-radius: 8px !important;
+        }
+        /* ── Info note ── */
+        .info-note {
+            background: var(--orap);
+            border: 1px solid rgba(191,122,35,.2);
+            color: var(--ora);
+            border-radius: 10px;
+            padding: .65rem 1rem;
+            font-size: .82rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+        }
+        /* ── Empty state ── */
+        .empty-state {
+            text-align: center;
+            padding: 52px 20px;
+            color: var(--text-muted);
+        }
+
+            .empty-state .empty-icon {
+                font-size: 3rem;
+                margin-bottom: 12px;
+            }
+
+            .empty-state h3 {
+                font-family: 'Fredoka',sans-serif;
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: var(--text);
+            }
+
+            .empty-state p {
+                font-size: .84rem;
+                margin-top: 4px;
+            }
+        /* ── Req toggle ── */
+        .req-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            font-size: .79rem;
+            font-weight: 800;
+            color: var(--olive-dark);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .req-panel {
+            display: none;
+            padding: 10px 0 4px;
+        }
+
+            .req-panel.open {
+                display: block;
+            }
+    </style>
 </head>
 <body class="admin-shell">
+
     <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     <div class="wa-shell" id="waShell">
 
+        <!-- ═══ SIDEBAR ═══ -->
         <aside class="wa-sb" id="sidebar">
             <div class="sb-logo">
                 <div class="sb-mark">
@@ -29,280 +394,688 @@
                     <div class="sb-wm-tag">Clinic Admin</div>
                 </div>
             </div>
-
             <nav class="sb-nav">
                 <div class="sb-group sb-group-flat">
-                    <a class="sb-row" href="@Url.Action("Dashboard", "ClinicAdmin")" data-tip="Dashboard">
+                    <a class="sb-row" href="@Url.Action("Dashboard", "ClinicAdmin")">
                         <span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span>
                     </a>
                 </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Daily Management</div>
-                    <a class="sb-row" href="@Url.Action("Appointments", "ClinicAdmin")" data-tip="Appointments">
-                        <span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span><span class="sb-bdg bd-g">5</span>
+                    <a class="sb-row" href="@Url.Action("Appointments", "ClinicAdmin")">
+                        <span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span>
                     </a>
-                    <a class="sb-row" href="@Url.Action("Patients", "ClinicAdmin")" data-tip="Patients">
+                    <a class="sb-row" href="@Url.Action("Patients", "ClinicAdmin")">
                         <span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span>
                     </a>
-                    <a class="sb-row" href="@Url.Action("Medical_Records", "ClinicAdmin")" data-tip="Medical Records">
+                    <a class="sb-row" href="@Url.Action("Medical_Records", "ClinicAdmin")">
                         <span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span>
                     </a>
                 </div>
                 <div class="sb-hr"></div>
-                <div class="sb-group" id="managerSection">
+                <div class="sb-group">
                     <div class="sb-grp-hd">Clinic Management</div>
-                    <a class="sb-row" href="@Url.Action("Doctors", "ClinicAdmin")" data-tip="Doctors">
+                    <a class="sb-row" href="@Url.Action("Doctors", "ClinicAdmin")">
                         <span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span>
                     </a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Basic_Information" data-tip="Clinic Settings">
+                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Basic_Information">
                         <span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span>
                     </a>
-                    <a class="sb-row" href="@Url.Action("Revenue", "ClinicAdmin")" data-tip="Revenue &amp; Payments">
+                    <a class="sb-row" href="@Url.Action("Revenue", "ClinicAdmin")">
                         <span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span>
                     </a>
                 </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group sb-group-flat">
-                    <a class="sb-row active" href="@Url.Action("Adoption", "ClinicAdmin")" data-tip="Adoption">
+                    <a class="sb-row active" href="@Url.Action("Adoption", "ClinicAdmin")">
                         <span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span>
+                        @if (Model.PendingReservationsCount > 0)
+                        {
+                            <span class="sb-bdg bd-o">@Model.PendingReservationsCount</span>
+                        }
                     </a>
                 </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Analytics</div>
-                    <a class="sb-row" href="@Url.Action("Reviews", "ClinicAdmin")" data-tip="Reviews">
-                        <span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span><span class="sb-bdg bd-g">2</span>
-                    </a>
-                    <a class="sb-row" href="@Url.Action("Reports", "ClinicAdmin")" data-tip="Reports">
+                    <a class="sb-row" href="@Url.Action("Reports", "ClinicAdmin")">
                         <span class="sb-icon">📈</span><span class="sb-lbl">Reports</span>
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Reviews", "ClinicAdmin")">
+                        <span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span>
                     </a>
                 </div>
                 <div class="sb-hr"></div>
-                <div class="sb-group sb-group-flat">
-
-                    <a class="sb-row " asp-controller="ClinicAdmin" asp-action="Personal_nformation" data-tip="My Settings">
-                        <span class="sb-icon">⚙️</span>
-                        <span class="sb-lbl">My Settings</span>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Settings</div>
+                    <a class="sb-row" href="@Url.Action("Images", "ClinicAdmin")">
+                        <span class="sb-icon">🖼️</span><span class="sb-lbl">Images</span>
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Services", "ClinicAdmin")">
+                        <span class="sb-icon">🔧</span><span class="sb-lbl">Services</span>
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Working_Hours", "ClinicAdmin")">
+                        <span class="sb-icon">🕐</span><span class="sb-lbl">Working Hours</span>
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Documents_C", "ClinicAdmin")">
+                        <span class="sb-icon">📋</span><span class="sb-lbl">Documents</span>
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Notifications", "ClinicAdmin")">
+                        <span class="sb-icon">🔔</span><span class="sb-lbl">Notifications</span>
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Logout", "ClinicAdmin")">
+                        <span class="sb-icon">🚪</span><span class="sb-lbl">Logout</span>
                     </a>
                 </div>
             </nav>
-
-            <div class="sb-foot">
-                <div class="sb-user-row" onclick="openSidebarProfile()">
-                    <div class="sb-av">DC</div>
-                    <div class="sb-user-info">
-                        <div class="sb-user-name">Daniel Carter</div>
-                        <div class="sb-user-role">Clinic Manager 👑</div>
-                    </div>
-                </div>
-                <button class="sb-logout" onclick="doLogout()" type="button">
-                    <span class="sb-icon">↩</span>
-                    <span class="sb-logout-lbl">Sign Out</span>
-                </button>
-            </div>
         </aside>
 
+        <!-- ═══ TOPNAV ═══ -->
         <header class="wa-tn">
-            <button class="tn-toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
-            <div class="tn-bread" id="tnBread"><span>Adoption</span><span>/</span><b id="tnCur">Adoption</b></div>
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle">☰</button>
+            <div class="tn-bread"><span>Clinic Admin</span><span>/</span><b>Adoption</b></div>
             <div class="tn-center">
-                <div class="tn-center-main" id="tnTitle">Adoption</div>
-                <div class="tn-center-sub" id="tnSub">Waffy Clinic Dashboard</div>
+                <div class="tn-center-main">Adoption</div>
+                <div class="tn-center-sub">Manage your clinic's adoption listings</div>
             </div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-                <div class="tn-identity" id="tnIdentityPill">🏥 Al Amanah Veterinary Clinic</div>
-                <button class="tn-btn notif-btn" type="button" aria-label="Notifications">🔔<span class="tn-count">3</span></button>
-                <div class="tn-sep"></div>
-                <div class="tn-profile user-btn">
-                    <div class="tn-av" id="userAvaTop">M</div>
-                    <div>
-                        <div class="tn-pname" id="userNameTop">Clinic Manager</div>
-                        <div class="tn-prole" id="roleTagTop">Clinic Manager 👑</div>
-                    </div>
-                </div>
+                <div class="tn-identity">🏥 @(Context.Session.GetString("ClinicName") ?? "Clinic")</div>
             </div>
         </header>
 
+        <!-- ═══ MAIN ═══ -->
         <main class="wa-main">
+
+            @* Alerts *@
+            @if (TempData["AdoptSuccess"] != null)
+            {
+                <div style="margin:16px 24px 0;background:var(--greap);border:1px solid rgba(61,126,13,.2);
+                            color:var(--gre);padding:12px 16px;border-radius:14px;font-weight:800;font-size:.86rem;">
+                    @TempData["AdoptSuccess"]
+                </div>
+            }
+            @if (TempData["AdoptError"] != null)
+            {
+                <div style="margin:16px 24px 0;background:var(--redp);border:1px solid rgba(200,60,60,.2);
+                            color:var(--red);padding:12px 16px;border-radius:14px;font-weight:800;font-size:.86rem;">
+                    @TempData["AdoptError"]
+                </div>
+            }
+
+            @* Page Hero *@
             <section class="page-hero page-hero-split">
                 <div>
-                    <h1 id="pageHeroTitle">Adoption</h1>
-                    <p>Manage adoption listings, approvals, and animal availability with the clinic theme.</p>
+                    <h1>🐾 Adoption Listings</h1>
+                    <p>
+                        @Model.TotalCount post@(Model.TotalCount != 1 ? "s" : "") total
+                        @if (Model.PendingCount > 0)
+                        {
+                            <text> · <strong>@Model.PendingCount pending</strong> admin review</text>
+                        }
+                        @if (Model.PendingReservationsCount > 0)
+                        {
+                            <text> · <strong style="color:var(--ora)">@Model.PendingReservationsCount reservation@(Model.PendingReservationsCount != 1 ? "s" : "") awaiting</strong></text>
+                        }
+                    </p>
                 </div>
-                <div class="page-hero-actions" id="adoptionHeroActions">
-                    <button class="btn btn-outline" id="adoptionToggleBtn" onclick="toggleAdoptionView()">⊞ Cards / Table</button>
-                    <button class="btn btn-primary" id="adoptionAddBtn" onclick="openAdoptionAddPage()">+ Add Animal</button>
-                    <button class="btn btn-outline" id="adoptionBackBtn" onclick="openAdoptionManagePage()" style="display:none;">Back to listings</button>
+                <div class="page-hero-actions">
+                    <button class="btn btn-primary" onclick="openAdoptModal()">
+                        ➕ New Adoption Post
+                    </button>
                 </div>
             </section>
 
             <div class="page-body">
-                <div id="page-adoption" class="page-content">
 
-                    <div id="adoptionManagePage">
-                        <div class="kpi-grid kpi-4">
-                            <div class="kpi-card green"><div class="kpi-top"><div class="kpi-icon green">🐾</div></div><div class="kpi-val" id="adoptTotal">0</div><div class="kpi-label">Total listings</div></div>
-                            <div class="kpi-card blue"><div class="kpi-top"><div class="kpi-icon blue">✅</div></div><div class="kpi-val" id="adoptAvailable">0</div><div class="kpi-label">Available</div></div>
-                            <div class="kpi-card orange"><div class="kpi-top"><div class="kpi-icon orange">⏳</div></div><div class="kpi-val" id="adoptPending">0</div><div class="kpi-label">Pending approval</div></div>
-                            <div class="kpi-card red"><div class="kpi-top"><div class="kpi-icon red">🎉</div></div><div class="kpi-val" id="adoptAdopted">0</div><div class="kpi-label">Adopted</div></div>
-                        </div>
-
-                        <div class="table-card adoption-wrap">
-                            <div class="filter-bar">
-                                <div class="search-input"><span>🔍</span><input id="adoptionSearch" type="text" placeholder="Search by pet name, type, breed..."></div>
-                                <select id="adoptionStatusFilter" class="filter-select">
-                                    <option value="all">All adoption statuses</option>
-                                    <option value="available">Available</option>
-                                    <option value="reserved">Reserved</option>
-                                    <option value="adopted">Adopted</option>
-                                </select>
-                                <select id="adoptionApprovalFilter" class="filter-select">
-                                    <option value="all">All listing states</option>
-                                    <option value="approved">Published</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="rejected">Rejected</option>
-                                </select>
-                                <div class="chip-row">
-                                    <button class="chip active" id="adoptionModeClinicBtn" onclick="setAdoptionMode('clinic')">🏥 Clinic</button>
-                                </div>
-                            </div>
-                            <div id="adoptionCardView"><div class="adoption-grid" id="adoptionCardsGrid"></div></div>
-                            <div id="adoptionTableView" style="display:none;">
-                                <div class="t-wrap">
-                                    <table>
-                                        <thead>
-                                            <tr><th>Pet</th><th>Type</th><th>Age</th><th>Gender</th><th>Health</th><th>Adoption</th><th>Listing</th><th>Actions</th></tr>
-                                        </thead>
-                                        <tbody id="adoptionTableBody"></tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
+                @* KPI Cards *@
+                <div class="kpi-grid kpi-4" style="margin-bottom:20px;">
+                    <div class="kpi-card green">
+                        <div class="kpi-top"><div class="kpi-icon green">📋</div></div>
+                        <div class="kpi-val">@Model.TotalCount</div>
+                        <div class="kpi-label">Total posts</div>
                     </div>
-
-                    <div id="adoptionAddPage" style="display:none">
-                        <div class="page-header">
-                            <div>
-                                <div class="page-title">➕ Add Animal for Adoption</div>
-                                <div class="page-sub" id="adoptionAddSub">Add a pet from the clinic for adoption</div>
-                            </div>
-                            <div class="header-actions">
-                                <button class="btn btn-outline" onclick="openAdoptionManagePage()">Back to listings</button>
-                            </div>
-                        </div>
-
-                        <div class="info-note adoption-note" style="background:var(--orap);border:1px solid rgba(191,122,35,.2);color:var(--ora);border-radius:10px;padding:.7rem 1rem;font-size:.84rem;font-weight:800;margin-bottom:1rem">
-                            ⏳ Every listing goes through Super Admin review before being published.
-                        </div>
-
-                        <div class="chart-card adoption-form-card">
-                            <div class="sec-label">🐾 Pet Information</div>
-                            <div class="f-grid">
-                                <div class="f-group"><label class="f-label">Pet Name *</label><input id="petName" class="f-inp" placeholder="Pet name"></div>
-                                <div class="f-group">
-                                    <label class="f-label">Animal Type *</label>
-                                    <select id="petType" class="f-inp">
-                                        <option value="">Select type</option>
-                                        <option value="dog">Dog</option>
-                                        <option value="cat">Cat</option>
-                                        <option value="bird">Bird</option>
-                                        <option value="other">Other</option>
-                                    </select>
-                                </div>
-                                <div class="f-group"><label class="f-label">Breed *</label><input id="petBreed" class="f-inp" placeholder="Persian, Husky..."></div>
-                                <div class="f-group"><label class="f-label">Age *</label><input id="petAge" class="f-inp" placeholder="2 years"></div>
-                                <div class="f-group">
-                                    <label class="f-label">Gender *</label>
-                                    <select id="petGender" class="f-inp">
-                                        <option value="">Select gender</option>
-                                        <option>Male</option>
-                                        <option>Female</option>
-                                    </select>
-                                </div>
-                                <div class="f-group"><label class="f-label">Color</label><input id="petColor" class="f-inp" placeholder="White, beige..."></div>
-                            </div>
-                        </div>
-
-                        <div class="chart-card adoption-form-card">
-                            <div class="sec-label">❤️ Health &amp; Vaccination</div>
-                            <div class="f-grid">
-                                <div class="f-group">
-                                    <label class="f-label">Health Status *</label>
-                                    <select id="petHealth" class="f-inp"><option value="">Select</option><option>Healthy</option><option>Has health issues</option></select>
-                                </div>
-                                <div class="f-group">
-                                    <label class="f-label">Neutered / Spayed *</label>
-                                    <select id="petNeuter" class="f-inp"><option value="">Select</option><option>Yes</option><option>No</option></select>
-                                </div>
-                                <div class="f-group">
-                                    <label class="f-label">Vaccinated *</label>
-                                    <select id="petVaccinated" class="f-inp"><option value="">Select</option><option>Yes</option><option>No</option></select>
-                                </div>
-                                <div class="f-group"><label class="f-label">Last Vaccination Date</label><input id="petVaccDate" class="f-inp" type="date"></div>
-                                <div class="f-group f-full"><label class="f-label">Health Problems</label><input id="petProblems" class="f-inp" placeholder="Allergy, injury..."></div>
-                            </div>
-                        </div>
-
-                        <div class="chart-card adoption-form-card">
-                            <div class="sec-label">🧠 Behaviour &amp; Personality</div>
-                            <div class="f-grid">
-                                <div class="f-group"><label class="f-label">Personality Traits</label><input id="petTraits" class="f-inp" placeholder="Friendly, calm, playful..."></div>
-                                <div class="f-group">
-                                    <label class="f-label">Energy Level</label>
-                                    <select id="petEnergy" class="f-inp"><option>Low</option><option selected>Medium</option><option>High</option></select>
-                                </div>
-                                <div class="f-group">
-                                    <label class="f-label">Good with Children?</label>
-                                    <select id="petChildren" class="f-inp"><option>Yes</option><option>No</option></select>
-                                </div>
-                                <div class="f-group">
-                                    <label class="f-label">Good with Other Pets?</label>
-                                    <select id="petOtherPets" class="f-inp"><option>Yes</option><option>No</option></select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="chart-card adoption-form-card">
-                            <div class="sec-label">🖼 Description &amp; Status</div>
-                            <div class="f-grid">
-                                <div class="f-group f-full"><label class="f-label">Description</label><textarea id="petDesc" class="f-inp" rows="5" placeholder="Describe the pet, story, personality..."></textarea></div>
-                                <div class="f-group">
-                                    <label class="f-label">Adoption Status</label>
-                                    <select id="petAdoptionStatus" class="f-inp"><option value="available">Available</option><option value="reserved">Reserved</option><option value="adopted">Adopted</option></select>
-                                </div>
-                                <div class="f-group">
-                                    <label class="f-label">Listing State</label>
-                                    <select id="petApprovalStatus" class="f-inp"><option value="pending">Pending</option><option value="approved">Published</option><option value="rejected">Rejected</option></select>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="header-actions">
-                            <button class="btn btn-primary" onclick="submitAdoptionPet()">🐾 Submit for Review</button>
-                            <button class="btn btn-outline" onclick="openAdoptionManagePage()">Cancel</button>
-                        </div>
+                    <div class="kpi-card orange">
+                        <div class="kpi-top"><div class="kpi-icon orange">⏳</div></div>
+                        <div class="kpi-val">@Model.PendingCount</div>
+                        <div class="kpi-label">Pending approval</div>
                     </div>
-
+                    <div class="kpi-card blue">
+                        <div class="kpi-top"><div class="kpi-icon blue">✅</div></div>
+                        <div class="kpi-val">@Model.ApprovedCount</div>
+                        <div class="kpi-label">Approved / Live</div>
+                    </div>
+                    <div class="kpi-card red">
+                        <div class="kpi-top"><div class="kpi-icon red">🔒</div></div>
+                        <div class="kpi-val">@Model.ClosedCount</div>
+                        <div class="kpi-label">Closed</div>
+                    </div>
                 </div>
+
+                @* Filter chips *@
+                <div class="filter-chips">
+                    @foreach (var s in statusOptions)
+                    {
+                        var isActive = Model.StatusFilter == s;
+                        <a href="@Url.Action("Adoption", "ClinicAdmin", new { statusFilter = s })"
+                           class="filter-chip @(isActive ? "active" : "")">
+                            @s
+                            @if (s == "Pending" && Model.PendingCount > 0)
+                            {
+                                <text> (@Model.PendingCount)</text>
+                            }
+                            @if (s == "Approved" && Model.ApprovedCount > 0)
+                            {
+                                <text> (@Model.ApprovedCount)</text>
+                            }
+                            @if (s == "Closed" && Model.ClosedCount > 0)
+                            {
+                                <text> (@Model.ClosedCount)</text>
+                            }
+                            @if (s == "Rejected" && Model.RejectedCount > 0)
+                            {
+                                <text> (@Model.RejectedCount)</text>
+                            }
+                        </a>
+                    }
+                </div>
+
+                @* Posts Table *@
+                <div class="table-card">
+                    <div class="table-head-bar">
+                        <div class="table-head-title">
+                            @(Model.StatusFilter == "All" ? "All Adoption Posts" : $"{Model.StatusFilter} Posts")
+                        </div>
+                        <span style="font-size:.78rem;font-weight:800;color:var(--text-muted);">
+                            @Model.Posts.Count post@(Model.Posts.Count != 1 ? "s" : "")
+                        </span>
+                    </div>
+
+                    @if (!Model.Posts.Any())
+                    {
+                        <div class="empty-state">
+                            <div class="empty-icon">🐾</div>
+                            <h3>No posts yet</h3>
+                            <p>Click <strong>New Adoption Post</strong> to create your first listing.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="overflow-x:auto;">
+                            <table class="posts-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width:48px;"></th>
+                                        <th>Pet</th>
+                                        <th>Type / Breed</th>
+                                        <th>Location</th>
+                                        <th>Post Status</th>
+                                        <th>Adoption</th>
+                                        <th>Date</th>
+                                        <th>Requests</th>
+                                        <th style="text-align:right;">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var post in Model.Posts)
+                                    {
+                                        var reqs = Model.Reservations.ContainsKey(post.IdPost)
+                                        ? Model.Reservations[post.IdPost]
+                                        : new List<Waffy.Models.AdoptionReservation>();
+                                        var pendingReqs = reqs.Where(r => r.Status == "Pending").ToList();
+                                        var rowId = $"req_{post.IdPost}";
+
+                                        <tr>
+                                            @* Icon col *@
+                                            <td>
+                                                @if (Model.PostImages.ContainsKey(post.IdPost))
+                                                {
+                                                    <div style="width:44px;height:44px;border-radius:11px;
+                                                                        overflow:hidden;flex-shrink:0;
+                                                                        border:1px solid rgba(151,173,77,.2);">
+                                                        <img src="@Model.PostImages[post.IdPost]"
+                                                             alt="@post.PetName"
+                                                             style="width:100%;height:100%;object-fit:cover;">
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <div class="pet-avatar">@AnimalIcon(post.AnimalType)</div>
+                                                }
+                                            </td>
+
+                                            @* Name col *@
+                                            <td>
+                                                <div style="font-weight:900;color:var(--text);">@post.PetName</div>
+                                                <div style="font-size:.74rem;color:var(--text-muted);">#@post.IdPost</div>
+                                            </td>
+
+                                            @* Type/Breed col *@
+                                            <td>
+                                                <div style="font-weight:700;">@post.AnimalType</div>
+                                                @if (!string.IsNullOrEmpty(post.Breed))
+                                                {
+                                                    <div style="font-size:.76rem;color:var(--text-muted);">@post.Breed</div>
+                                                }
+                                                @if (post.Age.HasValue)
+                                                {
+                                                    <div style="font-size:.74rem;color:var(--text-muted);">@post.Age yr</div>
+                                                }
+                                            </td>
+
+                                            @* Location col *@
+                                            <td style="color:var(--text-muted);font-size:.82rem;">
+                                                @post.City
+                                                @if (!string.IsNullOrEmpty(post.Area))
+                                                {
+                                                    <text>, @post.Area</text>
+                                                }
+                                            </td>
+
+                                            @* Post status *@
+                                            <td>
+                                                <span class="pill"
+                                                      style="background:@PostStatusBg(post.Status);color:@PostStatusColor(post.Status);">
+                                                    @PostStatusLabel(post.Status)
+                                                </span>
+                                            </td>
+
+                                            @* Adoption status *@
+                                            <td>
+                                                <span class="pill"
+                                                      style="background:@AdoptBg(post.AdoptionStatus);color:@AdoptColor(post.AdoptionStatus);">
+                                                    @post.AdoptionStatus
+                                                </span>
+                                            </td>
+
+                                            @* Date col *@
+                                            <td style="font-size:.78rem;color:var(--text-muted);white-space:nowrap;">
+                                                @post.CreatedAt.ToString("MMM dd, yyyy")
+                                            </td>
+
+                                            @* Requests col *@
+                                            <td>
+                                                @if (reqs.Any())
+                                                {
+                                                    <button class="req-toggle" onclick="toggleReqs('@rowId')">
+                                                        📬 @reqs.Count
+                                                        @if (pendingReqs.Any())
+                                                        {
+                                                            <span class="pill" style="background:var(--orap);color:var(--ora);font-size:.68rem;">
+                                                                @pendingReqs.Count new
+                                                            </span>
+                                                        }
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <span style="font-size:.78rem;color:var(--text-muted);">—</span>
+                                                }
+                                            </td>
+
+                                            @* Actions col *@
+                                            <td style="text-align:right;">
+                                                <div style="display:flex;gap:6px;justify-content:flex-end;flex-wrap:wrap;">
+                                                    @if (post.Status == "Approved" || post.Status == "Pending")
+                                                    {
+                                                        <form method="post" asp-action="CloseAdoptionPost" asp-controller="ClinicAdmin"
+                                                              style="display:inline"
+                                                              onsubmit="return confirm('Close this post?')">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@post.IdPost" />
+                                                            <button type="submit" class="btn btn-outline btn-xs">🔒 Close</button>
+                                                        </form>
+                                                    }
+                                                    @if (post.Status != "Approved")
+                                                    {
+                                                        <form method="post" asp-action="DeleteAdoptionPost" asp-controller="ClinicAdmin"
+                                                              style="display:inline"
+                                                              onsubmit="return confirm('Delete permanently?')">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@post.IdPost" />
+                                                            <button type="submit" class="btn btn-red btn-xs">🗑</button>
+                                                        </form>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+
+                                        @* Reservations sub-row *@
+                                        @if (reqs.Any())
+                                        {
+                                            <tr id="@rowId" style="display:none;">
+                                                <td colspan="9" style="padding:0 14px 14px 62px;background:var(--surface-2);">
+                                                    <div style="font-size:.78rem;font-weight:900;color:var(--text-muted);
+                                                                        text-transform:uppercase;letter-spacing:.05em;
+                                                                        margin-bottom:8px;padding-top:10px;">
+                                                        Reservation Requests
+                                                    </div>
+                                                    @foreach (var req in reqs.OrderByDescending(r => r.CreatedAt))
+                                                    {
+                                                        string rBg = ReqBg(req.Status);
+                                                        string rColor = ReqColor(req.Status);
+                                                        <div class="res-row">
+                                                            <div>
+                                                                <div style="font-weight:900;font-size:.86rem;color:var(--text);">
+                                                                    @(req.RequesterName ?? "User")
+                                                                </div>
+                                                                <div style="font-size:.74rem;color:var(--text-muted);margin-top:1px;">
+                                                                    @req.CreatedAt.ToString("MMM dd, yyyy · hh:mm tt")
+                                                                </div>
+                                                                @if (!string.IsNullOrEmpty(req.Message))
+                                                                {
+                                                                    <div style="font-size:.78rem;color:var(--text-muted);
+                                                                                                margin-top:3px;font-style:italic;">
+                                                                        💬 "@(req.Message.Length > 70 ? req.Message[..70] + "…" : req.Message)"
+                                                                    </div>
+                                                                }
+                                                            </div>
+                                                            <div style="display:flex;align-items:center;gap:8px;">
+                                                                <span class="pill" style="background:@rBg;color:@rColor;">
+                                                                    @req.Status
+                                                                </span>
+                                                                @if (req.Status == "Pending" && post.Status == "Approved")
+                                                                {
+                                                                    <form method="post" asp-action="ApproveReservation" asp-controller="ClinicAdmin"
+                                                                          style="display:inline"
+                                                                          onsubmit="return confirm('Approve? Other pending requests will be rejected.')">
+                                                                        @Html.AntiForgeryToken()
+                                                                        <input type="hidden" name="reservationId" value="@req.IdReservation" />
+                                                                        <button type="submit" class="btn btn-primary btn-xs">✓ Approve</button>
+                                                                    </form>
+                                                                    <form method="post" asp-action="RejectReservation" asp-controller="ClinicAdmin"
+                                                                          style="display:inline"
+                                                                          onsubmit="return confirm('Reject this request?')">
+                                                                        @Html.AntiForgeryToken()
+                                                                        <input type="hidden" name="reservationId" value="@req.IdReservation" />
+                                                                        <button type="submit" class="btn btn-red btn-xs">✕</button>
+                                                                    </form>
+                                                                }
+                                                            </div>
+                                                        </div>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+
             </div>
         </main>
     </div>
 
-    {{SHARED_MODALS}}
-
-    <div class="modal-overlay" id="adoptionPetModal">
-        <div class="modal">
-            <div class="modal-header">
-                <div class="modal-title" id="adoptionPetModalTitle">🐾 Pet Details</div>
-                <button class="modal-close" onclick="closeModal('adoptionPetModal')">✕</button>
+    @* ══════════════════════════════════════════════
+   NEW POST MODAL
+══════════════════════════════════════════════ *@
+    <div class="adopt-modal-overlay" id="adoptModal">
+        <div class="adopt-modal">
+            <div class="adopt-modal-hd">
+                <div class="adopt-modal-title">🐾 New Adoption Post</div>
+                <button type="button" onclick="closeAdoptModal()"
+                        style="width:32px;height:32px;border-radius:10px;border:1.5px solid var(--line);
+                           background:#fff;cursor:pointer;font-size:1rem;display:grid;place-items:center;">
+                    ✕
+                </button>
             </div>
-            <div class="modal-body" id="adoptionPetModalBody"></div>
-            <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('adoptionPetModal')">Close</button></div>
+
+            <form method="post" asp-action="CreateAdoptionPost" asp-controller="ClinicAdmin"
+                  enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+
+                <div class="adopt-modal-body">
+
+                    <div class="info-note">
+                        ⏳ Every post goes through Super Admin review before being published publicly.
+                    </div>
+
+                    @* Section 1: Pet Info *@
+                    <div class="form-section">
+                        <div class="form-section-title">🐾 Pet Information</div>
+                        <div class="f-grid">
+                            <div class="f-group">
+                                <label class="f-label">Pet Name <span style="color:var(--red)">*</span></label>
+                                <input class="f-inp" type="text" name="petName" placeholder="e.g. Max" maxlength="100" required>
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label">Animal Type <span style="color:var(--red)">*</span></label>
+                                <select class="f-inp" name="animalType" required>
+                                    <option value="">Select type</option>
+                                    <option value="Dog">🐕 Dog</option>
+                                    <option value="Cat">🐈 Cat</option>
+                                    <option value="Bird">🐦 Bird</option>
+                                    <option value="Rabbit">🐇 Rabbit</option>
+                                    <option value="Hamster">🐹 Hamster</option>
+                                    <option value="Snake">🐍 Snake</option>
+                                    <option value="Other">🐾 Other</option>
+                                </select>
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label">Breed</label>
+                                <input class="f-inp" type="text" name="breed" placeholder="Persian, Husky...">
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label">Color</label>
+                                <input class="f-inp" type="text" name="color" placeholder="White, orange...">
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label">Age (years)</label>
+                                <input class="f-inp" type="number" name="age" min="0" max="30" placeholder="2">
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label">Gender</label>
+                                <select class="f-inp" name="gender">
+                                    <option value="">Unknown</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Section 2: Health *@
+                    <div class="form-section">
+                        <div class="form-section-title">❤️ Health &amp; Behaviour</div>
+                        <div class="f-grid">
+                            <div class="f-group">
+                                <label class="f-label">Energy Level</label>
+                                <select class="f-inp" name="energyLevel">
+                                    <option value="">Select</option>
+                                    <option value="Low">Low</option>
+                                    <option value="Medium">Medium</option>
+                                    <option value="High">High</option>
+                                </select>
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label">Health Status</label>
+                                <select class="f-inp" name="healthStatus">
+                                    <option value="Healthy">Healthy</option>
+                                    <option value="Has health issues">Has health issues</option>
+                                </select>
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label">Vaccinated?</label>
+                                <select class="f-inp" name="isVaccinated">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label">Neutered / Spayed?</label>
+                                <select class="f-inp" name="isNeutered">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label">Good with Children?</label>
+                                <select class="f-inp" name="goodWithChildren">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label">Good with Other Pets?</label>
+                                <select class="f-inp" name="goodWithPets">
+                                    <option value="true">Yes</option>
+                                    <option value="false">No</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Section 3: Location *@
+                    <div class="form-section">
+                        <div class="form-section-title">📍 Location &amp; Contact</div>
+                        <div class="f-grid">
+                            <div class="f-group">
+                                <label class="f-label">City <span style="color:var(--red)">*</span></label>
+                                <select class="f-inp" name="city" id="adoptCity" required
+                                        onchange="updateAdoptAreas(this.value)">
+                                    <option value="">Select city</option>
+                                    @if (ViewBag.Governorates != null)
+                                    {
+                                        foreach (var gov in (IEnumerable<Waffy.Models.Governorate>)ViewBag.Governorates)
+                                        {
+                                            <option value="@gov.NameEn">@gov.NameEn</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label">Area</label>
+                                <select class="f-inp" name="area" id="adoptArea">
+                                    <option value="">Select city first</option>
+                                </select>
+                            </div>
+                            <div class="f-group">
+                                <label class="f-label">Contact Phone <span style="color:var(--red)">*</span></label>
+                                <input class="f-inp" type="tel" name="contactPhone" placeholder="07xxxxxxxx" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Section 4: Description *@
+                    <div class="form-section">
+                        <div class="form-section-title">📝 Description &amp; Reason</div>
+                        <div class="f-group f-full" style="margin-bottom:.9rem;">
+                            <label class="f-label">Description <span style="color:var(--red)">*</span></label>
+                            <textarea class="f-inp" name="description" rows="3"
+                                      placeholder="Describe the pet's personality, habits, story..." required></textarea>
+                        </div>
+                        <div class="f-group f-full">
+                            <label class="f-label">Reason for Adoption <span style="color:var(--red)">*</span></label>
+                            <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;">
+                                @foreach (var reason in new[] { "Found as stray", "Owner transferred to clinic", "Cannot care for pet anymore", "Rescued animal", "Other" })
+                                {
+                                    <label style="display:flex;align-items:center;gap:5px;cursor:pointer;
+                                                  background:#fff;border:1.5px solid var(--line);
+                                                  border-radius:10px;padding:6px 12px;
+                                                  font-size:.81rem;font-weight:700;transition:.15s ease;"
+                                           onmouseover="this.style.borderColor='var(--olive)'"
+                                           onmouseout="this.style.borderColor='var(--line)'">
+                                        <input type="radio" name="reasonForAdoption" value="@reason" required>
+                                        @reason
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    @* Section 5: Photos *@
+                    <div class="form-section">
+                        <div class="form-section-title">🖼️ Photos <span style="font-size:.8rem;font-weight:600;color:var(--text-muted);">(optional — up to 5)</span></div>
+                        <div class="photo-slots">
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <label class="photo-slot" id="slot@(i)">
+                                    <span id="slotIcon@(i)" style="font-size:1.5rem;">📷</span>
+                                    <span id="slotLbl@(i)" style="font-size:.68rem;font-weight:700;color:var(--text-muted);">Photo @i</span>
+                                    <img id="slotPrev@(i)" src="" alt="">
+                                    <input type="file" name="photos" accept="image/jpeg,image/png,image/webp"
+                                           style="display:none;" onchange="previewSlot(this,@i)">
+                                </label>
+                            }
+                        </div>
+                        <p style="font-size:.71rem;color:var(--text-muted);margin-top:.5rem;">
+                            JPG, PNG, WEBP · max 5 MB each
+                        </p>
+                    </div>
+
+                </div>
+
+                <div class="adopt-modal-ft">
+                    <button type="button" class="btn btn-outline" onclick="closeAdoptModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">🐾 Submit for Review</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <script src="~/js/AdminClinicDoctor.js"></script>
+    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
+    <script>
+        // ── Sidebar ──
+        function toggleSidebar() {
+            document.getElementById('waShell').classList.toggle('sb-open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+        function closeSidebar() {
+            document.getElementById('waShell').classList.remove('sb-open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+
+        // ── Modal ──
+        function openAdoptModal() {
+            document.getElementById('adoptModal').classList.add('open');
+        }
+        function closeAdoptModal() {
+            document.getElementById('adoptModal').classList.remove('open');
+        }
+        document.getElementById('adoptModal').addEventListener('click', function(e) {
+            if (e.target === this) closeAdoptModal();
+        });
+
+        // ── Photo preview ──
+        function previewSlot(input, n) {
+            if (!input.files || !input.files[0]) return;
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                var prev = document.getElementById('slotPrev' + n);
+                var icon = document.getElementById('slotIcon' + n);
+                var lbl  = document.getElementById('slotLbl' + n);
+                prev.src = e.target.result;
+                prev.style.display = 'block';
+                icon.style.display = 'none';
+                lbl.style.display  = 'none';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        // ── City → Area ──
+        var _locData = @Html.Raw(ViewBag.LocationsJson ?? "[]");
+        function updateAdoptAreas(city) {
+            var sel = document.getElementById('adoptArea');
+            sel.innerHTML = '<option value="">Select area (optional)</option>';
+            if (!city) return;
+            var gov = _locData.find(function(g) { return g.name === city; });
+            if (!gov || !gov.districts) return;
+            gov.districts.forEach(function(d) {
+                var opt = document.createElement('option');
+                opt.value = d; opt.textContent = d;
+                sel.appendChild(opt);
+            });
+        }
+
+        // ── Reservation toggle ──
+        function toggleReqs(id) {
+            var row = document.getElementById(id);
+            if (!row) return;
+            row.style.display = row.style.display === 'none' ? 'table-row' : 'none';
+        }
+    </script>
 </body>
 </html>

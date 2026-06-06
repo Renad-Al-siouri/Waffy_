@@ -44,7 +44,9 @@ namespace Waffy.Models.ViewModels
         public string? ClinicCity { get; set; }
         public string? ProfileImageUrl { get; set; }
         public List<DoctorDocument> CertificationDocs { get; set; } = new();
-        
+        public List<Waffy.Models.Review> Reviews { get; set; } = new();
+        public bool CurrentUserHasReviewed { get; set; }
+        public int ReviewCount { get; set; }
     }
 
     public class ClinicsListViewModel
@@ -80,5 +82,8 @@ namespace Waffy.Models.ViewModels
         public List<ClinicSchedule> Schedule { get; set; } = new();
         public List<ClinicImage> GalleryImages { get; set; } = new();
         public List<DoctorListItemViewModel> Doctors { get; set; } = new();
+        public List<Waffy.Models.Review> Reviews { get; set; } = new();
+        public bool CurrentUserHasReviewed { get; set; }
+        public int ReviewCount { get; set; }
     }
 }

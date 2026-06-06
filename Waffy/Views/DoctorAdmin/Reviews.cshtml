@@ -1,0 +1,265 @@
+﻿@{
+    ViewData["Title"] = "Waffy — Doctor Admin | Reviews";
+    Layout = null;
+    var reviews = ViewBag.Reviews as List<Waffy.Models.Review> ?? new();
+    var avg = (double)(ViewBag.AvgRating ?? 0.0);
+    var total = (int)(ViewBag.TotalCount ?? 0);
+    int star5 = (int)(ViewBag.Star5 ?? 0);
+    int star4 = (int)(ViewBag.Star4 ?? 0);
+    int star3 = (int)(ViewBag.Star3 ?? 0);
+    int star2 = (int)(ViewBag.Star2 ?? 0);
+    int star1 = (int)(ViewBag.Star1 ?? 0);
+
+    string StarsHtml(int rating)
+    {
+        var sb = new System.Text.StringBuilder();
+        for (int i = 1; i <= 5; i++) sb.Append(i <= rating ? "★" : "☆");
+        return sb.ToString();
+    }
+    string RatingColor(int r) => r switch
+    {
+        5 => "#7d953d",
+        4 => "#9ab451",
+        3 => "var(--ora)",
+        _ => "var(--red)"
+    };
+}
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css" asp-append-version="true">
+    <style>
+        .star-fill {
+            color: #efb83c;
+            letter-spacing: 1px;
+        }
+
+        .star-empty {
+            color: #d8cbb8;
+            letter-spacing: 1px;
+        }
+
+        .rating-bar-bg {
+            flex: 1;
+            height: 8px;
+            background: var(--line);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .rating-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            background: linear-gradient(90deg,#9ab451,#7d953d);
+        }
+
+        .reviewer-av {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg,#9ab451,#7d953d);
+            color: #fff;
+            font-size: .82rem;
+            font-weight: 900;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-family: 'Fredoka',sans-serif;
+        }
+    </style>
+</head>
+<body class="admin-shell">
+    <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+    <div class="wa-shell" id="waShell">
+
+        <!-- SIDEBAR -->
+      
+        @await Html.PartialAsync("_DoctorSidebar")
+        <!-- TOPNAV -->
+        <header class="wa-tn">
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()">☰</button>
+            <div class="tn-bread"><span>Doctor</span><span>/</span><b>Reviews</b></div>
+            <div class="tn-center">
+                <div class="tn-center-main">My Reviews</div>
+                <div class="tn-center-sub">Patient feedback about your service</div>
+            </div>
+            <div class="tn-spacer"></div>
+        </header>
+
+        <!-- MAIN -->
+        <main class="wa-main">
+
+            <section class="page-hero page-hero-split">
+                <div>
+                    <h1>⭐ My Reviews</h1>
+                    <p>
+                        @if (total == 0)
+                        {
+                            <text>No reviews yet.</text>
+                        }
+                        else
+                        {
+
+                            <text>@total review@(total != 1 ? "s" : "") · Average <strong>@avg.ToString("F1") / 5.0</strong></text>
+                        }
+                    </p>
+                </div>
+            </section>
+
+            <div class="page-body">
+
+                <div class="kpi-grid kpi-4" style="margin-bottom:20px;">
+                    <div class="kpi-card green">
+                        <div class="kpi-top"><div class="kpi-icon green">📝</div></div>
+                        <div class="kpi-val">@total</div>
+                        <div class="kpi-label">Total reviews</div>
+                    </div>
+                    <div class="kpi-card blue">
+                        <div class="kpi-top"><div class="kpi-icon blue">⭐</div></div>
+                        <div class="kpi-val">@avg.ToString("F1")</div>
+                        <div class="kpi-label">Average rating</div>
+                    </div>
+                    <div class="kpi-card green">
+                        <div class="kpi-top"><div class="kpi-icon green">🏆</div></div>
+                        <div class="kpi-val">@star5</div>
+                        <div class="kpi-label">5-star reviews</div>
+                    </div>
+                    <div class="kpi-card orange">
+                        <div class="kpi-top"><div class="kpi-icon orange">💬</div></div>
+                        <div class="kpi-val">@(reviews.Count(r => !string.IsNullOrEmpty(r.Comment)))</div>
+                        <div class="kpi-label">With comments</div>
+                    </div>
+                </div>
+
+                @if (total > 0)
+                {
+                    <div style="display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start;">
+
+                        @* Breakdown *@
+                        <div class="table-card" style="padding:1.2rem;">
+                            <div style="text-align:center;margin-bottom:1rem;">
+                                <div style="font-family:'Fredoka',sans-serif;font-size:3.2rem;
+                                            font-weight:700;color:var(--olive-dark);line-height:1;">
+                                    @avg.ToString("F1")
+                                </div>
+                                <div class="star-fill" style="font-size:1.3rem;margin:.3rem 0;">
+                                    @{
+                                        int f = (int)Math.Floor(avg);
+                                        bool h = (avg - f) >= 0.5;
+                                        int e = 5 - f - (h ? 1 : 0);
+                                    }
+                                    @for (int i = 0; i < f; i++)
+                                    {
+                                        <text>★</text>
+                                    }
+                                    @for (int i = 0; i < e; i++)
+                                    {
+                                        <span class="star-empty">★</span>
+                                    }
+                                </div>
+                                <div style="font-size:.78rem;font-weight:800;color:var(--text-muted);">
+                                    @total review@(total != 1 ? "s" : "")
+                                </div>
+                            </div>
+                            @foreach (var (star, count) in new[] { (5, star5), (4, star4), (3, star3), (2, star2), (1, star1) })
+                            {
+                                var pct = total > 0 ? (double)count / total * 100 : 0;
+                                <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+                                    <span style="font-size:.76rem;font-weight:900;color:var(--text-muted);width:14px;text-align:right;">@star</span>
+                                    <span class="star-fill" style="font-size:.74rem;flex-shrink:0;">★</span>
+                                    <div class="rating-bar-bg">
+                                        <div class="rating-bar-fill" style="width:@pct.ToString("F0")%;"></div>
+                                    </div>
+                                    <span style="font-size:.74rem;font-weight:800;color:var(--text-muted);width:22px;text-align:right;">@count</span>
+                                </div>
+                            }
+                        </div>
+
+                        @* List *@
+                        <div class="table-card">
+                            <div class="table-head-bar">
+                                <div class="table-head-title">Patient Reviews</div>
+                                <span style="font-size:.78rem;font-weight:800;color:var(--text-muted);">@total</span>
+                            </div>
+                            @foreach (var rev in reviews)
+                            {
+                                var ini = string.IsNullOrEmpty(rev.UserFullName) ? "?"
+                                : rev.UserFullName.Split(' ', StringSplitOptions.RemoveEmptyEntries) is { Length: >= 2 } p
+                                ? $"{p[0][0]}{p[1][0]}".ToUpper()
+                                : rev.UserFullName[0].ToString().ToUpper();
+
+                                <div style="padding:14px 16px;border-bottom:1px solid var(--line);
+                                                display:flex;gap:12px;align-items:flex-start;">
+                                    @if (!string.IsNullOrEmpty(rev.UserProfileImage))
+                                    {
+                                        <img src="@rev.UserProfileImage" alt="" class="reviewer-av" style="object-fit:cover;">
+                                    }
+                                    else
+                                    {
+                                        <div class="reviewer-av">@ini</div>
+                                    }
+                                    <div style="flex:1;min-width:0;">
+                                        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:4px;">
+                                            <div style="font-weight:900;font-size:.88rem;color:var(--text);">
+                                                @(rev.UserFullName ?? "Anonymous")
+                                            </div>
+                                            <div style="font-size:.74rem;font-weight:700;color:var(--text-muted);">
+                                                @rev.CreatedAt.ToString("MMM dd, yyyy")
+                                            </div>
+                                        </div>
+                                        <div style="margin-top:3px;font-size:.88rem;">
+                                            <span class="star-fill" style="color:@RatingColor(rev.Rating);">
+                                                @StarsHtml(rev.Rating)
+                                            </span>
+                                        </div>
+                                        @if (!string.IsNullOrEmpty(rev.Title))
+                                        {
+                                            <div style="font-weight:900;font-size:.86rem;color:var(--text);margin-top:5px;">@rev.Title</div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(rev.Comment))
+                                        {
+                                            <div style="font-size:.83rem;color:var(--text-muted);font-weight:700;margin-top:3px;line-height:1.6;">
+                                                @rev.Comment
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="table-card" style="text-align:center;padding:56px 20px;">
+                        <div style="font-size:3rem;margin-bottom:12px;">⭐</div>
+                        <div style="font-family:'Fredoka',sans-serif;font-size:1.2rem;font-weight:700;color:var(--text);">
+                            No reviews yet
+                        </div>
+                        <div style="font-size:.84rem;color:var(--text-muted);margin-top:6px;">
+                            Patient reviews will appear here after appointments.
+                        </div>
+                    </div>
+                }
+
+            </div>
+        </main>
+    </div>
+    <script>
+        function toggleSidebar() {
+            document.getElementById('waShell').classList.toggle('sb-open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+        function closeSidebar() {
+            document.getElementById('waShell').classList.remove('sb-open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+    </script>
+</body>
+</html>

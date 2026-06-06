@@ -1,6 +1,41 @@
-﻿@{
-    ViewData["Title"] = "Waffy — Notifications";
+﻿@model List<Waffy.Models.Notification>
+@{
+    ViewData["Title"] = "Waffy — Clinic Admin | Notifications";
     Layout = null;
+    var unread = (int)(ViewBag.UnreadCount ?? 0);
+    var total = (int)(ViewBag.TotalCount ?? 0);
+    var notifs = Model ?? new List<Waffy.Models.Notification>();
+
+    string TypeIcon(string? t) => t switch
+    {
+        "AppointmentConfirmed" => "✅",
+        "AppointmentCancelledByClinic" => "❌",
+        "AppointmentCompleted" => "🎉",
+        "AppointmentNoShow" => "⚠️",
+        "AppointmentReminder" => "🔔",
+        "CliQPaymentConfirmed" => "💳",
+        "DepositReturn" => "💰",
+        "AdoptionApproved" => "🐾",
+        "AdoptionRejected" => "❌",
+        "AdminWarning" => "⚠️",
+        "AdminSuspension" => "🔒",
+        "AdminMessage" => "📢",
+        _ => "🔔"
+    };
+    string TypeBg(string? t) => t switch
+    {
+        "AdminWarning" => "var(--orap)",
+        "AdminSuspension" => "var(--redp)",
+        "AdminMessage" => "var(--greap)",
+        _ => "var(--surface-2)"
+    };
+    string TypeBorder(string? t) => t switch
+    {
+        "AdminWarning" => "rgba(191,122,35,.25)",
+        "AdminSuspension" => "rgba(200,60,60,.25)",
+        "AdminMessage" => "rgba(61,126,13,.2)",
+        _ => "var(--line)"
+    };
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -10,278 +45,242 @@
     <title>@ViewData["Title"]</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/doctor-settings.shared.css">
+    <link rel="stylesheet" href="~/css/AdminClinic&Doctor.css" asp-append-version="true">
+    <link rel="stylesheet" href="~/css/AdminClinic-sidebar.css" asp-append-version="true">
+    <style>
+        .notif-card {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            margin-bottom: 8px;
+            transition: box-shadow .15s;
+            background: #fff;
+        }
+
+            .notif-card.unread {
+                background: var(--olive-soft);
+                border-color: rgba(151,173,77,.25);
+            }
+
+            .notif-card:hover {
+                box-shadow: var(--shadow-sm);
+            }
+
+        .notif-icon {
+            width: 38px;
+            height: 38px;
+            border-radius: 11px;
+            flex-shrink: 0;
+            background: var(--surface-2);
+            display: grid;
+            place-items: center;
+            font-size: 1.1rem;
+            border: 1px solid var(--line);
+        }
+
+        .notif-unread-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--olive);
+            flex-shrink: 0;
+            margin-top: 6px;
+        }
+    </style>
 </head>
 <body class="admin-shell">
-
     <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-
     <div class="wa-shell" id="waShell">
 
-        <!-- ═══════ SIDEBAR ═══════ -->
+        <!-- SIDEBAR -->
         <aside class="wa-sb" id="sidebar">
             <div class="sb-logo">
-                <div class="sb-mark">
-                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img">
-                </div>
-                <div class="sb-wordmark">
-                    <div class="sb-wm-name">Waffy</div>
-                    <div class="sb-wm-tag">Doctor Panel</div>
-                </div>
+                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img" onerror="this.remove();this.parentElement.innerHTML='🐾';"></div>
+                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Clinic Admin</div></div>
             </div>
             <nav class="sb-nav">
                 <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Dashboard" data-tip="Dashboard"><span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span></a>
+                    <a class="sb-row" href="@Url.Action("Dashboard", "ClinicAdmin")"><span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span></a>
                 </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Daily Management</div>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Appointments" data-tip="Appointments"><span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span><span class="sb-bdg bd-g">5</span></a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Patients" data-tip="Patients"><span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span></a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Medical_Records" data-tip="Medical Records"><span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span></a>
+                    <a class="sb-row" href="@Url.Action("Appointments", "ClinicAdmin")"><span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span></a>
+                    <a class="sb-row" href="@Url.Action("Patients", "ClinicAdmin")"><span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span></a>
+                    <a class="sb-row" href="@Url.Action("Medical_Records", "ClinicAdmin")"><span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span></a>
                 </div>
                 <div class="sb-hr"></div>
-                <div class="sb-group" id="managerSection">
+                <div class="sb-group">
                     <div class="sb-grp-hd">Clinic Management</div>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Doctors" data-tip="Doctors"><span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span></a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Basic_Information" data-tip="Clinic Settings"><span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span></a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Revenue" data-tip="Revenue &amp; Payments"><span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span></a>
+                    <a class="sb-row" href="@Url.Action("Doctors", "ClinicAdmin")"><span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span></a>
+                    <a class="sb-row" href="@Url.Action("Basic_Information", "ClinicAdmin")"><span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span></a>
+                    <a class="sb-row" href="@Url.Action("Revenue", "ClinicAdmin")"><span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span></a>
                 </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Adoption" data-tip="Adoption"><span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span></a>
+                    <a class="sb-row" href="@Url.Action("Adoption", "ClinicAdmin")"><span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span></a>
                 </div>
                 <div class="sb-hr"></div>
                 <div class="sb-group">
                     <div class="sb-grp-hd">Analytics</div>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reviews" data-tip="Reviews"><span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span><span class="sb-bdg bd-g">2</span></a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reports" data-tip="Reports"><span class="sb-icon">📈</span><span class="sb-lbl">Reports</span></a>
+                    <a class="sb-row" href="@Url.Action("Reports", "ClinicAdmin")"><span class="sb-icon">📈</span><span class="sb-lbl">Reports</span></a>
+                    <a class="sb-row" href="@Url.Action("Reviews", "ClinicAdmin")"><span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span></a>
+                    <a class="sb-row" href="@Url.Action("Complaints", "ClinicAdmin")"><span class="sb-icon">🚨</span><span class="sb-lbl">Complaints</span></a>
                 </div>
                 <div class="sb-hr"></div>
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row active" asp-controller="ClinicAdmin" asp-action="Personal_nformation" data-tip="My Settings"><span class="sb-icon">⚙️</span><span class="sb-lbl">My Settings</span></a>
+                <div class="sb-group">
+                    <div class="sb-grp-hd">Settings</div>
+                    <a class="sb-row" href="@Url.Action("Images", "ClinicAdmin")"><span class="sb-icon">🖼️</span><span class="sb-lbl">Images</span></a>
+                    <a class="sb-row" href="@Url.Action("Services", "ClinicAdmin")"><span class="sb-icon">🔧</span><span class="sb-lbl">Services</span></a>
+                    <a class="sb-row" href="@Url.Action("Working_Hours", "ClinicAdmin")"><span class="sb-icon">🕐</span><span class="sb-lbl">Working Hours</span></a>
+                    <a class="sb-row" href="@Url.Action("Documents_C", "ClinicAdmin")"><span class="sb-icon">📋</span><span class="sb-lbl">Documents</span></a>
+                    <a class="sb-row active" href="@Url.Action("Notifications", "ClinicAdmin")">
+                        <span class="sb-icon">🔔</span><span class="sb-lbl">Notifications</span>
+                        @if (unread > 0)
+                        {
+                            <span class="sb-bdg bd-o">@unread</span>
+                        }
+                    </a>
+                    <a class="sb-row" href="@Url.Action("Logout", "ClinicAdmin")"><span class="sb-icon">🚪</span><span class="sb-lbl">Logout</span></a>
                 </div>
             </nav>
-            <div class="sb-foot">
-                <div class="sb-user-row" onclick="openSidebarProfile()">
-                    <div class="sb-av">DC</div>
-                    <div class="sb-user-info">
-                        <div class="sb-user-name">Dr. Ahmad Al-Zoubi</div>
-                        <div class="sb-user-role">Dr. Ahmad Al-Zoubi 👨‍⚕️</div>
-                    </div>
-                </div>
-                <button class="sb-logout" onclick="doLogout()">
-                    <span class="sb-icon">↩</span><span class="sb-logout-lbl">Sign Out</span>
-                </button>
-            </div>
         </aside>
 
-        <!-- ═══════ TOPNAV ═══════ -->
+        <!-- TOPNAV -->
         <header class="wa-tn">
-            <button class="tn-toggle" type="button" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
-            <div class="tn-bread"><span>My Account</span><span>/</span><b>Notifications</b></div>
+            <button class="tn-toggle" type="button" onclick="toggleSidebar()">☰</button>
+            <div class="tn-bread"><span>Clinic Admin</span><span>/</span><b>Notifications</b></div>
             <div class="tn-center">
-                <div class="tn-center-main">My Settings</div>
-                <div class="tn-center-sub">Waffy Clinic Dashboard</div>
+                <div class="tn-center-main">Notifications</div>
+                <div class="tn-center-sub">
+                    @if (unread > 0)
+                    {
+                        <text>@unread unread</text>
+                    }
+                    else
+                    {
+
+                        <text>All caught up</text>
+                    }
+                </div>
             </div>
             <div class="tn-spacer"></div>
             <div class="tn-right">
-                <div class="tn-identity">🏥 Al Amanah Veterinary Clinic</div>
-                <button class="tn-btn notif-btn" type="button" aria-label="Notifications">🔔<span class="tn-count">3</span></button>
-                <div class="tn-sep"></div>
-                <div class="tn-profile user-btn">
-                    <div class="tn-av" id="userAvaTop">A</div>
-                    <div>
-                        <div class="tn-pname" id="userNameTop">Dr. Ahmad Al-Zoubi</div>
-                        <div class="tn-prole" id="roleTagTop">Dr. Ahmad Al-Zoubi 👨‍⚕️</div>
-                    </div>
-                </div>
+                <div class="tn-identity">🏥 @(Context.Session.GetString("ClinicName") ?? "Clinic")</div>
             </div>
         </header>
 
-        <!-- ═══════ MAIN ═══════ -->
+        <!-- MAIN -->
         <main class="wa-main">
-            <section class="page-hero">
+
+            <section class="page-hero page-hero-split">
                 <div>
-                    <h1>My Settings</h1>
-                    <p>Update doctor profile, preferences, notifications, and account details.</p>
+                    <h1>🔔 Notifications</h1>
+                    <p>
+                        @total notification@(total != 1 ? "s" : "")
+                        @if (unread > 0)
+                        {
+                            <text> · <strong>@unread unread</strong></text>
+                        }
+                    </p>
                 </div>
-                <div class="page-hero-actions">
-                    <button class="btn btn-primary" onclick="saveNotifications(this)">💾 Save Preferences</button>
-                </div>
+                @if (unread > 0)
+                {
+                    <div class="page-hero-actions">
+                        <form method="post" asp-action="MarkAllNotificationsRead" asp-controller="ClinicAdmin">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline">✓ Mark all as read</button>
+                        </form>
+                    </div>
+                }
             </section>
 
             <div class="page-body">
 
-                <!-- Doctor Profile Summary -->
-                <div class="chart-card mb doctor-profile-summary">
-                    <div style="position:relative">
-                        <div style="width:72px;height:72px;border-radius:18px;background:linear-gradient(135deg,var(--gp),var(--gu));display:flex;align-items:center;justify-content:center;font-size:2rem;border:2px solid var(--b2)">👨‍⚕️</div>
-                        <div style="position:absolute;bottom:-6px;right:-6px;width:24px;height:24px;border-radius:50%;background:var(--gd);display:flex;align-items:center;justify-content:center;font-size:.7rem;cursor:pointer;border:2px solid white">✏️</div>
-                    </div>
-                    <div style="flex:1">
-                        <div style="font-size:1.1rem;font-weight:700">Dr. Ahmad Al-Zoubi</div>
-                        <div style="font-size:.82rem;color:var(--muted);margin-top:3px">Veterinary Surgery • Al Amanah Veterinary Clinic</div>
-                        <div style="display:flex;gap:8px;margin-top:8px">
-                            <span class="status s-confirmed">✅ Verified</span>
-                            <span class="status s-new">⭐ 4.9 rating</span>
-                            <span class="status s-done">142 appointments this month</span>
+                @if (!notifs.Any())
+                {
+                    <div class="table-card" style="text-align:center;padding:56px 20px;">
+                        <div style="font-size:3rem;margin-bottom:12px;">🔔</div>
+                        <div style="font-family:'Fredoka',sans-serif;font-size:1.15rem;font-weight:700;color:var(--text);">
+                            No notifications yet
+                        </div>
+                        <div style="font-size:.84rem;color:var(--text-muted);margin-top:6px;">
+                            Appointment updates, admin messages, and alerts will appear here.
                         </div>
                     </div>
-                    <div class="doctor-profile-rating">
-                        <div style="font-size:1.6rem;font-weight:800;color:var(--gd)">4.9</div>
-                        <div style="font-size:.72rem;color:var(--muted)">Your overall rating</div>
-                        <div style="color:#f59f00;font-size:.85rem;margin-top:2px">★★★★★</div>
+                }
+                else
+                {
+                    <div class="table-card" style="padding:14px 16px;">
+                        @foreach (var n in notifs)
+                        {
+                            <div class="notif-card @(!n.IsRead ? "unread" : "")"
+                                 style="background:@TypeBg(n.Type);border-color:@TypeBorder(n.Type);">
+
+                                @* Unread dot *@
+                                @if (!n.IsRead)
+                                {
+                                    <div class="notif-unread-dot"></div>
+                                }
+
+                                @* Icon *@
+                                <div class="notif-icon">@TypeIcon(n.Type)</div>
+
+                                @* Content *@
+                                <div style="flex:1;min-width:0;">
+                                    <div style="display:flex;align-items:center;
+                                                    justify-content:space-between;flex-wrap:wrap;gap:4px;">
+                                        <div style="font-weight:900;font-size:.88rem;color:var(--text);">
+                                            @(n.Title ?? n.Type)
+                                        </div>
+                                        <div style="font-size:.73rem;font-weight:700;color:var(--text-muted);">
+                                            @n.CreatedAt?.ToString("MMM dd, yyyy · hh:mm tt")
+                                        </div>
+                                    </div>
+                                    @if (!string.IsNullOrEmpty(n.Message))
+                                    {
+                                        <div style="font-size:.83rem;color:var(--text-muted);
+                                                            font-weight:700;margin-top:3px;line-height:1.55;">
+                                            @n.Message
+                                        </div>
+                                    }
+                                </div>
+
+                                @* Mark read button *@
+                                @if (!n.IsRead)
+                                {
+                                    <form method="post"
+                                          asp-action="MarkNotificationRead"
+                                          asp-controller="ClinicAdmin"
+                                          style="flex-shrink:0;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@n.Id" />
+                                        <button type="submit" class="btn btn-outline btn-sm"
+                                                style="white-space:nowrap;font-size:.72rem;padding:4px 10px;">
+                                            ✓ Read
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        }
                     </div>
-                </div>
+                }
 
-                <!-- Settings Tab Navigation -->
-                <nav class="settings-tab-nav" aria-label="Settings sections">
-                    <a asp-controller="ClinicAdmin" asp-action="Personal_nformation">👤 Personal Information</a>
-                    <a asp-controller="ClinicAdmin" asp-action="Professional_nformation">🎓 Professional Information</a>
-                    <a asp-controller="ClinicAdmin" asp-action="Work_chedule">🗓 Work Schedule</a>
-                    <a asp-controller="ClinicAdmin" asp-action="Documents_D">📄 Documents</a>
-                    <a asp-controller="ClinicAdmin" asp-action="Password">🔒 Password</a>
-                    <a asp-controller="ClinicAdmin" asp-action="Notifications" class="active">🔔 Notifications</a>
-                </nav>
-
-                <!--
-                  BACKEND INTEGRATION NOTE (ASP.NET MVC):
-                  Action: POST /ClinicAdmin/SaveNotificationPreferences
-                  Model:  DoctorNotificationPreferencesViewModel
-                  Fields (all bool):
-                    NotifyNewAppointment, NotifyCancellation, NotifyReminder1Hour,
-                    ChannelEmail, ChannelSms, ChannelInApp
-                  Each toggle button updates a paired hidden input; the Save button submits the form.
-                -->
-                <form id="form-notifications" method="post"
-                      asp-controller="ClinicAdmin" asp-action="Notifications">
-                    @Html.AntiForgeryToken()
-
-                    <!-- Appointment Notifications -->
-                    <div class="chart-card" style="margin-bottom:1rem">
-                        <div class="sec-label">🔔 Appointment Notifications</div>
-                        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:1rem">
-
-                            <!-- New appointment booked -->
-                            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--gu);border-radius:10px;border:1.5px solid var(--b2)">
-                                <div>
-                                    <div style="font-weight:700;font-size:.88rem">A new appointment is booked</div>
-                                    <div style="font-size:.75rem;color:var(--muted)">Instant notification when a new appointment is booked</div>
-                                </div>
-                                <input type="hidden" id="notifyNewAppt" name="NotifyNewAppointment" value="true">
-                                <button type="button" class="btn btn-primary btn-sm toggle-notif"
-                                        onclick="toggleNotifRow(this,'notifyNewAppt')">
-                                    Enabled
-                                </button>
-                            </div>
-
-                            <!-- Cancellation -->
-                            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--gu);border-radius:10px;border:1.5px solid var(--b2)">
-                                <div>
-                                    <div style="font-weight:700;font-size:.88rem">Appointment cancellation</div>
-                                    <div style="font-size:.75rem;color:var(--muted)">Notification when a patient cancels</div>
-                                </div>
-                                <input type="hidden" id="notifyCancel" name="NotifyCancellation" value="true">
-                                <button type="button" class="btn btn-primary btn-sm toggle-notif"
-                                        onclick="toggleNotifRow(this,'notifyCancel')">
-                                    Enabled
-                                </button>
-                            </div>
-
-                            <!-- 1-hour reminder -->
-                            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--gu);border-radius:10px;border:1.5px solid var(--b2)">
-                                <div>
-                                    <div style="font-weight:700;font-size:.88rem">1-hour reminder before appointment</div>
-                                    <div style="font-size:.75rem;color:var(--muted)">Automatic reminder before every appointment</div>
-                                </div>
-                                <input type="hidden" id="notifyReminder" name="NotifyReminder1Hour" value="true">
-                                <button type="button" class="btn btn-primary btn-sm toggle-notif"
-                                        onclick="toggleNotifRow(this,'notifyReminder')">
-                                    Enabled
-                                </button>
-                            </div>
-
-                        </div>
-                    </div>
-
-                    <!-- Notification Channels -->
-                    <div class="chart-card">
-                        <div class="sec-label">💬 Notification Channels</div>
-                        <div style="display:flex;flex-direction:column;gap:8px">
-
-                            <!-- Email -->
-                            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--gu);border-radius:10px;border:1.5px solid var(--b2)">
-                                <div>
-                                    <div style="font-weight:700;font-size:.88rem">📧 Email Address</div>
-                                    <div style="font-size:.75rem;color:var(--muted)">ahmed@clinic.jo</div>
-                                </div>
-                                <input type="hidden" id="channelEmail" name="ChannelEmail" value="true">
-                                <button type="button" class="btn btn-primary btn-sm toggle-notif"
-                                        onclick="toggleNotifRow(this,'channelEmail')">
-                                    Enabled
-                                </button>
-                            </div>
-
-                            <!-- SMS -->
-                            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--gu);border-radius:10px;border:1.5px solid var(--b2)">
-                                <div>
-                                    <div style="font-weight:700;font-size:.88rem">📱 SMS message</div>
-                                    <div style="font-size:.75rem;color:var(--muted)">0791234567</div>
-                                </div>
-                                <input type="hidden" id="channelSms" name="ChannelSms" value="false">
-                                <button type="button" class="btn btn-outline btn-sm toggle-notif"
-                                        onclick="toggleNotifRow(this,'channelSms')">
-                                    Off
-                                </button>
-                            </div>
-
-                            <!-- In-app -->
-                            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px;background:var(--gu);border-radius:10px;border:1.5px solid var(--b2)">
-                                <div>
-                                    <div style="font-weight:700;font-size:.88rem">🔔 In-app notification</div>
-                                    <div style="font-size:.75rem;color:var(--muted)">Appears in the bell at the top of the dashboard</div>
-                                </div>
-                                <input type="hidden" id="channelInApp" name="ChannelInApp" value="true">
-                                <button type="button" class="btn btn-primary btn-sm toggle-notif"
-                                        onclick="toggleNotifRow(this,'channelInApp')">
-                                    Enabled
-                                </button>
-                            </div>
-
-                        </div>
-                    </div>
-
-                </form><!-- /#form-notifications -->
-
-            </div><!-- /.page-body -->
+            </div>
         </main>
-    </div><!-- /.wa-shell -->
+    </div>
 
-    <script src="~/js/doctor-settings.shared.js"></script>
     <script>
-        /**
-         * toggleNotifRow — toggles the button UI and the paired hidden input value.
-         * @@param {HTMLElement} btn      - the toggle button clicked
-         * @@param {string}      hiddenId - id of the paired hidden <input>
-         */
-        function toggleNotifRow(btn, hiddenId) {
-          const hidden   = document.getElementById(hiddenId);
-          const isOn     = btn.textContent.trim() === 'Enabled';
-          btn.textContent = isOn ? 'Off' : 'Enabled';
-          btn.classList.toggle('btn-primary', !isOn);
-          btn.classList.toggle('btn-outline',  isOn);
-          hidden.value = isOn ? 'false' : 'true';
-          toast('Notification preference updated.');
+        function toggleSidebar() {
+            document.getElementById('waShell').classList.toggle('sb-open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
         }
-
-        /**
-         * saveNotifications — collects the hidden inputs and POSTs the form.
-         * In production just call form.submit(); for now shows a toast.
-         */
-        function saveNotifications(btn) {
-          saveSection(btn, 'Notification preferences');
-          /* Production: document.getElementById('form-notifications').submit(); */
+        function closeSidebar() {
+            document.getElementById('waShell').classList.remove('sb-open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
         }
     </script>
 </body>

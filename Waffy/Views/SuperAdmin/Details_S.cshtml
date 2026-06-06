@@ -1,344 +1,229 @@
 ﻿@{
+    Layout = "~/Views/SuperAdmin/_SuperAdminLayout.cshtml";
     ViewData["Title"] = "Waffy — Super Admin | Store Details";
-    Layout = null;
+    ViewData["ActiveSection"] = "shop";
+    ViewData["ActivePage"] = "stores";
+    ViewData["PageTitle"] = "Store Details";
+    ViewData["BreadcrumbParent"] = "Shop";
+    ViewData["BreadcrumbCurrent"] = "Stores";
 }
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" />
-</head>
-<body>
-    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
-    <div class="wa-shell" id="waShell">
 
-        <aside class="wa-sb" id="waSb">
-            <div class="sb-logo">
-                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
-                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
-            </div>
-            <nav class="sb-nav">
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
-                        <span class="sb-lbl">Dashboard</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Management</div>
-                    <div>
-                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span>
-                            <span class="sb-lbl">Users</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-users">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Users"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
-                            <span class="sb-lbl">Clinics</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-clinics">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row open active" id="t-shop" onclick="acc('g-shop','t-shop')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" /><line x1="3" y1="6" x2="21" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" /></svg></span>
-                            <span class="sb-lbl">Shop</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub open" id="g-shop" style="height:auto;">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Stores"><span class="sb-dot"></span><span class="sb-child-lbl">Stores</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_S"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Tools</div>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
-                        <span class="sb-lbl">Notifications</span>
-                    </a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="RewardLog">
-                        <span class="sb-icon">
-                            <svg class="ico" viewBox="0 0 24 24">
-                                <path d="M20 12V22H4V12" />
-                                <path d="M22 7H2v5h20V7z" />
-                                <path d="M12 22V7" />
-                            </svg>
-                        </span>
-                        <span class="sb-lbl">Reward Log</span>
-                    </a>
-                </div>
-            </nav>
-            <div class="sb-foot">
-                <div class="sb-user-row">
-                    <div class="sb-av">@ViewBag.AdminInitials</div>
-                    <div class="sb-user-info">
-                        <div class="sb-user-name">@ViewBag.AdminName</div>
-                        <div class="sb-user-role">Super Admin</div>
-                    </div>
-                </div>
-                <a class="sb-logout" href="@Url.Action("Logout", "Account")">
-                    <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-                    <span class="sb-logout-lbl">Sign Out</span>
-                </a>
-            </div>
-        </aside>
+<main class="wa-main" id="waMain">
 
-        <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button">
-                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></svg>
-            </button>
-            <nav class="tn-bread">
-                <span>Shop</span><span>/</span>
-                <a asp-controller="SuperAdmin" asp-action="Stores" style="color:var(--text-muted);font-weight:800;">Stores</a>
-                <span>/</span><b>@ViewBag.StoreName</b>
-            </nav>
-            <div class="tn-center">
-                <div class="tn-center-main">@ViewBag.StoreName</div>
-                <div class="tn-center-sub">Store Details</div>
-            </div>
-            <div class="tn-spacer"></div>
-            <div class="tn-right">
-                <div class="tn-profile">
-                    <div class="tn-av">@ViewBag.AdminInitials</div>
-                    <div><div class="tn-pname">@ViewBag.AdminName</div><div class="tn-prole">Super Admin</div></div>
-                </div>
-            </div>
-        </header>
-
-        <main class="wa-main" id="waMain">
-
-            @if (ViewBag.Success != null)
-            {
-                <div style="margin:0 0 12px;padding:12px 16px;background:var(--success-soft);border:1px solid rgba(47,158,95,.3);border-radius:12px;font-weight:800;color:var(--success);font-size:.86rem;">
-                    @ViewBag.Success
-                </div>
-            }
-
-            <section class="page-hero">
-                <div>
-                    <h1 id="heroTitle">🏪 Store Details</h1>
-                    <p id="heroSub">Full store profile — products, orders, documents, and actions.</p>
-                </div>
-                <div class="page-hero-actions">
-                    <a class="btn btn-outline btn-sm" asp-controller="SuperAdmin" asp-action="Stores">← Back to Stores</a>
-                    <button class="btn btn-warning btn-sm" onclick="openM('warnModal')">⚠️ Warn</button>
-                    <button class="btn btn-danger btn-sm" onclick="openM('suspendModal')">🔒 Suspend</button>
-                </div>
-            </section>
-
-            <div class="page-body">
-
-                <!-- Store profile card -->
-                <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r-xl);padding:22px;margin-bottom:16px;box-shadow:var(--shadow);">
-                    <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;">
-                        <div style="width:80px;height:80px;border-radius:22px;background:var(--brand-xlight);border:1px solid var(--border);display:grid;place-items:center;font-size:2.2rem;flex-shrink:0;overflow:hidden;" id="storeAvatar">🏪</div>
-                        <div style="flex:1;min-width:200px;">
-                            <div style="font-family:'Fredoka',sans-serif;font-size:1.6rem;font-weight:700;color:var(--brand-dark);" id="storeName">—</div>
-                            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;" id="storeBadges"></div>
-                            <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:.84rem;font-weight:700;color:var(--text-muted);" id="storeMeta"></div>
-                        </div>
-                        <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;" id="storeActions"></div>
-                    </div>
-                </div>
-
-                <!-- KPI -->
-                <div class="kpi-grid kpi-grid-4" style="margin-bottom:16px;">
-                    <div class="kpi-card c1"><div class="kpi-ico green">📦</div><div class="kpi-val" id="ksProducts">—</div><div class="kpi-label">Products</div></div>
-                    <div class="kpi-card c2"><div class="kpi-ico blue">🛒</div><div class="kpi-val" id="ksOrders">—</div><div class="kpi-label">Total Orders</div></div>
-                    <div class="kpi-card c1"><div class="kpi-ico green">💰</div><div class="kpi-val" id="ksRevenue">—</div><div class="kpi-label">Revenue</div></div>
-                   
-                </div>
-
-                <!-- Tabs -->
-                <div class="tabs-bar" id="tabsBar">
-                    <button class="tab-btn active" onclick="showTab('products',this)">📦 Products</button>
-                    <button class="tab-btn" onclick="showTab('orders',this)">🛒 Orders</button>
-                    <button class="tab-btn" onclick="showTab('customers',this)">👥 Customers</button>  <!-- ← أضف -->
-                    <button class="tab-btn" onclick="showTab('documents',this)">📋 Documents</button>
-                    <button class="tab-btn" onclick="showTab('info',this)">ℹ️ Store Info</button>
-                </div>
-
-                <!-- TAB: PRODUCTS -->
-                <div id="tab-products">
-                    <div class="table-card">
-                        <div class="table-head-bar">
-                            <div class="table-head-title">Product List</div>
-                            <div style="display:flex;gap:8px;">
-                                <select class="sel-wrap" style="height:36px;width:auto;min-width:150px;font-size:.78rem;" id="prodStatusFilter" onchange="renderProducts()">
-                                    <option value="">All Statuses</option>
-                                    <option value="active">Active</option>
-                                    <option value="hidden">Hidden</option>
-                                    <option value="out">Out of Stock</option>
-                                </select>
-                                <div class="search-wrap" style="height:36px;min-width:200px;border-radius:10px;">
-                                    <span style="font-size:.9rem;color:var(--text-muted);">🔍</span>
-                                    <input type="text" id="prodSearch" placeholder="Search product..." oninput="renderProducts()" style="font-size:.82rem;" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
-                                <tbody id="productsTBody"></tbody>
-                            </table>
-                        </div>
-                        <div class="pagination-bar"><div class="pag-info" id="prodPagInfo"></div></div>
-                    </div>
-                </div>
-
-                <!-- TAB: ORDERS -->
-                <div id="tab-orders" style="display:none;">
-                    <div class="table-card">
-                        <div class="table-head-bar">
-                            <div class="table-head-title">Order History</div>
-                            <div style="display:flex;gap:8px;">
-                                <select class="sel-wrap" style="height:36px;width:auto;min-width:150px;font-size:.78rem;" id="orderStatusFilter" onchange="renderOrders()">
-                                    <option value="">All Statuses</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="confirmed">Confirmed</option>
-                                    <option value="delivered">Delivered</option>
-                                    <option value="cancelled">Cancelled</option>
-                                </select>
-                                <div class="search-wrap" style="height:36px;min-width:200px;border-radius:10px;">
-                                    <span style="font-size:.9rem;color:var(--text-muted);">🔍</span>
-                                    <input type="text" id="orderSearch" placeholder="Search order or customer..." oninput="renderOrders()" style="font-size:.82rem;" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Items Total</th><th>Delivery</th><th>Grand Total</th><th>Date</th><th>Status</th></tr></thead>
-                                <tbody id="ordersTBody"></tbody>
-                            </table>
-                        </div>
-                        <div class="pagination-bar"><div class="pag-info" id="orderPagInfo"></div></div>
-                    </div>
-                </div>
-                <!-- TAB: CUSTOMERS -->
-                <div id="tab-customers" style="display:none;">
-                    <div class="table-card">
-                        <div class="table-head-bar">
-                            <div class="table-head-title">Store Customers</div>
-                            <div class="search-wrap" style="height:36px;min-width:200px;">
-                                <span style="color:var(--text-muted);">🔍</span>
-                                <input type="text" id="custSearch"
-                                       placeholder="Search customer..."
-                                       oninput="renderCustomers()"
-                                       style="font-size:.82rem;" />
-                            </div>
-                        </div>
-                        <div class="table-wrap">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Customer</th>
-                                        <th>Email</th>
-                                        <th>Phone</th>
-                                        <th>Orders</th>
-                                        <th>Total Spent</th>
-                                        <th>Last Order</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="customersTBody"></tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-                <!-- TAB: DOCUMENTS -->
-                <div id="tab-documents" style="display:none;">
-                    <div class="table-card">
-                        <div class="table-head-bar">
-                            <div class="table-head-title">📋 Verification Documents</div>
-                            <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);">
-                                Click a document to preview · Approve or Reject each file
-                            </div>
-                        </div>
-                        <div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;" id="docsGrid"></div>
-                    </div>
-                </div>
-
-                <!-- TAB: INFO -->
-                <div id="tab-info" style="display:none;">
-                    <div class="table-card">
-                        <div class="table-head-bar"><div class="table-head-title">Store Information</div></div>
-                        <div style="padding:20px;" id="storeInfoGrid"></div>
-                    </div>
-                </div>
-
-            </div>
-        </main>
-    </div>
-
-    <!-- Warn Modal -->
-    <div class="modal-overlay" id="warnModal">
-        <div class="modal-box" style="max-width:500px;">
-            <div class="modal-head"><div class="modal-title">⚠️ Send Warning</div><button class="dp-close" onclick="closeM('warnModal')">✕</button></div>
-            <div class="modal-body">
-                <div style="background:var(--warning-soft);border:1px solid rgba(226,163,58,.2);border-radius:12px;padding:12px;font-size:.82rem;font-weight:700;color:#9b6000;margin-bottom:14px;">Warning will be recorded in moderation history.</div>
-                <div class="field"><label>Warning Type</label><select id="warnType"><option>Policy violation</option><option>Misleading product information</option><option>High complaint volume</option><option>Repeated delivery delays</option></select></div>
-                <div class="field"><label>Warning Message</label><textarea id="warnMessage" placeholder="Write the warning..."></textarea></div>
-            </div>
-            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('warnModal')">Cancel</button><button class="btn btn-warning" onclick="sendWarning()">Send Warning</button></div>
+    @if (ViewBag.Success != null)
+    {
+        <div style="margin:0 0 12px;padding:12px 16px;background:var(--success-soft);border:1px solid rgba(47,158,95,.3);border-radius:12px;font-weight:800;color:var(--success);font-size:.86rem;">
+            @ViewBag.Success
         </div>
-    </div>
+    }
 
-    <!-- Suspend Modal -->
-    <div class="modal-overlay" id="suspendModal">
-        <div class="modal-box" style="max-width:500px;">
-            <div class="modal-head"><div class="modal-title">🔒 Suspend Store</div><button class="dp-close" onclick="closeM('suspendModal')">✕</button></div>
-            <div class="modal-body">
-                <div class="field"><label>Reason</label><select id="suspendReason"><option>Policy violation</option><option>Multiple complaints</option><option>Unpaid dues</option><option>Invalid documents</option><option>Suspicious activity</option></select></div>
-                <div class="field"><label>Duration</label><select id="suspendDuration"><option>7 days</option><option>30 days</option><option>90 days</option><option>Permanent</option></select></div>
-                <div class="field"><label>Message to Store</label><textarea id="suspendMessage" placeholder="Explain..."></textarea></div>
+    <section class="page-hero">
+        <div>
+            <h1 id="heroTitle">🏪 Store Details</h1>
+            <p id="heroSub">Full store profile — products, orders, documents, and actions.</p>
+        </div>
+        <div class="page-hero-actions">
+            <a class="btn btn-outline btn-sm" asp-controller="SuperAdmin" asp-action="Stores">← Back to Stores</a>
+            <button class="btn btn-warning btn-sm" onclick="openM('warnModal')">⚠️ Warn</button>
+            <button class="btn btn-danger btn-sm" onclick="openM('suspendModal')">🔒 Suspend</button>
+        </div>
+    </section>
+
+    <div class="page-body">
+
+        <!-- Store profile card -->
+        <div style="background:#fff;border:1px solid var(--border);border-radius:var(--r-xl);padding:22px;margin-bottom:16px;box-shadow:var(--shadow);">
+            <div style="display:flex;align-items:flex-start;gap:20px;flex-wrap:wrap;">
+                <div style="width:80px;height:80px;border-radius:22px;background:var(--brand-xlight);border:1px solid var(--border);display:grid;place-items:center;font-size:2.2rem;flex-shrink:0;overflow:hidden;" id="storeAvatar">🏪</div>
+                <div style="flex:1;min-width:200px;">
+                    <div style="font-family:'Fredoka',sans-serif;font-size:1.6rem;font-weight:700;color:var(--brand-dark);" id="storeName">—</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;" id="storeBadges"></div>
+                    <div style="display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:.84rem;font-weight:700;color:var(--text-muted);" id="storeMeta"></div>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;" id="storeActions"></div>
             </div>
-            <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('suspendModal')">Cancel</button><button class="btn btn-danger" onclick="submitSuspend()">Suspend Store</button></div>
         </div>
-    </div>
 
-    <!-- Image Preview Modal -->
-    <div class="modal-overlay" id="imgPreviewModal" onclick="closeM('imgPreviewModal')">
-        <div style="max-width:90vw;max-height:90vh;display:flex;align-items:center;justify-content:center;">
-            <img id="imgPreviewSrc" src="" alt="Document Preview"
-                 style="max-width:100%;max-height:85vh;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.4);">
+        <!-- KPI -->
+        <div class="kpi-grid kpi-grid-4" style="margin-bottom:16px;">
+            <div class="kpi-card c1"><div class="kpi-ico green">📦</div><div class="kpi-val" id="ksProducts">—</div><div class="kpi-label">Products</div></div>
+            <div class="kpi-card c2"><div class="kpi-ico blue">🛒</div><div class="kpi-val" id="ksOrders">—</div><div class="kpi-label">Total Orders</div></div>
+            <div class="kpi-card c1"><div class="kpi-ico green">💰</div><div class="kpi-val" id="ksRevenue">—</div><div class="kpi-label">Revenue</div></div>
+
         </div>
+
+        <!-- Tabs -->
+        <div class="tabs-bar" id="tabsBar">
+            <button class="tab-btn active" onclick="showTab('products',this)">📦 Products</button>
+            <button class="tab-btn" onclick="showTab('orders',this)">🛒 Orders</button>
+            <button class="tab-btn" onclick="showTab('customers',this)">👥 Customers</button>  <!-- ← أضف -->
+            <button class="tab-btn" onclick="showTab('documents',this)">📋 Documents</button>
+            <button class="tab-btn" onclick="showTab('info',this)">ℹ️ Store Info</button>
+        </div>
+
+        <!-- TAB: PRODUCTS -->
+        <div id="tab-products">
+            <div class="table-card">
+                <div class="table-head-bar">
+                    <div class="table-head-title">Product List</div>
+                    <div style="display:flex;gap:8px;">
+                        <select class="sel-wrap" style="height:36px;width:auto;min-width:150px;font-size:.78rem;" id="prodStatusFilter" onchange="renderProducts()">
+                            <option value="">All Statuses</option>
+                            <option value="active">Active</option>
+                            <option value="hidden">Hidden</option>
+                            <option value="out">Out of Stock</option>
+                        </select>
+                        <div class="search-wrap" style="height:36px;min-width:200px;border-radius:10px;">
+                            <span style="font-size:.9rem;color:var(--text-muted);">🔍</span>
+                            <input type="text" id="prodSearch" placeholder="Search product..." oninput="renderProducts()" style="font-size:.82rem;" />
+                        </div>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Product</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr></thead>
+                        <tbody id="productsTBody"></tbody>
+                    </table>
+                </div>
+                <div class="pagination-bar"><div class="pag-info" id="prodPagInfo"></div></div>
+            </div>
+        </div>
+
+        <!-- TAB: ORDERS -->
+        <div id="tab-orders" style="display:none;">
+            <div class="table-card">
+                <div class="table-head-bar">
+                    <div class="table-head-title">Order History</div>
+                    <div style="display:flex;gap:8px;">
+                        <select class="sel-wrap" style="height:36px;width:auto;min-width:150px;font-size:.78rem;" id="orderStatusFilter" onchange="renderOrders()">
+                            <option value="">All Statuses</option>
+                            <option value="pending">Pending</option>
+                            <option value="confirmed">Confirmed</option>
+                            <option value="delivered">Delivered</option>
+                            <option value="cancelled">Cancelled</option>
+                        </select>
+                        <div class="search-wrap" style="height:36px;min-width:200px;border-radius:10px;">
+                            <span style="font-size:.9rem;color:var(--text-muted);">🔍</span>
+                            <input type="text" id="orderSearch" placeholder="Search order or customer..." oninput="renderOrders()" style="font-size:.82rem;" />
+                        </div>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Items Total</th><th>Delivery</th><th>Grand Total</th><th>Date</th><th>Status</th></tr></thead>
+                        <tbody id="ordersTBody"></tbody>
+                    </table>
+                </div>
+                <div class="pagination-bar"><div class="pag-info" id="orderPagInfo"></div></div>
+            </div>
+        </div>
+        <!-- TAB: CUSTOMERS -->
+        <div id="tab-customers" style="display:none;">
+            <div class="table-card">
+                <div class="table-head-bar">
+                    <div class="table-head-title">Store Customers</div>
+                    <div class="search-wrap" style="height:36px;min-width:200px;">
+                        <span style="color:var(--text-muted);">🔍</span>
+                        <input type="text" id="custSearch"
+                               placeholder="Search customer..."
+                               oninput="renderCustomers()"
+                               style="font-size:.82rem;" />
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Customer</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Orders</th>
+                                <th>Total Spent</th>
+                                <th>Last Order</th>
+                            </tr>
+                        </thead>
+                        <tbody id="customersTBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!-- TAB: DOCUMENTS -->
+        <div id="tab-documents" style="display:none;">
+            <div class="table-card">
+                <div class="table-head-bar">
+                    <div class="table-head-title">📋 Verification Documents</div>
+                    <div style="font-size:.8rem;font-weight:700;color:var(--text-muted);">
+                        Click a document to preview · Approve or Reject each file
+                    </div>
+                </div>
+                <div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;" id="docsGrid"></div>
+            </div>
+        </div>
+
+        <!-- TAB: INFO -->
+        <div id="tab-info" style="display:none;">
+            <div class="table-card">
+                <div class="table-head-bar"><div class="table-head-title">Store Information</div></div>
+                <div style="padding:20px;" id="storeInfoGrid"></div>
+            </div>
+        </div>
+
     </div>
+</main>
 
-    <!-- POST Forms -->
-    <form id="approveForm" method="post" asp-action="ApproveStore" asp-controller="SuperAdmin">@Html.AntiForgeryToken()<input type="hidden" name="storeId" value="@ViewBag.StoreId"><input type="hidden" name="from" value="details"></form>
-    <form id="rejectFormD" method="post" asp-action="RejectStore" asp-controller="SuperAdmin">@Html.AntiForgeryToken()<input type="hidden" name="storeId" value="@ViewBag.StoreId"><input type="hidden" name="from" value="details"></form>
-    <form id="reactivateFormD" method="post" asp-action="ReactivateStore" asp-controller="SuperAdmin">@Html.AntiForgeryToken()<input type="hidden" name="storeId" value="@ViewBag.StoreId"><input type="hidden" name="from" value="details"></form>
-    <form id="deleteFormD" method="post" asp-action="DeleteStore" asp-controller="SuperAdmin">@Html.AntiForgeryToken()<input type="hidden" name="storeId" value="@ViewBag.StoreId"></form>
-    <form id="suspendFormD" method="post" asp-action="SuspendStore" asp-controller="SuperAdmin">
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="storeId" value="@ViewBag.StoreId">
-        <input type="hidden" name="from" value="details">
-        <input type="hidden" name="reason" id="suspendReasonD">
-        <input type="hidden" name="duration" id="suspendDurationD">
-        <input type="hidden" name="message" id="suspendMessageD">
-    </form>
+</div>
 
-    <script src="~/js/Waffy-Shell.js"></script>
-    <script src="~/js/superAdminClinic.js"></script>
+<!-- Warn Modal -->
+<div class="modal-overlay" id="warnModal">
+    <div class="modal-box" style="max-width:500px;">
+        <div class="modal-head"><div class="modal-title">⚠️ Send Warning</div><button class="dp-close" onclick="closeM('warnModal')">✕</button></div>
+        <div class="modal-body">
+            <div style="background:var(--warning-soft);border:1px solid rgba(226,163,58,.2);border-radius:12px;padding:12px;font-size:.82rem;font-weight:700;color:#9b6000;margin-bottom:14px;">Warning will be recorded in moderation history.</div>
+            <div class="field"><label>Warning Type</label><select id="warnType"><option>Policy violation</option><option>Misleading product information</option><option>High complaint volume</option><option>Repeated delivery delays</option></select></div>
+            <div class="field"><label>Warning Message</label><textarea id="warnMessage" placeholder="Write the warning..."></textarea></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('warnModal')">Cancel</button><button class="btn btn-warning" onclick="sendWarning()">Send Warning</button></div>
+    </div>
+</div>
+
+<!-- Suspend Modal -->
+<div class="modal-overlay" id="suspendModal">
+    <div class="modal-box" style="max-width:500px;">
+        <div class="modal-head"><div class="modal-title">🔒 Suspend Store</div><button class="dp-close" onclick="closeM('suspendModal')">✕</button></div>
+        <div class="modal-body">
+            <div class="field"><label>Reason</label><select id="suspendReason"><option>Policy violation</option><option>Multiple complaints</option><option>Unpaid dues</option><option>Invalid documents</option><option>Suspicious activity</option></select></div>
+            <div class="field"><label>Duration</label><select id="suspendDuration"><option>7 days</option><option>30 days</option><option>90 days</option><option>Permanent</option></select></div>
+            <div class="field"><label>Message to Store</label><textarea id="suspendMessage" placeholder="Explain..."></textarea></div>
+        </div>
+        <div class="modal-footer"><button class="btn btn-outline" onclick="closeM('suspendModal')">Cancel</button><button class="btn btn-danger" onclick="submitSuspend()">Suspend Store</button></div>
+    </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div class="modal-overlay" id="imgPreviewModal" onclick="closeM('imgPreviewModal')">
+    <div style="max-width:90vw;max-height:90vh;display:flex;align-items:center;justify-content:center;">
+        <img id="imgPreviewSrc" src="" alt="Document Preview"
+             style="max-width:100%;max-height:85vh;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.4);">
+    </div>
+</div>
+
+<!-- POST Forms -->
+<form id="approveForm" method="post" asp-action="ApproveStore" asp-controller="SuperAdmin">@Html.AntiForgeryToken()<input type="hidden" name="storeId" value="@ViewBag.StoreId"><input type="hidden" name="from" value="details"></form>
+<form id="rejectFormD" method="post" asp-action="RejectStore" asp-controller="SuperAdmin">@Html.AntiForgeryToken()<input type="hidden" name="storeId" value="@ViewBag.StoreId"><input type="hidden" name="from" value="details"></form>
+<form id="reactivateFormD" method="post" asp-action="ReactivateStore" asp-controller="SuperAdmin">@Html.AntiForgeryToken()<input type="hidden" name="storeId" value="@ViewBag.StoreId"><input type="hidden" name="from" value="details"></form>
+<form id="deleteFormD" method="post" asp-action="DeleteStore" asp-controller="SuperAdmin">@Html.AntiForgeryToken()<input type="hidden" name="storeId" value="@ViewBag.StoreId"></form>
+<form id="suspendFormD" method="post" asp-action="SuspendStore" asp-controller="SuperAdmin">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="storeId" value="@ViewBag.StoreId">
+    <input type="hidden" name="from" value="details">
+    <input type="hidden" name="reason" id="suspendReasonD">
+    <input type="hidden" name="duration" id="suspendDurationD">
+    <input type="hidden" name="message" id="suspendMessageD">
+</form>
+
+<script src="~/js/superAdminClinic.js"></script>
+
+@section PageScripts {
     <script>
         // ══ البيانات الحقيقية من قاعدة البيانات ══
                 // إلى هذا ✅ — أضف customers هنا:
@@ -396,7 +281,7 @@
             document.getElementById('ksProducts').textContent = s.products || 0;
             document.getElementById('ksOrders').textContent   = s.orders   || 0;
             document.getElementById('ksRevenue').textContent  = s.revenue > 0 ? Number(s.revenue).toLocaleString() + ' JD' : '0 JD';
-           
+
 
             // أزرار الأكشن حسب الحالة
             let btns = '';
@@ -686,5 +571,4 @@
         initPage();
 
     </script>
-</body>
-</html>
+}

@@ -14,6 +14,7 @@ namespace Waffy.Controllers
         private readonly IPetRepository _petRepo;
         private readonly IWalletRepository _walletRepo;
         private readonly IClinicRepository _clinicRepo;
+        private readonly IReviewRepository _reviewRepo;
         public DoctorAdminController(
             IDoctorRepository doctorRepo,
             IWebHostEnvironment env,
@@ -21,7 +22,8 @@ namespace Waffy.Controllers
             INotificationRepository notifRepo,
             IPetRepository petRepo,
             IWalletRepository walletRepo,
-            IClinicRepository clinicRepo)
+            IClinicRepository clinicRepo,
+            IReviewRepository reviewRepo)
         {
             _doctorRepo = doctorRepo;
             _env = env;
@@ -30,6 +32,7 @@ namespace Waffy.Controllers
             _petRepo = petRepo;
             _walletRepo = walletRepo;
             _clinicRepo = clinicRepo;
+            _reviewRepo = reviewRepo;
         }
 
         // ══ AUTH ══════════════════════════════════════════
@@ -921,6 +924,27 @@ public async Task<IActionResult> SaveDoctorNotes(
 
             await _apptRepo.UpdateMedicalNoteAsync(appointmentId, note.ToString().Trim());
             return Json(new { success = true });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Reviews()
+        {
+            var doctorId = HttpContext.Session.GetInt32("DoctorId");
+            if (doctorId == null) return RedirectToAction("Login", "Account");
+
+            var reviews = (await _reviewRepo.GetByTargetAsync("Doctor", doctorId.Value)).ToList();
+            var avg = reviews.Any() ? reviews.Average(r => r.Rating) : 0.0;
+
+            ViewBag.Reviews = reviews;
+            ViewBag.TotalCount = reviews.Count;
+            ViewBag.AvgRating = Math.Round(avg, 1);
+            ViewBag.Star5 = reviews.Count(r => r.Rating == 5);
+            ViewBag.Star4 = reviews.Count(r => r.Rating == 4);
+            ViewBag.Star3 = reviews.Count(r => r.Rating == 3);
+            ViewBag.Star2 = reviews.Count(r => r.Rating == 2);
+            ViewBag.Star1 = reviews.Count(r => r.Rating == 1);
+
+            return View();
         }
 
     }

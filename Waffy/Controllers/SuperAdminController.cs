@@ -37,6 +37,7 @@ namespace Waffy.Controllers
         private readonly IClinicDocumentRepository _clinicDocumentRepo;
         private readonly IDoctorRepository _doctorAdminRepo;
         private readonly IAppointmentRepository _apptRepo;
+        private readonly IReviewRepository _reviewRepo;
         public SuperAdminController(
             IUserRepository userRepo,
             IStoreRepository storeRepo,
@@ -64,6 +65,7 @@ namespace Waffy.Controllers
             IClinicDocumentRepository clinicDocumentRepo,
             IDoctorRepository doctorAdminRepo,
             IPendingPaymentRepository paymentRepo,
+            IReviewRepository reviewRepo,
             IAppointmentRepository apptRepo)  
         {
             _userRepo = userRepo;
@@ -93,6 +95,7 @@ namespace Waffy.Controllers
             _clinicDocumentRepo = clinicDocumentRepo;
             _doctorAdminRepo = doctorAdminRepo;
             _apptRepo = apptRepo;
+            _reviewRepo = reviewRepo;
         }
 
         // ── Guards ───────────────────────────────────────────────
@@ -946,18 +949,141 @@ namespace Waffy.Controllers
             if (!IsAdmin()) return NotAdmin();
             SetAdminViewBag();
 
+            // ── Complaints (موجود من قبل) ──
             var complaints = (await _complaintRepo.GetAllByTargetTypeAsync("Clinic")).ToList();
-
             ViewBag.Complaints = complaints;
             ViewBag.TotalComplaints = complaints.Count;
             ViewBag.OpenComplaints = complaints.Count(c => c.Status == "Open" || c.Status == "Pending");
             ViewBag.ResolvedComplaints = complaints.Count(c => c.Status == "Resolved");
 
+            // ── Reviews (جديد) ──
+            var clinicReviews = (await _reviewRepo.GetAllAsync("Clinic")).ToList();
+            var doctorReviews = (await _reviewRepo.GetAllAsync("Doctor")).ToList();
+            var allReviews = clinicReviews.Concat(doctorReviews)
+                                              .OrderByDescending(r => r.CreatedAt)
+                                              .ToList();
+
+            ViewBag.AllReviews = allReviews;
+            ViewBag.ClinicReviews = clinicReviews;
+            ViewBag.DoctorReviews = doctorReviews;
+            ViewBag.TotalReviews = allReviews.Count;
+            ViewBag.AvgRating = allReviews.Any()
+                ? Math.Round(allReviews.Average(r => r.Rating), 1) : 0.0;
+
             if (TempData["ComplaintSuccess"] != null) ViewBag.Success = TempData["ComplaintSuccess"];
+            if (TempData["ReviewSuccess"] != null) ViewBag.ReviewSuccess = TempData["ReviewSuccess"];
 
             return View();
         }
 
+        // ── POST: حذف review ──────────────────────────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteReview(int id)
+        {
+            if (!IsAdmin()) return NotAdmin();
+            await _reviewRepo.DeleteAsync(id);
+            TempData["ReviewSuccess"] = "✅ Review deleted successfully.";
+            return RedirectToAction("Reviews_Complaints_C");
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> WarnTarget(
+    string targetType, int targetId, string warnType, string warnMessage)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            // حفظ في DB
+            await _complaintRepo.WarnAsync(targetType, targetId, warnType, warnMessage);
+
+            // إشعار لصاحب العيادة
+            var clinic = await _clinicRepo.GetByIdAsync(targetId);
+            if (clinic != null)
+            {
+                await _notifRepo.AddAsync(new Notification
+                {
+                    IdUser = clinic.OwnerUserId,
+                    Type = "AdminWarning",
+                    Title = "⚠️ Official Warning Received",
+                    Message = $"You have received an official warning from Waffy Admin. " +
+                                        $"Type: {warnType}. {warnMessage}",
+                    IsRead = false,
+                    RelatedEntityType = "Clinic",
+                    RelatedEntityId = targetId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            TempData["ReviewSuccess"] = $"⚠️ Warning sent to {targetType} #{targetId}.";
+            return RedirectToAction("Reviews_Complaints_C");
+        }
+
+        // ── POST: إيقاف ───────────────────────────────────────────
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> SuspendTarget(
+     string targetType, int targetId,
+     string suspendReason, string suspendDuration, string suspendMessage)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            await _complaintRepo.SuspendAsync(
+                targetType, targetId, suspendReason, suspendDuration, suspendMessage);
+
+            // ✅ أضف هذا — نغيّر VerificationStatus أيضاً
+            if (targetType == "Clinic")
+            {
+                var clinic = await _clinicRepo.GetByIdAsync(targetId);
+                if (clinic != null)
+                {
+                    clinic.VerificationStatus = "Suspended";
+                    await _clinicRepo.UpdateAsync(clinic);
+
+                    await _notifRepo.AddAsync(new Notification
+                    {
+                        IdUser = clinic.OwnerUserId,
+                        Type = "AdminSuspension",
+                        Title = "🔒 Account Suspended",
+                        Message = $"Your clinic has been suspended. Reason: {suspendReason}. Duration: {suspendDuration}. {suspendMessage}",
+                        IsRead = false,
+                        RelatedEntityType = "Clinic",
+                        RelatedEntityId = targetId,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+            }
+
+            TempData["ReviewSuccess"] = $"🔒 {targetType} #{targetId} suspended for {suspendDuration}.";
+            return RedirectToAction("Reviews_Complaints_C");
+        }
+
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> LiftSuspension(int clinicId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            var clinic = await _clinicRepo.GetByIdAsync(clinicId);
+            if (clinic == null) return NotFound();
+
+            // رفع الإيقاف
+            clinic.IsSuspended = false;
+            await _clinicRepo.UpdateAsync(clinic);
+
+            // إشعار لصاحب العيادة
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = clinic.OwnerUserId,
+                Type = "AdminAction",
+                Title = "✅ Suspension Lifted",
+                Message = $"The suspension on your clinic \"{clinic.Name}\" has been lifted by Waffy Admin.",
+                IsRead = false,
+                RelatedEntityType = "Clinic",
+                RelatedEntityId = clinicId,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["ClinicSuccess"] = $"✅ Suspension lifted for {clinic.Name}.";
+            return RedirectToAction("Details_C", new { id = clinicId });
+        }
         // ════════════════════════════════════════════════════════
         // Reviews_Complaints_S — GET  (from v1: real data)
         // ════════════════════════════════════════════════════════
@@ -1160,7 +1286,14 @@ namespace Waffy.Controllers
             if (statusFilter != "All") filtered = filtered.Where(p => p.Status == statusFilter);
             if (sourceFilter != "All") filtered = filtered.Where(p => p.PostedByType == sourceFilter);
             vm.Posts = filtered.ToList();
-
+            // ✅ جلب كل صور كل بوست
+            var postImages = new Dictionary<int, List<string>>();
+            foreach (var post in allPosts)
+            {
+                var imgs = (await _adoptionRepo.GetAllImagesAsync(post.IdPost)).ToList();
+                postImages[post.IdPost] = imgs;
+            }
+            ViewBag.PostImages = postImages;
             if (TempData["ListingSuccess"] != null) ViewBag.Success = TempData["ListingSuccess"];
             if (TempData["ListingError"] != null) ViewBag.Error = TempData["ListingError"];
 
@@ -1427,7 +1560,14 @@ namespace Waffy.Controllers
 
             ViewBag.PendingPayments = pendingPayments;
             ViewBag.SurprisePool = (await _surpriseRepo.GetAllAsync()).ToList();
-
+            // ✅ جلب كل صور كل تقرير
+            var reportImages = new Dictionary<int, List<string>>();
+            foreach (var r in allReports)
+            {
+                var imgs = (await _lostRepo.GetAllImagesAsync(r.IdLostReport)).ToList();
+                reportImages[r.IdLostReport] = imgs;
+            }
+            ViewBag.ReportImages = reportImages;
             if (TempData["LostSuccess"] != null) ViewBag.Success = TempData["LostSuccess"];
             if (TempData["LostError"] != null) ViewBag.Error = TempData["LostError"];
 

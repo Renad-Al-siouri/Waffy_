@@ -1,12 +1,14 @@
 ﻿@model Waffy.Models.ViewModels.ClinicDetailAdminViewModel
 @{
+    Layout = "~/Views/SuperAdmin/_SuperAdminLayout.cshtml";
     ViewData["Title"] = $"Waffy — Admin | {Model.Clinic.Name}";
-    Layout = null;
-    var adminName = ViewBag.AdminName as string ?? "Admin";
-    var adminInitials = ViewBag.AdminInitials as string ?? "AD";
+    ViewData["ActiveSection"] = "clinics";
+    ViewData["ActivePage"] = "clinics";
+    ViewData["PageTitle"] = "Clinic Details";
+    ViewData["BreadcrumbParent"] = "Management";
+    ViewData["BreadcrumbCurrent"] = "Clinics";
     var c = Model.Clinic;
 
-    // مساعدات الحالة
     string StatusBadge(string s) => s switch
     {
         "Approved" => "badge-success",
@@ -23,8 +25,6 @@
         "Rejected" => "❌",
         _ => "—"
     };
-
-    // label الوثيقة
     string DocLabel(string? t) => t switch
     {
         "MunicipalLicense" => "🏛 Municipal License",
@@ -40,15 +40,8 @@
         return e is ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp";
     }
 }
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"]</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="~/css/waffy-Super-Admin.css" asp-append-version="true" />
+
+@section PageStyles {
     <style>
         @@keyframes fadeUp {
             from {
@@ -89,7 +82,6 @@
             color: var(--danger);
         }
 
-        /* Hero */
         .clinic-hero {
             background: #fff;
             border: 1px solid var(--border);
@@ -124,11 +116,6 @@
                 object-fit: cover;
             }
 
-        .ch-info {
-            flex: 1;
-            min-width: 200px;
-        }
-
         .ch-name {
             font-family: 'Fredoka',sans-serif;
             font-size: 1.5rem;
@@ -146,7 +133,6 @@
             font-weight: 700;
         }
 
-        /* Quick actions bar */
         .quick-bar {
             background: #fff;
             border: 1px solid var(--border);
@@ -159,7 +145,6 @@
             box-shadow: var(--shadow);
         }
 
-        /* Info card */
         .info-card {
             background: #fff;
             border: 1px solid var(--border);
@@ -212,7 +197,6 @@
             text-align: right;
         }
 
-        /* Document card */
         .doc-card {
             border: 1.5px solid var(--border);
             border-radius: var(--r-lg);
@@ -247,7 +231,6 @@
             padding: 14px 18px;
         }
 
-        /* doc approved/rejected tint */
         .doc-card.doc-approved {
             border-color: rgba(76,175,80,.4);
         }
@@ -264,7 +247,6 @@
                 background: rgba(244,67,54,.05);
             }
 
-        /* Preview */
         .doc-preview-img {
             width: 100%;
             max-height: 220px;
@@ -297,7 +279,6 @@
             flex-wrap: wrap;
         }
 
-        /* Grid */
         .grid-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -310,9 +291,8 @@
             }
         }
 
-        /* Approve banner */
         .approve-banner {
-            background: linear-gradient(135deg, #f0f7e2, #e4f0cc);
+            background: linear-gradient(135deg,#f0f7e2,#e4f0cc);
             border: 2px solid rgba(139,169,74,.35);
             border-radius: var(--r-xl);
             padding: 20px 24px;
@@ -340,7 +320,6 @@
             margin: 0;
         }
 
-        /* Reject banner */
         .reject-banner {
             background: #fff8f8;
             border: 2px solid rgba(244,67,54,.25);
@@ -355,7 +334,6 @@
             box-shadow: var(--shadow);
         }
 
-        /* Modal */
         .modal-ovl {
             display: none;
             position: fixed;
@@ -419,7 +397,6 @@
             margin-top: 20px;
         }
 
-        /* Lightbox */
         .lightbox {
             display: none;
             position: fixed;
@@ -453,566 +430,453 @@
             margin-bottom: 14px;
         }
     </style>
-</head>
-<body>
-    <div class="wa-overlay" id="waOvl" onclick="closeMob()"></div>
-    <div class="wa-shell" id="waShell">
+}
 
-        <!-- ══ SIDEBAR (same as Clinics.cshtml) ══════════════════ -->
-        <aside class="wa-sb" id="waSb">
-            <div class="sb-logo">
-                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img"></div>
-                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Super Admin</div></div>
+<main class="wa-main" id="waMain">
+
+    @if (ViewBag.Success != null)
+    {
+        <div class="flash-toast flash-success" id="flashMsg">@ViewBag.Success</div>
+    }
+    @if (ViewBag.Error != null)
+    {
+        <div class="flash-toast flash-danger" id="flashMsg">@ViewBag.Error</div>
+    }
+
+    <section class="page-hero">
+        <div>
+            <h1>Clinic Review</h1>
+            <p>@c.Name — @c.City · <span class="badge @StatusBadge(c.VerificationStatus)">@StatusIcon(c.VerificationStatus) @c.VerificationStatus</span></p>
+        </div>
+        <div class="page-hero-actions">
+            <a asp-controller="SuperAdmin" asp-action="Clinics" class="btn btn-outline btn-sm">← Back to Clinics</a>
+        </div>
+    </section>
+
+    <div class="page-body">
+
+        @if (c.VerificationStatus == "Pending" && Model.AllDocsApproved)
+        {
+            <div class="approve-banner">
+                <div class="approve-banner-text">
+                    <h3>✅ All documents verified — Ready to approve!</h3>
+                    <p>All required documents have been reviewed and approved. You can now activate this clinic.</p>
+                </div>
+                <form method="post" asp-controller="SuperAdmin" asp-action="ApproveClinic">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                    <input type="hidden" name="from" value="details" />
+                    <button type="submit" class="btn btn-primary"
+                            onclick="return confirm('Approve and activate @c.Name.Replace("'", "\\'")?')">
+                        ✅ Approve &amp; Activate Clinic
+                    </button>
+                </form>
             </div>
-            <nav class="sb-nav">
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Dashboard">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" /><rect x="14" y="3" width="7" height="7" rx="1.5" /><rect x="3" y="14" width="7" height="7" rx="1.5" /><rect x="14" y="14" width="7" height="7" rx="1.5" /></svg></span>
-                        <span class="sb-lbl">Dashboard</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Management</div>
-                    <div>
-                        <button class="sb-row" id="t-users" onclick="acc('g-users','t-users')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /></svg></span>
-                            <span class="sb-lbl">Users</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub" id="g-users">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Users"><span class="sb-dot"></span><span class="sb-child-lbl">All Users</span></a>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <button class="sb-row open active" id="t-clinics" onclick="acc('g-clinics','t-clinics')" type="button">
-                            <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" /></svg></span>
-                            <span class="sb-lbl">Clinics</span>
-                            <span class="sb-chv"><svg class="ico" style="width:13px;height:13px" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" /></svg></span>
-                        </button>
-                        <div class="sb-sub open" id="g-clinics" style="height:auto;">
-                            <div class="sb-sub-inner">
-                                <a class="sb-child active" asp-controller="SuperAdmin" asp-action="Clinics"><span class="sb-dot"></span><span class="sb-child-lbl">All Clinics</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Reviews_Complaints_C"><span class="sb-dot"></span><span class="sb-child-lbl">Reviews &amp; Complaints</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Analytics_C"><span class="sb-dot"></span><span class="sb-child-lbl">Analytics</span></a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Doctors_C">
-                                    <span class="sb-dot"></span>
-                                    <span class="sb-child-lbl">Doctors</span>
-                                </a>
-                                <a class="sb-child" asp-controller="SuperAdmin" asp-action="Appointments_C">
-                                    <span class="sb-dot"></span>
-                                    <span class="sb-child-lbl">Appointments</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Tools</div>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="Notifications">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg></span>
-                        <span class="sb-lbl">Notifications</span>
-                    </a>
-                    <a class="sb-row" asp-controller="SuperAdmin" asp-action="RewardLog">
-                        <span class="sb-icon"><svg class="ico" viewBox="0 0 24 24"><path d="M20 12V22H4V12" /><path d="M22 7H2v5h20V7z" /><path d="M12 22V7" /></svg></span>
-                        <span class="sb-lbl">Reward Log</span>
-                    </a>
-                </div>
-            </nav>
-            <div class="sb-foot">
-                <div class="sb-user-row">
-                    <div class="sb-av">@adminInitials</div>
-                    <div class="sb-user-info">
-                        <div class="sb-user-name">@adminName</div>
-                        <div class="sb-user-role">Super Admin</div>
-                    </div>
-                </div>
-                <a class="sb-logout" asp-controller="Account" asp-action="Logout">
-                    <svg class="ico" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
-                    <span class="sb-logout-lbl">Sign Out</span>
-                </a>
-            </div>
-        </aside>
+        }
 
-        <!-- ══ TOPNAV ═════════════════════════════════════════════ -->
-        <header class="wa-tn" id="waTn">
-            <button class="tn-toggle" onclick="toggleSb()" type="button">
-                <svg class="ico" style="width:17px;height:17px" viewBox="0 0 24 24">
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <line x1="3" y1="12" x2="21" y2="12" />
-                    <line x1="3" y1="18" x2="21" y2="18" />
-                </svg>
-            </button>
-            <nav class="tn-bread">
-                <span>Clinics</span><span>/</span>
-                <a asp-controller="SuperAdmin" asp-action="Clinics" style="color:var(--text-muted);font-weight:800;">All Clinics</a>
-                <span>/</span><b>@c.Name</b>
-            </nav>
-            <div class="tn-center">
-                <div class="tn-center-main">@c.Name</div>
-                <div class="tn-center-sub">Clinic Review &amp; Approval</div>
-            </div>
-            <div class="tn-spacer"></div>
-            <div class="tn-right">
-                <div class="tn-profile">
-                    <div class="tn-av">@adminInitials</div>
-                    <div>
-                        <div class="tn-pname">@adminName</div>
-                        <div class="tn-prole">Super Admin</div>
-                    </div>
-                </div>
-            </div>
-        </header>
-
-        <!-- ══ MAIN ═══════════════════════════════════════════════ -->
-        <main class="wa-main" id="waMain">
-
-            @if (ViewBag.Success != null)
-            {
-                <div class="flash-toast flash-success" id="flashMsg">@ViewBag.Success</div>
-            }
-            @if (ViewBag.Error != null)
-            {
-                <div class="flash-toast flash-danger" id="flashMsg">@ViewBag.Error</div>
-            }
-
-            <section class="page-hero">
+        @if (c.VerificationStatus == "Pending" && Model.HasRejectedDoc)
+        {
+            <div class="reject-banner">
                 <div>
-                    <h1>Clinic Review</h1>
-                    <p>@c.Name — @c.City · <span class="badge @StatusBadge(c.VerificationStatus)">@StatusIcon(c.VerificationStatus) @c.VerificationStatus</span></p>
-                </div>
-                <div class="page-hero-actions">
-                    <a asp-controller="SuperAdmin" asp-action="Clinics" class="btn btn-outline btn-sm">← Back to Clinics</a>
-                </div>
-            </section>
-
-            <div class="page-body">
-
-                <!-- ── Approval Banner (when all docs reviewed) ─── -->
-                @if (c.VerificationStatus == "Pending" && Model.AllDocsApproved)
-                {
-                    <div class="approve-banner">
-                        <div class="approve-banner-text">
-                            <h3>✅ All documents verified — Ready to approve!</h3>
-                            <p>All required documents have been reviewed and approved. You can now activate this clinic.</p>
-                        </div>
-                        <form method="post" asp-controller="SuperAdmin" asp-action="ApproveClinic">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="clinicId" value="@c.IdClinic" />
-                            <input type="hidden" name="from" value="details" />
-                            <button type="submit" class="btn btn-primary"
-                                    onclick="return confirm('Approve and activate @c.Name.Replace("'", "\\'")?')">
-                                ✅ Approve &amp; Activate Clinic
-                            </button>
-                        </form>
-                    </div>
-                }
-
-                @if (c.VerificationStatus == "Pending" && Model.HasRejectedDoc)
-                {
-                    <div class="reject-banner">
-                        <div>
-                            <div style="font-weight:900;color:#9b1a1a;">❌ One or more documents were rejected.</div>
-                            <div style="font-size:.8rem;color:#8b5151;font-weight:700;margin-top:2px;">
-                                You can reject the whole application to notify the clinic owner.
-                            </div>
-                        </div>
-                        <button class="btn btn-danger btn-sm"
-                                onclick="openModal('rejectModal')">
-                            ❌ Reject Application
-                        </button>
-                    </div>
-                }
-
-                @if (c.VerificationStatus == "Suspended")
-                {
-                    <div class="alert-box" style="background:#FFF9EE;border:1.5px solid #E8D9A0;">
-                        <div>
-                            <div style="font-weight:900;color:#9b6000;">🔒 This clinic is currently suspended.</div>
-                            <div style="font-size:.8rem;color:#8b7751;font-weight:700;margin-top:2px;">The clinic owner cannot log in.</div>
-                        </div>
-                        <form method="post" asp-controller="SuperAdmin" asp-action="ReactivateClinic">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="clinicId" value="@c.IdClinic" />
-                            <input type="hidden" name="from" value="details" />
-                            <button type="submit" class="btn btn-primary btn-sm"
-                                    onclick="return confirm('Reactivate @c.Name.Replace("'", "\\'")?')">
-                                ✅ Reactivate
-                            </button>
-                        </form>
-                    </div>
-                }
-
-                <!-- ── Quick Actions ──────────────────────────── -->
-                <div class="quick-bar">
-                    @if (c.VerificationStatus == "Pending")
-                    {
-                        <form method="post" asp-controller="SuperAdmin" asp-action="ApproveClinic" style="display:inline;">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="clinicId" value="@c.IdClinic" />
-                            <input type="hidden" name="from" value="details" />
-                            <button type="submit" class="btn btn-primary btn-sm"
-                                    onclick="return confirm('Approve @c.Name.Replace("'", "\\'")?')">
-                                ✅ Approve Clinic
-                            </button>
-                        </form>
-                        <button class="btn btn-danger btn-sm" onclick="openModal('rejectModal')">❌ Reject</button>
-                    }
-                    else if (c.VerificationStatus == "Approved")
-                    {
-                        <button class="btn btn-danger btn-sm" onclick="openModal('suspendModal')">🔒 Suspend</button>
-                        <button class="btn btn-outline btn-sm" onclick="openModal('warnModal')">⚠️ Warn Owner</button>
-                    }
-                    else if (c.VerificationStatus == "Suspended")
-                    {
-                        <form method="post" asp-controller="SuperAdmin" asp-action="ReactivateClinic" style="display:inline;">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="clinicId" value="@c.IdClinic" />
-                            <input type="hidden" name="from" value="details" />
-                            <button type="submit" class="btn btn-primary btn-sm"
-                                    onclick="return confirm('Reactivate @c.Name.Replace("'", "\\'")?')">
-                                ✅ Reactivate
-                            </button>
-                        </form>
-                    }
-                    <a asp-controller="SuperAdmin" asp-action="Clinics" class="btn btn-outline btn-sm">← Back</a>
-                </div>
-
-                <!-- ── Info Grid ────────────────────────────── -->
-                <div class="grid-2">
-                    <div class="info-card">
-                        <div class="info-card-head"><div class="info-card-title">🏥 Clinic Information</div></div>
-                        <div class="info-card-body">
-                            <!-- Logo preview -->
-                            @{
-                                var logoDoc = Model.Documents.FirstOrDefault(d => d.DocumentType == "Logo");
-                                var logoSrc = c.LogoUrl ?? logoDoc?.FileUrl;
-                            }
-                            @if (!string.IsNullOrEmpty(logoSrc))
-                            {
-                                <div style="margin-bottom:14px;text-align:center;">
-                                    <img src="@logoSrc" alt="Clinic Logo"
-                                         style="height:80px;object-fit:contain;border-radius:12px;border:1px solid var(--border);" />
-                                </div>
-                            }
-                            <div class="info-line"><span class="info-key">Clinic ID</span>      <span class="info-val">#@c.IdClinic</span></div>
-                            <div class="info-line"><span class="info-key">Name</span>           <span class="info-val">@c.Name</span></div>
-                            <div class="info-line"><span class="info-key">Type</span>           <span class="info-val">@(c.ClinicType ?? "—")</span></div>
-                            <div class="info-line"><span class="info-key">City</span>           <span class="info-val">@c.City@(!string.IsNullOrEmpty(c.Area) ? $" — {c.Area}" : "")</span></div>
-                            <div class="info-line"><span class="info-key">Phone</span>          <span class="info-val">@c.Phone</span></div>
-                            <div class="info-line"><span class="info-key">Email</span>          <span class="info-val">@(c.Email ?? "—")</span></div>
-                            <div class="info-line"><span class="info-key">Has Emergency</span>  <span class="info-val">@(c.HasEmergency ? "✅ Yes" : "No")</span></div>
-                            <div class="info-line">
-                                <span class="info-key">Status</span>
-                                <span class="info-val"><span class="badge @StatusBadge(c.VerificationStatus)">@StatusIcon(c.VerificationStatus) @c.VerificationStatus</span></span>
-                            </div>
-                            <div class="info-line"><span class="info-key">Registered</span>    <span class="info-val">@c.CreatedAt.ToString("dd MMM yyyy, HH:mm")</span></div>
-                            @if (!string.IsNullOrEmpty(c.Description))
-                            {
-                                <div class="info-line" style="align-items:flex-start;">
-                                    <span class="info-key">Description</span>
-                                    <span class="info-val" style="max-width:240px;text-align:right;font-size:.8rem;">@c.Description</span>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                    <div class="info-card">
-                        <div class="info-card-head"><div class="info-card-title">👤 Owner Information</div></div>
-                        <div class="info-card-body">
-                            <div class="info-line"><span class="info-key">Full Name</span>  <span class="info-val">@Model.OwnerName</span></div>
-                            <div class="info-line"><span class="info-key">Email</span>      <span class="info-val">@Model.OwnerEmail</span></div>
-                            <div class="info-line"><span class="info-key">Phone</span>      <span class="info-val">@Model.OwnerPhone</span></div>
-                            <div class="info-line"><span class="info-key">User ID</span>   <span class="info-val">#@Model.OwnerId</span></div>
-                            <div class="info-line">
-                                <span class="info-key">Profile</span>
-                                <span class="info-val">
-                                    <a asp-controller="SuperAdmin" asp-action="Details_U"
-                                       asp-route-id="@Model.OwnerId"
-                                       class="btn btn-outline btn-xs">👤 View User</a>
-                                </span>
-                            </div>
-                        </div>
+                    <div style="font-weight:900;color:#9b1a1a;">❌ One or more documents were rejected.</div>
+                    <div style="font-size:.8rem;color:#8b5151;font-weight:700;margin-top:2px;">
+                        You can reject the whole application to notify the clinic owner.
                     </div>
                 </div>
-
-                <!-- ══ Documents Section ══════════════════════════ -->
-                <div class="info-card" style="margin-bottom:0;">
-                    <div class="info-card-head">
-                        <div class="info-card-title">📋 Submitted Documents</div>
-                        <div style="font-size:.78rem;font-weight:700;color:var(--text-muted);">
-                            Review each document before approving the clinic
-                        </div>
-                    </div>
-                    <div class="info-card-body">
-
-                        @{
-                            var requiredDocs = Model.Documents.Where(d => d.DocumentType != "Logo").ToList();
-                            var logoDocs = Model.Documents.Where(d => d.DocumentType == "Logo").ToList();
-                        }
-
-                        @if (!requiredDocs.Any())
-                        {
-                            <div style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">
-                                ⚠️ No documents submitted yet.
-                            </div>
-                        }
-
-                        <div class="grid-2">
-                            @foreach (var doc in requiredDocs)
-                            {
-                                var docStatusClass = (doc.Status?.ToLower()) switch
-                                {
-                                    "approved" => "doc-approved",
-                                    "rejected" => "doc-rejected",
-                                    _ => ""
-                                };
-                                var docBadge = (doc.Status?.ToLower()) switch
-                                {
-                                    "approved" => "badge-success",
-                                    "rejected" => "badge-danger",
-                                    _ => "badge-warning"
-                                };
-                                var docIcon = (doc.Status?.ToLower()) switch
-                                {
-                                    "approved" => "✅",
-                                    "rejected" => "❌",
-                                    _ => "⏳"
-                                };
-
-                                <div class="doc-card @docStatusClass">
-                                    <div class="doc-card-head">
-                                        <span class="doc-card-label">@DocLabel(doc.DocumentType)</span>
-                                        <span class="badge @docBadge">@docIcon @doc.Status</span>
-                                    </div>
-                                    <div class="doc-card-body">
-                                        <div style="font-size:.75rem;color:var(--text-muted);font-weight:700;margin-bottom:10px;">
-                                            Uploaded @doc.UploadedAt.ToString("dd MMM yyyy, HH:mm")
-                                        </div>
-
-                                        @if (IsImg(doc.FileUrl))
-                                        {
-                                            <img src="@doc.FileUrl" class="doc-preview-img"
-                                                 alt="@doc.DocumentType"
-                                                 onclick="openLightbox('@doc.FileUrl')" />
-                                        }
-                                        else
-                                        {
-                                            <a href="@doc.FileUrl" target="_blank" class="doc-preview-pdf">
-                                                <span style="font-size:1.8rem;">📄</span>
-                                                <div>
-                                                    <div>@DocLabel(doc.DocumentType)</div>
-                                                    <div style="font-size:.72rem;opacity:.7;">Click to open PDF</div>
-                                                </div>
-                                            </a>
-                                        }
-
-                                        @if (!string.IsNullOrEmpty(doc.AdminNote))
-                                        {
-                                            <div style="background:#fff9f0;border:1px solid #f0d9a0;border-radius:8px;padding:10px 12px;font-size:.78rem;font-weight:700;color:#9b6000;margin-bottom:10px;">
-                                                📝 Admin note: @doc.AdminNote
-                                            </div>
-                                        }
-
-                                        <!-- Doc Actions -->
-                                        <div class="doc-actions">
-                                            @if (doc.Status?.ToLower() != "approved")
-                                            {
-                                                <form method="post" asp-controller="SuperAdmin"
-                                                      asp-action="ApproveClinicDocument" style="display:inline;">
-                                                    @Html.AntiForgeryToken()
-                                                    <input type="hidden" name="docId" value="@doc.Id" />
-                                                    <input type="hidden" name="clinicId" value="@c.IdClinic" />
-                                                    <button type="submit" class="btn btn-primary btn-xs">✅ Approve</button>
-                                                </form>
-                                            }
-                                            @if (doc.Status?.ToLower() != "rejected")
-                                            {
-                                                <button class="btn btn-danger btn-xs"
-                                                        onclick="openRejectDoc(@doc.Id, '@DocLabel(doc.DocumentType).Replace("'", "\\'")')">
-                                                    ❌ Reject
-                                                </button>
-                                            }
-                                            <a href="@doc.FileUrl" target="_blank" class="btn btn-outline btn-xs">⬇ Download</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-
-                        <!-- Progress indicator -->
-                        @{
-                            int totalReq = requiredDocs.Count;
-                            int approvedReq = requiredDocs.Count(d => d.Status?.ToLower() == "approved");
-                            int rejectedReq = requiredDocs.Count(d => d.Status?.ToLower() == "rejected");
-                            double pct = totalReq > 0 ? (approvedReq * 100.0 / totalReq) : 0;
-                        }
-                        @if (totalReq > 0)
-                        {
-                            <div style="margin-top:18px;padding:14px 16px;background:var(--surface-2);border-radius:var(--r);border:1px solid var(--border);">
-                                <div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:800;color:var(--brand-dark);margin-bottom:8px;">
-                                    <span>📊 Review Progress</span>
-                                    <span>@approvedReq / @totalReq approved</span>
-                                </div>
-                                <div style="height:8px;background:var(--border);border-radius:99px;overflow:hidden;">
-                                    <div style="height:100%;width:@pct.ToString("F0")%;background:var(--success);border-radius:99px;transition:width .4s;"></div>
-                                </div>
-                                @if (rejectedReq > 0)
-                                {
-                                    <div style="margin-top:8px;font-size:.76rem;font-weight:800;color:var(--danger);">
-                                        ⚠️ @rejectedReq document(s) rejected — clinic cannot be approved until re-submitted.
-                                    </div>
-                                }
-                                else if (approvedReq == totalReq)
-                                {
-                                    <div style="margin-top:8px;font-size:.76rem;font-weight:800;color:var(--success);">
-                                        ✅ All documents approved — you can now approve the clinic!
-                                    </div>
-                                }
-                            </div>
-                        }
-                    </div>
-                </div>
-
+                <button class="btn btn-danger btn-sm" onclick="openModal('rejectModal')">❌ Reject Application</button>
             </div>
-        </main>
-    </div>
+        }
 
-    <!-- ══ Modals ═══════════════════════════════════════════════ -->
-    <!-- Reject Clinic Modal -->
-    <div class="modal-ovl" id="rejectModal">
-        <div class="modal-box">
-            <div class="modal-title">❌ Reject Clinic Application</div>
-            <p style="font-size:.83rem;color:var(--text-muted);font-weight:700;margin-bottom:16px;">
-                The clinic owner will be notified with the reason. They cannot log in after rejection.
-            </p>
-            <form method="post" asp-controller="SuperAdmin" asp-action="RejectClinic">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="clinicId" value="@c.IdClinic" />
-                <input type="hidden" name="from" value="details" />
-                <div class="modal-field">
-                    <label>Rejection Reason</label>
-                    <select name="reason" class="sel-wrap" style="width:100%;">
-                        <option value="Incomplete documents">Incomplete or unreadable documents</option>
-                        <option value="Expired license">Expired license</option>
-                        <option value="Invalid information">Invalid clinic information</option>
-                        <option value="Duplicate application">Duplicate application</option>
-                        <option value="Other">Other</option>
-                    </select>
+        @if (c.VerificationStatus == "Suspended")
+        {
+            <div class="alert-box" style="background:#FFF9EE;border:1.5px solid #E8D9A0;">
+                <div>
+                    <div style="font-weight:900;color:#9b6000;">🔒 This clinic is currently suspended.</div>
+                    <div style="font-size:.8rem;color:#8b7751;font-weight:700;margin-top:2px;">The clinic owner cannot log in.</div>
                 </div>
-                <div class="modal-field">
-                    <label>Additional Message <span style="opacity:.6;">(optional)</span></label>
-                    <textarea name="message" rows="3" placeholder="Explain what the clinic needs to fix or resubmit…"></textarea>
+                <form method="post" asp-controller="SuperAdmin" asp-action="ReactivateClinic">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                    <input type="hidden" name="from" value="details" />
+                    <button type="submit" class="btn btn-primary btn-sm"
+                            onclick="return confirm('Reactivate @c.Name.Replace("'", "\\'")?')">
+                        ✅ Reactivate
+                    </button>
+                </form>
+            </div>
+        }
+
+        @if (c.IsSuspended && c.VerificationStatus != "Suspended")
+        {
+            <div class="alert-box" style="background:#FFF9EE;border:1.5px solid #E8D9A0;">
+                <div>
+                    <div style="font-weight:900;color:#9b6000;">
+                        🔒 This clinic has been suspended via the Reviews &amp; Complaints panel.
+                    </div>
+                    <div style="font-size:.8rem;color:#8b7751;font-weight:700;margin-top:2px;">
+                        The suspension was issued by admin from the complaints center.
+                    </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('rejectModal')">Cancel</button>
-                    <button type="submit" class="btn btn-danger btn-sm">❌ Reject &amp; Notify Owner</button>
-                </div>
-            </form>
+                <form method="post" asp-controller="SuperAdmin" asp-action="LiftSuspension">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                    <button type="submit" class="btn btn-primary btn-sm"
+                            onclick="return confirm('Lift suspension for @c.Name.Replace("'", "\\'")?')">
+                        ✅ Lift Suspension
+                    </button>
+                </form>
+            </div>
+        }
+
+        <div class="quick-bar">
+            @if (c.VerificationStatus == "Pending")
+            {
+                <form method="post" asp-controller="SuperAdmin" asp-action="ApproveClinic" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                    <input type="hidden" name="from" value="details" />
+                    <button type="submit" class="btn btn-primary btn-sm"
+                            onclick="return confirm('Approve @c.Name.Replace("'", "\\'")?')">
+                        ✅ Approve Clinic
+                    </button>
+                </form>
+                <button class="btn btn-danger btn-sm" onclick="openModal('rejectModal')">❌ Reject</button>
+            }
+            else if (c.VerificationStatus == "Approved")
+            {
+                <button class="btn btn-danger btn-sm" onclick="openModal('suspendModal')">🔒 Suspend</button>
+                <button class="btn btn-outline btn-sm" onclick="openModal('warnModal')">⚠️ Warn Owner</button>
+            }
+            else if (c.VerificationStatus == "Suspended")
+            {
+                <form method="post" asp-controller="SuperAdmin" asp-action="ReactivateClinic" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                    <input type="hidden" name="from" value="details" />
+                    <button type="submit" class="btn btn-primary btn-sm"
+                            onclick="return confirm('Reactivate @c.Name.Replace("'", "\\'")?')">
+                        ✅ Reactivate
+                    </button>
+                </form>
+            }
+            <a asp-controller="SuperAdmin" asp-action="Clinics" class="btn btn-outline btn-sm">← Back</a>
         </div>
-    </div>
 
-    <!-- Suspend Clinic Modal -->
-    <div class="modal-ovl" id="suspendModal">
-        <div class="modal-box">
-            <div class="modal-title">🔒 Suspend Clinic</div>
-            <form method="post" asp-controller="SuperAdmin" asp-action="SuspendClinic">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="clinicId" value="@c.IdClinic" />
-                <input type="hidden" name="from" value="details" />
-                <div class="modal-field">
-                    <label>Suspension Reason</label>
-                    <select name="reason" class="sel-wrap" style="width:100%;">
-                        <option value="Policy violation">Policy violation</option>
-                        <option value="Fraud complaint">Fraud or complaint</option>
-                        <option value="Expired documents">Expired documents</option>
-                        <option value="Repeated warnings">Repeated warnings</option>
-                        <option value="Other">Other</option>
-                    </select>
+        <div class="grid-2">
+            <div class="info-card">
+                <div class="info-card-head"><div class="info-card-title">🏥 Clinic Information</div></div>
+                <div class="info-card-body">
+                    @{
+                        var logoDoc = Model.Documents.FirstOrDefault(d => d.DocumentType == "Logo");
+                        var logoSrc = c.LogoUrl ?? logoDoc?.FileUrl;
+                    }
+                    @if (!string.IsNullOrEmpty(logoSrc))
+                    {
+                        <div style="margin-bottom:14px;text-align:center;">
+                            <img src="@logoSrc" alt="Clinic Logo"
+                                 style="height:80px;object-fit:contain;border-radius:12px;border:1px solid var(--border);" />
+                        </div>
+                    }
+                    <div class="info-line"><span class="info-key">Clinic ID</span>     <span class="info-val">#@c.IdClinic</span></div>
+                    <div class="info-line"><span class="info-key">Name</span>          <span class="info-val">@c.Name</span></div>
+                    <div class="info-line"><span class="info-key">Type</span>          <span class="info-val">@(c.ClinicType ?? "—")</span></div>
+                    <div class="info-line"><span class="info-key">City</span>          <span class="info-val">@c.City@(!string.IsNullOrEmpty(c.Area) ? $" — {c.Area}" : "")</span></div>
+                    <div class="info-line"><span class="info-key">Phone</span>         <span class="info-val">@c.Phone</span></div>
+                    <div class="info-line"><span class="info-key">Email</span>         <span class="info-val">@(c.Email ?? "—")</span></div>
+                    <div class="info-line"><span class="info-key">Has Emergency</span> <span class="info-val">@(c.HasEmergency ? "✅ Yes" : "No")</span></div>
+                    <div class="info-line">
+                        <span class="info-key">Status</span>
+                        <span class="info-val"><span class="badge @StatusBadge(c.VerificationStatus)">@StatusIcon(c.VerificationStatus) @c.VerificationStatus</span></span>
+                    </div>
+                    <div class="info-line"><span class="info-key">Registered</span>   <span class="info-val">@c.CreatedAt.ToString("dd MMM yyyy, HH:mm")</span></div>
+                    @if (!string.IsNullOrEmpty(c.Description))
+                    {
+                        <div class="info-line" style="align-items:flex-start;">
+                            <span class="info-key">Description</span>
+                            <span class="info-val" style="max-width:240px;text-align:right;font-size:.8rem;">@c.Description</span>
+                        </div>
+                    }
                 </div>
-                <div class="modal-field">
-                    <label>Duration</label>
-                    <select name="duration" class="sel-wrap" style="width:100%;">
-                        <option value="7 days">7 days</option>
-                        <option value="14 days">14 days</option>
-                        <option value="30 days">30 days</option>
-                        <option value="indefinite">Indefinite</option>
-                    </select>
+            </div>
+
+            <div class="info-card">
+                <div class="info-card-head"><div class="info-card-title">👤 Owner Information</div></div>
+                <div class="info-card-body">
+                    <div class="info-line"><span class="info-key">Full Name</span> <span class="info-val">@Model.OwnerName</span></div>
+                    <div class="info-line"><span class="info-key">Email</span>     <span class="info-val">@Model.OwnerEmail</span></div>
+                    <div class="info-line"><span class="info-key">Phone</span>     <span class="info-val">@Model.OwnerPhone</span></div>
+                    <div class="info-line"><span class="info-key">User ID</span>  <span class="info-val">#@Model.OwnerId</span></div>
+                    <div class="info-line">
+                        <span class="info-key">Profile</span>
+                        <span class="info-val">
+                            <a asp-controller="SuperAdmin" asp-action="Details_U"
+                               asp-route-id="@Model.OwnerId"
+                               class="btn btn-outline btn-xs">👤 View User</a>
+                        </span>
+                    </div>
                 </div>
-                <div class="modal-field">
-                    <label>Message to Owner <span style="opacity:.6;">(optional)</span></label>
-                    <textarea name="message" rows="3" placeholder="Additional notes for the clinic owner…"></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('suspendModal')">Cancel</button>
-                    <button type="submit" class="btn btn-danger btn-sm">🔒 Suspend Clinic</button>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
 
-    <!-- Warn Owner Modal -->
-    <div class="modal-ovl" id="warnModal">
-        <div class="modal-box">
-            <div class="modal-title">⚠️ Send Warning to Clinic Owner</div>
-            <form method="post" asp-controller="SuperAdmin" asp-action="WarnClinic">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="clinicId" value="@c.IdClinic" />
-                <div class="modal-field">
-                    <label>Warning Type</label>
-                    <select name="warnType" class="sel-wrap" style="width:100%;">
-                        <option value="Policy Reminder">Policy Reminder</option>
-                        <option value="Complaint Notice">Complaint Notice</option>
-                        <option value="Document Update Required">Document Update Required</option>
-                        <option value="Service Quality">Service Quality Concern</option>
-                        <option value="Final Warning">Final Warning</option>
-                    </select>
+        <div class="info-card" style="margin-bottom:0;">
+            <div class="info-card-head">
+                <div class="info-card-title">📋 Submitted Documents</div>
+                <div style="font-size:.78rem;font-weight:700;color:var(--text-muted);">
+                    Review each document before approving the clinic
                 </div>
-                <div class="modal-field">
-                    <label>Warning Message</label>
-                    <textarea name="warnMessage" rows="4" placeholder="Write the warning message…"></textarea>
+            </div>
+            <div class="info-card-body">
+                @{
+                    var requiredDocs = Model.Documents.Where(d => d.DocumentType != "Logo").ToList();
+                }
+                @if (!requiredDocs.Any())
+                {
+                    <div style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">
+                        ⚠️ No documents submitted yet.
+                    </div>
+                }
+                <div class="grid-2">
+                    @foreach (var doc in requiredDocs)
+                    {
+                        var docStatusClass = (doc.Status?.ToLower()) switch
+                        {
+                            "approved" => "doc-approved",
+                            "rejected" => "doc-rejected",
+                            _ => ""
+                        };
+                        var docBadge = (doc.Status?.ToLower()) switch
+                        {
+                            "approved" => "badge-success",
+                            "rejected" => "badge-danger",
+                            _ => "badge-warning"
+                        };
+                        var docIcon = (doc.Status?.ToLower()) switch
+                        {
+                            "approved" => "✅",
+                            "rejected" => "❌",
+                            _ => "⏳"
+                        };
+                        <div class="doc-card @docStatusClass">
+                            <div class="doc-card-head">
+                                <span class="doc-card-label">@DocLabel(doc.DocumentType)</span>
+                                <span class="badge @docBadge">@docIcon @doc.Status</span>
+                            </div>
+                            <div class="doc-card-body">
+                                <div style="font-size:.75rem;color:var(--text-muted);font-weight:700;margin-bottom:10px;">
+                                    Uploaded @doc.UploadedAt.ToString("dd MMM yyyy, HH:mm")
+                                </div>
+                                @if (IsImg(doc.FileUrl))
+                                {
+                                    <img src="@doc.FileUrl" class="doc-preview-img"
+                                         alt="@doc.DocumentType"
+                                         onclick="openLightbox('@doc.FileUrl')" />
+                                }
+                                else
+                                {
+                                    <a href="@doc.FileUrl" target="_blank" class="doc-preview-pdf">
+                                        <span style="font-size:1.8rem;">📄</span>
+                                        <div>
+                                            <div>@DocLabel(doc.DocumentType)</div>
+                                            <div style="font-size:.72rem;opacity:.7;">Click to open PDF</div>
+                                        </div>
+                                    </a>
+                                }
+                                @if (!string.IsNullOrEmpty(doc.AdminNote))
+                                {
+                                    <div style="background:#fff9f0;border:1px solid #f0d9a0;border-radius:8px;padding:10px 12px;font-size:.78rem;font-weight:700;color:#9b6000;margin-bottom:10px;">
+                                        📝 Admin note: @doc.AdminNote
+                                    </div>
+                                }
+                                <div class="doc-actions">
+                                    @if (doc.Status?.ToLower() != "approved")
+                                    {
+                                        <form method="post" asp-controller="SuperAdmin"
+                                              asp-action="ApproveClinicDocument" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="docId" value="@doc.Id" />
+                                            <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                                            <button type="submit" class="btn btn-primary btn-xs">✅ Approve</button>
+                                        </form>
+                                    }
+                                    @if (doc.Status?.ToLower() != "rejected")
+                                    {
+                                        <button class="btn btn-danger btn-xs"
+                                                onclick="openRejectDoc(@doc.Id, '@DocLabel(doc.DocumentType).Replace("'", "\\'")')">
+                                            ❌ Reject
+                                        </button>
+                                    }
+                                    <a href="@doc.FileUrl" target="_blank" class="btn btn-outline btn-xs">⬇ Download</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('warnModal')">Cancel</button>
-                    <button type="submit" class="btn btn-primary btn-sm">⚠️ Send Warning</button>
-                </div>
-            </form>
+
+                @{
+                    int totalReq = requiredDocs.Count;
+                    int approvedReq = requiredDocs.Count(d => d.Status?.ToLower() == "approved");
+                    int rejectedReq = requiredDocs.Count(d => d.Status?.ToLower() == "rejected");
+                    double pct = totalReq > 0 ? (approvedReq * 100.0 / totalReq) : 0;
+                }
+                @if (totalReq > 0)
+                {
+                    <div style="margin-top:18px;padding:14px 16px;background:var(--surface-2);border-radius:var(--r);border:1px solid var(--border);">
+                        <div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:800;color:var(--brand-dark);margin-bottom:8px;">
+                            <span>📊 Review Progress</span>
+                            <span>@approvedReq / @totalReq approved</span>
+                        </div>
+                        <div style="height:8px;background:var(--border);border-radius:99px;overflow:hidden;">
+                            <div style="height:100%;width:@pct.ToString("F0")%;background:var(--success);border-radius:99px;transition:width .4s;"></div>
+                        </div>
+                        @if (rejectedReq > 0)
+                        {
+                            <div style="margin-top:8px;font-size:.76rem;font-weight:800;color:var(--danger);">
+                                ⚠️ @rejectedReq document(s) rejected — clinic cannot be approved until re-submitted.
+                            </div>
+                        }
+                        else if (approvedReq == totalReq)
+                        {
+                            <div style="margin-top:8px;font-size:.76rem;font-weight:800;color:var(--success);">
+                                ✅ All documents approved — you can now approve the clinic!
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
         </div>
-    </div>
 
-    <!-- Reject Document Modal -->
-    <div class="modal-ovl" id="rejectDocModal">
-        <div class="modal-box">
-            <div class="modal-title">❌ Reject Document</div>
-            <p style="font-size:.83rem;color:var(--text-muted);font-weight:700;margin-bottom:14px;">
-                Document: <strong id="rejectDocName"></strong>
-            </p>
-            <form method="post" asp-controller="SuperAdmin" asp-action="RejectClinicDocument">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="docId" id="rejectDocId" />
-                <input type="hidden" name="clinicId" value="@c.IdClinic" />
-                <div class="modal-field">
-                    <label>Reason / Admin Note <span style="opacity:.6;">(optional)</span></label>
-                    <textarea name="adminNote" rows="3" placeholder="e.g. Document is expired, unreadable, or incorrect…"></textarea>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('rejectDocModal')">Cancel</button>
-                    <button type="submit" class="btn btn-danger btn-sm">❌ Reject Document</button>
-                </div>
-            </form>
-        </div>
     </div>
+</main>
 
-    <!-- Lightbox -->
-    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
-        <img id="lightboxImg" src="" alt="Document Preview" />
+<!-- Modals -->
+<div class="modal-ovl" id="rejectModal">
+    <div class="modal-box">
+        <div class="modal-title">❌ Reject Clinic Application</div>
+        <p style="font-size:.83rem;color:var(--text-muted);font-weight:700;margin-bottom:16px;">
+            The clinic owner will be notified with the reason. They cannot log in after rejection.
+        </p>
+        <form method="post" asp-controller="SuperAdmin" asp-action="RejectClinic">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="clinicId" value="@c.IdClinic" />
+            <input type="hidden" name="from" value="details" />
+            <div class="modal-field">
+                <label>Rejection Reason</label>
+                <select name="reason" class="sel-wrap" style="width:100%;">
+                    <option value="Incomplete documents">Incomplete or unreadable documents</option>
+                    <option value="Expired license">Expired license</option>
+                    <option value="Invalid information">Invalid clinic information</option>
+                    <option value="Duplicate application">Duplicate application</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="modal-field">
+                <label>Additional Message <span style="opacity:.6;">(optional)</span></label>
+                <textarea name="message" rows="3" placeholder="Explain what the clinic needs to fix or resubmit…"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('rejectModal')">Cancel</button>
+                <button type="submit" class="btn btn-danger btn-sm">❌ Reject &amp; Notify Owner</button>
+            </div>
+        </form>
     </div>
+</div>
 
-    <script src="~/js/Waffy-Shell.js" asp-append-version="true"></script>
+<div class="modal-ovl" id="suspendModal">
+    <div class="modal-box">
+        <div class="modal-title">🔒 Suspend Clinic</div>
+        <form method="post" asp-controller="SuperAdmin" asp-action="SuspendClinic">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="clinicId" value="@c.IdClinic" />
+            <input type="hidden" name="from" value="details" />
+            <div class="modal-field">
+                <label>Suspension Reason</label>
+                <select name="reason" class="sel-wrap" style="width:100%;">
+                    <option value="Policy violation">Policy violation</option>
+                    <option value="Fraud complaint">Fraud or complaint</option>
+                    <option value="Expired documents">Expired documents</option>
+                    <option value="Repeated warnings">Repeated warnings</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="modal-field">
+                <label>Duration</label>
+                <select name="duration" class="sel-wrap" style="width:100%;">
+                    <option value="7 days">7 days</option>
+                    <option value="14 days">14 days</option>
+                    <option value="30 days">30 days</option>
+                    <option value="indefinite">Indefinite</option>
+                </select>
+            </div>
+            <div class="modal-field">
+                <label>Message to Owner <span style="opacity:.6;">(optional)</span></label>
+                <textarea name="message" rows="3" placeholder="Additional notes for the clinic owner…"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('suspendModal')">Cancel</button>
+                <button type="submit" class="btn btn-danger btn-sm">🔒 Suspend Clinic</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-ovl" id="warnModal">
+    <div class="modal-box">
+        <div class="modal-title">⚠️ Send Warning to Clinic Owner</div>
+        <form method="post" asp-controller="SuperAdmin" asp-action="WarnTarget">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="targetType" value="Clinic" />
+            <input type="hidden" name="targetId" value="@c.IdClinic" />
+            <div class="modal-field">
+                <label>Warning Type</label>
+                <select name="warnType" class="sel-wrap" style="width:100%;">
+                    <option value="Policy Reminder">Policy Reminder</option>
+                    <option value="Complaint Notice">Complaint Notice</option>
+                    <option value="Document Update Required">Document Update Required</option>
+                    <option value="Service Quality">Service Quality Concern</option>
+                    <option value="Final Warning">Final Warning</option>
+                </select>
+            </div>
+            <div class="modal-field">
+                <label>Warning Message</label>
+                <textarea name="warnMessage" rows="4" placeholder="Write the warning message…"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('warnModal')">Cancel</button>
+                <button type="submit" class="btn btn-primary btn-sm">⚠️ Send Warning</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-ovl" id="rejectDocModal">
+    <div class="modal-box">
+        <div class="modal-title">❌ Reject Document</div>
+        <p style="font-size:.83rem;color:var(--text-muted);font-weight:700;margin-bottom:14px;">
+            Document: <strong id="rejectDocName"></strong>
+        </p>
+        <form method="post" asp-controller="SuperAdmin" asp-action="RejectClinicDocument">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="docId" id="rejectDocId" />
+            <input type="hidden" name="clinicId" value="@c.IdClinic" />
+            <div class="modal-field">
+                <label>Reason / Admin Note <span style="opacity:.6;">(optional)</span></label>
+                <textarea name="adminNote" rows="3" placeholder="e.g. Document is expired, unreadable, or incorrect…"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('rejectDocModal')">Cancel</button>
+                <button type="submit" class="btn btn-danger btn-sm">❌ Reject Document</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <img id="lightboxImg" src="" alt="Document Preview" />
+</div>
+
+@section PageScripts {
     <script>
-        function openModal(id)  { document.getElementById(id).classList.add('open'); }
+        function openModal(id)  { document.getElementById(id).classList.add('open');    }
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
         document.querySelectorAll('.modal-ovl').forEach(m => {
@@ -1020,8 +884,8 @@
         });
 
         function openRejectDoc(docId, docName) {
-            document.getElementById('rejectDocId').value = docId;
-            document.getElementById('rejectDocName').textContent = docName;
+            document.getElementById('rejectDocId').value           = docId;
+            document.getElementById('rejectDocName').textContent   = docName;
             openModal('rejectDocModal');
         }
 
@@ -1036,5 +900,4 @@
         const fm = document.getElementById('flashMsg');
         if (fm) { setTimeout(() => fm.style.opacity = '0', 3500); setTimeout(() => fm.remove(), 3900); }
     </script>
-</body>
-</html>
+}
