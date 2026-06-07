@@ -11,27 +11,27 @@
 
     string StatusBadge(string s) => s switch
     {
-        "Approved" => "badge-success",
-        "Pending" => "badge-warning",
+        "Approved"  => "badge-success",
+        "Pending"   => "badge-warning",
         "Suspended" => "badge-danger",
-        "Rejected" => "badge-danger",
-        _ => "badge-muted"
+        "Rejected"  => "badge-danger",
+        _           => "badge-muted"
     };
     string StatusIcon(string s) => s switch
     {
-        "Approved" => "✅",
-        "Pending" => "⏳",
+        "Approved"  => "✅",
+        "Pending"   => "⏳",
         "Suspended" => "🔒",
-        "Rejected" => "❌",
-        _ => "—"
+        "Rejected"  => "❌",
+        _           => "—"
     };
     string DocLabel(string? t) => t switch
     {
-        "MunicipalLicense" => "🏛 Municipal License",
-        "VeterinaryLicense" => "⚕️ Veterinary Practice License",
-        "NationalId" => "🪪 Manager National ID",
-        "Logo" => "🎨 Clinic Logo",
-        _ => t ?? "Document"
+        "MunicipalLicense"   => "🏛 Municipal License",
+        "VeterinaryLicense"  => "⚕️ Veterinary Practice License",
+        "NationalId"         => "🪪 Manager National ID",
+        "Logo"               => "🎨 Clinic Logo",
+        _                    => t ?? "Document"
     };
     bool IsImg(string? url)
     {
@@ -39,401 +39,324 @@
         var e = System.IO.Path.GetExtension(url).ToLowerInvariant();
         return e is ".jpg" or ".jpeg" or ".png" or ".gif" or ".webp";
     }
+    bool IsImgDoc(string? url)
+    {
+        if (string.IsNullOrEmpty(url)) return false;
+        var e = System.IO.Path.GetExtension(url).ToLowerInvariant();
+        return e is ".jpg" or ".jpeg" or ".png" or ".webp";
+    }
+
+    // Doctors counts (from ViewBag)
+    var doctors = ViewBag.Doctors as List<Waffy.Models.ViewModels.DoctorAdminRowDto> ?? new();
+    int docTotal    = doctors.Count;
+    int docPending  = doctors.Count(d => d.VerificationStatus == "Pending");
+    int docApproved = doctors.Count(d => d.VerificationStatus == "Approved");
+
+    // Appointments counts (from ViewBag)
+    var appts = ViewBag.Appointments as List<Waffy.Models.ViewModels.AppointmentDto> ?? new();
+    int apptTotal    = appts.Count;
+    int apptPending  = appts.Count(a => a.Status is
+        "PendingDoctorApproval" or "PendingClinicApproval" or
+        "PendingPayment" or "PendingPaymentVerification");
+    int apptConfirmed = appts.Count(a => a.Status == "Confirmed");
 }
 
 @section PageStyles {
-    <style>
-        @@keyframes fadeUp {
-            from {
-                opacity: 0;
-                transform: translateY(8px);
-            }
+<style>
+/* ═══════════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════════ */
+@@keyframes fadeUp {
+    from { opacity:0; transform:translateY(8px); }
+    to   { opacity:1; transform:translateY(0);   }
+}
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+/* ═══════════════════════════════════════════════
+   FLASH TOASTS
+═══════════════════════════════════════════════ */
+.flash-toast {
+    position:fixed; bottom:24px; right:24px; z-index:9999;
+    padding:14px 20px; border-radius:14px;
+    font-weight:800; font-size:.86rem; font-family:'Nunito',sans-serif;
+    box-shadow:0 8px 24px rgba(0,0,0,.12); max-width:320px;
+    animation:fadeUp .25s ease;
+}
+.flash-success { background:var(--success-soft); border:1px solid rgba(76,175,80,.3); color:var(--success); }
+.flash-danger  { background:var(--danger-soft);  border:1px solid rgba(244,67,54,.3);  color:var(--danger);  }
 
-        .flash-toast {
-            position: fixed;
-            bottom: 24px;
-            right: 24px;
-            z-index: 9999;
-            padding: 14px 20px;
-            border-radius: 14px;
-            font-weight: 800;
-            font-size: .86rem;
-            font-family: 'Nunito',sans-serif;
-            box-shadow: 0 8px 24px rgba(0,0,0,.12);
-            max-width: 320px;
-            animation: fadeUp .25s ease;
-        }
+/* ═══════════════════════════════════════════════
+   CLINIC HERO CARD
+═══════════════════════════════════════════════ */
+.clinic-hero {
+    background:#fff; border:1px solid var(--border);
+    border-radius:var(--r-lg); box-shadow:var(--shadow);
+    padding:22px; margin-bottom:16px;
+    display:flex; align-items:flex-start; gap:20px; flex-wrap:wrap;
+}
+.ch-logo {
+    width:88px; height:88px; border-radius:18px; object-fit:cover;
+    border:1px solid var(--border); background:var(--surface-2);
+    flex-shrink:0; display:flex; align-items:center;
+    justify-content:center; font-size:2.4rem; overflow:hidden;
+}
+.ch-logo img { width:100%; height:100%; object-fit:cover; }
+.ch-name { font-family:'Fredoka',sans-serif; font-size:1.5rem; font-weight:700; color:var(--brand-dark); }
+.ch-meta { display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; font-size:.83rem; color:var(--text-muted); font-weight:700; }
 
-        .flash-success {
-            background: var(--success-soft);
-            border: 1px solid rgba(76,175,80,.3);
-            color: var(--success);
-        }
+/* ═══════════════════════════════════════════════
+   QUICK ACTION BAR
+═══════════════════════════════════════════════ */
+.quick-bar {
+    background:#fff; border:1px solid var(--border);
+    border-radius:var(--r); padding:14px 16px; margin-bottom:14px;
+    display:flex; gap:8px; flex-wrap:wrap; box-shadow:var(--shadow);
+}
 
-        .flash-danger {
-            background: var(--danger-soft);
-            border: 1px solid rgba(244,67,54,.3);
-            color: var(--danger);
-        }
+/* ═══════════════════════════════════════════════
+   MINI KPI STRIP
+═══════════════════════════════════════════════ */
+.mini-kpi-strip {
+    display:grid; grid-template-columns:repeat(3,1fr); gap:12px;
+    margin-bottom:16px;
+}
+.mini-kpi {
+    background:#fff; border:1px solid var(--border);
+    border-radius:var(--r-lg); padding:16px 18px;
+    box-shadow:var(--shadow-sm);
+    display:flex; align-items:center; gap:12px;
+}
+.mini-kpi-ico { font-size:1.5rem; flex-shrink:0; }
+.mini-kpi-val {
+    font-family:'Fredoka',sans-serif; font-size:1.45rem;
+    font-weight:700; color:var(--brand-dark); line-height:1;
+}
+.mini-kpi-lbl { font-size:.75rem; font-weight:800; color:var(--text-muted); margin-top:2px; }
+@@media(max-width:700px) { .mini-kpi-strip { grid-template-columns:1fr; } }
 
-        .clinic-hero {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: var(--r-lg);
-            box-shadow: var(--shadow);
-            padding: 22px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: flex-start;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
+/* ═══════════════════════════════════════════════
+   TABS
+═══════════════════════════════════════════════ */
+.tabs-bar {
+    display:flex; gap:4px; background:#fff;
+    border:1px solid var(--border); border-radius:var(--r-lg);
+    padding:6px; margin-bottom:16px; box-shadow:var(--shadow-sm);
+    flex-wrap:wrap;
+}
+.tab-btn {
+    flex:1; min-width:120px; padding:10px 16px;
+    border-radius:12px; border:none; background:transparent;
+    font-family:'Nunito',sans-serif; font-size:.86rem;
+    font-weight:800; color:var(--text-muted);
+    cursor:pointer; transition:background .18s,color .18s;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+}
+.tab-btn:hover { background:var(--brand-ghost); color:var(--brand-dark); }
+.tab-btn.active {
+    background:var(--brand-ghost);
+    border:1px solid var(--brand-light);
+    color:var(--brand-dark);
+    box-shadow:var(--shadow-xs);
+}
+.tab-badge {
+    padding:1px 7px; border-radius:99px;
+    font-size:.68rem; font-weight:900;
+    background:var(--brand-light); color:var(--brand-dark);
+}
+.tab-badge.warn { background:#fff3cd; color:#856404; }
+.tab-pane { display:none; }
+.tab-pane.active { display:block; animation:fadeUp .2s ease; }
 
-        .ch-logo {
-            width: 88px;
-            height: 88px;
-            border-radius: 18px;
-            object-fit: cover;
-            border: 1px solid var(--border);
-            background: var(--surface-2);
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.4rem;
-            overflow: hidden;
-        }
+/* ═══════════════════════════════════════════════
+   INFO CARDS (TAB 1)
+═══════════════════════════════════════════════ */
+.info-card {
+    background:#fff; border:1px solid var(--border);
+    border-radius:var(--r-lg); box-shadow:var(--shadow);
+    overflow:hidden; margin-bottom:14px;
+}
+.info-card-head {
+    padding:13px 18px; border-bottom:1px solid var(--border);
+    display:flex; justify-content:space-between; align-items:center;
+}
+.info-card-title {
+    font-family:'Fredoka',sans-serif; font-size:.97rem;
+    font-weight:700; color:var(--brand-dark);
+}
+.info-card-body { padding:16px 18px; }
+.info-line {
+    display:flex; justify-content:space-between; align-items:center;
+    padding:10px 0; border-bottom:1px solid rgba(221,209,191,.5); font-size:.84rem;
+}
+.info-line:last-child { border-bottom:none; }
+.info-key  { color:var(--text-muted); font-weight:700; }
+.info-val  { font-weight:900; color:var(--brand-dark); text-align:right; }
 
-            .ch-logo img {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@@media(max-width:900px) { .grid-2 { grid-template-columns:1fr; } }
 
-        .ch-name {
-            font-family: 'Fredoka',sans-serif;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--brand-dark);
-        }
+/* ═══════════════════════════════════════════════
+   DOCUMENT CARDS (TAB 1)
+═══════════════════════════════════════════════ */
+.doc-card {
+    border:1.5px solid var(--border); border-radius:var(--r-lg);
+    overflow:hidden; margin-bottom:14px; background:#fff;
+    box-shadow:var(--shadow); transition:box-shadow .15s;
+}
+.doc-card:hover { box-shadow:0 6px 20px rgba(0,0,0,.08); }
+.doc-card-head {
+    padding:14px 18px; background:var(--surface-2);
+    border-bottom:1px solid var(--border);
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+}
+.doc-card-label { font-weight:800; font-size:.9rem; color:var(--brand-dark); }
+.doc-card-body  { padding:14px 18px; }
+.doc-card.doc-approved { border-color:rgba(76,175,80,.4); }
+.doc-card.doc-approved .doc-card-head { background:rgba(76,175,80,.06); }
+.doc-card.doc-rejected { border-color:rgba(244,67,54,.35); }
+.doc-card.doc-rejected .doc-card-head { background:rgba(244,67,54,.05); }
+.doc-preview-img {
+    width:100%; max-height:220px; object-fit:contain;
+    border-radius:var(--r); border:1px solid var(--border);
+    background:var(--surface-2); margin-bottom:12px; cursor:zoom-in;
+}
+.doc-preview-pdf {
+    display:flex; align-items:center; gap:10px;
+    padding:12px 14px; background:var(--surface-2);
+    border-radius:var(--r); border:1px solid var(--border);
+    margin-bottom:12px; text-decoration:none;
+    color:var(--brand-dark); font-weight:800; font-size:.86rem;
+}
+.doc-actions { display:flex; gap:8px; flex-wrap:wrap; }
 
-        .ch-meta {
-            display: flex;
-            gap: 14px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-            font-size: .83rem;
-            color: var(--text-muted);
-            font-weight: 700;
-        }
+/* ═══════════════════════════════════════════════
+   APPROVE/REJECT BANNERS (TAB 1)
+═══════════════════════════════════════════════ */
+.approve-banner {
+    background:linear-gradient(135deg,#f0f7e2,#e4f0cc);
+    border:2px solid rgba(139,169,74,.35); border-radius:var(--r-xl);
+    padding:20px 24px; margin-bottom:16px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; flex-wrap:wrap; box-shadow:var(--shadow);
+}
+.approve-banner-text h3 {
+    font-family:'Fredoka',sans-serif; font-size:1.1rem;
+    font-weight:700; color:var(--brand-dark); margin:0 0 4px;
+}
+.approve-banner-text p { font-size:.83rem; color:var(--text-muted); font-weight:700; margin:0; }
 
-        .quick-bar {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: var(--r);
-            padding: 14px 16px;
-            margin-bottom: 14px;
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            box-shadow: var(--shadow);
-        }
+.reject-banner {
+    background:#fff8f8; border:2px solid rgba(244,67,54,.25);
+    border-radius:var(--r-xl); padding:20px 24px; margin-bottom:16px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:16px; flex-wrap:wrap; box-shadow:var(--shadow);
+}
+.alert-box {
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; flex-wrap:wrap; border-radius:var(--r);
+    padding:14px 18px; margin-bottom:14px;
+}
 
-        .info-card {
-            background: #fff;
-            border: 1px solid var(--border);
-            border-radius: var(--r-lg);
-            box-shadow: var(--shadow);
-            overflow: hidden;
-            margin-bottom: 14px;
-        }
+/* ═══════════════════════════════════════════════
+   DOCTORS TABLE (TAB 2)
+═══════════════════════════════════════════════ */
+.cert-link {
+    display:inline-flex; align-items:center; gap:5px;
+    padding:4px 10px; border-radius:8px;
+    background:var(--brand-ghost); color:var(--brand-dark);
+    font-size:.75rem; font-weight:800; text-decoration:none;
+    border:1px solid var(--brand-light);
+}
+.cert-link:hover { background:var(--brand-light); }
 
-        .info-card-head {
-            padding: 13px 18px;
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+/* ═══════════════════════════════════════════════
+   APPOINTMENTS TABLE (TAB 3)
+═══════════════════════════════════════════════ */
+.appt-deposit-pill {
+    font-size:.72rem; font-weight:800;
+    padding:2px 8px; border-radius:20px;
+}
 
-        .info-card-title {
-            font-family: 'Fredoka',sans-serif;
-            font-size: .97rem;
-            font-weight: 700;
-            color: var(--brand-dark);
-        }
+/* ═══════════════════════════════════════════════
+   SHARED TABLE CARD
+═══════════════════════════════════════════════ */
+.tab-table-card {
+    background:#fff; border:1px solid var(--border);
+    border-radius:var(--r-lg); box-shadow:var(--shadow);
+    overflow:hidden;
+}
+.tab-table-head {
+    padding:13px 18px; border-bottom:1px solid var(--border);
+    display:flex; justify-content:space-between; align-items:center;
+    flex-wrap:wrap; gap:8px;
+}
+.tab-table-title {
+    font-family:'Fredoka',sans-serif; font-size:.97rem;
+    font-weight:700; color:var(--brand-dark);
+}
 
-        .info-card-body {
-            padding: 16px 18px;
-        }
+/* ═══════════════════════════════════════════════
+   MODALS
+═══════════════════════════════════════════════ */
+.modal-ovl {
+    display:none; position:fixed; inset:0; z-index:1000;
+    background:rgba(0,0,0,.45); backdrop-filter:blur(2px);
+    align-items:center; justify-content:center;
+}
+.modal-ovl.open { display:flex; }
+.modal-box {
+    background:#fff; border-radius:var(--r-xl);
+    padding:28px; width:100%; max-width:500px;
+    box-shadow:0 20px 60px rgba(0,0,0,.2); animation:fadeUp .2s ease;
+}
+.modal-title {
+    font-family:'Fredoka',sans-serif; font-size:1.1rem;
+    font-weight:700; color:var(--brand-dark); margin-bottom:18px;
+}
+.modal-field { margin-bottom:14px; }
+.modal-field label {
+    display:block; font-size:.78rem; font-weight:800;
+    color:var(--text-muted); margin-bottom:6px;
+}
+.modal-field select, .modal-field textarea, .modal-field input {
+    width:100%; padding:10px 12px; border-radius:var(--r);
+    border:1.5px solid var(--border); font-family:'Nunito',sans-serif;
+    font-size:.84rem; font-weight:700; resize:vertical;
+}
+.modal-footer { display:flex; gap:10px; justify-content:flex-end; margin-top:20px; }
 
-        .info-line {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid rgba(221,209,191,.5);
-            font-size: .84rem;
-        }
+/* ── Lightbox ── */
+.lightbox {
+    display:none; position:fixed; inset:0; z-index:2000;
+    background:rgba(0,0,0,.88); align-items:center;
+    justify-content:center; cursor:zoom-out;
+}
+.lightbox.open { display:flex; }
+.lightbox img {
+    max-width:90vw; max-height:90vh;
+    border-radius:var(--r); box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
 
-            .info-line:last-child {
-                border-bottom: none;
-            }
-
-        .info-key {
-            color: var(--text-muted);
-            font-weight: 700;
-        }
-
-        .info-val {
-            font-weight: 900;
-            color: var(--brand-dark);
-            text-align: right;
-        }
-
-        .doc-card {
-            border: 1.5px solid var(--border);
-            border-radius: var(--r-lg);
-            overflow: hidden;
-            margin-bottom: 14px;
-            background: #fff;
-            box-shadow: var(--shadow);
-            transition: box-shadow .15s;
-        }
-
-            .doc-card:hover {
-                box-shadow: 0 6px 20px rgba(0,0,0,.08);
-            }
-
-        .doc-card-head {
-            padding: 14px 18px;
-            background: var(--surface-2);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-        }
-
-        .doc-card-label {
-            font-weight: 800;
-            font-size: .9rem;
-            color: var(--brand-dark);
-        }
-
-        .doc-card-body {
-            padding: 14px 18px;
-        }
-
-        .doc-card.doc-approved {
-            border-color: rgba(76,175,80,.4);
-        }
-
-            .doc-card.doc-approved .doc-card-head {
-                background: rgba(76,175,80,.06);
-            }
-
-        .doc-card.doc-rejected {
-            border-color: rgba(244,67,54,.35);
-        }
-
-            .doc-card.doc-rejected .doc-card-head {
-                background: rgba(244,67,54,.05);
-            }
-
-        .doc-preview-img {
-            width: 100%;
-            max-height: 220px;
-            object-fit: contain;
-            border-radius: var(--r);
-            border: 1px solid var(--border);
-            background: var(--surface-2);
-            margin-bottom: 12px;
-            cursor: zoom-in;
-        }
-
-        .doc-preview-pdf {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 12px 14px;
-            background: var(--surface-2);
-            border-radius: var(--r);
-            border: 1px solid var(--border);
-            margin-bottom: 12px;
-            text-decoration: none;
-            color: var(--brand-dark);
-            font-weight: 800;
-            font-size: .86rem;
-        }
-
-        .doc-actions {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
-
-        @@media(max-width:900px) {
-            .grid-2 {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .approve-banner {
-            background: linear-gradient(135deg,#f0f7e2,#e4f0cc);
-            border: 2px solid rgba(139,169,74,.35);
-            border-radius: var(--r-xl);
-            padding: 20px 24px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-            box-shadow: var(--shadow);
-        }
-
-        .approve-banner-text h3 {
-            font-family: 'Fredoka',sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--brand-dark);
-            margin: 0 0 4px;
-        }
-
-        .approve-banner-text p {
-            font-size: .83rem;
-            color: var(--text-muted);
-            font-weight: 700;
-            margin: 0;
-        }
-
-        .reject-banner {
-            background: #fff8f8;
-            border: 2px solid rgba(244,67,54,.25);
-            border-radius: var(--r-xl);
-            padding: 20px 24px;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-            box-shadow: var(--shadow);
-        }
-
-        .modal-ovl {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 1000;
-            background: rgba(0,0,0,.45);
-            backdrop-filter: blur(2px);
-            align-items: center;
-            justify-content: center;
-        }
-
-            .modal-ovl.open {
-                display: flex;
-            }
-
-        .modal-box {
-            background: #fff;
-            border-radius: var(--r-xl);
-            padding: 28px;
-            width: 100%;
-            max-width: 500px;
-            box-shadow: 0 20px 60px rgba(0,0,0,.2);
-            animation: fadeUp .2s ease;
-        }
-
-        .modal-title {
-            font-family: 'Fredoka',sans-serif;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--brand-dark);
-            margin-bottom: 18px;
-        }
-
-        .modal-field {
-            margin-bottom: 14px;
-        }
-
-            .modal-field label {
-                display: block;
-                font-size: .78rem;
-                font-weight: 800;
-                color: var(--text-muted);
-                margin-bottom: 6px;
-            }
-
-            .modal-field select, .modal-field textarea, .modal-field input {
-                width: 100%;
-                padding: 10px 12px;
-                border-radius: var(--r);
-                border: 1.5px solid var(--border);
-                font-family: 'Nunito',sans-serif;
-                font-size: .84rem;
-                font-weight: 700;
-                resize: vertical;
-            }
-
-        .modal-footer {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 20px;
-        }
-
-        .lightbox {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 2000;
-            background: rgba(0,0,0,.88);
-            align-items: center;
-            justify-content: center;
-            cursor: zoom-out;
-        }
-
-            .lightbox.open {
-                display: flex;
-            }
-
-            .lightbox img {
-                max-width: 90vw;
-                max-height: 90vh;
-                border-radius: var(--r);
-                box-shadow: 0 20px 60px rgba(0,0,0,.5);
-            }
-
-        .alert-box {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            flex-wrap: wrap;
-            border-radius: var(--r);
-            padding: 14px 18px;
-            margin-bottom: 14px;
-        }
-    </style>
+/* ═══════════════════════════════════════════════
+   RESPONSIVE TWEAKS
+═══════════════════════════════════════════════ */
+@@media(max-width:768px) {
+    .clinic-hero { flex-direction:column; align-items:center; text-align:center; }
+    .ch-meta { justify-content:center; }
+}
+@@media(max-width:640px) {
+    .tabs-bar { flex-direction:column; }
+    .tab-btn  { min-width:unset; }
+    .mini-kpi-strip { grid-template-columns:1fr 1fr; }
+}
+@@media(max-width:420px) {
+    .mini-kpi-strip { grid-template-columns:1fr; }
+}
+</style>
 }
 
 <main class="wa-main" id="waMain">
 
+    @* ── Flash Messages ── *@
     @if (ViewBag.Success != null)
     {
         <div class="flash-toast flash-success" id="flashMsg">@ViewBag.Success</div>
@@ -443,10 +366,16 @@
         <div class="flash-toast flash-danger" id="flashMsg">@ViewBag.Error</div>
     }
 
+    @* ── Page Hero ── *@
     <section class="page-hero">
         <div>
-            <h1>Clinic Review</h1>
-            <p>@c.Name — @c.City · <span class="badge @StatusBadge(c.VerificationStatus)">@StatusIcon(c.VerificationStatus) @c.VerificationStatus</span></p>
+            <h1>@c.Name</h1>
+            <p>
+                📍 @c.City
+                @if (!string.IsNullOrEmpty(c.Area)) { <text> — @c.Area</text> }
+                &nbsp;·&nbsp;
+                <span class="badge @StatusBadge(c.VerificationStatus)">@StatusIcon(c.VerificationStatus) @c.VerificationStatus</span>
+            </p>
         </div>
         <div class="page-hero-actions">
             <a asp-controller="SuperAdmin" asp-action="Clinics" class="btn btn-outline btn-sm">← Back to Clinics</a>
@@ -455,6 +384,7 @@
 
     <div class="page-body">
 
+        @* ── Status Banners ── *@
         @if (c.VerificationStatus == "Pending" && Model.AllDocsApproved)
         {
             <div class="approve-banner">
@@ -467,13 +397,12 @@
                     <input type="hidden" name="clinicId" value="@c.IdClinic" />
                     <input type="hidden" name="from" value="details" />
                     <button type="submit" class="btn btn-primary"
-                            onclick="return confirm('Approve and activate @c.Name.Replace("'", "\\'")?')">
+                            onclick="return confirm('Approve and activate @c.Name.Replace("'","\\'")?')">
                         ✅ Approve &amp; Activate Clinic
                     </button>
                 </form>
             </div>
         }
-
         @if (c.VerificationStatus == "Pending" && Model.HasRejectedDoc)
         {
             <div class="reject-banner">
@@ -486,7 +415,6 @@
                 <button class="btn btn-danger btn-sm" onclick="openModal('rejectModal')">❌ Reject Application</button>
             </div>
         }
-
         @if (c.VerificationStatus == "Suspended")
         {
             <div class="alert-box" style="background:#FFF9EE;border:1.5px solid #E8D9A0;">
@@ -499,13 +427,12 @@
                     <input type="hidden" name="clinicId" value="@c.IdClinic" />
                     <input type="hidden" name="from" value="details" />
                     <button type="submit" class="btn btn-primary btn-sm"
-                            onclick="return confirm('Reactivate @c.Name.Replace("'", "\\'")?')">
+                            onclick="return confirm('Reactivate @c.Name.Replace("'","\\'")?')">
                         ✅ Reactivate
                     </button>
                 </form>
             </div>
         }
-
         @if (c.IsSuspended && c.VerificationStatus != "Suspended")
         {
             <div class="alert-box" style="background:#FFF9EE;border:1.5px solid #E8D9A0;">
@@ -521,234 +448,534 @@
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="clinicId" value="@c.IdClinic" />
                     <button type="submit" class="btn btn-primary btn-sm"
-                            onclick="return confirm('Lift suspension for @c.Name.Replace("'", "\\'")?')">
+                            onclick="return confirm('Lift suspension for @c.Name.Replace("'","\\'")?')">
                         ✅ Lift Suspension
                     </button>
                 </form>
             </div>
         }
 
-        <div class="quick-bar">
-            @if (c.VerificationStatus == "Pending")
-            {
-                <form method="post" asp-controller="SuperAdmin" asp-action="ApproveClinic" style="display:inline;">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="clinicId" value="@c.IdClinic" />
-                    <input type="hidden" name="from" value="details" />
-                    <button type="submit" class="btn btn-primary btn-sm"
-                            onclick="return confirm('Approve @c.Name.Replace("'", "\\'")?')">
-                        ✅ Approve Clinic
-                    </button>
-                </form>
-                <button class="btn btn-danger btn-sm" onclick="openModal('rejectModal')">❌ Reject</button>
+        @* ── Clinic Hero Card ── *@
+        <div class="clinic-hero">
+            @{
+                var logoDoc = Model.Documents.FirstOrDefault(d => d.DocumentType == "Logo");
+                var logoSrc = c.LogoUrl ?? logoDoc?.FileUrl;
             }
-            else if (c.VerificationStatus == "Approved")
-            {
-                <button class="btn btn-danger btn-sm" onclick="openModal('suspendModal')">🔒 Suspend</button>
-                <button class="btn btn-outline btn-sm" onclick="openModal('warnModal')">⚠️ Warn Owner</button>
-            }
-            else if (c.VerificationStatus == "Suspended")
-            {
-                <form method="post" asp-controller="SuperAdmin" asp-action="ReactivateClinic" style="display:inline;">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="clinicId" value="@c.IdClinic" />
-                    <input type="hidden" name="from" value="details" />
-                    <button type="submit" class="btn btn-primary btn-sm"
-                            onclick="return confirm('Reactivate @c.Name.Replace("'", "\\'")?')">
-                        ✅ Reactivate
-                    </button>
-                </form>
-            }
-            <a asp-controller="SuperAdmin" asp-action="Clinics" class="btn btn-outline btn-sm">← Back</a>
+            <div class="ch-logo">
+                @if (!string.IsNullOrEmpty(logoSrc))
+                {
+                    <img src="@logoSrc" alt="@c.Name logo" />
+                }
+                else
+                {
+                    <span>🏥</span>
+                }
+            </div>
+            <div style="flex:1;">
+                <div class="ch-name">@c.Name</div>
+                <div class="ch-meta">
+                    <span>📍 @c.City@(!string.IsNullOrEmpty(c.Area) ? $" — {c.Area}" : "")</span>
+                    <span>📞 @c.Phone</span>
+                    @if (!string.IsNullOrEmpty(c.Email)) { <span>✉️ @c.Email</span> }
+                    @if (!string.IsNullOrEmpty(c.ClinicType)) { <span>🏷 @c.ClinicType</span> }
+                    @if (c.HasEmergency) { <span style="color:var(--danger);font-weight:900;">🚨 Emergency</span> }
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;">
+                    <span class="badge @StatusBadge(c.VerificationStatus)">@StatusIcon(c.VerificationStatus) @c.VerificationStatus</span>
+                    <span class="badge badge-muted">🆔 #@c.IdClinic</span>
+                    <span class="badge badge-muted">📅 @c.CreatedAt.ToString("dd MMM yyyy")</span>
+                </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;flex-shrink:0;">
+                @if (c.VerificationStatus == "Pending")
+                {
+                    <form method="post" asp-controller="SuperAdmin" asp-action="ApproveClinic" style="display:inline;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                        <input type="hidden" name="from" value="details" />
+                        <button type="submit" class="btn btn-primary btn-sm"
+                                onclick="return confirm('Approve @c.Name.Replace("'","\\'")?')">
+                            ✅ Approve
+                        </button>
+                    </form>
+                    <button class="btn btn-danger btn-sm" onclick="openModal('rejectModal')">❌ Reject</button>
+                }
+                else if (c.VerificationStatus == "Approved")
+                {
+                    <button class="btn btn-danger btn-sm" onclick="openModal('suspendModal')">🔒 Suspend</button>
+                    <button class="btn btn-outline btn-sm" onclick="openModal('warnModal')">⚠️ Warn Owner</button>
+                }
+                else if (c.VerificationStatus == "Suspended")
+                {
+                    <form method="post" asp-controller="SuperAdmin" asp-action="ReactivateClinic" style="display:inline;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                        <input type="hidden" name="from" value="details" />
+                        <button type="submit" class="btn btn-primary btn-sm"
+                                onclick="return confirm('Reactivate @c.Name.Replace("'","\\'")?')">
+                            ✅ Reactivate
+                        </button>
+                    </form>
+                }
+            </div>
         </div>
 
-        <div class="grid-2">
-            <div class="info-card">
-                <div class="info-card-head"><div class="info-card-title">🏥 Clinic Information</div></div>
+        @* ── Mini KPI Strip ── *@
+        <div class="mini-kpi-strip">
+            <div class="mini-kpi">
+                <div class="mini-kpi-ico">👨‍⚕️</div>
+                <div>
+                    <div class="mini-kpi-val">@docTotal</div>
+                    <div class="mini-kpi-lbl">
+                        Doctors
+                        @if (docPending > 0) { <span class="tab-badge warn">@docPending pending</span> }
+                    </div>
+                </div>
+            </div>
+            <div class="mini-kpi">
+                <div class="mini-kpi-ico">📅</div>
+                <div>
+                    <div class="mini-kpi-val">@apptTotal</div>
+                    <div class="mini-kpi-lbl">
+                        Appointments
+                        @if (apptPending > 0) { <span class="tab-badge warn">@apptPending pending</span> }
+                    </div>
+                </div>
+            </div>
+            <div class="mini-kpi">
+                <div class="mini-kpi-ico">📋</div>
+                <div>
+                    @{
+                        var reqDocs2   = Model.Documents.Where(d => d.DocumentType != "Logo").ToList();
+                        int approvedD2 = reqDocs2.Count(d => d.Status?.ToLower() == "approved");
+                    }
+                    <div class="mini-kpi-val">@approvedD2 / @reqDocs2.Count</div>
+                    <div class="mini-kpi-lbl">Documents Approved</div>
+                </div>
+            </div>
+        </div>
+
+        @* ════════════════════════════════════════════════════
+           TABS BAR
+        ════════════════════════════════════════════════════ *@
+        <div class="tabs-bar" id="tabsBar">
+            <button class="tab-btn active" onclick="switchTab('info',this)">
+                🏥 Info &amp; Documents
+            </button>
+            <button class="tab-btn" onclick="switchTab('doctors',this)">
+                👨‍⚕️ Doctors
+                @if (docTotal > 0) { <span class="tab-badge @(docPending > 0 ? "warn" : "")">@docTotal</span> }
+            </button>
+            <button class="tab-btn" onclick="switchTab('appointments',this)">
+                📅 Appointments
+                @if (apptTotal > 0) { <span class="tab-badge @(apptPending > 0 ? "warn" : "")">@apptTotal</span> }
+            </button>
+        </div>
+
+        @* ════════════════════════════════════════════════════
+           TAB 1 — INFO & DOCUMENTS
+        ════════════════════════════════════════════════════ *@
+        <div class="tab-pane active" id="tab-info">
+            <div class="grid-2">
+                <div class="info-card">
+                    <div class="info-card-head"><div class="info-card-title">🏥 Clinic Information</div></div>
+                    <div class="info-card-body">
+                        <div class="info-line"><span class="info-key">Clinic ID</span>   <span class="info-val">#@c.IdClinic</span></div>
+                        <div class="info-line"><span class="info-key">Name</span>        <span class="info-val">@c.Name</span></div>
+                        <div class="info-line"><span class="info-key">Type</span>        <span class="info-val">@(c.ClinicType ?? "—")</span></div>
+                        <div class="info-line"><span class="info-key">City</span>        <span class="info-val">@c.City@(!string.IsNullOrEmpty(c.Area) ? $" — {c.Area}" : "")</span></div>
+                        <div class="info-line"><span class="info-key">Phone</span>       <span class="info-val">@c.Phone</span></div>
+                        <div class="info-line"><span class="info-key">Email</span>       <span class="info-val">@(c.Email ?? "—")</span></div>
+                        <div class="info-line"><span class="info-key">Emergency</span>   <span class="info-val">@(c.HasEmergency ? "✅ Yes" : "No")</span></div>
+                        <div class="info-line">
+                            <span class="info-key">Status</span>
+                            <span class="info-val"><span class="badge @StatusBadge(c.VerificationStatus)">@StatusIcon(c.VerificationStatus) @c.VerificationStatus</span></span>
+                        </div>
+                        <div class="info-line"><span class="info-key">Registered</span> <span class="info-val">@c.CreatedAt.ToString("dd MMM yyyy, HH:mm")</span></div>
+                        @if (!string.IsNullOrEmpty(c.Description))
+                        {
+                            <div class="info-line" style="align-items:flex-start;">
+                                <span class="info-key">Description</span>
+                                <span class="info-val" style="max-width:240px;text-align:right;font-size:.8rem;">@c.Description</span>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="info-card-head"><div class="info-card-title">👤 Owner Information</div></div>
+                    <div class="info-card-body">
+                        <div class="info-line"><span class="info-key">Full Name</span> <span class="info-val">@Model.OwnerName</span></div>
+                        <div class="info-line"><span class="info-key">Email</span>     <span class="info-val">@Model.OwnerEmail</span></div>
+                        <div class="info-line"><span class="info-key">Phone</span>     <span class="info-val">@Model.OwnerPhone</span></div>
+                        <div class="info-line"><span class="info-key">User ID</span>  <span class="info-val">#@Model.OwnerId</span></div>
+                        <div class="info-line">
+                            <span class="info-key">Profile</span>
+                            <span class="info-val">
+                                <a asp-controller="SuperAdmin" asp-action="Details_U"
+                                   asp-route-id="@Model.OwnerId"
+                                   class="btn btn-outline btn-xs">👤 View User</a>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* Documents *@
+            <div class="info-card" style="margin-bottom:0;">
+                <div class="info-card-head">
+                    <div class="info-card-title">📋 Submitted Documents</div>
+                    <div style="font-size:.78rem;font-weight:700;color:var(--text-muted);">
+                        Review each document before approving the clinic
+                    </div>
+                </div>
                 <div class="info-card-body">
                     @{
-                        var logoDoc = Model.Documents.FirstOrDefault(d => d.DocumentType == "Logo");
-                        var logoSrc = c.LogoUrl ?? logoDoc?.FileUrl;
+                        var requiredDocs = Model.Documents.Where(d => d.DocumentType != "Logo").ToList();
                     }
-                    @if (!string.IsNullOrEmpty(logoSrc))
+                    @if (!requiredDocs.Any())
                     {
-                        <div style="margin-bottom:14px;text-align:center;">
-                            <img src="@logoSrc" alt="Clinic Logo"
-                                 style="height:80px;object-fit:contain;border-radius:12px;border:1px solid var(--border);" />
+                        <div style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">
+                            ⚠️ No documents submitted yet.
                         </div>
                     }
-                    <div class="info-line"><span class="info-key">Clinic ID</span>     <span class="info-val">#@c.IdClinic</span></div>
-                    <div class="info-line"><span class="info-key">Name</span>          <span class="info-val">@c.Name</span></div>
-                    <div class="info-line"><span class="info-key">Type</span>          <span class="info-val">@(c.ClinicType ?? "—")</span></div>
-                    <div class="info-line"><span class="info-key">City</span>          <span class="info-val">@c.City@(!string.IsNullOrEmpty(c.Area) ? $" — {c.Area}" : "")</span></div>
-                    <div class="info-line"><span class="info-key">Phone</span>         <span class="info-val">@c.Phone</span></div>
-                    <div class="info-line"><span class="info-key">Email</span>         <span class="info-val">@(c.Email ?? "—")</span></div>
-                    <div class="info-line"><span class="info-key">Has Emergency</span> <span class="info-val">@(c.HasEmergency ? "✅ Yes" : "No")</span></div>
-                    <div class="info-line">
-                        <span class="info-key">Status</span>
-                        <span class="info-val"><span class="badge @StatusBadge(c.VerificationStatus)">@StatusIcon(c.VerificationStatus) @c.VerificationStatus</span></span>
-                    </div>
-                    <div class="info-line"><span class="info-key">Registered</span>   <span class="info-val">@c.CreatedAt.ToString("dd MMM yyyy, HH:mm")</span></div>
-                    @if (!string.IsNullOrEmpty(c.Description))
-                    {
-                        <div class="info-line" style="align-items:flex-start;">
-                            <span class="info-key">Description</span>
-                            <span class="info-val" style="max-width:240px;text-align:right;font-size:.8rem;">@c.Description</span>
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <div class="info-card">
-                <div class="info-card-head"><div class="info-card-title">👤 Owner Information</div></div>
-                <div class="info-card-body">
-                    <div class="info-line"><span class="info-key">Full Name</span> <span class="info-val">@Model.OwnerName</span></div>
-                    <div class="info-line"><span class="info-key">Email</span>     <span class="info-val">@Model.OwnerEmail</span></div>
-                    <div class="info-line"><span class="info-key">Phone</span>     <span class="info-val">@Model.OwnerPhone</span></div>
-                    <div class="info-line"><span class="info-key">User ID</span>  <span class="info-val">#@Model.OwnerId</span></div>
-                    <div class="info-line">
-                        <span class="info-key">Profile</span>
-                        <span class="info-val">
-                            <a asp-controller="SuperAdmin" asp-action="Details_U"
-                               asp-route-id="@Model.OwnerId"
-                               class="btn btn-outline btn-xs">👤 View User</a>
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="info-card" style="margin-bottom:0;">
-            <div class="info-card-head">
-                <div class="info-card-title">📋 Submitted Documents</div>
-                <div style="font-size:.78rem;font-weight:700;color:var(--text-muted);">
-                    Review each document before approving the clinic
-                </div>
-            </div>
-            <div class="info-card-body">
-                @{
-                    var requiredDocs = Model.Documents.Where(d => d.DocumentType != "Logo").ToList();
-                }
-                @if (!requiredDocs.Any())
-                {
-                    <div style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">
-                        ⚠️ No documents submitted yet.
-                    </div>
-                }
-                <div class="grid-2">
-                    @foreach (var doc in requiredDocs)
-                    {
-                        var docStatusClass = (doc.Status?.ToLower()) switch
+                    <div class="grid-2">
+                        @foreach (var doc in requiredDocs)
                         {
-                            "approved" => "doc-approved",
-                            "rejected" => "doc-rejected",
-                            _ => ""
-                        };
-                        var docBadge = (doc.Status?.ToLower()) switch
-                        {
-                            "approved" => "badge-success",
-                            "rejected" => "badge-danger",
-                            _ => "badge-warning"
-                        };
-                        var docIcon = (doc.Status?.ToLower()) switch
-                        {
-                            "approved" => "✅",
-                            "rejected" => "❌",
-                            _ => "⏳"
-                        };
-                        <div class="doc-card @docStatusClass">
-                            <div class="doc-card-head">
-                                <span class="doc-card-label">@DocLabel(doc.DocumentType)</span>
-                                <span class="badge @docBadge">@docIcon @doc.Status</span>
-                            </div>
-                            <div class="doc-card-body">
-                                <div style="font-size:.75rem;color:var(--text-muted);font-weight:700;margin-bottom:10px;">
-                                    Uploaded @doc.UploadedAt.ToString("dd MMM yyyy, HH:mm")
+                            var docStatusClass = (doc.Status?.ToLower()) switch
+                            {
+                                "approved" => "doc-approved",
+                                "rejected" => "doc-rejected",
+                                _          => ""
+                            };
+                            var docBadge = (doc.Status?.ToLower()) switch
+                            {
+                                "approved" => "badge-success",
+                                "rejected" => "badge-danger",
+                                _          => "badge-warning"
+                            };
+                            var docIcon = (doc.Status?.ToLower()) switch
+                            {
+                                "approved" => "✅",
+                                "rejected" => "❌",
+                                _          => "⏳"
+                            };
+                            <div class="doc-card @docStatusClass">
+                                <div class="doc-card-head">
+                                    <span class="doc-card-label">@DocLabel(doc.DocumentType)</span>
+                                    <span class="badge @docBadge">@docIcon @doc.Status</span>
                                 </div>
-                                @if (IsImg(doc.FileUrl))
-                                {
-                                    <img src="@doc.FileUrl" class="doc-preview-img"
-                                         alt="@doc.DocumentType"
-                                         onclick="openLightbox('@doc.FileUrl')" />
-                                }
-                                else
-                                {
-                                    <a href="@doc.FileUrl" target="_blank" class="doc-preview-pdf">
-                                        <span style="font-size:1.8rem;">📄</span>
-                                        <div>
-                                            <div>@DocLabel(doc.DocumentType)</div>
-                                            <div style="font-size:.72rem;opacity:.7;">Click to open PDF</div>
-                                        </div>
-                                    </a>
-                                }
-                                @if (!string.IsNullOrEmpty(doc.AdminNote))
-                                {
-                                    <div style="background:#fff9f0;border:1px solid #f0d9a0;border-radius:8px;padding:10px 12px;font-size:.78rem;font-weight:700;color:#9b6000;margin-bottom:10px;">
-                                        📝 Admin note: @doc.AdminNote
+                                <div class="doc-card-body">
+                                    <div style="font-size:.75rem;color:var(--text-muted);font-weight:700;margin-bottom:10px;">
+                                        Uploaded @doc.UploadedAt.ToString("dd MMM yyyy, HH:mm")
                                     </div>
-                                }
-                                <div class="doc-actions">
-                                    @if (doc.Status?.ToLower() != "approved")
+                                    @if (IsImg(doc.FileUrl))
                                     {
-                                        <form method="post" asp-controller="SuperAdmin"
-                                              asp-action="ApproveClinicDocument" style="display:inline;">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="docId" value="@doc.Id" />
-                                            <input type="hidden" name="clinicId" value="@c.IdClinic" />
-                                            <button type="submit" class="btn btn-primary btn-xs">✅ Approve</button>
-                                        </form>
+                                        <img src="@doc.FileUrl" class="doc-preview-img"
+                                             alt="@doc.DocumentType"
+                                             onclick="openLightbox('@doc.FileUrl')" />
                                     }
-                                    @if (doc.Status?.ToLower() != "rejected")
+                                    else
                                     {
-                                        <button class="btn btn-danger btn-xs"
-                                                onclick="openRejectDoc(@doc.Id, '@DocLabel(doc.DocumentType).Replace("'", "\\'")')">
-                                            ❌ Reject
-                                        </button>
+                                        <a href="@doc.FileUrl" target="_blank" class="doc-preview-pdf">
+                                            <span style="font-size:1.8rem;">📄</span>
+                                            <div>
+                                                <div>@DocLabel(doc.DocumentType)</div>
+                                                <div style="font-size:.72rem;opacity:.7;">Click to open PDF</div>
+                                            </div>
+                                        </a>
                                     }
-                                    <a href="@doc.FileUrl" target="_blank" class="btn btn-outline btn-xs">⬇ Download</a>
+                                    @if (!string.IsNullOrEmpty(doc.AdminNote))
+                                    {
+                                        <div style="background:#fff9f0;border:1px solid #f0d9a0;border-radius:8px;padding:10px 12px;font-size:.78rem;font-weight:700;color:#9b6000;margin-bottom:10px;">
+                                            📝 Admin note: @doc.AdminNote
+                                        </div>
+                                    }
+                                    <div class="doc-actions">
+                                        @if (doc.Status?.ToLower() != "approved")
+                                        {
+                                            <form method="post" asp-controller="SuperAdmin"
+                                                  asp-action="ApproveClinicDocument" style="display:inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="docId" value="@doc.Id" />
+                                                <input type="hidden" name="clinicId" value="@c.IdClinic" />
+                                                <button type="submit" class="btn btn-primary btn-xs">✅ Approve</button>
+                                            </form>
+                                        }
+                                        @if (doc.Status?.ToLower() != "rejected")
+                                        {
+                                            <button class="btn btn-danger btn-xs"
+                                                    onclick="openRejectDoc(@doc.Id, '@DocLabel(doc.DocumentType).Replace("'","\\'")')">
+                                                ❌ Reject
+                                            </button>
+                                        }
+                                        <a href="@doc.FileUrl" target="_blank" class="btn btn-outline btn-xs">⬇ Download</a>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-
-                @{
-                    int totalReq = requiredDocs.Count;
-                    int approvedReq = requiredDocs.Count(d => d.Status?.ToLower() == "approved");
-                    int rejectedReq = requiredDocs.Count(d => d.Status?.ToLower() == "rejected");
-                    double pct = totalReq > 0 ? (approvedReq * 100.0 / totalReq) : 0;
-                }
-                @if (totalReq > 0)
-                {
-                    <div style="margin-top:18px;padding:14px 16px;background:var(--surface-2);border-radius:var(--r);border:1px solid var(--border);">
-                        <div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:800;color:var(--brand-dark);margin-bottom:8px;">
-                            <span>📊 Review Progress</span>
-                            <span>@approvedReq / @totalReq approved</span>
-                        </div>
-                        <div style="height:8px;background:var(--border);border-radius:99px;overflow:hidden;">
-                            <div style="height:100%;width:@pct.ToString("F0")%;background:var(--success);border-radius:99px;transition:width .4s;"></div>
-                        </div>
-                        @if (rejectedReq > 0)
-                        {
-                            <div style="margin-top:8px;font-size:.76rem;font-weight:800;color:var(--danger);">
-                                ⚠️ @rejectedReq document(s) rejected — clinic cannot be approved until re-submitted.
-                            </div>
-                        }
-                        else if (approvedReq == totalReq)
-                        {
-                            <div style="margin-top:8px;font-size:.76rem;font-weight:800;color:var(--success);">
-                                ✅ All documents approved — you can now approve the clinic!
                             </div>
                         }
                     </div>
-                }
+
+                    @{
+                        int totalReq    = requiredDocs.Count;
+                        int approvedReq = requiredDocs.Count(d => d.Status?.ToLower() == "approved");
+                        int rejectedReq = requiredDocs.Count(d => d.Status?.ToLower() == "rejected");
+                        double pct      = totalReq > 0 ? (approvedReq * 100.0 / totalReq) : 0;
+                    }
+                    @if (totalReq > 0)
+                    {
+                        <div style="margin-top:18px;padding:14px 16px;background:var(--surface-2);border-radius:var(--r);border:1px solid var(--border);">
+                            <div style="display:flex;justify-content:space-between;font-size:.8rem;font-weight:800;color:var(--brand-dark);margin-bottom:8px;">
+                                <span>📊 Review Progress</span>
+                                <span>@approvedReq / @totalReq approved</span>
+                            </div>
+                            <div style="height:8px;background:var(--border);border-radius:99px;overflow:hidden;">
+                                <div style="height:100%;width:@pct.ToString("F0")%;background:var(--success);border-radius:99px;transition:width .4s;"></div>
+                            </div>
+                            @if (rejectedReq > 0)
+                            {
+                                <div style="margin-top:8px;font-size:.76rem;font-weight:800;color:var(--danger);">
+                                    ⚠️ @rejectedReq document(s) rejected — clinic cannot be approved until re-submitted.
+                                </div>
+                            }
+                            else if (approvedReq == totalReq)
+                            {
+                                <div style="margin-top:8px;font-size:.76rem;font-weight:800;color:var(--success);">
+                                    ✅ All documents approved — you can now approve the clinic!
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
             </div>
         </div>
 
-    </div>
+        @* ════════════════════════════════════════════════════
+           TAB 2 — DOCTORS
+        ════════════════════════════════════════════════════ *@
+        <div class="tab-pane" id="tab-doctors">
+
+            @* Doctor KPIs *@
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px;">
+                <div class="kpi-card c1">
+                    <div class="kpi-ico green">👨‍⚕️</div>
+                    <div class="kpi-val">@docTotal</div>
+                    <div class="kpi-label">Total Doctors</div>
+                </div>
+                <div class="kpi-card c3">
+                    <div class="kpi-ico yellow">⏳</div>
+                    <div class="kpi-val">@docPending</div>
+                    <div class="kpi-label">Pending Approval</div>
+                    <div class="kpi-chip chip-yellow">@(docPending > 0 ? "Needs review" : "All clear ✓")</div>
+                </div>
+                <div class="kpi-card c2">
+                    <div class="kpi-ico blue">✅</div>
+                    <div class="kpi-val">@docApproved</div>
+                    <div class="kpi-label">Approved</div>
+                </div>
+            </div>
+
+            @* Doctors Table *@
+            <div class="tab-table-card">
+                <div class="tab-table-head">
+                    <div class="tab-table-title">👨‍⚕️ Doctors at @c.Name</div>
+                    <div style="font-size:.78rem;font-weight:700;color:var(--text-muted);">@docTotal result(s)</div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Doctor</th>
+                                <th>Specialization</th>
+                                <th>Experience</th>
+                                <th>Certification</th>
+                                <th>Status</th>
+                                <th>Registered</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!doctors.Any())
+                            {
+                                <tr>
+                                    <td colspan="7" style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">
+                                        No doctors registered at this clinic yet.
+                                    </td>
+                                </tr>
+                            }
+                            @foreach (var doc in doctors)
+                            {
+                                string docSt = doc.VerificationStatus?.ToLower() switch
+                                {
+                                    "approved" => "s-confirmed",
+                                    "rejected" => "s-cancelled",
+                                    _          => "s-pending"
+                                };
+                                string docStLabel = doc.VerificationStatus?.ToLower() switch
+                                {
+                                    "approved" => "✅ Approved",
+                                    "rejected" => "❌ Rejected",
+                                    _          => "⏳ Pending"
+                                };
+                                <tr>
+                                    <td>
+                                        <div style="font-weight:900;font-size:.88rem;">Dr. @doc.FullName</div>
+                                        <div style="font-size:.75rem;color:var(--text-muted);">@doc.Email</div>
+                                    </td>
+                                    <td style="font-size:.82rem;color:var(--text-muted);font-weight:700;">
+                                        @(doc.Specialization ?? "—")
+                                    </td>
+                                    <td style="font-size:.82rem;color:var(--text-muted);font-weight:700;">
+                                        @(doc.ExperienceYears.HasValue ? $"{doc.ExperienceYears} yrs" : "—")
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(doc.Certifications))
+                                        {
+                                            <a href="@doc.Certifications" target="_blank" class="cert-link">
+                                                @(IsImgDoc(doc.Certifications) ? "🖼" : "📄") View File
+                                            </a>
+                                        }
+                                        else
+                                        {
+                                            <span style="font-size:.75rem;color:var(--text-muted);">— not uploaded</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="status @docSt">@docStLabel</span>
+                                    </td>
+                                    <td style="font-size:.78rem;color:var(--text-muted);font-weight:700;">
+                                        @doc.CreatedAt.ToString()
+                                    </td>
+                                    <td>
+                                        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                                            <a asp-controller="SuperAdmin" asp-action="Details_D"
+                                               asp-route-id="@doc.IdDoctor"
+                                               class="btn btn-outline btn-xs" style="text-decoration:none;">
+                                                👁 View
+                                            </a>
+                                            @if (doc.VerificationStatus?.ToLower() == "pending")
+                                            {
+                                                <form asp-controller="SuperAdmin" asp-action="ApproveDoctor"
+                                                      method="post" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="idDoctor" value="@doc.IdDoctor" />
+                                                    <input type="hidden" name="idUser" value="@doc.IdUser" />
+                                                    <input type="hidden" name="clinicName" value="@c.Name" />
+                                                    <button type="submit" class="btn btn-primary btn-xs"
+                                                            onclick="return confirm('Approve Dr. @doc.FullName.Replace("'","\\'")?')">
+                                                        ✅ Approve
+                                                    </button>
+                                                </form>
+                                                <button class="btn btn-danger btn-xs"
+                                                        onclick="openDrRejectModal(@doc.IdDoctor, @doc.IdUser, '@doc.FullName.Replace("'","\\'")', '@c.Name.Replace("'","\\'")')">
+                                                    ❌ Reject
+                                                </button>
+                                            }
+                                            else if (doc.VerificationStatus?.ToLower() == "rejected")
+                                            {
+                                                <form asp-controller="SuperAdmin" asp-action="ApproveDoctor"
+                                                      method="post" style="display:inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="idDoctor" value="@doc.IdDoctor" />
+                                                    <input type="hidden" name="idUser" value="@doc.IdUser" />
+                                                    <input type="hidden" name="clinicName" value="@c.Name" />
+                                                    <button type="submit" class="btn btn-primary btn-xs">↩ Re-approve</button>
+                                                </form>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        @* ════════════════════════════════════════════════════
+           TAB 3 — APPOINTMENTS
+        ════════════════════════════════════════════════════ *@
+        <div class="tab-pane" id="tab-appointments">
+
+            @* Appointment KPIs *@
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+                <div class="kpi-card c1">
+                    <div class="kpi-ico green">📅</div>
+                    <div class="kpi-val">@apptTotal</div>
+                    <div class="kpi-label">Total</div>
+                </div>
+                <div class="kpi-card c2">
+                    <div class="kpi-ico yellow">⏳</div>
+                    <div class="kpi-val">@apptPending</div>
+                    <div class="kpi-label">Pending</div>
+                    <div class="kpi-chip chip-yellow">@(apptPending > 0 ? "Awaiting action" : "All clear ✓")</div>
+                </div>
+                <div class="kpi-card c3">
+                    <div class="kpi-ico blue">✅</div>
+                    <div class="kpi-val">@apptConfirmed</div>
+                    <div class="kpi-label">Confirmed</div>
+                </div>
+                <div class="kpi-card c4">
+                    <div class="kpi-ico green">🏁</div>
+                    <div class="kpi-val">@appts.Count(a => a.Status == "Completed")</div>
+                    <div class="kpi-label">Completed</div>
+                </div>
+            </div>
+
+            @* Appointments Search + Table *@
+            <div class="tab-table-card">
+                <div class="tab-table-head">
+                    <div class="tab-table-title">📅 Appointments at @c.Name</div>
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <div class="search-wrap" style="flex:1 1 200px;">
+                            <span style="color:var(--text-muted);">🔍</span>
+                            <input type="text" id="apptSearch" placeholder="Search patient, doctor..."
+                                   oninput="renderAppts()" style="min-width:0;" />
+                        </div>
+                        <select class="sel-wrap" style="height:36px;font-size:.78rem;width:auto;min-width:150px;"
+                                id="apptStatusFilter" onchange="renderAppts()">
+                            <option value="">All Statuses</option>
+                            <option value="pendingclinicapproval">⏳ Pending Clinic</option>
+                            <option value="pendingdoctorapproval">⏳ Pending Doctor</option>
+                            <option value="pendingpayment">💳 Pending Payment</option>
+                            <option value="confirmed">✅ Confirmed</option>
+                            <option value="completed">🏁 Completed</option>
+                            <option value="cancelled">❌ Cancelled</option>
+                            <option value="noshow">🚫 No-Show</option>
+                        </select>
+                        <span class="table-count" id="apptTableCount"></span>
+                    </div>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Patient</th>
+                                <th>Pet</th>
+                                <th>Doctor</th>
+                                <th>Date &amp; Time</th>
+                                <th>Service</th>
+                                <th>Deposit</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="apptsTBody"></tbody>
+                    </table>
+                </div>
+                <div class="pagination-bar">
+                    <div class="pag-info" id="apptPagInfo"></div>
+                    <div class="pag-pages" id="apptPagPages"></div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /page-body -->
 </main>
 
-<!-- Modals -->
+@* ════════════════════════════════════════════════════
+   MODALS: Clinic Actions (Tab 1)
+════════════════════════════════════════════════════ *@
 <div class="modal-ovl" id="rejectModal">
     <div class="modal-box">
         <div class="modal-title">❌ Reject Clinic Application</div>
@@ -870,34 +1097,245 @@
     </div>
 </div>
 
+@* ════════════════════════════════════════════════════
+   MODAL: Reject Doctor (Tab 2)
+════════════════════════════════════════════════════ *@
+<div class="modal-ovl" id="drRejectModal">
+    <div class="modal-box" style="max-width:460px;">
+        <div class="modal-title">❌ Reject Doctor</div>
+        <p style="font-size:.83rem;color:var(--text-muted);font-weight:700;margin-bottom:14px;">
+            Doctor: <strong id="drRejectName"></strong>
+        </p>
+        <form asp-controller="SuperAdmin" asp-action="RejectDoctor" method="post" id="drRejectForm">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="idDoctor"   id="drRejectIdDoctor" />
+            <input type="hidden" name="idUser"     id="drRejectIdUser" />
+            <input type="hidden" name="clinicName" value="@c.Name" />
+            <div class="modal-field">
+                <label>Rejection Reason</label>
+                <select name="reason" class="sel-wrap" style="width:100%;">
+                    <option value="Incomplete or invalid certifications">Incomplete or invalid certifications</option>
+                    <option value="Unverified credentials">Unverified credentials</option>
+                    <option value="Does not meet requirements">Does not meet requirements</option>
+                    <option value="Duplicate profile">Duplicate profile</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline btn-sm" onclick="closeModal('drRejectModal')">Cancel</button>
+                <button type="submit" class="btn btn-danger btn-sm">❌ Reject &amp; Notify</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@* Lightbox *@
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
     <img id="lightboxImg" src="" alt="Document Preview" />
 </div>
 
 @section PageScripts {
-    <script>
-        function openModal(id)  { document.getElementById(id).classList.add('open');    }
-        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+<script>
+/* ══════════════════════════════════════════════════════
+   TAB SWITCHER
+══════════════════════════════════════════════════════ */
+function switchTab(name, btn) {
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+    // initialise appointments table on first visit
+    if (name === 'appointments' && !window._apptInit) {
+        window._apptInit = true;
+        renderAppts();
+    }
+}
 
-        document.querySelectorAll('.modal-ovl').forEach(m => {
-            m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
-        });
+/* ══════════════════════════════════════════════════════
+   MODAL HELPERS
+══════════════════════════════════════════════════════ */
+function openModal(id)  { document.getElementById(id).classList.add('open');    }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-ovl').forEach(m => {
+    m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
 
-        function openRejectDoc(docId, docName) {
-            document.getElementById('rejectDocId').value           = docId;
-            document.getElementById('rejectDocName').textContent   = docName;
-            openModal('rejectDocModal');
+function openRejectDoc(docId, docName) {
+    document.getElementById('rejectDocId').value         = docId;
+    document.getElementById('rejectDocName').textContent = docName;
+    openModal('rejectDocModal');
+}
+
+function openDrRejectModal(idDoctor, idUser, doctorName, clinicName) {
+    document.getElementById('drRejectIdDoctor').value  = idDoctor;
+    document.getElementById('drRejectIdUser').value    = idUser;
+    document.getElementById('drRejectName').textContent = doctorName;
+    openModal('drRejectModal');
+}
+
+/* ══════════════════════════════════════════════════════
+   LIGHTBOX
+══════════════════════════════════════════════════════ */
+function openLightbox(src) {
+    document.getElementById('lightboxImg').src = src;
+    document.getElementById('lightbox').classList.add('open');
+}
+function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('open');
+}
+
+/* ══════════════════════════════════════════════════════
+   APPOINTMENTS — CLIENT-SIDE TABLE (TAB 3)
+══════════════════════════════════════════════════════ */
+const appts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
+    appts.Select(a => new {
+        id           = a.Id,
+        patient      = a.UserFullName   ?? "—",
+        patientPhone = a.UserPhone      ?? "—",
+        pet          = a.PetName        ?? "—",
+        petSpecies   = a.PetSpecies     ?? "—",
+        doctor       = a.DoctorName     ?? "—",
+        date         = a.AppointmentDate.ToString("yyyy-MM-dd"),
+        dateDisplay  = a.AppointmentDate.ToString("dd MMM yyyy"),
+        time         = a.StartTime.ToString(@"hh\:mm"),
+        service      = a.ServiceName    ?? "General Checkup",
+        status       = a.Status.ToLower(),
+        payMethod    = a.DepositPayMethod ?? "—",
+        depositPaid  = a.DepositPaid,
+        depositRet   = a.DepositReturned,
+        depositAmt   = a.DepositAmount,
+        urgency      = a.UrgencyLevel   ?? "Normal",
+        cancelReason = a.CancellationReason ?? "",
+        createdAt    = a.CreatedAt.ToString("yyyy-MM-dd")
+    })
+));
+
+let apptPage = 1;
+const APPT_PAGE = 10;
+
+function isPending(s) {
+    return ['pendingclinicapproval','pendingdoctorapproval',
+            'pendingpayment','pendingpaymentverification'].includes(s);
+}
+function petEmoji(sp) {
+    return {dog:'🐕',cat:'🐈',bird:'🐦',rabbit:'🐇',fish:'🐠',hamster:'🐹'}[sp?.toLowerCase()] || '🐾';
+}
+function apptStatusBadge(s) {
+    const m = {
+        confirmed:                  ['badge-success','✅ Confirmed'],
+        completed:                  ['badge-info',   '🏁 Completed'],
+        cancelled:                  ['badge-danger', '❌ Cancelled'],
+        noshow:                     ['badge-danger', '🚫 No-Show'],
+        pendingclinicapproval:      ['badge-warning','⏳ Pending Clinic'],
+        pendingdoctorapproval:      ['badge-warning','⏳ Pending Doctor'],
+        pendingpayment:             ['badge-warning','💳 Awaiting Payment'],
+        pendingpaymentverification: ['badge-warning','🔍 Verifying']
+    };
+    const [cls, lbl] = m[s] || ['badge-muted', s];
+    return `<span class="badge ${cls}">${lbl}</span>`;
+}
+function depositBadge(a) {
+    if (!a.depositPaid) return `<span style="font-size:.72rem;font-weight:800;color:var(--text-muted);">— not paid</span>`;
+    if (a.depositRet)   return `<span class="appt-deposit-pill" style="color:var(--success);background:var(--success-soft);">↩️ Returned</span>`;
+    if (a.status==='noshow') return `<span class="appt-deposit-pill" style="color:#9b6000;background:#fff9f0;">🔒 Retained</span>`;
+    return `<span class="appt-deposit-pill" style="color:var(--success);background:var(--success-soft);">✅ ${a.depositAmt.toFixed(2)} JOD</span>`;
+}
+
+function getFilteredAppts() {
+    const q  = (document.getElementById('apptSearch')?.value || '').toLowerCase();
+    const sf = document.getElementById('apptStatusFilter')?.value || '';
+    return appts.filter(a => {
+        const mQ = !q  || [a.patient, a.doctor, a.pet, a.service].some(v => v.toLowerCase().includes(q));
+        const mS = !sf || a.status === sf;
+        return mQ && mS;
+    });
+}
+
+function renderAppts() {
+    const data  = getFilteredAppts();
+    const total = data.length;
+    const pages = Math.ceil(total / APPT_PAGE) || 1;
+    if (apptPage > pages) apptPage = 1;
+    const slice = data.slice((apptPage - 1) * APPT_PAGE, apptPage * APPT_PAGE);
+    const tbody = document.getElementById('apptsTBody');
+
+    tbody.innerHTML = slice.length ? slice.map(a => `
+        <tr>
+            <td style="font-size:.76rem;color:var(--text-muted);font-weight:700;">#${a.id}</td>
+            <td>
+                <div class="cell-title">${a.patient}</div>
+                <div class="cell-sub">${a.patientPhone}</div>
+            </td>
+            <td>
+                <div style="display:flex;align-items:center;gap:5px;">
+                    <span style="font-size:1.1rem;">${petEmoji(a.petSpecies)}</span>
+                    <div>
+                        <div class="cell-title">${a.pet}</div>
+                        <div class="cell-sub">${a.petSpecies}</div>
+                    </div>
+                </div>
+            </td>
+            <td style="font-size:.84rem;font-weight:800;color:var(--brand-dark);">
+                👨‍⚕️ Dr. ${a.doctor}
+            </td>
+            <td>
+                <div class="cell-title">📅 ${a.dateDisplay}</div>
+                <div class="cell-sub">🕐 ${a.time}</div>
+            </td>
+            <td style="font-size:.8rem;font-weight:700;color:var(--text-muted);">${a.service}</td>
+            <td>${depositBadge(a)}</td>
+            <td>${apptStatusBadge(a.status)}</td>
+        </tr>
+    `).join('')
+    : `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">No appointments found.</td></tr>`;
+
+    document.getElementById('apptPagInfo').textContent =
+        total === 0 ? 'No appointments found'
+        : `Showing ${(apptPage-1)*APPT_PAGE+1}–${Math.min(apptPage*APPT_PAGE,total)} of ${total} appointments`;
+
+    document.getElementById('apptTableCount').textContent = total + ' appointments';
+
+    const pagEl = document.getElementById('apptPagPages');
+    pagEl.innerHTML = '';
+    if (pages > 1) {
+        const addBtn = (lbl, pg, active=false, dis=false) => {
+            const b = document.createElement('button');
+            b.className = 'pag-btn' + (active ? ' active' : '');
+            b.textContent = lbl; b.disabled = dis;
+            b.onclick = () => { apptPage = pg; renderAppts(); };
+            pagEl.appendChild(b);
+        };
+        addBtn('‹', apptPage-1, false, apptPage===1);
+        for (let i=1; i<=pages; i++) {
+            if (pages>7 && i>2 && i<pages-1 && Math.abs(i-apptPage)>1) {
+                if (i===3||i===pages-2){const s=document.createElement('button');s.className='pag-btn';s.textContent='…';s.disabled=true;pagEl.appendChild(s);}
+                continue;
+            }
+            addBtn(i, i, i===apptPage);
         }
+        addBtn('›', apptPage+1, false, apptPage===pages);
+    }
+}
 
-        function openLightbox(src) {
-            document.getElementById('lightboxImg').src = src;
-            document.getElementById('lightbox').classList.add('open');
-        }
-        function closeLightbox() {
-            document.getElementById('lightbox').classList.remove('open');
-        }
+/* ══════════════════════════════════════════════════════
+   FLASH AUTO-HIDE
+══════════════════════════════════════════════════════ */
+const fm = document.getElementById('flashMsg');
+if (fm) { setTimeout(() => fm.style.opacity = '0', 3500); setTimeout(() => fm.remove(), 3900); }
 
-        const fm = document.getElementById('flashMsg');
-        if (fm) { setTimeout(() => fm.style.opacity = '0', 3500); setTimeout(() => fm.remove(), 3900); }
-    </script>
+/* ══════════════════════════════════════════════════════
+   URL HASH DEEP-LINK (e.g. ?tab=doctors after approve)
+══════════════════════════════════════════════════════ */
+(function () {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab === 'doctors') {
+        const btn = document.querySelector('[onclick*="doctors"]');
+        if (btn) switchTab('doctors', btn);
+    } else if (tab === 'appointments') {
+        const btn = document.querySelector('[onclick*="appointments"]');
+        if (btn) switchTab('appointments', btn);
+    }
+})();
+</script>
 }

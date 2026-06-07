@@ -2306,6 +2306,19 @@ namespace Waffy.Controllers
                 Documents = docs
             };
 
+            // ── Doctors for this clinic ──────────────────────────
+            // GetAllForAdminAsync تقبل string? statusFilter فقط
+            // نجلب الكل ثم نفلتر بالـ IdClinic
+            var allDoctors = (await _doctorAdminRepo.GetAllForAdminAsync(null))
+                                .Where(d => d.IdClinic == id)
+                                .ToList();
+            ViewBag.Doctors = allDoctors;
+
+            // ── Appointments for this clinic ─────────────────────
+            // GetAllAsync تقبل clinicId مباشرة كـ parameter ثاني
+            var allAppointments = (await _apptRepo.GetAllAsync(null, id)).ToList();
+            ViewBag.Appointments = allAppointments;
+
             if (TempData["ClinicSuccess"] != null) ViewBag.Success = TempData["ClinicSuccess"];
             if (TempData["ClinicError"] != null) ViewBag.Error = TempData["ClinicError"];
 
