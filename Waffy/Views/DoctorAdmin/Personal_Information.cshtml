@@ -177,7 +177,8 @@
                 <div class="chart-card">
                     <div class="sec-label">👤 Personal Information</div>
                     <form asp-controller="DoctorAdmin" asp-action="Personal_Information"
-                          method="post" enctype="multipart/form-data">
+                          method="post" enctype="multipart/form-data"
+                          onsubmit="return validateBeforeSubmit()">
                         @Html.AntiForgeryToken()
 
                         <div class="f-grid">
@@ -188,8 +189,14 @@
                             </div>
                             <div class="f-group">
                                 <label class="f-label"><span class="req">*</span>Phone Number</label>
-                                <input name="Phone" class="f-inp" type="tel"
-                                       value="@Model.Phone" required>
+                                <input name="Phone" id="doctorPhone" class="f-inp" type="tel"
+                                       value="@Model.Phone" required
+                                       placeholder="07X XXX XXXX"
+                                       oninput="validateJordanPhone(this, 'doctorPhoneErr')"
+                                       maxlength="14">
+                                <div id="doctorPhoneErr" style="color:#e74c3c;font-size:.78rem;font-weight:700;display:none;margin-top:4px;">
+                                    ⚠ Enter a valid number: 077, 078, or 079 followed by 7 digits
+                                </div>
                             </div>
                             <div class="f-group f-full">
                                 <label class="f-label">Email Address</label>
@@ -276,6 +283,27 @@
                 r.addEventListener("click", () => { if (window.innerWidth <= 992) closeSidebar(); }));
             window.addEventListener("resize", () => { if (window.innerWidth > 992) closeSidebar(); });
         });
+
+                 function validateBeforeSubmit() {
+            var phoneInput = document.getElementById('doctorPhone');
+            // أو 'clinicPhone' في Basic_Information
+
+            if (!phoneInput) return true;
+
+            var val = phoneInput.value.trim().replace(/[\s\-]/g, '');
+            if (val.startsWith('+962')) val = '0' + val.slice(4);
+            else if (val.startsWith('962')) val = '0' + val.slice(3);
+            else if (/^7[789]/.test(val) && val.length === 9) val = '0' + val;
+
+            if (!/^07[789]\d{7}$/.test(val)) {
+                document.getElementById('doctorPhoneErr').style.display = 'block';
+                phoneInput.style.borderColor = '#e74c3c';
+                phoneInput.focus();
+                return false; // يمنع الإرسال
+            }
+            return true; // يسمح بالإرسال
+        }
+        
     </script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 ﻿@model Waffy.Models.ViewModels.ClinicBasicInfoViewModel
 @{
     ViewData["Title"] = "Waffy — Clinic Basic Information";
-    Layout = null;
+    
 
     var sessionUserName = Context.Session.GetString("UserName") ?? "Clinic Manager";
     var sessionClinicName = Context.Session.GetString("ClinicName") ?? "Clinic";
@@ -30,86 +30,8 @@
 
     <div class="wa-shell" id="waShell">
 
-        <!-- ── Sidebar ── -->
-        <aside class="wa-sb" id="sidebar">
-            <div class="sb-logo">
-                <div class="sb-mark">
-                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img">
-                </div>
-                <div class="sb-wordmark">
-                    <div class="sb-wm-name">Waffy</div>
-                    <div class="sb-wm-tag">Clinic Admin</div>
-                </div>
-            </div>
-            <nav class="sb-nav">
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Dashboard">
-                        <span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Daily Management</div>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Appointments">
-                        <span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span>
-                    </a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Patients">
-                        <span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span>
-                    </a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Medical_Records">
-                        <span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Clinic Management</div>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Doctors">
-                        <span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span>
-                    </a>
-                    <a class="sb-row active" asp-controller="ClinicAdmin" asp-action="Basic_Information">
-                        <span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span>
-                    </a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Revenue">
-                        <span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Adoption">
-                        <span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Analytics</div>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reviews">
-                        <span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span>
-                    </a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reports">
-                        <span class="sb-icon">📈</span><span class="sb-lbl">Reports</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Personal_nformation">
-                        <span class="sb-icon">⚙️</span><span class="sb-lbl">My Settings</span>
-                    </a>
-                </div>
-            </nav>
-            <div class="sb-foot">
-                <div class="sb-user-row">
-                    <div class="sb-av">@userInitials</div>
-                    <div class="sb-user-info">
-                        <div class="sb-user-name">@sessionUserName</div>
-                        <div class="sb-user-role">Clinic Manager 👑</div>
-                    </div>
-                </div>
-                <a asp-controller="ClinicAdmin" asp-action="Logout" class="sb-logout">
-                    <span class="sb-icon">↩</span>
-                    <span class="sb-logout-lbl">Sign Out</span>
-                </a>
-            </div>
-        </aside>
+        @await Html.PartialAsync("~/Views/ClinicAdmin/_ClinicAdminSidebar.cshtml")
+
 
         <!-- ── Topnav ── -->
         <header class="wa-tn">
@@ -139,7 +61,9 @@
         <!-- ── Main ── -->
         <main class="wa-main">
 
-            <form asp-controller="ClinicAdmin" asp-action="Basic_Information" method="post">
+                <form asp-controller="ClinicAdmin" asp-action="Basic_Information"
+                      method="post" enctype="multipart/form-data"
+                      onsubmit="return validateBeforeSubmit()">
                 @Html.AntiForgeryToken()
 
                 <section class="page-hero">
@@ -213,7 +137,14 @@
 
                             <div class="f-group">
                                 <label class="f-label"><span class="req">*</span>Phone Number</label>
-                                <input asp-for="Phone" class="f-inp" type="tel" required>
+                                <input name="Phone" id="clinicPhone" class="f-inp" type="tel"
+                                       value="@Model.Phone"
+                                       placeholder="07X XXX XXXX"
+                                       oninput="validateJordanPhone(this, 'clinicPhoneErr')"
+                                       maxlength="14">
+                                <div id="clinicPhoneErr" style="color:#e74c3c;font-size:.78rem;font-weight:700;display:none;margin-top:4px;">
+                                    ⚠ Enter a valid number: 077, 078, or 079 followed by 7 digits
+                                </div>
                             </div>
                             <div class="f-group">
                                 <label class="f-label">📱 CliQ Number</label>
@@ -449,6 +380,26 @@
                 if (window.innerWidth > 992) closeSidebar();
             });
         });
+
+           function validateBeforeSubmit() {
+        var phoneInput = document.getElementById('clinicPhone');
+            // أو 'clinicPhone' في Basic_Information
+
+            if (!phoneInput) return true;
+
+            var val = phoneInput.value.trim().replace(/[\s\-]/g, '');
+            if (val.startsWith('+962')) val = '0' + val.slice(4);
+            else if (val.startsWith('962')) val = '0' + val.slice(3);
+            else if (/^7[789]/.test(val) && val.length === 9) val = '0' + val;
+
+            if (!/^07[789]\d{7}$/.test(val)) {
+                document.getElementById('clinicPhoneErr').style.display = 'block';
+                phoneInput.style.borderColor = '#e74c3c';
+                phoneInput.focus();
+                return false; // يمنع الإرسال
+            }
+            return true; // يسمح بالإرسال
+        }
     </script>
 
 </body>

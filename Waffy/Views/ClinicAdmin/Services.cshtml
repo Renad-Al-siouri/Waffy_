@@ -1,7 +1,7 @@
 ﻿@model Waffy.Models.ViewModels.ServicesViewModel
 @{
     ViewData["Title"] = "Waffy — Clinic Services";
-    Layout = null;
+  
 
     var sessionUserName = Context.Session.GetString("UserName") ?? "Clinic Manager";
     var sessionClinicName = Context.Session.GetString("ClinicName") ?? "Clinic";
@@ -74,86 +74,8 @@
 
     <div class="wa-shell" id="waShell">
 
-        <!-- ── Sidebar ── -->
-        <aside class="wa-sb" id="sidebar">
-            <div class="sb-logo">
-                <div class="sb-mark">
-                    <img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img">
-                </div>
-                <div class="sb-wordmark">
-                    <div class="sb-wm-name">Waffy</div>
-                    <div class="sb-wm-tag">Clinic Admin</div>
-                </div>
-            </div>
-            <nav class="sb-nav">
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Dashboard">
-                        <span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Daily Management</div>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Appointments">
-                        <span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span>
-                    </a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Patients">
-                        <span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span>
-                    </a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Medical_Records">
-                        <span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Clinic Management</div>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Doctors">
-                        <span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span>
-                    </a>
-                    <a class="sb-row active" asp-controller="ClinicAdmin" asp-action="Basic_Information">
-                        <span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span>
-                    </a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Revenue">
-                        <span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Adoption">
-                        <span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Analytics</div>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reviews">
-                        <span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span>
-                    </a>
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Reports">
-                        <span class="sb-icon">📈</span><span class="sb-lbl">Reports</span>
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Personal_nformation">
-                        <span class="sb-icon">⚙️</span><span class="sb-lbl">My Settings</span>
-                    </a>
-                </div>
-            </nav>
-            <div class="sb-foot">
-                <div class="sb-user-row">
-                    <div class="sb-av">@userInitials</div>
-                    <div class="sb-user-info">
-                        <div class="sb-user-name">@sessionUserName</div>
-                        <div class="sb-user-role">Clinic Manager 👑</div>
-                    </div>
-                </div>
-                <a asp-controller="ClinicAdmin" asp-action="Logout" class="sb-logout">
-                    <span class="sb-icon">↩</span>
-                    <span class="sb-logout-lbl">Sign Out</span>
-                </a>
-            </div>
-        </aside>
+        @await Html.PartialAsync("~/Views/ClinicAdmin/_ClinicAdminSidebar.cshtml")
+
 
         <!-- ── Topnav ── -->
         <header class="wa-tn">

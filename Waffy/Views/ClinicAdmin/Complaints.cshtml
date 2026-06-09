@@ -1,6 +1,6 @@
 ﻿@{
     ViewData["Title"] = "Waffy — Clinic Admin | Complaints";
-    Layout = null;
+   
     var complaints = ViewBag.Complaints as List<Waffy.Models.Complaint> ?? new();
     var statusFilter = (string)(ViewBag.StatusFilter ?? "All");
     var total = (int)(ViewBag.TotalCount ?? 0);
@@ -175,60 +175,8 @@
 <body class="admin-shell">
     <div class="wa-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
     <div class="wa-shell" id="waShell">
+        @await Html.PartialAsync("~/Views/ClinicAdmin/_ClinicAdminSidebar.cshtml")
 
-        <!-- SIDEBAR -->
-        <aside class="wa-sb" id="sidebar">
-            <div class="sb-logo">
-                <div class="sb-mark"><img src="~/Images/logoW.png" alt="Waffy" class="sb-logo-img" onerror="this.remove();this.parentElement.innerHTML='🐾';"></div>
-                <div class="sb-wordmark"><div class="sb-wm-name">Waffy</div><div class="sb-wm-tag">Clinic Admin</div></div>
-            </div>
-            <nav class="sb-nav">
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" href="@Url.Action("Dashboard", "ClinicAdmin")"><span class="sb-icon">📊</span><span class="sb-lbl">Dashboard</span></a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Daily Management</div>
-                    <a class="sb-row" href="@Url.Action("Appointments", "ClinicAdmin")"><span class="sb-icon">📅</span><span class="sb-lbl">Appointments</span></a>
-                    <a class="sb-row" href="@Url.Action("Patients", "ClinicAdmin")"><span class="sb-icon">🐾</span><span class="sb-lbl">Patients</span></a>
-                    <a class="sb-row" href="@Url.Action("Medical_Records", "ClinicAdmin")"><span class="sb-icon">📄</span><span class="sb-lbl">Medical Records</span></a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Clinic Management</div>
-                    <a class="sb-row" href="@Url.Action("Doctors", "ClinicAdmin")"><span class="sb-icon">👨‍⚕️</span><span class="sb-lbl">Doctors</span></a>
-                    <a class="sb-row" href="@Url.Action("Basic_Information", "ClinicAdmin")"><span class="sb-icon">🏥</span><span class="sb-lbl">Clinic Settings</span></a>
-                    <a class="sb-row" href="@Url.Action("Revenue", "ClinicAdmin")"><span class="sb-icon">💰</span><span class="sb-lbl">Revenue &amp; Payments</span></a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group sb-group-flat">
-                    <a class="sb-row" href="@Url.Action("Adoption", "ClinicAdmin")"><span class="sb-icon">🐕</span><span class="sb-lbl">Adoption</span></a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Analytics</div>
-                    <a class="sb-row" href="@Url.Action("Reports", "ClinicAdmin")"><span class="sb-icon">📈</span><span class="sb-lbl">Reports</span></a>
-                    <a class="sb-row" href="@Url.Action("Reviews", "ClinicAdmin")"><span class="sb-icon">⭐</span><span class="sb-lbl">Reviews</span></a>
-                    <a class="sb-row active" href="@Url.Action("Complaints", "ClinicAdmin")">
-                        <span class="sb-icon">🚨</span><span class="sb-lbl">Complaints</span>
-                        @if (openCount > 0)
-                        {
-                            <span class="sb-bdg bd-o">@openCount</span>
-                        }
-                    </a>
-                </div>
-                <div class="sb-hr"></div>
-                <div class="sb-group">
-                    <div class="sb-grp-hd">Settings</div>
-                    <a class="sb-row" href="@Url.Action("Images", "ClinicAdmin")"><span class="sb-icon">🖼️</span><span class="sb-lbl">Images</span></a>
-                    <a class="sb-row" href="@Url.Action("Services", "ClinicAdmin")"><span class="sb-icon">🔧</span><span class="sb-lbl">Services</span></a>
-                    <a class="sb-row" href="@Url.Action("Working_Hours", "ClinicAdmin")"><span class="sb-icon">🕐</span><span class="sb-lbl">Working Hours</span></a>
-                    <a class="sb-row" href="@Url.Action("Documents_C", "ClinicAdmin")"><span class="sb-icon">📋</span><span class="sb-lbl">Documents</span></a>
-                    <a class="sb-row" href="@Url.Action("Notifications", "ClinicAdmin")"><span class="sb-icon">🔔</span><span class="sb-lbl">Notifications</span></a>
-                    <a class="sb-row" href="@Url.Action("Logout", "ClinicAdmin")"><span class="sb-icon">🚪</span><span class="sb-lbl">Logout</span></a>
-                </div>
-            </nav>
-        </aside>
 
         <!-- TOPNAV -->
         <header class="wa-tn">

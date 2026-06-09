@@ -201,7 +201,7 @@ namespace Waffy.Controllers
                 HttpContext.Session.SetString("UserName", loginResult.FullName ?? "");
 
                 TempData["LoginSuccess"] = "Welcome back!";
-                return RedirectToAction("Dashboard", "ClinicAdmin");
+                return RedirectToAction("Appointments", "ClinicAdmin");
             }
 
             if (roleName == "Doctor")
@@ -225,7 +225,7 @@ namespace Waffy.Controllers
                 HttpContext.Session.SetString("UserName", loginResult.FullName ?? "");
 
                 TempData["LoginSuccess"] = "Welcome back, Doctor!";
-                return RedirectToAction("Dashboard", "DoctorAdmin");
+                return RedirectToAction("Appointments", "DoctorAdmin");
             }
 
             if (loginResult.AccountStatus != "Active")

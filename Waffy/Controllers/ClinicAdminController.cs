@@ -99,7 +99,7 @@ namespace Waffy.Controllers
         public IActionResult Login()
         {
             if (HttpContext.Session.GetInt32("RoleId") == 3)
-                return RedirectToAction("Dashboard");
+                return RedirectToAction("Appointments");
             return RedirectToAction("Login", "Account");
         }
         // ══════════════════════════════════════════════════════════
@@ -119,12 +119,7 @@ namespace Waffy.Controllers
 
         public IActionResult Index() => View();
 
-        public IActionResult Dashboard()
-        {
-            var auth = RequireClinicAuth();
-            if (auth != null) return auth;
-            return View();
-        }
+      
 
 
         [HttpGet]

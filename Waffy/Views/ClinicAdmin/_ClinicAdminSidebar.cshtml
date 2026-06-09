@@ -1,0 +1,268 @@
+﻿@{
+    var current = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+
+    bool Is(string action) =>
+        string.Equals(current, action, StringComparison.OrdinalIgnoreCase) &&
+        string.Equals(ctrl, "ClinicAdmin", StringComparison.OrdinalIgnoreCase);
+
+    bool IsAny(params string[] actions) =>
+        actions.Any(a => string.Equals(current, a, StringComparison.OrdinalIgnoreCase) &&
+                         string.Equals(ctrl, "ClinicAdmin", StringComparison.OrdinalIgnoreCase));
+
+    string A(string action) => Is(action) ? "sb-row active" : "sb-row";
+    string AnyA(params string[] actions) => IsAny(actions) ? "sb-row active" : "sb-row";
+
+    var clinicName = Context.Session.GetString("ClinicName") ?? "Clinic Admin";
+    var initials = string.Concat(clinicName.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                                             .Take(2)
+                                             .Select(w => w[0]));
+}
+
+<!-- ═══════════════════════════════════════════════════
+     WAFFY — Clinic Admin Sidebar
+     Partial: Views/ClinicAdmin/_ClinicAdminSidebar.cshtml
+     CSS: AdminClinic-sidebar.css  (no theme changes)
+════════════════════════════════════════════════════ -->
+<aside class="wa-sb" id="sidebar">
+
+    <!-- ── Logo ─────────────────────────────────────── -->
+    <div class="sb-logo">
+        <div class="sb-mark">
+            <img src="~/images/waffy-logo.png" alt="Waffy" class="sb-logo-img"
+                 onerror="this.style.display='none'">
+        </div>
+        <div class="sb-wordmark">
+            <div class="sb-wm-name">Waffy</div>
+            <div class="sb-wm-tag">Clinic Panel</div>
+        </div>
+    </div>
+
+    <!-- ── Nav ──────────────────────────────────────── -->
+    <nav class="sb-nav">
+
+       
+
+        <!-- ── Daily Management ───────────────────── -->
+        <div class="sb-group">
+            <div class="sb-grp-hd">Daily Management</div>
+
+            <a asp-controller="ClinicAdmin" asp-action="Appointments"
+               class="@A("Appointments")" data-tip="Appointments">
+                <span class="sb-icon">📅</span>
+                <span class="sb-lbl">Appointments</span>
+            </a>
+
+            <a asp-controller="ClinicAdmin" asp-action="Patients"
+               class="@A("Patients")" data-tip="Patients">
+                <span class="sb-icon">🐾</span>
+                <span class="sb-lbl">Patients</span>
+            </a>
+        </div>
+
+        <div class="sb-hr"></div>
+
+        <!-- ── Clinic Management ─────────────────── -->
+        <div class="sb-group">
+            <div class="sb-grp-hd">Clinic Management</div>
+
+            <!-- Doctors (collapsible sub-menu) -->
+            <button type="button"
+                    class="@AnyA("Doctors", "DoctorInfo")"
+                    onclick="toggleSub('sub-doctors', this)"
+                    data-tip="Doctors"
+                    aria-expanded="@(IsAny("Doctors", "DoctorInfo") ? "true" : "false")">
+                <span class="sb-icon">👨‍⚕️</span>
+                <span class="sb-lbl">Doctors</span>
+                <span class="sb-chv" id="chv-doctors">&#8250;</span>
+            </button>
+
+            <div class="sb-sub" id="sub-doctors"
+                 style="@(IsAny("Doctors", "DoctorInfo") ? "" : "display:none")">
+                <a asp-controller="ClinicAdmin" asp-action="Doctors"
+                   class="@A("Doctors") sb-sub-row" data-tip="All Doctors">
+                    <span class="sb-icon">📋</span>
+                    <span class="sb-lbl">All Doctors</span>
+                </a>
+            </div>
+
+            <!-- Clinic Settings (collapsible sub-menu) -->
+            <button type="button"
+                    class="@AnyA("Basic_Information", "Services", "Working_Hours", "Images", "Documents_C")"
+                    onclick="toggleSub('sub-clinic-settings', this)"
+                    data-tip="Clinic Settings"
+                    aria-expanded="@(IsAny("Basic_Information", "Services", "Working_Hours", "Images", "Documents_C") ? "true" : "false")">
+                <span class="sb-icon">⚙️</span>
+                <span class="sb-lbl">Clinic Settings</span>
+                <span class="sb-chv" id="chv-clinic-settings">&#8250;</span>
+            </button>
+
+            <div class="sb-sub" id="sub-clinic-settings"
+                 style="@(IsAny("Basic_Information", "Services", "Working_Hours", "Images", "Documents_C") ? "" : "display:none")">
+
+                <a asp-controller="ClinicAdmin" asp-action="Basic_Information"
+                   class="@A("Basic_Information") sb-sub-row" data-tip="Basic Information">
+                    <span class="sb-icon">🏥</span>
+                    <span class="sb-lbl">Basic Information</span>
+                </a>
+
+                <a asp-controller="ClinicAdmin" asp-action="Services"
+                   class="@A("Services") sb-sub-row" data-tip="Services">
+                    <span class="sb-icon">💊</span>
+                    <span class="sb-lbl">Services</span>
+                </a>
+
+                <a asp-controller="ClinicAdmin" asp-action="Working_Hours"
+                   class="@A("Working_Hours") sb-sub-row" data-tip="Working Hours">
+                    <span class="sb-icon">🕐</span>
+                    <span class="sb-lbl">Working Hours</span>
+                </a>
+
+                <a asp-controller="ClinicAdmin" asp-action="Images"
+                   class="@A("Images") sb-sub-row" data-tip="Images">
+                    <span class="sb-icon">🖼️</span>
+                    <span class="sb-lbl">Images</span>
+                </a>
+
+                <a asp-controller="ClinicAdmin" asp-action="Documents_C"
+                   class="@A("Documents_C") sb-sub-row" data-tip="Documents">
+                    <span class="sb-icon">📄</span>
+                    <span class="sb-lbl">Documents</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="sb-hr"></div>
+
+        <!-- ── Other Sections ───────────────────── -->
+        <div class="sb-group">
+            <div class="sb-grp-hd">Services</div>
+
+            <a asp-controller="ClinicAdmin" asp-action="Adoption"
+               class="@A("Adoption")" data-tip="Adoption">
+                <span class="sb-icon">🐶</span>
+                <span class="sb-lbl">Adoption</span>
+            </a>
+        </div>
+
+        <div class="sb-hr"></div>
+
+        <!-- ── Reviews & Complaints ─────────────── -->
+        <div class="sb-group">
+            <div class="sb-grp-hd">Feedback</div>
+
+            <a asp-controller="ClinicAdmin" asp-action="Reviews"
+               class="@A("Reviews")" data-tip="Reviews">
+                <span class="sb-icon">⭐</span>
+                <span class="sb-lbl">Reviews</span>
+            </a>
+
+            <a asp-controller="ClinicAdmin" asp-action="Complaints"
+               class="@A("Complaints")" data-tip="Complaints">
+                <span class="sb-icon">📢</span>
+                <span class="sb-lbl">Complaints</span>
+            </a>
+        </div>
+
+        <div class="sb-hr"></div>
+
+        <!-- ── Notifications ─────────────────────── -->
+        <div class="sb-group sb-group-flat">
+            <a asp-controller="ClinicAdmin" asp-action="Notifications"
+               class="@A("Notifications")" data-tip="Notifications">
+                <span class="sb-icon">🔔</span>
+                <span class="sb-lbl">Notifications</span>
+                @{
+                    var unread = ViewBag.SidebarUnreadCount as int?;
+                }
+                @if (unread.HasValue && unread.Value > 0)
+                {
+                    <span class="sb-bdg bd-r">@unread</span>
+                }
+            </a>
+        </div>
+
+    </nav>
+
+    <!-- ── Footer / User ─────────────────────────── -->
+    <div class="sb-foot">
+        <div class="sb-user-row">
+            <div class="sb-av">@initials.ToUpper()</div>
+            <div class="sb-user-info">
+                <div class="sb-user-name">@clinicName</div>
+                <div class="sb-user-role">Clinic Admin</div>
+            </div>
+        </div>
+
+        <!-- بعد ✅ -->
+        <a asp-controller="Account" asp-action="Logout" class="sb-logout">
+            <span class="sb-icon">🚪</span>
+            <span class="sb-logout-lbl">Logout</span>
+        </a>
+    </div>
+
+</aside>
+
+<!-- ═══════════════════════════════════════════════════
+     Sub-menu toggle JS  (inline — no extra file needed)
+════════════════════════════════════════════════════ -->
+<style>
+    /* Sub-menu indented rows */
+    .sb-sub {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding-left: 10px;
+        margin-top: 2px;
+    }
+
+    .sb-sub-row {
+        font-size: .83rem !important;
+        min-height: 38px !important;
+        padding-left: 12px !important;
+        border-left: 2px solid rgba(255,255,255,0.12) !important;
+        border-radius: 0 10px 10px 0 !important;
+    }
+
+        .sb-sub-row:hover,
+        .sb-sub-row.active {
+            border-left-color: var(--sb-active-bar) !important;
+        }
+
+    /* Chevron rotate on expand */
+    .sb-chv {
+        font-size: .75rem;
+        opacity: .6;
+        transition: transform 0.22s ease, opacity 0.22s;
+        margin-left: auto;
+        flex-shrink: 0;
+    }
+
+        .sb-chv.open {
+            transform: rotate(90deg);
+            opacity: 1;
+        }
+</style>
+
+<script>
+    function toggleSub(id, btn) {
+        const sub = document.getElementById(id);
+        const chv = btn.querySelector('.sb-chv');
+        if (!sub) return;
+        const isOpen = sub.style.display !== 'none';
+        sub.style.display = isOpen ? 'none' : 'flex';
+        if (chv) chv.classList.toggle('open', !isOpen);
+        btn.setAttribute('aria-expanded', String(!isOpen));
+    }
+
+    // Auto-open chevron for active sub-menus on page load
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.sb-sub').forEach(function (sub) {
+            if (sub.style.display !== 'none') {
+                const btn = sub.previousElementSibling;
+                const chv = btn && btn.querySelector('.sb-chv');
+                if (chv) chv.classList.add('open');
+            }
+        });
+    });
+</script>
