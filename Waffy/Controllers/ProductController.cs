@@ -9,16 +9,16 @@ namespace Waffy.Controllers
     {
         private readonly IStoreRepository _storeRepo;
         private readonly IProductRepository _productRepo;
-        private readonly IProductImageRepository _productImageRepo; // ← جديد
+        private readonly IProductImageRepository _productImageRepo;
         private readonly ICategoryRepository _categoryRepo;
-        private readonly IStoreImageRepository _storeImageRepo;// ← جديد
+        private readonly IStoreImageRepository _storeImageRepo;
 
         public ProductController(
             IStoreRepository storeRepo,
             IProductRepository productRepo,
-            IProductImageRepository productImageRepo, // ← جديد
+            IProductImageRepository productImageRepo,
             ICategoryRepository categoryRepo,
-            IStoreImageRepository storeImageRepo)          // ← جديد
+            IStoreImageRepository storeImageRepo)
         {
             _storeRepo = storeRepo;
             _productRepo = productRepo;
@@ -28,13 +28,8 @@ namespace Waffy.Controllers
         }
 
         // ══════════════════════════════════════════════════════════
-        // STORES — قائمة المتاجر المعتمدة (بدون تغيير)
+        // STORES — قائمة المتاجر المعتمدة 
         // ══════════════════════════════════════════════════════════
-        // ══════════════════════════════════════════════════════════════════
-        // 1. في ProductController.cs
-        // استبدل Stores() action بهذا
-        // ══════════════════════════════════════════════════════════════════
-
         [HttpGet]
         public async Task<IActionResult> Stores(string? search, string? storeType)
         {
@@ -57,14 +52,13 @@ namespace Waffy.Controllers
                     .Equals(storeType, StringComparison.OrdinalIgnoreCase))
                     .ToList();
 
-            // ── جلب صور Gallery لكل متجر ─────────────────────────────────
+            // جلب صور Gallery لكل متجر
             var storeImagesMap = new Dictionary<int, List<string>>();
             foreach (var s in allStores)
             {
                 var imgs = (await _storeImageRepo.GetByStoreIdAndTypeAsync(s.IdStore, "Gallery")).ToList();
                 var urls = imgs.Select(i => i.ImageUrl).Where(u => !string.IsNullOrEmpty(u)).ToList();
 
-                // إذا لا توجد Gallery، نستخدم Cover ثم Logo كـ fallback
                 if (!urls.Any() && !string.IsNullOrEmpty(s.CoverImageUrl))
                     urls.Add(s.CoverImageUrl);
                 if (!urls.Any() && !string.IsNullOrEmpty(s.LogoUrl))
@@ -73,7 +67,7 @@ namespace Waffy.Controllers
                 storeImagesMap[s.IdStore] = urls;
             }
 
-            ViewBag.StoreImagesJson = System.Text.Json.JsonSerializer.Serialize(storeImagesMap);
+            ViewBag.StoreImagesJson = JsonSerializer.Serialize(storeImagesMap);
 
             var vm = new StoreListViewModel
             {
@@ -86,7 +80,7 @@ namespace Waffy.Controllers
         }
 
         // ══════════════════════════════════════════════════════════
-        // PRODUCTS — منتجات متجر معين مع صور متعددة
+        // PRODUCTS — منتجات متجر معين (تعرض فقط المنتجات المتاحة IsVisible = 1)
         // ══════════════════════════════════════════════════════════
         [HttpGet]
         public async Task<IActionResult> Products(
@@ -95,19 +89,21 @@ namespace Waffy.Controllers
             var store = await _storeRepo.GetByIdAsync(storeId);
             if (store == null) return NotFound();
 
+            // الدالة المفلترة جلبناها وتأكدنا أنها تعرض فقط IsVisible = 1 للزبائن مسبقاً
             var products = (await _productRepo.GetFilteredAsync(
-     storeId,
-     string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
-     categoryId,
-     maxPrice
- )).ToList();
-            // ── جلب صور كل منتج وبناء JSON للـ slider ────────────
+                storeId,
+                string.IsNullOrWhiteSpace(search) ? null : search.Trim(),
+                categoryId,
+                maxPrice
+            )).Where(p => p.IsVisible == true || p.IsVisible == null).ToList(); // تأكيد إضافي لضمان عدم ظهور أي منتج مخفي
+
+            // جلب صور كل منتج وبناء JSON للـ slider 
             var productsWithImages = new List<object>();
             foreach (var p in products)
             {
                 var imgs = (await _productImageRepo.GetByProductIdAsync(p.Id)).ToList();
                 var allUrls = imgs.Select(i => i.ImageUrl).Where(u => !string.IsNullOrEmpty(u)).ToList();
-                // fallback: الصورة القديمة
+
                 if (!allUrls.Any() && !string.IsNullOrEmpty(p.ImageUrl))
                     allUrls.Add(p.ImageUrl);
 
@@ -119,11 +115,11 @@ namespace Waffy.Controllers
                     price = p.Price,
                     salePrice = p.SalePrice,
                     stock = p.StockQuantity,
-                    images = allUrls   // ← كل الصور
+                    images = allUrls
                 });
             }
 
-            // ── جلب فئات المتجر ───────────────────────────────────
+            // جلب فئات المتجر
             var categories = (await _categoryRepo.GetByStoreIdAsync(storeId)).ToList();
 
             ViewBag.ProductsJson = JsonSerializer.Serialize(productsWithImages);

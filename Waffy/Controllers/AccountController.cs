@@ -27,7 +27,7 @@ namespace Waffy.Controllers
             IClinicRepository clinicRepository,
             IClinicDocumentRepository clinicDocumentRepository,
             IPetRepository petRepository,
-                IDoctorRepository doctorRepository,
+            IDoctorRepository doctorRepository,
             ILocationRepository locationRepo)
         {
             _userRepository = userRepository;
@@ -54,7 +54,6 @@ namespace Waffy.Controllers
             return $"/uploads/{subFolder}/{fileName}";
         }
 
-        // ✅ حل مشكلة RoleName — يجلب من Roles عبر RoleId
         private void SetSession(LoginUserResult user, string roleName)
         {
             HttpContext.Session.SetInt32("UserId", user.UserId);
@@ -62,15 +61,29 @@ namespace Waffy.Controllers
             HttpContext.Session.SetString("RoleName", roleName);
         }
 
-        // ضعه في AccountController كـ private method
-        private bool IsValidJordanianPhone(string phone)
+        private bool IsValidGmail(string email)
         {
-            // يقبل: 07XXXXXXXX أو 7XXXXXXXX أو +9627XXXXXXXX أو 9627XXXXXXXX
+            if (string.IsNullOrWhiteSpace(email)) return false;
+
+            var trimmedEmail = email.Trim().ToLower();
+
+            // Allow the platform master admin email to pass bypass restriction
+            if (trimmedEmail == "admin@waffy.jo") return true;
+
+            // Enforce @gmail.com for everyone else
+            return trimmedEmail.EndsWith("@gmail.com");
+        }
+
+        private string CleanAndValidatePhone(string phone)
+        {
+            if (string.IsNullOrWhiteSpace(phone)) return null;
+
             var cleaned = phone.Trim()
                 .Replace(" ", "")
-                .Replace("-", "");
+                .Replace("-", "")
+                .Replace("(", "")
+                .Replace(")", "");
 
-            // إزالة البادئات الدولية
             if (cleaned.StartsWith("+962"))
                 cleaned = "0" + cleaned.Substring(4);
             else if (cleaned.StartsWith("962"))
@@ -78,17 +91,30 @@ namespace Waffy.Controllers
             else if (cleaned.StartsWith("7") && cleaned.Length == 9)
                 cleaned = "0" + cleaned;
 
-            // يجب أن يكون 10 أرقام يبدأ بـ 077, 078, 079
-            return cleaned.Length == 10 &&
-                   System.Text.RegularExpressions.Regex.IsMatch(
-                       cleaned, @"^07[789]\d{7}$");
+            if (cleaned.Length == 10 && System.Text.RegularExpressions.Regex.IsMatch(cleaned, @"^07[789]\d{7}$"))
+            {
+                return cleaned;
+            }
+
+            return null;
         }
+
         // ══════════════════════════════════════════════════════════
         // LOGIN
         // ══════════════════════════════════════════════════════════
 
         [HttpGet]
-        public IActionResult Login() => View();
+        public IActionResult Login()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId != null)
+                return RedirectToAction("Home_After", "Home");
+
+            Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+            Response.Headers["Pragma"] = "no-cache";
+            Response.Headers["Expires"] = "0";
+            return View();
+        }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -100,7 +126,12 @@ namespace Waffy.Controllers
                 return RedirectToAction("Login");
             }
 
-            // ✅ loginResult من نوع LoginUserResult وليس User
+            if (!IsValidGmail(email))
+            {
+                TempData["LoginError"] = "Only Gmail addresses (@gmail.com) are allowed.";
+                return RedirectToAction("Login");
+            }
+
             var loginResult = await _userRepository.LoginAsync(email, password);
             if (loginResult == null)
             {
@@ -111,10 +142,8 @@ namespace Waffy.Controllers
             var roleName = loginResult.RoleName
                            ?? await _userRepository.GetRoleNameByIdAsync(loginResult.RoleId);
 
-            // ── حساب متجر ──────────────────────────────────────────
             if (roleName == "Store")
             {
-                // ✅ loginResult.UserId موجود الآن
                 var store = await _storeRepository.GetByOwnerUserIdAsync(loginResult.UserId);
 
                 if (store == null)
@@ -136,13 +165,11 @@ namespace Waffy.Controllers
                         return RedirectToAction("Login");
                 }
 
-                // ✅ SetSession يستقبل LoginUserResult
                 SetSession(loginResult, roleName);
                 TempData["LoginSuccess"] = "Welcome back!";
                 return RedirectToAction("Dashboard", "StoreAdmin");
             }
 
-            // ── حساب عيادة ─────────────────────────────────────────
             if (roleName == "Clinic")
             {
                 var clinic = await _clinicRepository.GetByOwnerUserIdAsync(loginResult.UserId);
@@ -166,10 +193,8 @@ namespace Waffy.Controllers
                         return RedirectToAction("Login");
                 }
 
-                // ✅ Session الأساسية
                 SetSession(loginResult, roleName);
 
-                // ✅ Session إضافية للـ ClinicAdmin
                 HttpContext.Session.SetInt32("RoleId", loginResult.RoleId);
                 HttpContext.Session.SetInt32("ClinicId", clinic.IdClinic);
                 HttpContext.Session.SetString("ClinicName", clinic.Name);
@@ -179,7 +204,6 @@ namespace Waffy.Controllers
                 return RedirectToAction("Dashboard", "ClinicAdmin");
             }
 
-            // ── حساب طبيب ──────────────────────────────────────────
             if (roleName == "Doctor")
             {
                 var clinicId = await _clinicRepository.GetClinicIdByDoctorUserIdAsync(loginResult.UserId);
@@ -191,22 +215,19 @@ namespace Waffy.Controllers
                 }
 
                 var clinic = await _clinicRepository.GetByIdAsync(clinicId.Value);
-
-                // ✅ جلب DoctorId من Doctor table
                 var doctorId = await _doctorRepository.GetDoctorIdByUserIdAsync(loginResult.UserId);
 
                 SetSession(loginResult, roleName);
                 HttpContext.Session.SetInt32("RoleId", loginResult.RoleId);
                 HttpContext.Session.SetInt32("ClinicId", clinicId.Value);
-                HttpContext.Session.SetInt32("DoctorId", doctorId ?? 0);     // ← جديد
+                HttpContext.Session.SetInt32("DoctorId", doctorId ?? 0);
                 HttpContext.Session.SetString("ClinicName", clinic?.Name ?? "");
                 HttpContext.Session.SetString("UserName", loginResult.FullName ?? "");
 
                 TempData["LoginSuccess"] = "Welcome back, Doctor!";
-                return RedirectToAction("Dashboard", "DoctorAdmin"); // ← تغيير هنا
+                return RedirectToAction("Dashboard", "DoctorAdmin");
             }
 
-            // ── Admin / User ────────────────────────────────────────
             if (loginResult.AccountStatus != "Active")
             {
                 TempData["LoginError"] = "Your account is not active. Please contact support.";
@@ -232,7 +253,10 @@ namespace Waffy.Controllers
         public IActionResult Logout()
         {
             HttpContext.Session.Clear();
-            return RedirectToAction("Login");
+            Response.Headers["Cache-Control"] = "no-cache, no-store, must-revalidate";
+            Response.Headers["Pragma"] = "no-cache";
+            Response.Headers["Expires"] = "0";
+            return RedirectToAction("Login", "Account");
         }
 
         // ══════════════════════════════════════════════════════════
@@ -259,7 +283,7 @@ namespace Waffy.Controllers
         }
 
         // ══════════════════════════════════════════════════════════
-        // SIGNUP — صفحة الاختيار
+        // SIGNUP — Selection Page
         // ══════════════════════════════════════════════════════════
 
         [HttpGet]
@@ -280,7 +304,7 @@ namespace Waffy.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> user_signup(
             string fullName, string email, string password,
-            string confirmPassword, string phone, 
+            string confirmPassword, string phone,
             string city, string? area)
         {
             if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(email) ||
@@ -291,9 +315,16 @@ namespace Waffy.Controllers
                 return RedirectToAction("user_signup");
             }
 
-            if (!IsValidJordanianPhone(phone))
+            if (!IsValidGmail(email))
             {
-                TempData["SignupError"] = "Please enter a valid Jordanian phone number (07X XXX XXXX).";
+                TempData["SignupError"] = "Only Gmail addresses (@gmail.com) are allowed.";
+                return RedirectToAction("user_signup");
+            }
+
+            var validatedPhone = CleanAndValidatePhone(phone);
+            if (validatedPhone == null)
+            {
+                TempData["SignupError"] = "Phone number must be a valid Jordanian number consisting of exactly 10 digits (e.g., 07XXXXXXXX).";
                 return RedirectToAction("user_signup");
             }
 
@@ -320,14 +351,13 @@ namespace Waffy.Controllers
                 FullName = fullName,
                 Email = email,
                 PasswordHash = password,
-                Phone = phone,
+                Phone = validatedPhone,
                 City = city,
                 Area = area,
                 IsPhoneVerified = false,
                 IsEmailVerified = false,
                 AccountStatus = "Active"
             };
-
 
             await _userRepository.AddNormalUserAsync(user);
             TempData["SignupSuccess"] = "Account created successfully. Please log in.";
@@ -359,9 +389,20 @@ namespace Waffy.Controllers
                 return RedirectToAction("Stor_step1");
             }
 
-            if (!IsValidJordanianPhone(phone))
+            if (!IsValidGmail(email))
             {
-                TempData["StoreError"] = "Please enter a valid Jordanian phone number (07X XXX XXXX).";
+                TempData["StoreError"] = "Only Gmail addresses (@gmail.com) are allowed.";
+                TempData["firstName"] = firstName;
+                TempData["lastName"] = lastName;
+                TempData["email"] = email;
+                TempData["phone"] = phone;
+                return RedirectToAction("Stor_step1");
+            }
+
+            var validatedPhone = CleanAndValidatePhone(phone);
+            if (validatedPhone == null)
+            {
+                TempData["StoreError"] = "Phone number must be a valid Jordanian number consisting of exactly 10 digits (e.g., 07XXXXXXXX).";
                 TempData["firstName"] = firstName;
                 TempData["lastName"] = lastName;
                 TempData["email"] = email;
@@ -401,7 +442,7 @@ namespace Waffy.Controllers
                 FullName = $"{firstName.Trim()} {lastName.Trim()}",
                 Email = email,
                 PasswordHash = password,
-                Phone = phone,
+                Phone = validatedPhone,
                 AccountStatus = "Pending"
             };
 
@@ -441,6 +482,30 @@ namespace Waffy.Controllers
                 return RedirectToAction("Stor_step2");
             }
 
+            if (!IsValidGmail(email))
+            {
+                TempData["StoreStep2Error"] = "Only Gmail addresses (@gmail.com) are allowed.";
+                return RedirectToAction("Stor_step2");
+            }
+
+            var validatedStorePhone = CleanAndValidatePhone(phone);
+            if (validatedStorePhone == null)
+            {
+                TempData["StoreStep2Error"] = "Store phone number must be a valid Jordanian number consisting of exactly 10 digits (e.g., 07XXXXXXXX).";
+                return RedirectToAction("Stor_step2");
+            }
+
+            string validatedWhatsApp = null;
+            if (!string.IsNullOrWhiteSpace(whatsApp))
+            {
+                validatedWhatsApp = CleanAndValidatePhone(whatsApp);
+                if (validatedWhatsApp == null)
+                {
+                    TempData["StoreStep2Error"] = "WhatsApp number must be a valid Jordanian number consisting of exactly 10 digits (e.g., 07XXXXXXXX).";
+                    return RedirectToAction("Stor_step2");
+                }
+            }
+
             if (commercialRegister == null || commercialRegister.Length == 0 ||
                 businessLicense == null || businessLicense.Length == 0)
             {
@@ -454,8 +519,8 @@ namespace Waffy.Controllers
                 Name = name,
                 Description = description,
                 Email = email,
-                Phone = phone,
-                WhatsApp = whatsApp,
+                Phone = validatedStorePhone,
+                WhatsApp = validatedWhatsApp,
                 Country = "Jordan",
                 City = city,
                 VerificationStatus = "Pending",
@@ -516,12 +581,14 @@ namespace Waffy.Controllers
                 return RedirectToAction("Clinic_step1");
             }
 
-            if (!IsValidJordanianPhone(phone))
+            var validatedClinicPhone = CleanAndValidatePhone(phone);
+            if (validatedClinicPhone == null)
             {
-                TempData["ClinicStep1Error"] = "Please enter a valid Jordanian phone number (07X XXX XXXX).";
+                TempData["ClinicStep1Error"] = "Phone number must be a valid Jordanian number consisting of exactly 10 digits (e.g., 07XXXXXXXX).";
                 TempData["cc_name"] = name;
                 TempData["cc_city"] = city;
                 TempData["cc_phone"] = phone;
+                TempData["cc_desc"] = description;
                 return RedirectToAction("Clinic_step1");
             }
 
@@ -546,13 +613,12 @@ namespace Waffy.Controllers
 
             HttpContext.Session.SetString("Clinic_Name", name);
             HttpContext.Session.SetString("Clinic_City", city);
-            HttpContext.Session.SetString("Clinic_Phone", phone);
             HttpContext.Session.SetString("Clinic_Description", description ?? "");
             HttpContext.Session.SetString("Clinic_DocMunicipal", municipalUrl);
             HttpContext.Session.SetString("Clinic_DocVet", vetUrl);
             HttpContext.Session.SetString("Clinic_DocId", idUrl);
             HttpContext.Session.SetString("Clinic_LogoUrl", logoUrl ?? "");
-
+            HttpContext.Session.SetString("Clinic_Phone", validatedClinicPhone);
             return RedirectToAction("Clinic_step2");
         }
 
@@ -605,9 +671,17 @@ namespace Waffy.Controllers
                 SetReviewBag(); return View();
             }
 
-            if (!IsValidJordanianPhone(ownerPhone))
+            if (!IsValidGmail(email))
             {
-                TempData["ClinicStep2Error"] = "Please enter a valid Jordanian phone number (07X XXX XXXX).";
+                TempData["ClinicStep2Error"] = "Only Gmail addresses (@gmail.com) are allowed.";
+                SetReviewBag();
+                return View();
+            }
+
+            var validatedOwnerPhone = CleanAndValidatePhone(ownerPhone);
+            if (validatedOwnerPhone == null)
+            {
+                TempData["ClinicStep2Error"] = "Owner phone number must be a valid Jordanian number consisting of exactly 10 digits (e.g., 07XXXXXXXX).";
                 SetReviewBag();
                 return View();
             }
@@ -635,7 +709,7 @@ namespace Waffy.Controllers
                 FullName = fullName,
                 Email = email,
                 PasswordHash = password,
-                Phone = ownerPhone,
+                Phone = validatedOwnerPhone,
                 AccountStatus = "Pending"
             };
 
@@ -693,8 +767,6 @@ namespace Waffy.Controllers
         [HttpGet]
         public IActionResult Clinic_success() => View();
 
-
-
         private async Task LoadLocationsToViewBag()
         {
             var governorates = (await _locationRepo.GetAllGovernoratesAsync()).ToList();
@@ -717,9 +789,17 @@ namespace Waffy.Controllers
         // ══════════════════════════════════════════════════════════
         // FORGOT PASSWORD / OTP / RESET
         // ══════════════════════════════════════════════════════════
+        [HttpGet]
+        public IActionResult CheckSession()
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            return Json(new { loggedIn = userId != null });
+        }
 
         [HttpGet] public IActionResult ForgotPass() => View();
         [HttpGet] public IActionResult OTP() => View();
         [HttpGet] public IActionResult ResetPass() => View();
     }
 }
+
+

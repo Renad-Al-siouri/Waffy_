@@ -69,7 +69,7 @@
                                     <div class="sw-f">
                                         <label class="sw-lbl">First Name <span class="sw-req">*</span></label>
                                         <input class="sw-inp" name="firstName" id="sw-fn"
-                                               placeholder="e.g. Ahmad"
+                                              
                                                value="@TempData["firstName"]"
                                                oninput="swCe(this)" />
                                         <div class="sw-ferr" id="sw-e-fn">⚠ This field is required</div>
@@ -78,7 +78,7 @@
                                     <div class="sw-f">
                                         <label class="sw-lbl">Last Name <span class="sw-req">*</span></label>
                                         <input class="sw-inp" name="lastName" id="sw-ln"
-                                               placeholder="e.g. Al-Omari"
+                                              
                                                value="@TempData["lastName"]"
                                                oninput="swCe(this)" />
                                         <div class="sw-ferr" id="sw-e-ln">⚠ This field is required</div>
@@ -102,8 +102,10 @@
                                                    type="tel"
                                                    placeholder="7X XXX XXXX"
                                                    value="@TempData["phone"]"
-                                                   oninput="swCe(this)"
+                                                   maxlength="10"
+                                                   oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10); swCe(this);"
                                                    style="flex:1" />
+
                                         </div>
                                         <div class="sw-ferr" id="sw-e-ophone">⚠ Please enter a valid phone number</div>
                                     </div>

@@ -31,7 +31,6 @@
                             <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                             <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-
                         </div>
 
                         <div class="logo-center">
@@ -41,8 +40,6 @@
                         <div class="right-nav">
                             <div class="desktop-nav desktop-links desktop-right-links">
 
-
-
                                 <div class="services-dropdown" id="servicesDropdown">
                                     <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
                                         Services
@@ -50,10 +47,6 @@
                                     </button>
 
                                     <div class="dropdown-menu" id="servicesMenu">
-                                        <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
-                                        <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
-                                        <a asp-controller="Pet" asp-action="Adapt" class="dropdown-link">Adoption</a>
-                                        <a asp-controller="Pet" asp-action="Lost" class="dropdown-link">Lost Pets</a>
                                         <a asp-controller="Map" asp-action="Gps" class="dropdown-link">Map</a>
                                         <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                         <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
@@ -68,11 +61,11 @@
                             </div>
 
                             <div class="nav-actions">
-                                <a asp-controller ="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
                                     <i class="fa-solid fa-cart-shopping"></i>
                                 </a>
 
-                                <a asp-controller="Home" asp-action="Notifications"  class="nav-icon" aria-label="Notifications">
+                                <a asp-controller="Home" asp-action="Notifications" class="nav-icon" aria-label="Notifications">
                                     <i class="fa-solid fa-bell"></i>
                                 </a>
 
@@ -104,12 +97,11 @@
                                         </button>
 
                                         <div class="mobile-services-menu" id="mobileServicesMenu">
-
                                             <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                             <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                             <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
                                             <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
-                                            <a asp-controller="Home" asp-action="Fag" class="dropdown-link">FAQ</a>
+                                            <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                         </div>
                                     </div>
 
@@ -163,7 +155,6 @@
     <div class="main-sections">
         <main class="container">
 
-            <!-- SAME ORDER AS HOME BACK -->
             <section class="section-box">
                 <div class="section-inner">
                     <div class="section-head">
@@ -230,20 +221,22 @@
                                 <a asp-controller="Map" asp-action="Gps" class="mini-btn">Open map</a>
                             </div>
                         </article>
+
                         <article class="service-card">
-                            <img src="../Images/Animals/map.png" alt="Map Service">
+                            <img src="../Images/dang.png" alt="Dangerous Animal">
                             <div>
-                                <h3>DangerousAnimal</h3>
-                                <p>Open a live map to search clinics and pet stores nearby.</p>
-                                <a asp-controller="Map" asp-action="Dangerous" class="mini-btn">Open map</a>
+                                <h3>Dangerous Animal</h3>
+                                <p>View helpful information related to dangerous animals.</p>
+                                <a asp-controller="Map" asp-action="Dangerous" class="mini-btn">Open</a>
                             </div>
                         </article>
+
                         <article class="service-card">
-                            <img src="../Images/Animals/map.png" alt="Map Service">
+                            <img src="../Images/law.png" alt="Law">
                             <div>
                                 <h3>Law</h3>
-                                <p>Open a live map to search clinics and pet stores nearby.</p>
-                                <a asp-controller="Home" asp-action="Travel" class="mini-btn">Open map</a>
+                                <p>Read the related pet and animal rules and regulations.</p>
+                                <a asp-controller="Home" asp-action="Travel" class="mini-btn">Open</a>
                             </div>
                         </article>
                     </div>
@@ -273,14 +266,12 @@
             <section class="section-box lost-section" id="lost">
                 <div class="section-inner">
                     <div class="lp-header">
-                        
                         <div>
                             <div class="lp-eyebrow"><span class="lp-live-dot"></span> Live Reports</div>
                             <div class="section-title-wrap">
                                 <span>🐾</span>
                                 <h2 class="section-title">Help bring them home</h2>
                             </div>
-                            
                             <p class="section-sub">Every second counts — help a family reunite.</p>
                         </div>
                         <a asp-controller="Pet" asp-action="Lost" class="lp-viewall">View all cases →</a>
@@ -302,7 +293,6 @@
                             <span>🐾</span>
                             <h2 class="section-title">Featured Products</h2>
                         </div>
-                        
                     </div>
 
                     <div class="fp-runway">
@@ -342,7 +332,6 @@
 
                         <div class="map-panel">
                             <h3>Find a clinic or store</h3>
-
                             <div id="mapClinicList"></div>
                         </div>
                     </div>
@@ -482,7 +471,6 @@
           if (servicesDropdown && !servicesDropdown.contains(e.target)) {
             servicesDropdown.classList.remove("open");
           }
-
           if (navLinks && menuBtn && !navLinks.contains(e.target) && !menuBtn.contains(e.target)) {
             navLinks.classList.remove("open");
             mobileServicesBlock.classList.remove("open");
@@ -496,8 +484,6 @@
           }
         });
 
-                // ── Home Map ──────────────────────────────────────────
-              // ── Home Map ──────────────────────────────────────────
         (function() {
             const mapEl = document.getElementById('map');
             if (!mapEl) return;
@@ -521,7 +507,6 @@
 
             let allPlaces = [];
 
-            // جلب البيانات من نفس الـ API الخاص بخريطة اليوزر
             fetch('/Map/GetMapData')
                 .then(r => r.json())
                 .then(data => {
@@ -534,21 +519,15 @@
                     if (navigator.geolocation) {
                         navigator.geolocation.getCurrentPosition(pos => {
                             const { latitude: lat, longitude: lng } = pos.coords;
-
-                            // موقع المستخدم
                             L.circleMarker([lat, lng], {
                                 radius: 8, fillColor: '#3b82f6',
                                 color: '#fff', weight: 2, fillOpacity: 1
                             }).addTo(map).bindPopup('📍 You are here');
-
                             map.setView([lat, lng], 14);
-
-                            // رتّب بالمسافة
                             const sorted = allPlaces.map(p => ({
                                 ...p,
                                 dist: Math.hypot(p.lat - lat, p.lng - lng)
                             })).sort((a, b) => a.dist - b.dist);
-
                             renderMarkers(sorted);
                             renderPanel(sorted);
                         }, () => {
@@ -737,8 +716,8 @@
             padding: 2px 6px;
             border-radius: 20px;
         }
-        /* ═══ Lost Pets Section ═══ */
-        /* ═══ Lost Pets Section ═══ */
+
+        /* Lost Pets */
         .lp-header {
             display: flex;
             align-items: flex-end;
@@ -781,25 +760,6 @@
             }
         }
 
-        .lp-title {
-            font-size: 1.4rem;
-            font-weight: 800;
-            color: #564632;
-            line-height: 1.2;
-            font-family: 'Fredoka', sans-serif;
-            margin: 0;
-        }
-
-            .lp-title span {
-                color: #59652a;
-            }
-
-        .lp-sub {
-            font-size: .76rem;
-            color: #7b6c58;
-            margin-top: .2rem;
-        }
-
         .lp-viewall {
             font-size: .74rem;
             font-weight: 800;
@@ -819,14 +779,12 @@
                 border-color: #59652a;
             }
 
-        /* Grid */
         .lp-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 14px;
         }
 
-        /* Card */
         .lp-card {
             background: #fff;
             border-radius: 16px;
@@ -847,7 +805,6 @@
                 box-shadow: 0 18px 40px rgba(90,75,49,.16);
             }
 
-        /* Left — image */
         .lp-img-side {
             position: relative;
             width: 140px;
@@ -987,10 +944,9 @@
                 transform: scale(1.3);
             }
 
-        /* Right — details */
         .lp-detail-side {
             flex: 1;
-            padding: 9px 10px 9px;
+            padding: 9px 10px;
             display: flex;
             flex-direction: column;
             gap: 5px;
@@ -1078,7 +1034,6 @@
             border: 1px solid #ffcc80;
         }
 
-        /* Ticker */
         .lp-ticker-wrap {
             display: flex;
             align-items: center;
@@ -1197,7 +1152,6 @@
             color: #7b6c58;
         }
 
-        /* Responsive */
         @@media (max-width: 860px) {
             .lp-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -1240,7 +1194,7 @@
             }
 
             .lp-detail-side {
-                padding: 7px 8px 7px;
+                padding: 7px 8px;
             }
         }
 
@@ -1267,9 +1221,9 @@
         .animal-card {
             position: relative;
             overflow: hidden;
-            display: flex; /* ← أضف */
-            flex-direction: row; /* ← أضف */
-            height: 130px; /* ← أضف */
+            display: flex;
+            flex-direction: row;
+            height: 130px;
             background: #fff;
             border-radius: 16px;
             box-shadow: 0 4px 16px rgba(90,75,49,.08);
@@ -1285,8 +1239,8 @@
 
             .animal-card .adopt-img-wrap {
                 position: relative;
-                width: 150px; /* ← العرض الذي تريده */
-                height: 100%; /* ← يملأ طول الكارد */
+                width: 150px;
+                height: 100%;
                 flex-shrink: 0;
                 overflow: hidden;
                 background: linear-gradient(135deg, #e8f0d8, #cfe3b0);
@@ -1400,10 +1354,6 @@
             z-index: 3;
         }
 
-
-
-
-
         .animal-card > div:last-child {
             flex: 1;
             overflow: hidden;
@@ -1437,7 +1387,8 @@
                     overflow: hidden;
                     text-overflow: ellipsis;
                 }
-        /* Home Clinics Dynamic */
+
+        /* Home Clinics */
         #homeClinicsGrid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -1601,9 +1552,7 @@
             const products = @Html.Raw(ViewBag.FeaturedProductsJson ?? "[]");
             const belt = document.getElementById('fpBelt');
             if (!belt || !products.length) return;
-
             const emoji = t => ({Dog:'🐕',Cat:'🐈',Bird:'🦜',Rabbit:'🐇',Fish:'🐟'}[t] || '🐾');
-
             function card(p) {
                 const a = document.createElement('a');
                 a.className = 'fp-card';
@@ -1611,9 +1560,7 @@
                 const price = (p.salePrice || p.price).toFixed(3);
                 a.innerHTML = `
                     <div class="fp-img-box">
-                        ${p.imageUrl
-                            ? `<img src="${p.imageUrl}" alt="${p.name}" loading="lazy">`
-                            : `<span>${emoji(p.petType)}</span>`}
+                        ${p.imageUrl ? `<img src="${p.imageUrl}" alt="${p.name}" loading="lazy">` : `<span>${emoji(p.petType)}</span>`}
                         <div class="fp-store-badge">🏪 ${p.storeName}</div>
                     </div>
                     <div class="fp-body">
@@ -1626,19 +1573,17 @@
                     </div>`;
                 return a;
             }
-
             let pool = [...products];
             while (pool.length < 10) pool = [...pool, ...products];
             pool = pool.slice(0, 12);
             [...pool, ...pool].forEach(p => belt.appendChild(card(p)));
         })();
 
-                                  (function () {
+        (function () {
             const reports = @Html.Raw(ViewBag.LostReportsJson ?? "[]");
             const grid    = document.getElementById('lpGrid');
             const ticker  = document.getElementById('lpTicker');
             if (!grid) return;
-
             const em = { bird:'🦜', rabbit:'🐇', duck:'🦆', dog:'🐕', cat:'🐈', hamster:'🐹' };
             const ge = t => em[(t||'').toLowerCase()] || '🐾';
             const ago = d => {
@@ -1646,18 +1591,13 @@
                 const v = Math.round((Date.now() - new Date(d)) / 86400000);
                 return v === 0 ? 'Today' : v === 1 ? '1 day ago' : v + ' days ago';
             };
-
             function buildCard(r) {
                 const card = document.createElement('div');
                 card.className = 'lp-card';
-
                 const imgs = (r.images && r.images.length) ? r.images : (r.image ? [r.image] : []);
                 const multi = imgs.length > 1;
-
-                /* Left — image side */
                 const imgSide = document.createElement('div');
                 imgSide.className = 'lp-img-side';
-
                 if (imgs.length) {
                     imgs.forEach((src, i) => {
                         const img = document.createElement('img');
@@ -1665,7 +1605,6 @@
                         img.src = src; img.alt = r.name || ''; img.loading = 'lazy';
                         imgSide.appendChild(img);
                     });
-
                     const hasRw = r.hasReward && parseFloat(r.reward) > 0;
                     if (hasRw) {
                         const rb = document.createElement('div');
@@ -1673,238 +1612,96 @@
                         rb.textContent = '🎁 ' + parseFloat(r.reward).toFixed(0) + ' JD';
                         imgSide.appendChild(rb);
                     }
-
                     if (multi) {
-                        const ctr = document.createElement('div');
-                        ctr.className = 'lp-iphoto';
-                        ctr.textContent = '1/' + imgs.length;
-                        imgSide.appendChild(ctr);
-
-                        const prev = document.createElement('button');
-                        prev.className = 'lp-iarr prev'; prev.innerHTML = '‹'; prev.type = 'button';
-                        const next = document.createElement('button');
-                        next.className = 'lp-iarr next'; next.innerHTML = '›'; next.type = 'button';
+                        const ctr = document.createElement('div'); ctr.className = 'lp-iphoto'; ctr.textContent = '1/' + imgs.length; imgSide.appendChild(ctr);
+                        const prev = document.createElement('button'); prev.className = 'lp-iarr prev'; prev.innerHTML = '‹'; prev.type = 'button';
+                        const next = document.createElement('button'); next.className = 'lp-iarr next'; next.innerHTML = '›'; next.type = 'button';
                         imgSide.appendChild(prev); imgSide.appendChild(next);
-
-                        const dotsWrap = document.createElement('div');
-                        dotsWrap.className = 'lp-idots';
-                        imgs.forEach((_, i) => {
-                            const d = document.createElement('button');
-                            d.className = 'lp-idot' + (i === 0 ? ' on' : '');
-                            d.type = 'button'; dotsWrap.appendChild(d);
-                        });
+                        const dotsWrap = document.createElement('div'); dotsWrap.className = 'lp-idots';
+                        imgs.forEach((_, i) => { const d = document.createElement('button'); d.className = 'lp-idot' + (i === 0 ? ' on' : ''); d.type = 'button'; dotsWrap.appendChild(d); });
                         imgSide.appendChild(dotsWrap);
-
                         let cur = 0;
                         const allImgs = imgSide.querySelectorAll('img');
                         const allDots = dotsWrap.querySelectorAll('.lp-idot');
-                              // إلى
-        const goTo = idx => {
-            allImgs[cur].classList.remove('active'); allDots[cur].classList.remove('on');
-            cur = ((idx % imgs.length) + imgs.length) % imgs.length;
-            allImgs[cur].classList.add('active'); allDots[cur].classList.add('on');
-            ctr.textContent = (cur + 1) + '/' + imgs.length;
-        };
+                        const goTo = idx => { allImgs[cur].classList.remove('active'); allDots[cur].classList.remove('on'); cur = ((idx % imgs.length) + imgs.length) % imgs.length; allImgs[cur].classList.add('active'); allDots[cur].classList.add('on'); ctr.textContent = (cur + 1) + '/' + imgs.length; };
                         prev.addEventListener('click', e => { e.stopPropagation(); goTo(cur - 1); });
                         next.addEventListener('click', e => { e.stopPropagation(); goTo(cur + 1); });
                         allDots.forEach((d, i) => d.addEventListener('click', e => { e.stopPropagation(); goTo(i); }));
                     }
                 } else {
-                    const ph = document.createElement('div');
-                    ph.className = 'lp-img-ph';
-                    ph.textContent = ge(r.animalType || r.AnimalType);
-                    imgSide.appendChild(ph);
+                    const ph = document.createElement('div'); ph.className = 'lp-img-ph'; ph.textContent = ge(r.animalType || r.AnimalType); imgSide.appendChild(ph);
                 }
                 card.appendChild(imgSide);
-
-                /* Right — detail side */
-                const name  = r.name  || r.Name  || 'Unknown';
-                const type  = r.animalType || r.AnimalType || '';
-                const breed = r.breed || r.Breed || '';
-                const color = r.color || r.Color || '';
-                const city  = r.city  || r.City  || '';
-                const area  = r.area  || r.Area  || '';
-                const phone = r.contactPhone || r.ContactPhone || '';
-                const a     = ago(r.dateLost || r.DateLost);
-                const hasRw = r.hasReward && parseFloat(r.reward) > 0;
-
-                const det = document.createElement('div');
-                det.className = 'lp-detail-side';
-                det.innerHTML = `
-                    <div class="lp-card-top">
-                        <div class="lp-pet-name">${name}</div>
-                        <div class="lp-type-tag">${type}</div>
-                    </div>
-                    <div class="lp-rows">
-                        ${breed ? `<div class="lp-row"><strong>Breed</strong> ${breed}</div>` : ''}
-                        ${color ? `<div class="lp-row"><strong>Color</strong> ${color}</div>` : ''}
-                        <div class="lp-row">📍 ${city}${area ? ' — ' + area : ''}</div>
-                        ${phone ? `<div class="lp-row">📞 ${phone}</div>` : ''}
-                    </div>
-                    <div class="lp-card-bottom">
-                        <div class="lp-ago">🕒 ${a || '—'}</div>
-                        ${hasRw ? `<div class="lp-reward-pill">🎁 ${parseFloat(r.reward).toFixed(0)} JD reward</div>` : ''}
-                    </div>`;
+                const name = r.name || r.Name || 'Unknown'; const type = r.animalType || r.AnimalType || ''; const breed = r.breed || r.Breed || '';
+                const color = r.color || r.Color || ''; const city = r.city || r.City || ''; const area = r.area || r.Area || '';
+                const phone = r.contactPhone || r.ContactPhone || ''; const a = ago(r.dateLost || r.DateLost); const hasRw = r.hasReward && parseFloat(r.reward) > 0;
+                const det = document.createElement('div'); det.className = 'lp-detail-side';
+                det.innerHTML = `<div class="lp-card-top"><div class="lp-pet-name">${name}</div><div class="lp-type-tag">${type}</div></div>
+                    <div class="lp-rows">${breed ? `<div class="lp-row"><strong>Breed</strong> ${breed}</div>` : ''}${color ? `<div class="lp-row"><strong>Color</strong> ${color}</div>` : ''}<div class="lp-row">📍 ${city}${area ? ' — ' + area : ''}</div>${phone ? `<div class="lp-row">📞 ${phone}</div>` : ''}</div>
+                    <div class="lp-card-bottom"><div class="lp-ago">🕒 ${a || '—'}</div>${hasRw ? `<div class="lp-reward-pill">🎁 ${parseFloat(r.reward).toFixed(0)} JD reward</div>` : ''}</div>`;
                 card.appendChild(det);
-
                 card.addEventListener('click', () => { window.location.href = '/Pet/Lost'; });
                 return card;
             }
-
-            if (reports.length) {
-                reports.slice(0, 6).forEach(r => grid.appendChild(buildCard(r)));
-            } else {
-                grid.style.display = 'none';
-            }
-
+            if (reports.length) { reports.slice(0, 6).forEach(r => grid.appendChild(buildCard(r))); } else { grid.style.display = 'none'; }
             if (ticker && reports.length) {
                 [...reports, ...reports].forEach(r => {
                     const imgs = (r.images && r.images.length) ? r.images : (r.image ? [r.image] : []);
-                    const el = document.createElement('a');
-                    el.className = 'lp-ticker-item'; el.href = '/Pet/Lost';
-                    el.innerHTML = `
-                        <div class="lp-ticker-thumb">${imgs[0] ? `<img src="${imgs[0]}" alt="${r.name||''}">` : `<span>${ge(r.animalType||r.AnimalType)}</span>`}</div>
-                        <span class="lp-ticker-name">${r.name||r.Name||'Unknown'}</span>
-                        <span class="lp-ticker-city">${r.city||r.City||''}</span>`;
+                    const el = document.createElement('a'); el.className = 'lp-ticker-item'; el.href = '/Pet/Lost';
+                    el.innerHTML = `<div class="lp-ticker-thumb">${imgs[0] ? `<img src="${imgs[0]}" alt="${r.name||''}">` : `<span>${ge(r.animalType||r.AnimalType)}</span>`}</div><span class="lp-ticker-name">${r.name||r.Name||'Unknown'}</span><span class="lp-ticker-city">${r.city||r.City||''}</span>`;
                     ticker.appendChild(el);
                 });
             }
         })();
 
-                (function () {
-            const posts  = @Html.Raw(ViewBag.AdoptionJson ?? "[]");
-            const grid   = document.getElementById('adoptionGrid');
+        (function () {
+            const posts = @Html.Raw(ViewBag.AdoptionJson ?? "[]");
+            const grid  = document.getElementById('adoptionGrid');
             if (!grid || !posts.length) return;
-
             const em = { dog:'🐕', cat:'🐈', bird:'🦜', rabbit:'🐇', hamster:'🐹', snake:'🐍' };
             const ge = t => em[(t||'').toLowerCase()] || '🐾';
-
             posts.forEach(p => {
-                const imgs   = (p.images && p.images.length) ? p.images : (p.image ? [p.image] : []);
-                const multi  = imgs.length > 1;
-
-                const article = document.createElement('article');
-                article.className = 'animal-card';
-
-                /* ── Image wrap with carousel ── */
-                const wrap = document.createElement('div');
-                wrap.className = 'adopt-img-wrap';
-
+                const imgs = (p.images && p.images.length) ? p.images : (p.image ? [p.image] : []);
+                const multi = imgs.length > 1;
+                const article = document.createElement('article'); article.className = 'animal-card';
+                const wrap = document.createElement('div'); wrap.className = 'adopt-img-wrap';
                 if (imgs.length) {
-                    imgs.forEach((src, i) => {
-                        const img = document.createElement('img');
-                        if (i === 0) img.classList.add('acar-active');
-                        img.src = src; img.alt = p.name || ''; img.loading = 'lazy';
-                        wrap.appendChild(img);
-                    });
-
+                    imgs.forEach((src, i) => { const img = document.createElement('img'); if (i === 0) img.classList.add('acar-active'); img.src = src; img.alt = p.name || ''; img.loading = 'lazy'; wrap.appendChild(img); });
                     if (multi) {
-                        // counter
-                        const ctr = document.createElement('div');
-                        ctr.className = 'acar-counter';
-                        ctr.textContent = '1 / ' + imgs.length;
-                        wrap.appendChild(ctr);
-
-                        // arrows
-                        const prev = document.createElement('button');
-                        prev.className = 'acar-arr prev'; prev.innerHTML = '‹'; prev.type = 'button';
-                        const next = document.createElement('button');
-                        next.className = 'acar-arr next'; next.innerHTML = '›'; next.type = 'button';
+                        const ctr = document.createElement('div'); ctr.className = 'acar-counter'; ctr.textContent = '1 / ' + imgs.length; wrap.appendChild(ctr);
+                        const prev = document.createElement('button'); prev.className = 'acar-arr prev'; prev.innerHTML = '‹'; prev.type = 'button';
+                        const next = document.createElement('button'); next.className = 'acar-arr next'; next.innerHTML = '›'; next.type = 'button';
                         wrap.appendChild(prev); wrap.appendChild(next);
-
-                        // dots
-                        const dotsWrap = document.createElement('div');
-                        dotsWrap.className = 'acar-dots';
-                        imgs.forEach((_, i) => {
-                            const d = document.createElement('button');
-                            d.className = 'acar-dot' + (i === 0 ? ' on' : '');
-                            d.type = 'button'; dotsWrap.appendChild(d);
-                        });
+                        const dotsWrap = document.createElement('div'); dotsWrap.className = 'acar-dots';
+                        imgs.forEach((_, i) => { const d = document.createElement('button'); d.className = 'acar-dot' + (i === 0 ? ' on' : ''); d.type = 'button'; dotsWrap.appendChild(d); });
                         wrap.appendChild(dotsWrap);
-
                         let cur = 0;
-                        const allImgs = wrap.querySelectorAll('img');
-                        const allDots = dotsWrap.querySelectorAll('.acar-dot');
-                              
-               // إلى
-        const goTo = idx => {
-            allImgs[cur].classList.remove('acar-active');
-            allDots[cur].classList.remove('on');
-            cur = ((idx % imgs.length) + imgs.length) % imgs.length;
-            allImgs[cur].classList.add('acar-active');
-            allDots[cur].classList.add('on');
-            ctr.textContent = (cur + 1) + ' / ' + imgs.length;
-        };
+                        const allImgs = wrap.querySelectorAll('img'); const allDots = dotsWrap.querySelectorAll('.acar-dot');
+                        const goTo = idx => { allImgs[cur].classList.remove('acar-active'); allDots[cur].classList.remove('on'); cur = ((idx % imgs.length) + imgs.length) % imgs.length; allImgs[cur].classList.add('acar-active'); allDots[cur].classList.add('on'); ctr.textContent = (cur + 1) + ' / ' + imgs.length; };
                         prev.addEventListener('click', e => { e.stopPropagation(); goTo(cur - 1); });
                         next.addEventListener('click', e => { e.stopPropagation(); goTo(cur + 1); });
                         allDots.forEach((d, i) => d.addEventListener('click', e => { e.stopPropagation(); goTo(i); }));
                     }
-                } else {
-                    const ph = document.createElement('div');
-                    ph.className = 'adopt-img-ph';
-                    ph.textContent = ge(p.type);
-                    wrap.appendChild(ph);
-                }
-
+                } else { const ph = document.createElement('div'); ph.className = 'adopt-img-ph'; ph.textContent = ge(p.type); wrap.appendChild(ph); }
                 article.appendChild(wrap);
-
-                /* ── Info ── */
                 const info = document.createElement('div');
-                info.innerHTML = `
-                    <strong>${p.name || 'Unknown'}</strong>
-                    <ul>
-                        ${p.breed  ? `<li>Breed: ${p.breed}</li>` : ''}
-                        ${p.age    ? `<li>Age: ${p.age}</li>` : ''}
-                        ${p.gender ? `<li>Gender: ${p.gender}</li>` : ''}
-                        ${p.city   ? `<li>📍 ${p.city}${p.area ? ' — ' + p.area : ''}</li>` : ''}
-                        ${p.temperament ? `<li>Temperament: ${p.temperament}</li>` : ''}
-                    </ul>`;
+                info.innerHTML = `<strong>${p.name || 'Unknown'}</strong><ul>${p.breed ? `<li>Breed: ${p.breed}</li>` : ''}${p.age ? `<li>Age: ${p.age}</li>` : ''}${p.gender ? `<li>Gender: ${p.gender}</li>` : ''}${p.city ? `<li>📍 ${p.city}${p.area ? ' — ' + p.area : ''}</li>` : ''}${p.temperament ? `<li>Temperament: ${p.temperament}</li>` : ''}</ul>`;
                 article.appendChild(info);
-
-                /* ── Click → adoption page ── */
                 article.style.cursor = 'pointer';
                 article.addEventListener('click', () => { window.location.href = '/Pet/Adapt'; });
-
                 grid.appendChild(article);
             });
         })();
 
-                (function () {
+        (function () {
             const clinics = @Html.Raw(ViewBag.HomeClinicsJson ?? "[]");
             const grid    = document.getElementById('homeClinicsGrid');
             if (!grid || !clinics.length) return;
-
             clinics.forEach(c => {
-                const card = document.createElement('a');
-                card.className = 'hc-card';
-                card.href = '/Clinic/ClinicDetail/' + c.id;
-
-                const hours = (c.openTime && c.closeTime)
-                    ? c.openTime + ' – ' + c.closeTime
-                    : '—';
-                const stars = c.rating > 0
-                    ? '⭐ ' + parseFloat(c.rating).toFixed(1)
-                    : 'New';
-
-                card.innerHTML = `
-                    <div class="hc-cover">
-                        ${c.cover
-                            ? `<img src="${c.cover}" alt="${c.name}" loading="lazy">`
-                            : `<div class="hc-cover-ph">🏥</div>`}
-                        <span class="hc-status ${c.isOpen ? 'hc-open' : 'hc-closed'}">
-                            ${c.isOpen ? '● Open' : '● Closed'}
-                        </span>
-                        ${c.hasEmergency ? `<span class="hc-emg">🚨 Emergency</span>` : ''}
-                    </div>
-                    <div class="hc-body">
-                        <div class="hc-name">${c.name}</div>
-                        <div class="hc-loc">📍 ${c.city}${c.area ? ' — ' + c.area : ''}</div>
-                        <div class="hc-row">
-                            <span class="hc-hours">🕐 ${hours}</span>
-                            <span class="hc-rating">${stars}</span>
-                        </div>
-                    </div>`;
-
+                const card = document.createElement('a'); card.className = 'hc-card'; card.href = '/Clinic/ClinicDetail/' + c.id;
+                const hours = (c.openTime && c.closeTime) ? c.openTime + ' – ' + c.closeTime : '—';
+                const stars = c.rating > 0 ? '⭐ ' + parseFloat(c.rating).toFixed(1) : 'New';
+                card.innerHTML = `<div class="hc-cover">${c.cover ? `<img src="${c.cover}" alt="${c.name}" loading="lazy">` : `<div class="hc-cover-ph">🏥</div>`}<span class="hc-status ${c.isOpen ? 'hc-open' : 'hc-closed'}">${c.isOpen ? '● Open' : '● Closed'}</span>${c.hasEmergency ? `<span class="hc-emg">🚨 Emergency</span>` : ''}</div><div class="hc-body"><div class="hc-name">${c.name}</div><div class="hc-loc">📍 ${c.city}${c.area ? ' — ' + c.area : ''}</div><div class="hc-row"><span class="hc-hours">🕐 ${hours}</span><span class="hc-rating">${stars}</span></div></div>`;
                 grid.appendChild(card);
             });
         })();

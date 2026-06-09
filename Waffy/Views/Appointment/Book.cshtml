@@ -2,6 +2,8 @@
 @{
     ViewData["Title"] = $"Book — {Model.ClinicName}";
     Layout = null;
+
+    var superAdminCliqNumber = ViewBag.SuperAdminCliqNumber as string ?? "Not set";
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -633,6 +635,71 @@
             border: 1px solid var(--wgb);
         }
 
+        .cliq-info-box {
+            display: none;
+            margin-top: 10px;
+            background: #fffdf9;
+            border: 1.5px solid #fde68a;
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+
+        .cliq-info-title {
+            font-size: .82rem;
+            font-weight: 900;
+            color: #9b6000;
+            margin-bottom: 6px;
+        }
+
+        .cliq-number-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            background: #fff8e1;
+            border: 1px dashed #efb83c;
+            border-radius: 10px;
+            padding: 9px 11px;
+            margin-bottom: 8px;
+        }
+
+        .cliq-number {
+            font-size: .95rem;
+            font-weight: 950;
+            color: #45382e;
+            word-break: break-word;
+        }
+
+        .copy-cliq-btn {
+            border: none;
+            background: linear-gradient(180deg,var(--wgl),var(--wg));
+            color: #fff;
+            border-radius: 9px;
+            padding: 7px 10px;
+            font-family: 'Nunito',sans-serif;
+            font-size: .74rem;
+            font-weight: 900;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .cliq-note {
+            font-size: .76rem;
+            font-weight: 800;
+            color: #7a5200;
+            line-height: 1.6;
+        }
+
+        @@media(max-width:540px) {
+            .cliq-number-row {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .copy-cliq-btn {
+                width: 100%;
+            }
+        }
         @@media(max-width:540px) {
             .doc-grid {
                 grid-template-columns: 1fr 1fr;
@@ -754,6 +821,8 @@
                 <input type="hidden" name="Notes" id="hNotes" value="">
                 <input type="hidden" name="ShareMedicalRecord" id="hShare" value="false">
                 <input type="hidden" name="DepositPayMethod" id="hDepMethod" value="">
+                <input type="hidden" name="CliqReference" id="hCliqReference" value="">
+              
                 <div class="wiz-card">
 
                     <!-- ══ STEP 1: Service ══ -->
@@ -974,9 +1043,10 @@
                         line-height:1.8;margin-bottom:12px;
                         background:#fffde7;border-radius:10px;padding:10px 12px;
                         border:1px solid #ffe082;">
-                                    ✅ Returned if: you attend the appointment OR appointment is cancelled by doctor/clinic<br>
-                                    ✅ Returned if: you cancel the appointment yourself<br>
-                                    ❌ Not returned if: you don't attend and don't cancel (no-show)
+                                    ✅ Returned if: you attend the appointment<br>
+                                    ✅ Returned if: you, the doctor, or the clinic cancel more than 24 hours before the appointment<br>
+                                    ❌ Not returned if: you do not attend the appointment (no-show)<br>
+                                    ⚠️ Cancellation is not allowed when less than 24 hours remain
                                 </div>
 
                                 <!-- Payment method selection -->
@@ -1014,17 +1084,50 @@
                                 <div id="payCliqCard"
                                      onclick="selectPayMethod('CliQ')"
                                      style="border:1.5px solid #e8ddd0;border-radius:12px;background:#fff;
-                        padding:12px 14px;cursor:pointer;transition:.18s;
-                        display:flex;align-items:center;justify-content:space-between;">
+            padding:12px 14px;cursor:pointer;transition:.18s;
+            display:flex;align-items:center;justify-content:space-between;gap:12px;">
                                     <div>
                                         <div style="font-weight:900;font-size:.88rem;">📱 Pay via CliQ</div>
                                         <div style="font-size:.76rem;color:#7b6c58;font-weight:700;margin-top:2px;">
-                                            Payment confirmed by clinic within 24 hours
+                                            Payment will be verified by Waffy Super Admin.
                                         </div>
                                     </div>
                                     <div id="payCliqCheck"
                                          style="width:20px;height:20px;border-radius:50%;
-                            border:2px solid #e8ddd0;flex-shrink:0;"></div>
+                border:2px solid #e8ddd0;flex-shrink:0;"></div>
+                                </div>
+
+                                <div id="cliqInfoBox" class="cliq-info-box">
+                                    <div class="cliq-info-title">📱 Transfer 5 JOD to Waffy CliQ</div>
+
+                                    <div class="cliq-number-row">
+                                        <div>
+                                            <div style="font-size:.72rem;font-weight:900;color:#9b6000;margin-bottom:2px;">
+                                                Waffy Super Admin CliQ
+                                            </div>
+                                            <div class="cliq-number" id="superCliqNumber">@superAdminCliqNumber</div>
+                                        </div>
+                                    </div>
+                                    <div style="margin-top:10px;background:#fff8e1;border:1px dashed #efb83c;
+            border-radius:10px;padding:10px 12px;">
+                                        <div style="font-size:.72rem;font-weight:900;color:#9b6000;margin-bottom:4px;">
+                                            Verification Code
+                                        </div>
+
+                                        <div id="cliqReferenceDisplay"
+                                             style="font-family:'Fredoka',sans-serif;font-size:1.15rem;
+                font-weight:900;color:#9b6000;letter-spacing:2px;">
+                                            —
+                                        </div>
+
+                                        <div style="font-size:.72rem;font-weight:800;color:#7a5200;margin-top:6px;line-height:1.5;">
+                                            Write this code in the CliQ transfer note so Waffy can verify your payment.
+                                        </div>
+                                    </div>
+                                    <div class="cliq-note">
+                                        After submitting your booking, use the verification code shown in your appointment details
+                                        and write it in the CliQ transfer note. Waffy will verify your payment using this code.
+                                    </div>
                                 </div>
                             </div>
 
@@ -1130,6 +1233,20 @@
             document.getElementById('hUrg').value = val;
             document.getElementById('urgN').className = 'urg-chip' + (val==='Normal' ? ' urg-normal' : '');
             document.getElementById('urgU').className = 'urg-chip' + (val==='Urgent' ? ' urg-urgent' : '');
+        }
+                function generateCliqReference() {
+            const now = new Date();
+
+            const y = now.getFullYear().toString().slice(-2);
+            const m = String(now.getMonth() + 1).padStart(2, '0');
+            const d = String(now.getDate()).padStart(2, '0');
+            const h = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            const s = String(now.getSeconds()).padStart(2, '0');
+
+            const random = Math.floor(100 + Math.random() * 900);
+
+            return `WAF-${y}${m}${d}-${h}${min}${s}-${random}`;
         }
 
         // ═══════════════════════════════════════════════════════════════
@@ -1353,11 +1470,11 @@
 
             // Approval notice
             const notice = document.getElementById('approvalNotice');
-            if (S.doctorId > 0 && S.doctorId !== -1) {
-                notice.innerHTML = '⏳ Your request will be sent to the doctor for approval. You will be notified once confirmed.';
-            } else {
-                notice.innerHTML = '⏳ Your request will be reviewed by the clinic team who will assign an available doctor.';
-            }
+                   if (S.doctorId > 0 && S.doctorId !== -1) {
+            notice.innerHTML = '⏳ After payment is confirmed, your request will be sent to the doctor for approval.';
+        } else {
+            notice.innerHTML = '⏳ After payment is confirmed, the clinic team will assign an available doctor.';
+        }
             notice.style.display = 'block';
 
             // Reset payment selection
@@ -1367,13 +1484,15 @@
         // ── Payment method selection ──────────────────────────────────────────
         const walletBalance = @Model.WalletBalance;
 
-        function selectPayMethod(method) {
+               function selectPayMethod(method) {
             // Reset both cards
             document.getElementById('payWalletCard').classList.remove('sel');
             document.getElementById('payCliqCard').classList.remove('sel');
             document.getElementById('payWalletCheck').classList.remove('sel');
             document.getElementById('payCliqCheck').classList.remove('sel');
+
             document.getElementById('walletInsufficientMsg').style.display = 'none';
+            document.getElementById('cliqInfoBox').style.display = 'none';
 
             if (!method) {
                 document.getElementById('hDepMethod').value = '';
@@ -1389,21 +1508,54 @@
                     document.getElementById('btnSubmitText').textContent = 'Select Payment Method';
                     return;
                 }
+
                 document.getElementById('payWalletCard').classList.add('sel');
                 document.getElementById('payWalletCheck').classList.add('sel');
+
+                document.getElementById('hCliqReference').value = '';
+                document.getElementById('cliqReferenceDisplay').textContent = '—';
+
                 document.getElementById('hDepMethod').value = 'Wallet';
                 document.getElementById('btnSubmit').disabled = false;
                 document.getElementById('btnSubmitText').textContent = 'Pay 5 JOD & Submit Request';
-            } else {
+
+                return;
+            }
+
+            if (method === 'CliQ') {
                 document.getElementById('payCliqCard').classList.add('sel');
                 document.getElementById('payCliqCheck').classList.add('sel');
+                document.getElementById('cliqInfoBox').style.display = 'block';
+
+                let ref = document.getElementById('hCliqReference').value;
+
+                if (!ref) {
+                    ref = generateCliqReference();
+                    document.getElementById('hCliqReference').value = ref;
+                }
+
+                document.getElementById('cliqReferenceDisplay').textContent = ref;
+
                 document.getElementById('hDepMethod').value = 'CliQ';
                 document.getElementById('btnSubmit').disabled = false;
-                document.getElementById('btnSubmitText').textContent = 'Submit & Pay via CliQ';
+                document.getElementById('btnSubmitText').textContent = 'Submit & Wait for Waffy Verification';
             }
         }
+                function copyCliqNumber(event) {
+            event.stopPropagation();
 
-        // ═══════════════════════════════════════════════════════════════
+            const number = document.getElementById('superCliqNumber')?.textContent?.trim() || '';
+
+            if (!number || number === 'Not set') {
+                alert('CliQ number is not available yet.');
+                return;
+            }
+
+            navigator.clipboard.writeText(number)
+                .then(() => alert('CliQ number copied.'))
+                .catch(() => alert('Could not copy CliQ number.'));
+        }
+      // ═══════════════════════════════════════════════════════════════
         // NAVBAR
         // ═══════════════════════════════════════════════════════════════
         const sd = document.getElementById("servicesDropdown");

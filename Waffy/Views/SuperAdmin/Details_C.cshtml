@@ -56,8 +56,9 @@
     var appts = ViewBag.Appointments as List<Waffy.Models.ViewModels.AppointmentDto> ?? new();
     int apptTotal    = appts.Count;
     int apptPending  = appts.Count(a => a.Status is
-        "PendingDoctorApproval" or "PendingClinicApproval" or
-        "PendingPayment" or "PendingPaymentVerification");
+    "PendingDoctorApproval" or
+    "PendingClinicAssignment" or
+    "PendingPaymentVerification");
     int apptConfirmed = appts.Count(a => a.Status == "Confirmed");
 }
 
@@ -934,14 +935,14 @@
                         </div>
                         <select class="sel-wrap" style="height:36px;font-size:.78rem;width:auto;min-width:150px;"
                                 id="apptStatusFilter" onchange="renderAppts()">
-                            <option value="">All Statuses</option>
-                            <option value="pendingclinicapproval">⏳ Pending Clinic</option>
-                            <option value="pendingdoctorapproval">⏳ Pending Doctor</option>
-                            <option value="pendingpayment">💳 Pending Payment</option>
-                            <option value="confirmed">✅ Confirmed</option>
-                            <option value="completed">🏁 Completed</option>
-                            <option value="cancelled">❌ Cancelled</option>
-                            <option value="noshow">🚫 No-Show</option>
+                          <option value="">All Statuses</option>
+<option value="pendingpaymentverification">📱 Waiting Waffy Verification</option>
+<option value="pendingclinicassignment">⏳ Pending Clinic Assignment</option>
+<option value="pendingdoctorapproval">⏳ Pending Doctor Approval</option>
+<option value="confirmed">✅ Confirmed</option>
+<option value="completed">🏁 Completed</option>
+<option value="cancelled">❌ Cancelled</option>
+<option value="noshow">🚫 No-Show</option>
                         </select>
                         <span class="table-count" id="apptTableCount"></span>
                     </div>
@@ -956,8 +957,10 @@
                                 <th>Doctor</th>
                                 <th>Date &amp; Time</th>
                                 <th>Service</th>
-                                <th>Deposit</th>
-                                <th>Status</th>
+                              <th>Payment</th>
+<th>Deposit</th>
+<th>Status</th>
+<th>Action</th>
                             </tr>
                         </thead>
                         <tbody id="apptsTBody"></tbody>
@@ -1195,6 +1198,7 @@ const appts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
         pet          = a.PetName        ?? "—",
         petSpecies   = a.PetSpecies     ?? "—",
         doctor       = a.DoctorName     ?? "—",
+      
         date         = a.AppointmentDate.ToString("yyyy-MM-dd"),
         dateDisplay  = a.AppointmentDate.ToString("dd MMM yyyy"),
         time         = a.StartTime.ToString(@"hh\:mm"),
@@ -1206,16 +1210,21 @@ const appts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(
         depositAmt   = a.DepositAmount,
         urgency      = a.UrgencyLevel   ?? "Normal",
         cancelReason = a.CancellationReason ?? "",
+        cliqRef      = a.CliqReference ?? "",
         createdAt    = a.CreatedAt.ToString("yyyy-MM-dd")
     })
 ));
-
+const antiForgeryToken =
+    document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
 let apptPage = 1;
 const APPT_PAGE = 10;
 
 function isPending(s) {
-    return ['pendingclinicapproval','pendingdoctorapproval',
-            'pendingpayment','pendingpaymentverification'].includes(s);
+    return [
+        'pendingclinicassignment',
+        'pendingdoctorapproval',
+        'pendingpaymentverification'
+    ].includes(s);
 }
 function petEmoji(sp) {
     return {dog:'🐕',cat:'🐈',bird:'🐦',rabbit:'🐇',fish:'🐠',hamster:'🐹'}[sp?.toLowerCase()] || '🐾';
@@ -1226,10 +1235,9 @@ function apptStatusBadge(s) {
         completed:                  ['badge-info',   '🏁 Completed'],
         cancelled:                  ['badge-danger', '❌ Cancelled'],
         noshow:                     ['badge-danger', '🚫 No-Show'],
-        pendingclinicapproval:      ['badge-warning','⏳ Pending Clinic'],
-        pendingdoctorapproval:      ['badge-warning','⏳ Pending Doctor'],
-        pendingpayment:             ['badge-warning','💳 Awaiting Payment'],
-        pendingpaymentverification: ['badge-warning','🔍 Verifying']
+        pendingclinicassignment:    ['badge-warning','⏳ Clinic Assignment'],
+        pendingdoctorapproval:      ['badge-warning','⏳ Doctor Approval'],
+        pendingpaymentverification: ['badge-warning','📱 Waiting Waffy Verification']
     };
     const [cls, lbl] = m[s] || ['badge-muted', s];
     return `<span class="badge ${cls}">${lbl}</span>`;
@@ -1283,11 +1291,59 @@ function renderAppts() {
                 <div class="cell-sub">🕐 ${a.time}</div>
             </td>
             <td style="font-size:.8rem;font-weight:700;color:var(--text-muted);">${a.service}</td>
-            <td>${depositBadge(a)}</td>
-            <td>${apptStatusBadge(a.status)}</td>
+           
+
+
+<td>
+    <div style="font-size:.78rem;font-weight:800;color:var(--text-muted);">
+        ${a.payMethod || '—'}
+    </div>
+
+    ${a.payMethod?.toLowerCase() === 'cliq' && a.cliqRef
+        ? `<div style="display:block;margin-top:4px;padding:4px 8px;
+                       border-radius:8px;background:#fff8e1;color:#9b6000;
+                       border:1px solid #fde68a;font-size:.74rem;
+                       font-weight:900;font-family:'Fredoka',sans-serif;
+                       letter-spacing:.6px;white-space:nowrap;">
+                🔑 ${a.cliqRef}
+           </div>`
+        : ''}
+</td>
+
+<td>${depositBadge(a)}</td>
+
+<td>${apptStatusBadge(a.status)}</td>
+
+
+<td onclick="event.stopPropagation();">
+    ${a.status === 'pendingpaymentverification' &&
+      a.payMethod?.toLowerCase() === 'cliq' &&
+      !a.depositPaid ? `
+       <form action="/SuperAdmin/ConfirmAppointmentCliqPayment"
+      method="post"
+      style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;"
+      onclick="event.stopPropagation();">
+
+    <input name="__RequestVerificationToken"
+           type="hidden"
+           value="${antiForgeryToken}">
+
+    <input type="hidden" name="id" value="${a.id}">
+
+    <input type="hidden" name="clinicId" value="@c.IdClinic">
+
+    
+
+    <button type="submit"
+            class="btn btn-primary btn-xs">
+        ✅ Confirm
+    </button>
+</form>
+    ` : `<span style="font-size:.72rem;color:var(--text-muted);font-weight:800;">—</span>`}
+</td>
         </tr>
     `).join('')
-    : `<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">No appointments found.</td></tr>`;
+    : `<tr><td colspan="10" style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">No appointments found.</td></tr>`;
 
     document.getElementById('apptPagInfo').textContent =
         total === 0 ? 'No appointments found'

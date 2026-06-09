@@ -1,51 +1,50 @@
-﻿@* 
-    ── _Navbar.cshtml ──
-    يتحقق من Session لتحديد نوع المستخدم:
-    - UserId موجود في Session  → مستخدم مسجل   → نافبار "After"
-    - UserId غير موجود         → زائر           → نافبار "Before"
-*@
+﻿@{
+    var userId = Context.Session.GetInt32("UserId");
+    var isLoggedIn = userId != null;
 
-@{
-    var isLoggedIn = Context.Session.GetInt32("UserId") != null;
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    string Nav(string c, string a)
+        => (ctrl.Equals(c, StringComparison.OrdinalIgnoreCase) &&
+            action.Equals(a, StringComparison.OrdinalIgnoreCase))
+           ? "nav-link active" : "nav-link";
+
+    string NavC(string c)
+        => ctrl.Equals(c, StringComparison.OrdinalIgnoreCase)
+           ? "nav-link active" : "nav-link";
 }
 
-@if (isLoggedIn)
-{
-    @* ══════════════════════════════════════════
-       نافبار المستخدم المسجّل (home-after)
-       ══════════════════════════════════════════ *@
-    <header class="topbar">
-        <div class="header-shell">
-            <nav class="navbar">
+<header class="topbar">
+    <div class="header-shell">
+        <nav class="navbar">
 
-                @* ── روابط اليسار (Desktop) ── *@
+            @if (isLoggedIn)
+            {
+                @* ══════════════════════════════════════════════
+         نافبار بعد تسجيل الدخول
+         ══════════════════════════════════════════════ *@
+
                 <div class="left-nav desktop-nav desktop-links">
-                    <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
-                    <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
-                    <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
-                    <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
-                    <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
+                    <a asp-controller="Home" asp-action="Home_After" class="@Nav("Home", "Home_After")">Home</a>
+                    <a asp-controller="Clinic" asp-action="Clinics" class="@NavC("Clinic")">Clinics</a>
+                    <a asp-controller="Product" asp-action="Stores" class="@NavC("Product")">Stores</a>
+                    <a asp-controller="Pet" asp-action="Adapt" class="@Nav("Pet", "Adapt")">Adoption</a>
+                    <a asp-controller="Pet" asp-action="Lost" class="@Nav("Pet", "Lost")">Lost Pets</a>
                 </div>
 
-                @* ── اللوغو في الوسط ── *@
                 <div class="logo-center">
-                    <img src="~/Images/logo.png" alt="Waffy Main Logo" class="main-logo">
+                    <img src="~/Images/logo.png" alt="Waffy" class="main-logo">
                 </div>
 
-                @* ── روابط اليمين (Desktop) ── *@
                 <div class="right-nav">
-                    <div class="desktop-nav desktop-links desktop-right-links">
 
+                    <div class="desktop-nav desktop-links desktop-right-links">
                         <div class="services-dropdown" id="servicesDropdown">
                             <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                                Services
-                                <span class="dropdown-arrow">▼</span>
+                                Services <span class="dropdown-arrow">▼</span>
                             </button>
                             <div class="dropdown-menu" id="servicesMenu">
-                                <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
-                                <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
-                                <a asp-controller="Pet" asp-action="Adapt" class="dropdown-link">Adoption</a>
-                                <a asp-controller="Pet" asp-action="Lost" class="dropdown-link">Lost Pets</a>
                                 <a asp-controller="Map" asp-action="Gps" class="dropdown-link">Map</a>
                                 <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                 <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
@@ -54,11 +53,9 @@
                                 <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                             </div>
                         </div>
-
-                        <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
+                        <a asp-controller="Home" asp-action="About" class="@Nav("Home", "About")">About Us</a>
                     </div>
 
-                    @* ── أيقونات المستخدم المسجّل ── *@
                     <div class="nav-actions">
                         <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart">
                             <i class="fa-solid fa-cart-shopping"></i>
@@ -72,26 +69,20 @@
                         <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                     </div>
 
-                    @* ── موبايل ── *@
+                    @* البرجر — خارج desktop-nav تماماً *@
                     <div class="mobile-nav-wrap">
                         <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
                         <div class="nav-links" id="navLinks">
-                            <div class="mobile-menu-logo">
-                                <img src="~/Images/logo.png" alt="Waffy Logo">
-                            </div>
-
-                            <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
-                            <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
-                            <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
-                            <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
-                            <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-                            <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
-
+                            <div class="mobile-menu-logo"><img src="~/Images/logo.png" alt="Waffy"></div>
+                            <a asp-controller="Home" asp-action="Home_After" class="@Nav("Home", "Home_After")">Home</a>
+                            <a asp-controller="Clinic" asp-action="Clinics" class="@NavC("Clinic")">Clinics</a>
+                            <a asp-controller="Product" asp-action="Stores" class="@NavC("Product")">Stores</a>
+                            <a asp-controller="Pet" asp-action="Adapt" class="@Nav("Pet", "Adapt")">Adoption</a>
+                            <a asp-controller="Pet" asp-action="Lost" class="@Nav("Pet", "Lost")">Lost Pets</a>
+                            <a asp-controller="Map" asp-action="Gps" class="@Nav("Map", "Gps")">Map</a>
                             <div class="mobile-services-block" id="mobileServicesBlock">
                                 <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
-                                    <span>Services</span>
-                                    <span class="dropdown-arrow">▼</span>
+                                    <span>Services</span><span class="dropdown-arrow">▼</span>
                                 </button>
                                 <div class="mobile-services-menu" id="mobileServicesMenu">
                                     <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
@@ -101,94 +92,41 @@
                                     <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                                 </div>
                             </div>
-
-                            <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
+                            <a asp-controller="Home" asp-action="About" class="@Nav("Home", "About")">About Us</a>
                             <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
                         </div>
                     </div>
+
                 </div>
+            }
+            else
+            {
+                @* ══════════════════════════════════════════════
+         نافبار قبل تسجيل الدخول
+         ══════════════════════════════════════════════ *@
 
-            </nav>
-        </div>
-    </header>
-}
-else
-{
-    @* ══════════════════════════════════════════
-       نافبار الزائر (home-before)
-       ══════════════════════════════════════════ *@
-    <header class="topbar">
-        <div class="header-shell">
-            <nav class="navbar">
-
-                @* ── روابط اليسار (Desktop) ── *@
                 <div class="left-nav desktop-nav">
-                    <a asp-controller="Home" asp-action="Home_Before" class="nav-link">Home</a>
-                    <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
-                    <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
-                    <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
+                    <a asp-controller="Home" asp-action="Home_Before" class="@Nav("Home", "Home_Before")">Home</a>
+                    <a asp-controller="Clinic" asp-action="Clinics" class="@NavC("Clinic")">Clinics</a>
+                    <a asp-controller="Product" asp-action="Stores" class="@NavC("Product")">Stores</a>
+                    <a asp-controller="Pet" asp-action="Adapt" class="@Nav("Pet", "Adapt")">Adoption</a>
                 </div>
 
-                @* ── اللوغو في الوسط ── *@
                 <div class="logo-center">
-                    <img src="~/Images/logo.png" alt="Waffy Main Logo" class="main-logo">
+                    <img src="~/Images/logo.png" alt="Waffy" class="main-logo">
                 </div>
 
-                @* ── روابط اليمين (Desktop) ── *@
-                <div class="right-nav desktop-nav">
-                    <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-                    <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
+                @* right-nav هنا ليس desktop-nav حتى يحتوي البرجر بشكل صحيح *@
+                <div class="right-nav">
 
-                    <div class="services-dropdown" id="servicesDropdown">
-                        <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
-                            Services
-                            <span class="dropdown-arrow">▼</span>
-                        </button>
-                        <div class="dropdown-menu" id="servicesMenu">
-                            <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
-                            <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
-                            <a asp-controller="Pet" asp-action="Adapt" class="dropdown-link">Adoption</a>
-                            <a asp-controller="Pet" asp-action="Lost" class="dropdown-link">Lost Pets</a>
-                            <a asp-controller="Map" asp-action="Gps" class="dropdown-link">Map</a>
-                            <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
-                            <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
-                            <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
-                            <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
-                            <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
-                        </div>
-                    </div>
-
-                    <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
-                    <a asp-controller="Account" asp-action="Login" class="nav-link login-btn">Login</a>
-                </div>
-
-                @* ── موبايل ── *@
-                <div class="mobile-nav-wrap">
-                    <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
-
-                    <div class="nav-links" id="navLinks">
-                        <div class="mobile-menu-logo">
-                            <img src="~/Images/logo.png" alt="Waffy Logo">
-                        </div>
-
-                        <a asp-controller="Home" asp-action="Home_Before" class="nav-link">Home</a>
-                        <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
-                        <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
-                        <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
-                        <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
-                        <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
-
-                        <div class="mobile-services-block" id="mobileServicesBlock">
-                            <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
-                                <span>Services</span>
-                                <span class="dropdown-arrow">▼</span>
+                    <div class="desktop-nav">
+                        <a asp-controller="Pet" asp-action="Lost" class="@Nav("Pet", "Lost")">Lost Pets</a>
+                        <a asp-controller="Map" asp-action="Gps" class="@Nav("Map", "Gps")">Map</a>
+                        <div class="services-dropdown" id="servicesDropdown">
+                            <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
+                                Services <span class="dropdown-arrow">▼</span>
                             </button>
-                            <div class="mobile-services-menu" id="mobileServicesMenu">
-                                <a asp-controller="Clinic" asp-action="Clinics" class="dropdown-link">Clinics</a>
-                                <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
-                                <a asp-controller="Pet" asp-action="Adapt" class="dropdown-link">Adoption</a>
-                                <a asp-controller="Pet" asp-action="Lost" class="dropdown-link">Lost Pets</a>
-                                <a asp-controller="Map" asp-action="Gps" class="dropdown-link">Map</a>
+                            <div class="dropdown-menu" id="servicesMenu">
                                 <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                 <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                 <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
@@ -196,73 +134,131 @@ else
                                 <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
                             </div>
                         </div>
-
-                        <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
+                        <a asp-controller="Home" asp-action="About" class="@Nav("Home", "About")">About Us</a>
                         <a asp-controller="Account" asp-action="Login" class="nav-link login-btn">Login</a>
                     </div>
+
+                    @* البرجر — خارج desktop-nav تماماً *@
+                    <div class="mobile-nav-wrap">
+                        <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+                        <div class="nav-links" id="navLinks">
+                            <div class="mobile-menu-logo"><img src="~/Images/logo.png" alt="Waffy"></div>
+                            <a asp-controller="Home" asp-action="Home_Before" class="@Nav("Home", "Home_Before")">Home</a>
+                            <a asp-controller="Clinic" asp-action="Clinics" class="@NavC("Clinic")">Clinics</a>
+                            <a asp-controller="Product" asp-action="Stores" class="@NavC("Product")">Stores</a>
+                            <a asp-controller="Pet" asp-action="Adapt" class="@Nav("Pet", "Adapt")">Adoption</a>
+                            <a asp-controller="Pet" asp-action="Lost" class="@Nav("Pet", "Lost")">Lost Pets</a>
+                            <a asp-controller="Map" asp-action="Gps" class="@Nav("Map", "Gps")">Map</a>
+                            <div class="mobile-services-block" id="mobileServicesBlock">
+                                <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
+                                    <span>Services</span><span class="dropdown-arrow">▼</span>
+                                </button>
+                                <div class="mobile-services-menu" id="mobileServicesMenu">
+                                    <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
+                                    <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
+                                    <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
+                                    <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
+                                    <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
+                                </div>
+                            </div>
+                            <a asp-controller="Home" asp-action="About" class="@Nav("Home", "About")">About Us</a>
+                            <a asp-controller="Account" asp-action="Login" class="nav-link login-btn">Login</a>
+                        </div>
+                    </div>
+
                 </div>
+            }
 
-            </nav>
-        </div>
-    </header>
-}
+        </nav>
+    </div>
+</header>
 
-@* ── JavaScript مشترك للـ Navbar (يعمل لكلا النافبارين) ── *@
+@* ══ JavaScript — مغلّف بـ DOMContentLoaded لضمان جاهزية الـ DOM ══ *@
 <script>
-    (function () {
-        const menuBtn             = document.getElementById("menuBtn");
-        const navLinks            = document.getElementById("navLinks");
-        const servicesToggle      = document.getElementById("servicesToggle");
-        const servicesDropdown    = document.getElementById("servicesDropdown");
-        const mobileServicesToggle = document.getElementById("mobileServicesToggle");
-        const mobileServicesBlock  = document.getElementById("mobileServicesBlock");
+    document.addEventListener("DOMContentLoaded", function () {
+        var menuBtn              = document.getElementById("menuBtn");
+        var navLinks             = document.getElementById("navLinks");
+        var servicesToggle       = document.getElementById("servicesToggle");
+        var servicesDropdown     = document.getElementById("servicesDropdown");
+        var mobileServicesToggle = document.getElementById("mobileServicesToggle");
+        var mobileServicesBlock  = document.getElementById("mobileServicesBlock");
 
         if (menuBtn && navLinks) {
-            menuBtn.addEventListener("click", e => {
+            menuBtn.addEventListener("click", function (e) {
                 e.stopPropagation();
                 navLinks.classList.toggle("open");
             });
         }
 
         if (servicesToggle && servicesDropdown) {
-            servicesToggle.addEventListener("click", e => {
+            servicesToggle.addEventListener("click", function (e) {
                 e.stopPropagation();
                 servicesDropdown.classList.toggle("open");
             });
         }
 
         if (mobileServicesToggle && mobileServicesBlock) {
-            mobileServicesToggle.addEventListener("click", e => {
+            mobileServicesToggle.addEventListener("click", function (e) {
                 e.stopPropagation();
                 mobileServicesBlock.classList.toggle("open");
             });
         }
 
-        document.querySelectorAll(".nav-links .nav-link, .nav-links .dropdown-link").forEach(link => {
-            link.addEventListener("click", () => {
+        document.querySelectorAll(".nav-links .nav-link, .nav-links .dropdown-link").forEach(function (link) {
+            link.addEventListener("click", function () {
                 if (window.innerWidth <= 1188) {
-                    navLinks && navLinks.classList.remove("open");
-                    mobileServicesBlock && mobileServicesBlock.classList.remove("open");
+                    if (navLinks)            navLinks.classList.remove("open");
+                    if (mobileServicesBlock) mobileServicesBlock.classList.remove("open");
                 }
             });
         });
 
-        document.addEventListener("click", e => {
-            if (servicesDropdown && !servicesDropdown.contains(e.target))
+        document.addEventListener("click", function (e) {
+            if (servicesDropdown && !servicesDropdown.contains(e.target)) {
                 servicesDropdown.classList.remove("open");
-
+            }
             if (navLinks && menuBtn &&
                 !navLinks.contains(e.target) && !menuBtn.contains(e.target)) {
                 navLinks.classList.remove("open");
-                mobileServicesBlock && mobileServicesBlock.classList.remove("open");
+                if (mobileServicesBlock) mobileServicesBlock.classList.remove("open");
             }
         });
 
-        window.addEventListener("resize", () => {
+        window.addEventListener("resize", function () {
             if (window.innerWidth > 1188) {
-                navLinks && navLinks.classList.remove("open");
-                mobileServicesBlock && mobileServicesBlock.classList.remove("open");
+                if (navLinks)            navLinks.classList.remove("open");
+                if (mobileServicesBlock) mobileServicesBlock.classList.remove("open");
             }
         });
-    })();
+    });
 </script>
+
+@* ══ Back Button Protection — يمنع العودة بعد Logout ══ *@
+@if (isLoggedIn)
+{
+    <script>
+        // حماية صفحات ما بعد الدخول من زر Back بعد Logout
+        (function () {
+            // نضع علامة في sessionStorage تثبت أن المستخدم شاف هذه الصفحة وهو مسجل دخول
+            sessionStorage.setItem("wasLoggedIn", "true");
+
+            // عند ظهور الصفحة من الـ cache (bfcache) نتحقق من الـ Session
+            window.addEventListener("pageshow", function (e) {
+                if (e.persisted) {
+                    // الصفحة جاءت من bfcache — تحقق من الـ server
+                    fetch("/Account/CheckSession", { cache: "no-store" })
+                        .then(function (r) { return r.json(); })
+                        .then(function (data) {
+                            if (!data.loggedIn) {
+                                // Session انتهت — أعد توجيهه لـ Login
+                                window.location.replace("/Account/Login");
+                            }
+                        })
+                        .catch(function () {
+                            window.location.replace("/Account/Login");
+                        });
+                }
+            });
+        })();
+    </script>
+}

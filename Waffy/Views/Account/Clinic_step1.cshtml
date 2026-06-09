@@ -109,13 +109,19 @@
                                     <div class="cw-field">
                                         <label class="cw-label"><span class="req">*</span>Phone Number</label>
                                         <input class="cw-input" name="phone" type="tel" id="cc-phone"
-                                               placeholder="06-XXXXXXX"
-                                               value="@TempData["cc_phone"]">
+                                               placeholder="07XXXXXXXX"
+                                               value="@TempData["cc_phone"]"
+                                               maxlength="10"
+                                               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);"
+                                               required>
                                     </div>
 
                                     <div class="cw-field">
                                         <label class="cw-label">WhatsApp <span class="cw-opt-badge">Optional</span></label>
-                                        <input class="cw-input" type="tel" id="cc-whatsapp" placeholder="07XXXXXXXX">
+                                        <input class="cw-input" name="whatsApp" type="tel" id="cc-whatsapp"
+                                               placeholder="07XXXXXXXX"
+                                               maxlength="10"
+                                               oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);">
                                     </div>
 
                                     <div class="cw-field cw-field-full">

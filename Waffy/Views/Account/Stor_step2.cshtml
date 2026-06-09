@@ -111,7 +111,8 @@
                                             <input class="sw-inp" name="phone" id="sw-sphone"
                                                    type="tel"
                                                    placeholder="6 XXX XXXX"
-                                                   oninput="swCe(this)"
+                                                   maxlength="10"
+                                                   oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10); swCe(this);"
                                                    style="flex:1" />
                                         </div>
                                         <div class="sw-ferr" id="sw-e-sphone">⚠ Please enter a valid phone number</div>
@@ -123,7 +124,9 @@
                                             <span class="sw-ph-pre">🇯🇴 +962</span>
                                             <input class="sw-inp" name="whatsApp" id="sw-whatsapp"
                                                    type="tel"
-                                                   placeholder="7X XXX XXXX" />
+                                                   placeholder="7X XXX XXXX"
+                                                   maxlength="10"
+                                                   oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 10);" />
                                         </div>
                                     </div>
 

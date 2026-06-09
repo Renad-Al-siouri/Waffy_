@@ -4,7 +4,7 @@ using Waffy.Interfaces;
 using Waffy.Models;
 using Waffy.Models.ViewModels;
 using Waffy.Repositories.Interfaces;
-
+using Waffy.Filters;
 namespace Waffy.Controllers
 {
     public class HomeController : Controller
@@ -194,7 +194,7 @@ namespace Waffy.Controllers
 
             return View();
         }
-
+        [SessionRequired]
         public async Task<IActionResult> Home_After()
         {
 

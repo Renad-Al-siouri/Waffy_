@@ -7,8 +7,9 @@
     var initials   = userName.Length > 0 ? userName[0].ToString().ToUpper() : "C";
     var now        = DateTime.Now;
 
-    var pendingClinic = Model.Appointments.Count(a => a.Status == "PendingClinicApproval");
-    var pendingDoctor = Model.Appointments.Count(a => a.Status == "PendingDoctorApproval");
+    var pendingClinic = Model.Appointments.Count(a => a.Status == "PendingClinicAssignment");
+var pendingDoctor = Model.Appointments.Count(a => a.Status == "PendingDoctorApproval");
+var pendingCliq = Model.Appointments.Count(a => a.Status == "PendingPaymentVerification");
 }
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -138,7 +139,10 @@
         </div>
         <div class="sb-hr"></div>
         <div class="sb-group sb-group-flat">
-            <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Personal_nformation"><span class="sb-icon">⚙️</span><span class="sb-lbl">My Settings</span></a>
+           <a class="sb-row" asp-controller="ClinicAdmin" asp-action="Personal_Information">
+    <span class="sb-icon">⚙️</span>
+    <span class="sb-lbl">My Settings</span>
+</a>
         </div>
     </nav>
     <div class="sb-foot">
@@ -223,8 +227,8 @@
 <div class="pending-banner">
     <span style="font-size:1.1rem;">⏳</span>
     <div>
-        <strong>@pendingClinic request(s) need your approval</strong>
-        — Select an available doctor and confirm each request.
+       <strong>@pendingClinic request(s) need doctor assignment</strong>
+— Select an available doctor for each paid appointment.
     </div>
     <span class="pending-count">@pendingClinic Pending</span>
 </div>
@@ -274,12 +278,13 @@
                         { <text>Doctor TBD</text> }
                     </div>
                     @{
-                        var todayBadge = a.Status switch {
-                            "Confirmed"             => ("✅","#5f7430"),
-                            "PendingClinicApproval" => ("⏳","#9b6000"),
-                            "PendingDoctorApproval" => ("👨‍⚕️","#1a3a8f"),
-                            _                       => ("•","#888")
-                        };
+                      var todayBadge = a.Status switch {
+    "Confirmed"                  => ("✅","#5f7430"),
+    "PendingClinicAssignment"    => ("⏳","#9b6000"),
+    "PendingDoctorApproval"      => ("👨‍⚕️","#1a3a8f"),
+    "PendingPaymentVerification" => ("📱","#9b6000"),
+    _                            => ("•","#888")
+};
                     }
                     <span style="font-size:.7rem;font-weight:900;color:@todayBadge.Item2;">
                         @todayBadge.Item1 @a.Status
@@ -292,7 +297,7 @@
 <!-- KPIs -->
 <div class="kpi-grid">
     <div class="kpi-card"><div class="kpi-val">@Model.TotalCount</div><div class="kpi-lbl">📋 Total</div></div>
-    <div class="kpi-card"><div class="kpi-val" style="color:#9b6000;">@pendingClinic</div><div class="kpi-lbl">⏳ Need Approval</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:#9b6000;">@pendingClinic</div><div class="kpi-lbl">⏳ Need Assignment</div></div>
     <div class="kpi-card"><div class="kpi-val" style="color:#1a3a8f;">@pendingDoctor</div><div class="kpi-lbl">👨‍⚕️ With Doctor</div></div>
     <div class="kpi-card"><div class="kpi-val" style="color:var(--gd);">@Model.ConfirmedCount</div><div class="kpi-lbl">✅ Confirmed</div></div>
     <div class="kpi-card"><div class="kpi-val" style="color:#5f7430;">@Model.CompletedCount</div><div class="kpi-lbl">🏁 Completed</div></div>
@@ -313,14 +318,14 @@
         </select>
     }
     @foreach (var (lbl,val,cls) in new[]{
-        ("All","All",""),
-        ("🔍 Verify CliQ","PendingPaymentVerification","f-chip-warn"),
-        ("⏳ Need Approval","PendingClinicApproval","f-chip-warn"),
-        ("👨‍⚕️ With Doctor","PendingDoctorApproval",""),
-        ("✅ Confirmed","Confirmed",""),
-        ("🏁 Completed","Completed",""),
-        ("❌ Cancelled","Cancelled","")
-    })
+    ("All","All",""),
+    ("📱 Waiting Waffy Verification","PendingPaymentVerification",""),
+    ("⏳ Need Assignment","PendingClinicAssignment","f-chip-warn"),
+    ("👨‍⚕️ With Doctor","PendingDoctorApproval",""),
+    ("✅ Confirmed","Confirmed",""),
+    ("🏁 Completed","Completed",""),
+    ("❌ Cancelled","Cancelled","")
+})
     {
         <a asp-controller="ClinicAdmin" asp-action="Appointments"
            asp-route-statusFilter="@val"
@@ -369,7 +374,7 @@
                     <tr data-id="@a.Id"
                         data-depositmethod="@(a.DepositPayMethod ?? "")"
 data-depositpaid="@(a.DepositPaid ? "1" : "0")"
-data-cliqref="@(a.CliqReference ?? "")"
+
                         data-status="@a.Status"
                         data-petid="@(a.IdPet ?? 0)"
                         data-petname="@petNameE"
@@ -385,8 +390,7 @@ data-cliqref="@(a.CliqReference ?? "")"
                         data-service="@(a.ServiceName ?? "")"
                         data-urgency="@(a.UrgencyLevel ?? "Normal")"
                         data-reason="@((a.Reason ?? "").Replace("'","&#39;"))"
-                        data-depositmethod="@(a.DepositPayMethod ?? "")"
-                        data-depositpaid="@(a.DepositPaid ? "1" : "0")"
+                       
                         data-apptdate="@a.AppointmentDate.ToString("yyyy-MM-dd")"
                         data-search="@($"{a.PetName} {a.UserFullName} {a.DoctorName} {a.ServiceName}".ToLower())"
                         data-doctor="@(a.DoctorName ?? "")">
@@ -428,12 +432,12 @@ data-cliqref="@(a.CliqReference ?? "")"
 
                         <!-- Doctor -->
                         <td>
-                            @if (a.Status == "PendingClinicApproval")
-                            {
-                                <span style="font-size:.76rem;color:#9b6000;font-weight:800;">
-                                    ⏳ To be assigned
-                                </span>
-                            }
+                           @if (a.Status == "PendingClinicAssignment")
+{
+    <span style="font-size:.76rem;color:#9b6000;font-weight:800;">
+        ⏳ To be assigned
+    </span>
+}
                             else if (!string.IsNullOrEmpty(a.DoctorName))
                             {
                                 <div style="font-weight:800;font-size:.84rem;">Dr. @a.DoctorName</div>
@@ -454,14 +458,14 @@ data-cliqref="@(a.CliqReference ?? "")"
                         <!-- Status badge -->
                         <td>
                             @{
-                                var (badge, badgeCss) = a.Status switch {
-    "PendingPayment"             => ("💳 Awaiting Payment","s-pend-c"),
-    "PendingPaymentVerification" => ("🔍 Verify CliQ","s-pend-c"),
-    "PendingClinicApproval"      => ("⏳ Need Approval","s-pend-c"),
+                              var (badge, badgeCss) = a.Status switch {
+    "PendingPaymentVerification" => ("📱 Waiting Waffy","s-pend-c"),
+    "PendingClinicAssignment"    => ("⏳ Need Assignment","s-pend-c"),
     "PendingDoctorApproval"      => ("👨‍⚕️ With Doctor","s-pend-d"),
     "Confirmed"                  => ("✅ Confirmed","s-confirmed"),
     "Completed"                  => ("🏁 Completed","s-completed"),
     "Cancelled"                  => ("❌ Cancelled","s-cancelled"),
+    "Rejected"                   => ("❌ Rejected","s-cancelled"),
     "NoShow"                     => ("🚫 No-Show","s-noshow"),
     _                            => (a.Status,"s-pending")
 };
@@ -488,14 +492,7 @@ data-cliqref="@(a.CliqReference ?? "")"
     {
         <div>
             <span class="dep-chip dep-cliq-pending">📱 CliQ · Pending</span>
-            @if (!string.IsNullOrEmpty(a.CliqReference))
-            {
-                <div style="font-size:.68rem;font-weight:900;
-                            color:#9b6000;margin-top:3px;
-                            letter-spacing:.5px;font-family:'Fredoka',sans-serif;">
-                    🔑 @a.CliqReference
-                </div>
-            }
+            
         </div>
     }
     else
@@ -514,41 +511,28 @@ data-cliqref="@(a.CliqReference ?? "")"
                                 </button>
 
                                 @* Clinic approval actions — ONLY for "Any Doctor" bookings *@
-                                @if (a.Status == "PendingClinicApproval")
-                                {
-                                    <button type="button" class="btn btn-primary btn-sm"
-                                            onclick="openAssignModal(@a.Id,'@a.AppointmentDate.ToString("yyyy-MM-dd")')"
-                                            title="Assign doctor & approve">
-                                        ✅ Assign
-                                    </button>
-                                    <button type="button" class="btn btn-red btn-sm"
-                                            onclick="openRejectModal(@a.Id,'@petNameE')"
-                                            title="Reject">
-                                        ❌
-                                    </button>
-                                }
-
-                                @* Doctor-specific: clinic reads only — doctor approves/rejects *@
-                                else if (a.Status == "PendingDoctorApproval")
-                                {
-                                    <span style="font-size:.7rem;font-weight:800;color:#1a3a8f;
-                                                 background:#e8f0fe;padding:3px 7px;border-radius:7px;
-                                                 border:1px solid #c5d0e8;white-space:nowrap;">
-                                        👨‍⚕️ Doctor's call
-                                    </span>
-                                }
-                                @* CliQ تحت التحقق — الادمن يؤكد الدفع *@
-@if (a.Status == "PendingPaymentVerification")
+                                @if (a.Status == "PendingClinicAssignment" && a.DepositPaid)
 {
-    <button type="button" class="btn btn-outline btn-sm"
-            style="color:#9b6000;border-color:#fde68a;"
-            onclick="confirmCliq(@a.Id)">
-        📱 Confirm CliQ
+    <button type="button" class="btn btn-primary btn-sm"
+            onclick="openAssignModal(@a.Id,'@a.AppointmentDate.ToString("yyyy-MM-dd")')"
+            title="Assign doctor">
+        👨‍⚕️ Assign
     </button>
+
     <button type="button" class="btn btn-red btn-sm"
-            onclick="openRejectModal(@a.Id,'@petNameE')">
+            onclick="openRejectModal(@a.Id,'@petNameE')"
+            title="Reject">
         ❌
     </button>
+}
+
+@if (a.Status == "PendingPaymentVerification")
+{
+     <span style="font-size:.7rem;font-weight:800;color:#9b6000;
+                 background:#fff8e1;padding:3px 7px;border-radius:7px;
+                 border:1px solid #fde68a;white-space:nowrap;">
+        📱 Waiting Waffy
+    </span>
 }
 
                                 @* Confirmed: attendance tracking *@
@@ -562,17 +546,6 @@ else if (a.Status == "Confirmed")
     </span>
 }
 
-                                @* CliQ unconfirmed — clinic verifies payment *@
-                                @if (a.DepositPayMethod == "CliQ" && !a.DepositPaid
-                                     && a.Status != "Cancelled" && a.Status != "NoShow")
-                                {
-                                    <button type="button" class="btn btn-outline btn-sm"
-                                            style="color:#9b6000;border-color:#fde68a;font-size:.7rem;"
-                                            onclick="confirmCliq(@a.Id)"
-                                            title="Confirm CliQ payment received">
-                                        📱 Confirm CliQ
-                                    </button>
-                                }
 
                             </div>
                         </td>
@@ -588,7 +561,7 @@ else if (a.Status == "Confirmed")
 </div>
 
 <!-- ═══════════════════════════════
-     DETAILS MODAL — كاملة
+     DETAILS MODAL
 ═══════════════════════════════ -->
 <div class="modal-overlay" id="detailsModal">
 <div class="modal det-modal">
@@ -596,8 +569,8 @@ else if (a.Status == "Confirmed")
         <div class="modal-title" id="detTitle">📅 Appointment Details</div>
         <button class="modal-close" type="button" onclick="closeModal('detailsModal')">✕</button>
     </div>
+
     <div class="modal-body">
-        <!-- Pet hero -->
         <div class="det-hero">
             <div class="det-hero-img" id="detImg">🐾</div>
             <div>
@@ -605,13 +578,13 @@ else if (a.Status == "Confirmed")
                 <div style="font-size:.76rem;color:#5f7430;font-weight:700;" id="detPetSpecies">—</div>
             </div>
         </div>
-        <!-- Owner -->
+
         <div class="det-sec">
             <div class="det-sec-title">👤 Owner Information</div>
             <div class="det-row"><div class="det-lbl">Name</div><div class="det-val" id="detOwner">—</div></div>
             <div class="det-row"><div class="det-lbl">Phone</div><div class="det-val" id="detPhone">—</div></div>
         </div>
-        <!-- Appointment -->
+
         <div class="det-sec" style="border-top:1px solid var(--line);">
             <div class="det-sec-title">📅 Appointment Details</div>
             <div class="det-row"><div class="det-lbl">Date</div><div class="det-val" id="detDate">—</div></div>
@@ -621,41 +594,43 @@ else if (a.Status == "Confirmed")
             <div class="det-row"><div class="det-lbl">Urgency</div><div class="det-val" id="detUrgency">—</div></div>
             <div class="det-row"><div class="det-lbl">Status</div><div class="det-val" id="detStatus">—</div></div>
         </div>
-        <!-- Payment -->
+
         <div class="det-sec" style="border-top:1px solid var(--line);">
             <div class="det-sec-title">💳 Deposit</div>
-            <div class="det-row" id="detDepositRow">
-                <div class="det-lbl">Method</div><div class="det-val" id="detDepMethod">—</div>
+            <div class="det-row">
+                <div class="det-lbl">Method</div>
+                <div class="det-val" id="detDepMethod">—</div>
             </div>
             <div class="det-row">
-                <div class="det-lbl">Status</div><div class="det-val" id="detDepStatus">—</div>
+                <div class="det-lbl">Status</div>
+                <div class="det-val" id="detDepStatus">—</div>
             </div>
         </div>
-        <!-- Reason -->
+
         <div id="detReasonSection" class="det-sec" style="border-top:1px solid var(--line);display:none;">
             <div class="det-sec-title">📝 Reason</div>
             <div style="font-size:.82rem;font-weight:700;color:var(--text);" id="detReason">—</div>
         </div>
     </div>
+
     <div class="modal-footer">
         <button class="btn btn-outline" onclick="closeModal('detailsModal')">Close</button>
     </div>
 </div>
 </div>
-
 <!-- ═══════════════════════════════
      ASSIGN DOCTOR MODAL
 ═══════════════════════════════ -->
 <div class="modal-overlay" id="assignModal">
 <div class="modal" style="max-width:500px;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;">
     <div class="modal-header">
-        <div class="modal-title">👨‍⚕️ Assign Doctor &amp; Approve</div>
+       <div class="modal-title">👨‍⚕️ Assign Doctor</div>
         <button class="modal-close" type="button" onclick="closeModal('assignModal')">✕</button>
     </div>
     <div class="modal-body" style="overflow-y:auto;flex:1;padding:1.2rem;">
         <div style="background:var(--gp);border:1px solid var(--b2);border-radius:10px;
                     padding:8px 12px;margin-bottom:12px;font-size:.8rem;font-weight:700;color:#5f7430;">
-            ✅ Availability is checked automatically based on working days and max patients per day.
+           ✅ Select an available doctor. The appointment will then be sent to the doctor for approval.
         </div>
         <div id="doctorList"></div>
     </div>
@@ -686,7 +661,9 @@ else if (a.Status == "Confirmed")
         <div class="modal-body" style="padding:1.4rem;">
             <div class="c-icon">❌</div>
             <div class="c-title">Reject Appointment?</div>
-            <div class="c-msg" id="rejectMsg">The 5 JOD deposit will be returned to the patient immediately.</div>
+          <div class="c-msg" id="rejectMsg">
+    If allowed by the 24-hour rule, Waffy will return the deposit to the patient.
+</div>
             <select name="reason" class="c-select">
                 <option value="No available doctors">No available doctors</option>
                 <option value="Fully booked">Fully booked</option>
@@ -703,86 +680,8 @@ else if (a.Status == "Confirmed")
 </div>
 </div>
 
-<!-- ═══════════════════════════════
-     ATTENDANCE MODAL
-═══════════════════════════════ -->
-<div class="modal-overlay" id="attendModal">
-<div class="modal confirm-modal">
-    <div class="modal-header">
-        <div class="modal-title" id="attendTitle">Attendance</div>
-        <button class="modal-close" type="button" onclick="closeModal('attendModal')">✕</button>
-    </div>
-    <div class="modal-body" style="padding:1.4rem;">
-        <div class="c-icon" id="attendIcon">🏁</div>
-        <div class="c-title" id="attendName">Patient</div>
-        <div class="c-msg" id="attendMsg">—</div>
-    </div>
-    <form id="attendForm" method="post">
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="id" id="attendId">
-        <div class="modal-footer">
-            <button type="button" class="btn btn-outline" onclick="closeModal('attendModal')">Cancel</button>
-            <button type="submit" id="attendBtn" class="btn btn-primary">Confirm</button>
-        </div>
-    </form>
-</div>
-</div>
 
-<!-- ═══════════════════════════════
-     CLIQ CONFIRM MODAL
-═══════════════════════════════ -->
-<div class="modal-overlay" id="cliqModal">
-<div class="modal confirm-modal">
-    <div class="modal-header">
-        <div class="modal-title">📱 Confirm CliQ Payment</div>
-        <button class="modal-close" type="button" onclick="closeModal('cliqModal')">✕</button>
-    </div>
-    <form asp-controller="ClinicAdmin" asp-action="ConfirmCliqPayment" method="post">
-        @Html.AntiForgeryToken()
-        <input type="hidden" name="id" id="cliqApptId">
-        <div class="modal-body" style="padding:1.4rem;">
-            <div class="c-icon">📱</div>
-            <div class="c-title">Confirm CliQ Receipt?</div>
-           <div class="c-msg">
-    Verify that you received <strong>5 JOD</strong> via CliQ
-    from the patient for this appointment.<br>
-    Once confirmed, the deposit will be marked as paid.
-</div>
-<div style="background:#fff8e1;border:1.5px solid #fde68a;
-            border-radius:10px;padding:10px 14px;
-            margin-top:10px;text-align:center;">
-    <div style="font-size:.74rem;color:#9b6000;font-weight:700;margin-bottom:4px;">
-        📋 Reference Number to Verify
-    </div>
-    <div id="cliqRefDisplay"
-         style="font-family:'Fredoka',sans-serif;font-size:1.3rem;
-                font-weight:700;color:#9b6000;letter-spacing:3px;">
-        —
-    </div>
-    <div style="font-size:.7rem;color:#555;font-weight:600;margin-top:4px;">
-        This must match the reference sent by the patient
-    </div>
-</div>
 
-<div style="background:#fff8e1;border:1.5px solid #fde68a;border-radius:10px;
-            padding:10px 14px;margin-top:6px;text-align:center;">
-    <div style="font-size:.75rem;color:#9b6000;font-weight:700;">
-        Expected Reference Number
-    </div>
-    <div style="font-family:'Fredoka',sans-serif;font-size:1.2rem;
-                font-weight:700;color:#9b6000;letter-spacing:2px;"
-         id="cliqRefDisplay">
-        —
-    </div>
-</div>
-        </div>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-outline" onclick="closeModal('cliqModal')">Cancel</button>
-            <button type="submit" class="btn btn-primary">✅ Confirm Received</button>
-        </div>
-    </form>
-</div>
-</div>
 
 <script>
 // Doctors data
@@ -829,7 +728,7 @@ function openDetails(id) {
     document.getElementById('detTime').textContent   = d.time + (d.endtime ? ` – ${d.endtime}` : '');
     document.getElementById('detDoctor').textContent = d.docname
         ? `Dr. ${d.docname}${d.docspec ? ` · ${d.docspec}` : ''}`
-        : (d.status === 'PendingClinicApproval' ? 'To be assigned by clinic' : '—');
+       : (d.status === 'PendingClinicAssignment' ? 'To be assigned by clinic' : '—');
     document.getElementById('detService').textContent  = d.service || 'General';
     document.getElementById('detUrgency').innerHTML    = d.urgency === 'Urgent'
         ? '<span style="color:#e07b3c;font-weight:900;">🔴 Urgent</span>'
@@ -926,43 +825,10 @@ function selDoc(id) {
 function openRejectModal(id, name) {
     document.getElementById('rejectId').value = id;
     document.getElementById('rejectMsg').textContent =
-        `Reject ${name || 'this'} appointment? The 5 JOD deposit will be returned immediately.`;
+        `Reject ${name || 'this'} appointment? If allowed by the 24-hour rule, Waffy will return the deposit to the patient.`;
     document.getElementById('rejectModal').classList.add('open');
 }
 
-// ── Attendance Modal ──────────────────────────────────────────────────
-function openAttendModal(id, name, attended) {
-    document.getElementById('attendId').value = id;
-    if (attended) {
-        document.getElementById('attendTitle').textContent = '🏁 Confirm Attendance';
-        document.getElementById('attendIcon').textContent  = '🏁';
-        document.getElementById('attendName').textContent  = `${name || 'Patient'} attended`;
-        document.getElementById('attendMsg').textContent   =
-            'Marking visit as complete. The 5 JOD deposit will be returned to the patient\'s wallet.';
-        document.getElementById('attendBtn').className     = 'btn btn-primary';
-        document.getElementById('attendBtn').textContent   = '✅ Confirm & Return Deposit';
-        document.getElementById('attendForm').action       = '/ClinicAdmin/ConfirmAttendance';
-    } else {
-        document.getElementById('attendTitle').textContent = '🚫 Mark No-Show';
-        document.getElementById('attendIcon').textContent  = '🚫';
-        document.getElementById('attendName').textContent  = `${name || 'Patient'} did not attend`;
-        document.getElementById('attendMsg').textContent   =
-            'The appointment will be cancelled. The 5 JOD deposit will be RETAINED as per the no-show policy.';
-        document.getElementById('attendBtn').className     = 'btn btn-red';
-        document.getElementById('attendBtn').textContent   = '🚫 Mark No-Show (Keep Deposit)';
-        document.getElementById('attendForm').action       = '/ClinicAdmin/MarkNoShow';
-    }
-    document.getElementById('attendModal').classList.add('open');
-}
-
-// ── CliQ Confirm Modal ────────────────────────────────────────────────
-function confirmCliq(id) {
-    document.getElementById('cliqApptId').value = id;
-    const row = document.querySelector(`#apptTbody tr[data-id="${id}"]`);
-    const ref = row?.dataset.cliqref || '—';
-    document.getElementById('cliqRefDisplay').textContent = ref;
-    document.getElementById('cliqModal').classList.add('open');
-}
 
 // ── Table Filter ──────────────────────────────────────────────────────
 function filterTable() {

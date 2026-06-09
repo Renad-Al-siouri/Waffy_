@@ -221,42 +221,93 @@ namespace Waffy.Controllers
         }
 
         // 4. Cancel
+        // ── Clinic cancels appointment ─────────────────────────────
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelAppointment(int id, string reason)
         {
             var auth = RequireClinicAuth();
             if (auth != null) return auth;
 
-            // جلب الموعد أولاً للحصول على IdUser
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
             var appt = await _apptRepo.GetByIdAsync(id);
-            if (appt == null)
+
+            if (appt == null || appt.IdClinic != clinicId.Value)
             {
                 TempData["ApptError"] = "Appointment not found.";
                 return RedirectToAction("Appointments");
             }
 
-            // إلغاء الموعد
-            await _apptRepo.CancelAsync(id, reason);
+            if (appt.Status is "Completed" or "Cancelled" or "NoShow" or "Rejected")
+            {
+                TempData["ApptError"] = "⚠️ This appointment cannot be cancelled.";
+                return RedirectToAction("Appointments");
+            }
 
-            // ★ إشعار لليوزر بأن العيادة ألغت موعده
+            var canCancel = await _apptRepo.IsAppointmentCancellableBefore24hAsync(id);
+            if (!canCancel)
+            {
+                TempData["ApptError"] =
+                    "⚠️ This appointment cannot be cancelled because less than 24 hours remain.";
+                return RedirectToAction("Appointments");
+            }
+
+            await _apptRepo.CancelWithMetadataAsync(
+                appointmentId: id,
+                reason: string.IsNullOrWhiteSpace(reason) ? "Cancelled by clinic" : reason,
+                cancelledBy: "Clinic");
+
+            var depositReturned = false;
+
+            if (appt.DepositPaid && !appt.DepositReturned)
+            {
+                var refunded = await _walletRepo.RefundFromSuperAdminToUserAsync(
+                    userId: appt.IdUser,
+                    amount: appt.DepositAmount,
+                    appointmentId: appt.Id,
+                    adminId: null,
+                    description: "Deposit returned after clinic cancelled appointment before 24 hours");
+
+                if (!refunded)
+                {
+                    TempData["ApptError"] =
+                        "⚠️ Appointment cancelled, but refund failed because Super Admin wallet balance is insufficient.";
+                    return RedirectToAction("Appointments");
+                }
+
+                await _apptRepo.MarkDepositReturnedBySuperAdminAsync(
+                    appointmentId: id,
+                    adminId: null);
+
+                depositReturned = true;
+            }
+
             var clinicName = HttpContext.Session.GetString("ClinicName") ?? "the clinic";
+
             await _notifRepo.AddAsync(new Notification
             {
                 IdUser = appt.IdUser,
                 Type = "AppointmentCancelledByClinic",
                 Title = "❌ Appointment Cancelled",
-                Message = $"Your appointment at {clinicName} on " +
-                                    $"{appt.AppointmentDate:dd MMM yyyy} at {appt.StartTime:hh\\:mm} " +
-                                    $"has been cancelled by the clinic." +
-                                    (!string.IsNullOrEmpty(reason) ? $" Reason: {reason}" : "") +
-                                    " Please book another appointment if needed.",
+                Message =
+                    $"Your appointment at {clinicName} on " +
+                    $"{appt.AppointmentDate:dd MMM yyyy} at {appt.StartTime:hh\\:mm} " +
+                    "has been cancelled by the clinic. " +
+                    (!string.IsNullOrWhiteSpace(reason) ? $"Reason: {reason}. " : "") +
+                    (depositReturned
+                        ? $"Your {appt.DepositAmount:F2} JOD deposit has been returned to your wallet."
+                        : ""),
                 IsRead = false,
                 RelatedEntityType = "Appointment",
                 RelatedEntityId = id,
                 CreatedAt = DateTime.UtcNow
             });
 
-            TempData["ApptError"] = "❌ Appointment cancelled. User has been notified.";
+            TempData["ApptSuccess"] = depositReturned
+                ? "✅ Appointment cancelled. Deposit returned to user."
+                : "✅ Appointment cancelled.";
+
             return RedirectToAction("Appointments");
         }
         [HttpGet]
@@ -1075,33 +1126,93 @@ namespace Waffy.Controllers
         }
 
         // ── Action: الموافقة + تعيين طبيب ────────────────────
+        // ── Action: تعيين طبيب لموعد Any Doctor ────────────────────
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> ApproveAndAssign(int appointmentId, int assignedDoctorId)
         {
             var auth = RequireClinicAuth();
             if (auth != null) return auth;
 
-            // تحقق من توفر الطبيب
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
             var appt = await _apptRepo.GetByIdAsync(appointmentId);
-            if (appt == null)
+            if (appt == null || appt.IdClinic != clinicId.Value)
             {
                 TempData["ApptError"] = "Appointment not found.";
                 return RedirectToAction("Appointments");
             }
 
-            var slotFree = await _apptRepo.IsSlotAvailableAsync(
-                assignedDoctorId, appt.AppointmentDate, appt.StartTime);
-
-            if (!slotFree)
+            // العيادة تعين طبيب فقط للمواعيد التي اختار فيها اليوزر Any Doctor
+            if (appt.Status != "PendingClinicAssignment")
             {
-                TempData["ApptError"] = "⚠️ Doctor is not available at this time slot.";
+                TempData["ApptError"] = "⚠️ This appointment does not need clinic assignment.";
                 return RedirectToAction("Appointments");
             }
 
-            var todayCount = await _apptRepo.CountByDoctorAndDateAsync(
-                assignedDoctorId, appt.AppointmentDate);
+            // لا يسمح بتعيين طبيب قبل تأكيد الدفع
+            if (!appt.DepositPaid)
+            {
+                TempData["ApptError"] = "⚠️ Payment must be confirmed by Waffy Super Admin before assigning a doctor.";
+                return RedirectToAction("Appointments");
+            }
+
             var docInfo = await _doctorRepo.GetFullInfoByDoctorIdAsync(assignedDoctorId);
-            var maxDaily = docInfo?.MaxDailyAppointments ?? 12;
+            if (docInfo == null || docInfo.IdClinic != clinicId.Value)
+            {
+                TempData["ApptError"] = "⚠️ Selected doctor does not belong to this clinic.";
+                return RedirectToAction("Appointments");
+            }
+
+            if (docInfo.VerificationStatus != "Approved")
+            {
+                TempData["ApptError"] = "⚠️ Selected doctor is not approved.";
+                return RedirectToAction("Appointments");
+            }
+
+            if (docInfo.IsAvailable != true)
+            {
+                TempData["ApptError"] = "⚠️ Selected doctor is currently not available.";
+                return RedirectToAction("Appointments");
+            }
+
+            // فحص أيام العمل
+            var workDays = ParseWorkDays(docInfo.WorkingDays);
+            var apptDay = (int)appt.AppointmentDate.DayOfWeek;
+
+            if (workDays.Any() && !workDays.Contains(apptDay))
+            {
+                TempData["ApptError"] = "⚠️ Selected doctor does not work on this day.";
+                return RedirectToAction("Appointments");
+            }
+
+            // فحص وقت الدوام
+            if (!docInfo.StartTime.HasValue || !docInfo.EndTime.HasValue ||
+                appt.StartTime < docInfo.StartTime.Value ||
+                appt.StartTime >= docInfo.EndTime.Value)
+            {
+                TempData["ApptError"] = "⚠️ Selected doctor is not available at this time.";
+                return RedirectToAction("Appointments");
+            }
+
+            // فحص أن الوقت غير محجوز
+            var slotFree = await _apptRepo.IsSlotAvailableAsync(
+                assignedDoctorId,
+                appt.AppointmentDate,
+                appt.StartTime);
+
+            if (!slotFree)
+            {
+                TempData["ApptError"] = "⚠️ Doctor is already booked at this time slot.";
+                return RedirectToAction("Appointments");
+            }
+
+            // فحص الحد الأعلى اليومي
+            var todayCount = await _apptRepo.CountByDoctorAndDateAsync(
+                assignedDoctorId,
+                appt.AppointmentDate);
+
+            var maxDaily = docInfo.MaxDailyAppointments ?? 12;
 
             if (todayCount >= maxDaily)
             {
@@ -1110,44 +1221,88 @@ namespace Waffy.Controllers
             }
 
             await _apptRepo.AssignDoctorAsync(appointmentId, assignedDoctorId);
-            // إشعار لليوزر
+
             await _notifRepo.AddAsync(new Notification
             {
                 IdUser = appt.IdUser,
-                Type = "AppointmentConfirmed",
-                Title = "✅ Appointment Confirmed!",
-                Message = $"Your appointment at {HttpContext.Session.GetString("ClinicName")} " +
-                                    $"on {appt.AppointmentDate:dd MMM yyyy} at {appt.StartTime:hh\\:mm} " +
-                                   $"A doctor has been assigned to your appointment on " +
-$"{appt.AppointmentDate:dd MMM yyyy} at {appt.StartTime:hh\\:mm}. " +
-$"Dr. {docInfo?.FullName} will review and confirm shortly. 🐾",
+                Type = "AppointmentDoctorAssigned",
+                Title = "👨‍⚕️ Doctor Assigned",
+                Message =
+                    $"A doctor has been assigned to your appointment on " +
+                    $"{appt.AppointmentDate:dd MMM yyyy} at {appt.StartTime:hh\\:mm}. " +
+                    $"Dr. {docInfo.FullName} will review and approve shortly. 🐾",
                 IsRead = false,
                 RelatedEntityType = "Appointment",
                 RelatedEntityId = appointmentId,
                 CreatedAt = DateTime.UtcNow
             });
 
-            TempData["ApptSuccess"] = $"✅ Assigned to Dr. {docInfo?.FullName}. Awaiting doctor confirmation.";
+            TempData["ApptSuccess"] =
+                $"✅ Assigned to Dr. {docInfo.FullName}. Awaiting doctor approval.";
+
             return RedirectToAction("Appointments");
         }
-
         // ── Action: رفض الموعد ───────────────────────────────
+        // ── Clinic rejects assignment request ───────────────────────
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> RejectAppointment(int id, string reason)
         {
             var auth = RequireClinicAuth();
             if (auth != null) return auth;
 
+            var clinicId = GetCurrentClinicId();
+            if (clinicId == null) return RedirectToAction("Login", "Account");
+
             var appt = await _apptRepo.GetByIdAsync(id);
-            if (appt == null) return RedirectToAction("Appointments");
 
-            await _apptRepo.CancelAsync(id, reason);
+            if (appt == null || appt.IdClinic != clinicId.Value)
+            {
+                TempData["ApptError"] = "Appointment not found.";
+                return RedirectToAction("Appointments");
+            }
 
-            // إرجاع الإيداع فوراً
+            if (appt.Status != "PendingClinicAssignment")
+            {
+                TempData["ApptError"] = "⚠️ Only appointments waiting for clinic assignment can be rejected here.";
+                return RedirectToAction("Appointments");
+            }
+
+            var canCancel = await _apptRepo.IsAppointmentCancellableBefore24hAsync(id);
+            if (!canCancel)
+            {
+                TempData["ApptError"] =
+                    "⚠️ This appointment cannot be rejected because less than 24 hours remain.";
+                return RedirectToAction("Appointments");
+            }
+
+            await _apptRepo.RejectWithMetadataAsync(
+                appointmentId: id,
+                reason: string.IsNullOrWhiteSpace(reason) ? "Rejected by clinic" : reason,
+                rejectedBy: "Clinic");
+
+            var depositReturned = false;
+
             if (appt.DepositPaid && !appt.DepositReturned)
             {
-                // -5 من محفظة العيادة لأن المبلغ رجع لليوزر
-await _clinicRepo.AddClinicBalanceAsync(appt.IdClinic, -appt.DepositAmount);
+                var refunded = await _walletRepo.RefundFromSuperAdminToUserAsync(
+                    userId: appt.IdUser,
+                    amount: appt.DepositAmount,
+                    appointmentId: appt.Id,
+                    adminId: null,
+                    description: "Deposit returned after clinic rejected appointment");
+
+                if (!refunded)
+                {
+                    TempData["ApptError"] =
+                        "⚠️ Appointment rejected, but refund failed because Super Admin wallet balance is insufficient.";
+                    return RedirectToAction("Appointments");
+                }
+
+                await _apptRepo.MarkDepositReturnedBySuperAdminAsync(
+                    appointmentId: id,
+                    adminId: null);
+
+                depositReturned = true;
             }
 
             await _notifRepo.AddAsync(new Notification
@@ -1155,89 +1310,26 @@ await _clinicRepo.AddClinicBalanceAsync(appt.IdClinic, -appt.DepositAmount);
                 IdUser = appt.IdUser,
                 Type = "AppointmentRejectedByClinic",
                 Title = "❌ Appointment Request Rejected",
-                Message = $"Your appointment request at " +
-                                    $"{HttpContext.Session.GetString("ClinicName") ?? "the clinic"} " +
-                                    $"was rejected. Reason: {reason}. " +
-                                    (appt.DepositPaid ? "Your 5 JOD deposit has been returned. " : "") +
-                                    "You can book another appointment.",
+                Message =
+                    $"Your appointment request at " +
+                    $"{HttpContext.Session.GetString("ClinicName") ?? "the clinic"} was rejected. " +
+                    (!string.IsNullOrWhiteSpace(reason) ? $"Reason: {reason}. " : "") +
+                    (depositReturned
+                        ? $"Your {appt.DepositAmount:F2} JOD deposit has been returned to your wallet."
+                        : ""),
                 IsRead = false,
                 RelatedEntityType = "Appointment",
                 RelatedEntityId = id,
                 CreatedAt = DateTime.UtcNow
             });
 
-            TempData["ApptError"] = "❌ Appointment rejected." +
-                                    (appt.DepositPaid ? " Deposit returned to user." : "");
+            TempData["ApptSuccess"] = depositReturned
+                ? "❌ Appointment rejected. Deposit returned to user."
+                : "❌ Appointment rejected.";
+
             return RedirectToAction("Appointments");
         }
-
-        // ── Action: تأكيد حضور المريض ────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> ConfirmAttendance(int id)
-        {
-            var auth = RequireClinicAuth();
-            if (auth != null) return auth;
-
-            var appt = await _apptRepo.GetByIdAsync(id);
-            if (appt == null) return RedirectToAction("Appointments");
-
-            await _apptRepo.CompleteAsync(id);
-            await _apptRepo.ConfirmAttendanceAsync(id);
-
-            if (appt.DepositPaid && !appt.DepositReturned)
-            {
-                await ReturnDepositToUserAsync(appt.IdUser, appt.DepositAmount, id);
-                // -5 من محفظة العيادة لأن المبلغ رجع لليوزر
-                await _clinicRepo.AddClinicBalanceAsync(appt.IdClinic, -appt.DepositAmount);
-            }
-
-            await _notifRepo.AddAsync(new Notification
-            {
-                IdUser = appt.IdUser,
-                Type = "AppointmentCompleted",
-                Title = "✅ Visit Complete — Deposit Returned",
-                Message = "Your visit is marked as complete. " +
-                                    "Your 5 JOD deposit has been returned to your wallet. 🐾",
-                IsRead = false,
-                RelatedEntityType = "Appointment",
-                RelatedEntityId = id,
-                CreatedAt = DateTime.UtcNow
-            });
-
-            TempData["ApptSuccess"] = "✅ Attendance confirmed. Deposit returned.";
-            return RedirectToAction("Appointments");
-        }
-
-        // ── Action: تسجيل غياب ──────────────────────────────
-        [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> MarkNoShow(int id)
-        {
-            var auth = RequireClinicAuth();
-            if (auth != null) return auth;
-
-            var appt = await _apptRepo.GetByIdAsync(id);
-            if (appt == null) return RedirectToAction("Appointments");
-
-            await _apptRepo.MarkNoShowAsync(id);
-
-            await _notifRepo.AddAsync(new Notification
-            {
-                IdUser = appt.IdUser,
-                Type = "AppointmentNoShow",
-                Title = "⚠️ Missed Appointment",
-                Message = $"You missed your appointment on {appt.AppointmentDate:dd MMM yyyy}. " +
-                                    "Your 5 JOD deposit has been retained per our cancellation policy.",
-                IsRead = false,
-                RelatedEntityType = "Appointment",
-                RelatedEntityId = id,
-                CreatedAt = DateTime.UtcNow
-            });
-
-            TempData["ApptError"] = "⚠️ No-show recorded. Deposit retained.";
-            return RedirectToAction("Appointments");
-        }
-
-        // ── Helper: إرجاع الإيداع ────────────────────────────
+        
         private async Task ReturnDepositToUserAsync(int userId, decimal amount, int appointmentId)
         {
             var wallet = await _walletRepo.GetByUserIdAsync(userId);
@@ -1263,7 +1355,7 @@ await _clinicRepo.AddClinicBalanceAsync(appt.IdClinic, -appt.DepositAmount);
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        public async Task<IActionResult> ConfirmCliqPayment(int id)
+        public async Task<IActionResult> CliqNumber(int id)
         {
             var auth = RequireClinicAuth();
             if (auth != null) return auth;
@@ -1277,7 +1369,7 @@ await _clinicRepo.AddClinicBalanceAsync(appt.IdClinic, -appt.DepositAmount);
             // تحديد الـ Status التالي بناءً على اختيار الطبيب الأصلي
             var nextStatus = appt.IdDoctor > 0
      ? "PendingDoctorApproval"
-     : "PendingClinicApproval";
+     : "PendingClinicAssignment";
 
             await _apptRepo.SetStatusAsync(id, nextStatus);
 
@@ -1742,6 +1834,35 @@ await _clinicRepo.AddClinicBalanceAsync(appt.IdClinic, -appt.DepositAmount);
             return RedirectToAction("Notifications");
         }
 
+        private async Task<bool> TryReturnDepositAsync(AppointmentDto appt, int? adminId, string reason)
+        {
+            if (!appt.DepositPaid || appt.DepositReturned)
+                return true;
 
+            var refunded = await _walletRepo.RefundFromSuperAdminToUserAsync(
+                appt.IdUser,
+                appt.DepositAmount,
+                appt.Id,
+                adminId,
+                reason);
+
+            if (!refunded)
+                return false;
+
+            await _apptRepo.MarkDepositReturnedBySuperAdminAsync(appt.Id, adminId);
+            return true;
+        }
+
+        private static List<int> ParseWorkDays(string? workDays)
+        {
+            if (string.IsNullOrWhiteSpace(workDays))
+                return new List<int>();
+
+            return workDays
+                .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                .Where(x => int.TryParse(x.Trim(), out _))
+                .Select(x => int.Parse(x.Trim()))
+                .ToList();
+        }
     }
 }

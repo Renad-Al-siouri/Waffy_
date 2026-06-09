@@ -1,0 +1,805 @@
+﻿@{
+    Layout = "~/Views/StoreAdmin/_StoreAdminLayout.cshtml";
+    ViewData["Title"] = "Store Wallet";
+    ViewData["ActiveNav"] = "Settings";
+    ViewData["ActiveSettings"] = "Wallet";
+    ViewData["BreadSection"] = "Settings";
+    ViewData["BreadPage"] = "Store Wallet";
+
+    decimal balance = (decimal)(ViewBag.Balance ?? 0m);
+    var transactions = ViewBag.Transactions as IEnumerable<Waffy.Models.StoreWalletTransaction>
+                       ?? Enumerable.Empty<Waffy.Models.StoreWalletTransaction>();
+}
+
+@section Styles {
+    <style>
+        /* ── Layout ── */
+        .settings-layout {
+            display: grid;
+            grid-template-columns: 220px minmax(0, 1fr);
+            gap: 16px;
+            align-items: start
+        }
+
+        .settings-nav {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-sm);
+            min-width: 0
+        }
+
+        .settings-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 16px;
+            font-size: .84rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--border);
+            border-left: 3px solid transparent;
+            text-decoration: none;
+            transition: .18s;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis
+        }
+
+            .settings-nav-item:hover {
+                background: var(--brand-ghost);
+                color: var(--brand-dark)
+            }
+
+            .settings-nav-item.on {
+                background: var(--brand-xlight);
+                color: var(--brand-dark);
+                font-weight: 900;
+                border-left-color: var(--brand)
+            }
+
+            .settings-nav-item:last-child {
+                border-bottom: none
+            }
+
+        .settings-nav-ico {
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+            flex-shrink: 0
+        }
+
+        .settings-content {
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: var(--r-lg);
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            min-width: 0;
+            overflow: hidden
+        }
+
+        .settings-section-title {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--brand-dark);
+            margin-bottom: 18px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 8px
+        }
+
+        /* ── Wallet-specific styles ── */
+        .wallet-balance-card {
+            background: linear-gradient(135deg,#59653a,#59651a);
+            border-radius: 20px;
+            padding: 28px 24px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 28px rgba(46,125,50,.28);
+            position: relative;
+            overflow: hidden
+        }
+
+            .wallet-balance-card::before {
+                content: '';
+                position: absolute;
+                top: -30px;
+                right: -30px;
+                width: 130px;
+                height: 130px;
+                background: rgba(255,255,255,.08);
+                border-radius: 50%
+            }
+
+        .wallet-balance-label {
+            font-size: .78rem;
+            font-weight: 700;
+            opacity: .85;
+            margin-bottom: 4px;
+            letter-spacing: .5px
+        }
+
+        .wallet-balance-amount {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 2.8rem;
+            font-weight: 700;
+            line-height: 1
+        }
+
+        .wallet-balance-sub {
+            font-size: .74rem;
+            opacity: .72;
+            margin-top: 6px
+        }
+
+        .wallet-balance-icon {
+            font-size: 4rem;
+            opacity: .22
+        }
+
+        .wallet-kpi-row {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 12px;
+            margin-bottom: 20px
+        }
+
+        .wallet-kpi {
+            background: #f9fafb;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 14px 16px;
+            text-align: center
+        }
+
+        .wallet-kpi-val {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 2px
+        }
+
+        .wallet-kpi-label {
+            font-size: .72rem;
+            font-weight: 700;
+            color: var(--text-muted)
+        }
+
+        .wallet-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px
+        }
+
+        .wallet-action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 14px 18px;
+            border-radius: 14px;
+            border: 2px solid var(--border);
+            background: #fff;
+            cursor: pointer;
+            transition: .2s;
+            font-family: 'Nunito',sans-serif;
+            font-weight: 800;
+            font-size: .88rem
+        }
+
+            .wallet-action-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: var(--shadow)
+            }
+
+            .wallet-action-btn .btn-icon {
+                font-size: 1.4rem
+            }
+
+            .wallet-action-btn.topup {
+                border-color: #a5d6a7;
+                color: #59652a
+            }
+
+                .wallet-action-btn.topup:hover {
+                    background: #e8f5e9;
+                    border-color: #66bb6a
+                }
+
+            .wallet-action-btn.withdraw {
+                border-color: #ef9a9a;
+                color: #c62828
+            }
+
+                .wallet-action-btn.withdraw:hover {
+                    background: #fdecea;
+                    border-color: #e57373
+                }
+
+        .wallet-info-box {
+            background: #fffde7;
+            border: 1px solid #fff176;
+            border-radius: 12px;
+            padding: 12px 16px;
+            font-size: .8rem;
+            color: #f57f17;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.7
+        }
+
+        .tx-empty {
+            text-align: center;
+            color: var(--text-muted);
+            padding: 40px 20px
+        }
+
+        .tx-empty-icon {
+            font-size: 2.8rem;
+            margin-bottom: 8px
+        }
+
+        .tx-type-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: .72rem;
+            font-weight: 800;
+            white-space: nowrap
+        }
+
+        .tx-topup {
+            background: #e8f5e9;
+            color: #59652a
+        }
+
+        .tx-refund {
+            background: #fdecea;
+            color: #c62828
+        }
+
+        .tx-withdraw {
+            background: #fff3e0;
+            color: #e65100
+        }
+
+        .tx-cliq {
+            background: #e3f2fd;
+            color: #1565c0
+        }
+
+        .tx-amount-pos {
+            font-weight: 900;
+            color: #59652a
+        }
+
+        .tx-amount-neg {
+            font-weight: 900;
+            color: #c62828
+        }
+
+        .w-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.45);
+            z-index: 900;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 16px
+        }
+
+            .w-overlay.on {
+                display: flex
+            }
+
+        .w-modal {
+            background: #fff;
+            border-radius: 20px;
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 24px 64px rgba(0,0,0,.18);
+            animation: slideUp .2s ease
+        }
+
+        @@keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        .w-modal h4 {
+            font-family: 'Fredoka',sans-serif;
+            font-size: 1.2rem;
+            color: var(--brand-dark);
+            margin-bottom: 6px
+        }
+
+        .w-modal-desc {
+            font-size: .82rem;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+            line-height: 1.5
+        }
+
+        .w-modal-ft {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            justify-content: flex-end
+        }
+
+        /* ══════════════════════════════════════════
+                   RESPONSIVE
+                ══════════════════════════════════════════ */
+
+        @@media (max-width: 1100px) {
+            .settings-layout {
+                grid-template-columns: 180px minmax(0,1fr);
+                gap: 12px
+            }
+
+            .settings-nav-item {
+                padding: 11px 12px;
+                font-size: .8rem
+            }
+
+            .wallet-balance-amount {
+                font-size: 2.4rem
+            }
+        }
+
+        @@media (max-width: 900px) {
+            .settings-layout {
+                grid-template-columns: 1fr
+            }
+
+            .settings-nav {
+                display: grid;
+                grid-template-columns: repeat(3,1fr)
+            }
+
+            .settings-nav-item {
+                flex-direction: column;
+                justify-content: center;
+                text-align: center;
+                padding: 10px 8px;
+                font-size: .76rem;
+                gap: 3px;
+                border-left: none;
+                border-bottom: 2px solid transparent;
+                white-space: normal
+            }
+
+                .settings-nav-item.on {
+                    border-left: none;
+                    border-bottom: 2px solid var(--brand);
+                    background: var(--brand-xlight)
+                }
+
+            .settings-nav-ico {
+                font-size: 1.1rem
+            }
+
+            .wallet-balance-amount {
+                font-size: 2.2rem
+            }
+        }
+
+        @@media (max-width: 600px) {
+            .settings-content {
+                padding: 16px 14px
+            }
+
+            .settings-nav {
+                grid-template-columns: repeat(2,1fr)
+            }
+
+            .wallet-balance-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                padding: 20px 16px
+            }
+
+            .wallet-balance-icon {
+                display: none
+            }
+
+            .wallet-balance-amount {
+                font-size: 2rem
+            }
+
+            .wallet-kpi-row {
+                grid-template-columns: 1fr 1fr;
+                gap: 8px
+            }
+
+            .wallet-actions {
+                grid-template-columns: 1fr;
+                gap: 8px
+            }
+            /* الجدول يتحول لـ cards */
+            .table-wrap table,
+            .table-wrap thead,
+            .table-wrap tbody,
+            .table-wrap th,
+            .table-wrap td,
+            .table-wrap tr {
+                display: block
+            }
+
+            .table-wrap thead {
+                display: none
+            }
+
+            .table-wrap tbody tr {
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 10px 12px;
+                margin-bottom: 8px;
+                position: relative
+            }
+
+            .table-wrap tbody td {
+                border: none;
+                padding: 3px 0;
+                font-size: .78rem
+            }
+
+                .table-wrap tbody td:first-child {
+                    margin-bottom: 4px
+                }
+
+                .table-wrap tbody td:nth-child(2) {
+                    display: inline-block;
+                    position: absolute;
+                    top: 10px;
+                    right: 12px;
+                    font-size: .82rem
+                }
+        }
+
+        @@media (max-width: 400px) {
+            .settings-content {
+                padding: 14px 12px
+            }
+
+            .wallet-balance-amount {
+                font-size: 1.75rem
+            }
+
+            .wallet-kpi-row {
+                grid-template-columns: 1fr
+            }
+
+            .wallet-kpi {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: left;
+                padding: 10px 14px
+            }
+
+            .wallet-kpi-val {
+                font-size: 1.1rem
+            }
+
+            .settings-nav {
+                grid-template-columns: repeat(2,1fr)
+            }
+
+            .settings-nav-item {
+                font-size: .7rem;
+                padding: 8px 4px
+            }
+
+            .w-modal {
+                padding: 20px 16px
+            }
+        }
+    </style>
+}
+
+<section class="page-hero">
+    <div class="page-hero-text">
+        <h1>Store Wallet 👛</h1>
+        <p>Manage your store's virtual balance — used for guaranteed customer refunds.</p>
+    </div>
+</section>
+
+<div class="page-body">
+    <div class="settings-layout">
+
+        @await Html.PartialAsync("_SettingsNav")
+
+        <div class="settings-content">
+
+            <!-- Balance Card -->
+            <div class="wallet-balance-card">
+                <div>
+                    <div class="wallet-balance-label">AVAILABLE BALANCE</div>
+                    <div class="wallet-balance-amount" id="balanceDisplay">@balance.ToString("F3") JD</div>
+                    <div class="wallet-balance-sub">Store Virtual Wallet &nbsp;·&nbsp; Waffy Platform</div>
+                </div>
+                <div class="wallet-balance-icon">👛</div>
+            </div>
+
+            <!-- KPI Row -->
+            @{
+                var totalIn = transactions.Where(t => t.Amount > 0).Sum(t => t.Amount);
+                var totalOut = transactions.Where(t => t.Amount < 0).Sum(t => Math.Abs(t.Amount));
+                var txCount = transactions.Count();
+            }
+            <div class="wallet-kpi-row">
+                <div class="wallet-kpi">
+                    <div class="wallet-kpi-val" style="color:#59652a;">+@totalIn.ToString("F3") JD</div>
+                    <div class="wallet-kpi-label">Total Added</div>
+                </div>
+                <div class="wallet-kpi">
+                    <div class="wallet-kpi-val" style="color:#c62828">-@totalOut.ToString("F3") JD</div>
+                    <div class="wallet-kpi-label">Total Deducted</div>
+                </div>
+                <div class="wallet-kpi">
+                    <div class="wallet-kpi-val" style="color:var(--brand-dark)">@txCount</div>
+                    <div class="wallet-kpi-label">Transactions</div>
+                </div>
+            </div>
+
+            <!-- Info Box -->
+            <div class="wallet-info-box">
+                ℹ️ This is a <strong>virtual wallet</strong> for demonstration purposes.<br>
+                When a CliQ-paid order is cancelled after payment confirmation, the refund is deducted from this wallet
+                and added to the customer's Waffy wallet automatically.
+                Keep your balance sufficient to avoid manual refund situations.
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="wallet-actions">
+                <button class="wallet-action-btn topup" onclick="openWModal('topupModal')">
+                    <span class="btn-icon">➕</span> Add Balance
+                </button>
+                <button class="wallet-action-btn withdraw" onclick="openWModal('withdrawModal')">
+                    <span class="btn-icon">➖</span> Withdraw
+                </button>
+            </div>
+
+            <!-- Transaction History -->
+            <div class="settings-section-title">📋 Transaction History</div>
+
+            @if (!transactions.Any())
+            {
+                <div class="tx-empty" id="txEmpty">
+                    <div class="tx-empty-icon">📭</div>
+                    <div style="font-weight:700;font-size:.9rem;margin-bottom:4px">No transactions yet</div>
+                    <div style="font-size:.8rem">Add balance to your wallet to get started.</div>
+                </div>
+            }
+            else
+            {
+                <div class="table-wrap" id="txTableWrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Notes</th>
+                                <th>Order</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="txBody">
+                            @foreach (var tx in transactions)
+                            {
+                                var isPos = tx.Amount > 0;
+                                string badgeClass, badgeIcon;
+                                switch (tx.Type)
+                                {
+                                    case "TopUp": badgeClass = "tx-topup"; badgeIcon = "➕"; break;
+                                    case "Refund": badgeClass = "tx-refund"; badgeIcon = "🔄"; break;
+                                    case "CliQReceived": badgeClass = "tx-cliq"; badgeIcon = "📱"; break;
+                                    default: badgeClass = "tx-withdraw"; badgeIcon = "➖"; break;
+                                }
+                                <tr>
+                                    <td><span class="tx-type-badge @badgeClass">@badgeIcon @tx.Type</span></td>
+                                    <td>
+                                        <span class="@(isPos ? "tx-amount-pos" : "tx-amount-neg")">
+                                            @(isPos ? "+" : "")@tx.Amount.ToString("F3") JD
+                                        </span>
+                                    </td>
+                                    <td style="font-size:.8rem;color:var(--text-muted);max-width:180px">@(tx.Notes ?? "—")</td>
+                                    <td style="font-size:.78rem;color:var(--text-muted)">
+                                        @if (tx.RelatedOrderId.HasValue)
+                                        {
+                                            <span style="font-family:monospace;font-weight:800">#@tx.RelatedOrderId</span>
+                                        }
+                                        else
+                                        {
+
+                                            <span>—</span>
+                                        }
+                                    </td>
+                                    <td style="font-size:.76rem;color:var(--text-muted);white-space:nowrap">
+                                        @tx.CreatedAt.ToString("dd MMM yyyy")<br>
+                                        <span style="font-size:.7rem">@tx.CreatedAt.ToString("hh:mm tt")</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+
+        </div>
+    </div>
+</div>
+
+<!-- Top Up Modal -->
+<div class="w-overlay" id="topupModal" onclick="handleOverlayClick(event,'topupModal')">
+    <div class="w-modal">
+        <h4>➕ Add Balance</h4>
+        <p class="w-modal-desc">Enter the amount to add to your store wallet.</p>
+        <div class="form-field">
+            <label class="form-label">Amount (JD) <span class="req">*</span></label>
+            <input class="form-input" type="number" id="topupAmount" placeholder="0.000" step="0.001" min="0.001">
+        </div>
+        <div class="form-field" style="margin-top:12px">
+            <label class="form-label">Notes <span style="color:var(--text-muted);font-weight:500">(optional)</span></label>
+            <input class="form-input" type="text" id="topupNotes" placeholder="e.g. Initial top-up">
+        </div>
+        <div class="w-modal-ft">
+            <button class="btn btn-outline" onclick="closeWModal('topupModal')">Cancel</button>
+            <button class="btn btn-primary" id="btnTopup" onclick="submitTopup()">➕ Add Balance</button>
+        </div>
+    </div>
+</div>
+
+<!-- Withdraw Modal -->
+<div class="w-overlay" id="withdrawModal" onclick="handleOverlayClick(event,'withdrawModal')">
+    <div class="w-modal">
+        <h4>➖ Withdraw Balance</h4>
+        <div style="background:#f9fafb;border-radius:10px;padding:10px 14px;margin-bottom:14px;
+             display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:.78rem;color:var(--text-muted);font-weight:700">Current Balance</span>
+            <span style="font-weight:900;font-size:1rem;color:var(--brand-dark)" id="withdrawBalanceDisplay">
+                @balance.ToString("F3") JD
+            </span>
+        </div>
+        <div class="wallet-info-box" style="margin-bottom:14px">
+            ⚠️ Keep enough balance to cover potential refunds for CliQ orders.
+        </div>
+        <div class="form-field">
+            <label class="form-label">Amount (JD) <span class="req">*</span></label>
+            <input class="form-input" type="number" id="withdrawAmount" placeholder="0.000" step="0.001" min="0.001">
+        </div>
+        <div class="form-field" style="margin-top:12px">
+            <label class="form-label">Notes <span style="color:var(--text-muted);font-weight:500">(optional)</span></label>
+            <input class="form-input" type="text" id="withdrawNotes" placeholder="e.g. Withdrawal">
+        </div>
+        <div class="w-modal-ft">
+            <button class="btn btn-outline" onclick="closeWModal('withdrawModal')">Cancel</button>
+            <button class="btn btn-danger" id="btnWithdraw" onclick="submitWithdraw()">➖ Withdraw</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast">✅ Done!</div>
+
+@section Scripts {
+    <script>
+        'use strict';
+        let currentBalance = @balance.ToString("F6");
+
+        function openWModal(id)  { document.getElementById(id)?.classList.add('on'); }
+        function closeWModal(id) { document.getElementById(id)?.classList.remove('on'); }
+        function handleOverlayClick(e, id) { if (e.target === document.getElementById(id)) closeWModal(id); }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg; t.style.display = 'flex';
+            setTimeout(() => t.style.display = 'none', 2800);
+        }
+
+        function setBalance(val) {
+            currentBalance = val;
+            document.getElementById('balanceDisplay').textContent = val.toFixed(3) + ' JD';
+            document.getElementById('withdrawBalanceDisplay').textContent = val.toFixed(3) + ' JD';
+        }
+
+        function prependTxRow(type, amount, notes, icon) {
+            const empty = document.getElementById('txEmpty');
+            if (empty) {
+                const wrap = document.createElement('div');
+                wrap.className = 'table-wrap'; wrap.id = 'txTableWrap';
+                wrap.innerHTML = `<table><thead><tr><th>Type</th><th>Amount</th><th>Notes</th><th>Order</th><th>Date</th></tr></thead><tbody id="txBody"></tbody></table>`;
+                empty.replaceWith(wrap);
+            }
+            const tbody = document.getElementById('txBody');
+            if (!tbody) { location.reload(); return; }
+            const isPos = amount > 0;
+            const badgeClass = type==='TopUp' ? 'tx-topup' : type==='Refund' ? 'tx-refund' : type==='CliQReceived' ? 'tx-cliq' : 'tx-withdraw';
+            const now = new Date();
+            const dateStr = now.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+            const timeStr = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><span class="tx-type-badge ${badgeClass}">${icon} ${type}</span></td>
+                <td><span class="${isPos?'tx-amount-pos':'tx-amount-neg'}">${isPos?'+':''}${Math.abs(amount).toFixed(3)} JD</span></td>
+                <td style="font-size:.8rem;color:var(--text-muted)">${notes||'—'}</td>
+                <td style="font-size:.78rem;color:var(--text-muted)">—</td>
+                <td style="font-size:.76rem;color:var(--text-muted);white-space:nowrap">${dateStr}<br><span style="font-size:.7rem">${timeStr}</span></td>`;
+            tbody.insertBefore(tr, tbody.firstChild);
+        }
+
+        async function submitTopup() {
+            const amount = parseFloat(document.getElementById('topupAmount').value);
+            const notes  = (document.getElementById('topupNotes').value||'').trim();
+            if (!amount || amount <= 0) { showToast('⚠️ Please enter a valid amount.'); return; }
+            const btn = document.getElementById('btnTopup');
+            btn.disabled = true; btn.textContent = '⏳ Processing...';
+            const fd = new FormData();
+            fd.append('amount', amount.toFixed(3));
+            fd.append('notes',  notes);
+            try {
+                const res  = await fetch('/StoreAdmin/WalletTopUp', { method:'POST', body:fd });
+                const data = await res.json();
+                if (data.success) {
+                    setBalance(data.newBalance);
+                    closeWModal('topupModal');
+                    showToast('✅ Balance added successfully!');
+                    prependTxRow('TopUp', amount, notes||'Manual top-up', '➕');
+                    document.getElementById('topupAmount').value = '';
+                    document.getElementById('topupNotes').value  = '';
+                } else { showToast('❌ '+(data.message||'Error')); }
+            } catch { showToast('❌ Network error.'); }
+            finally { btn.disabled=false; btn.textContent='➕ Add Balance'; }
+        }
+
+        async function submitWithdraw() {
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            const notes  = (document.getElementById('withdrawNotes').value||'').trim();
+            if (!amount || amount <= 0) { showToast('⚠️ Please enter a valid amount.'); return; }
+            if (amount > currentBalance) { showToast(`❌ Insufficient balance. Available: ${currentBalance.toFixed(3)} JD`); return; }
+            const btn = document.getElementById('btnWithdraw');
+            btn.disabled = true; btn.textContent = '⏳ Processing...';
+            const fd = new FormData();
+            fd.append('amount', amount.toFixed(3));
+            fd.append('notes',  notes);
+            try {
+                const res  = await fetch('/StoreAdmin/WalletWithdraw', { method:'POST', body:fd });
+                const data = await res.json();
+                if (data.success) {
+                    setBalance(data.newBalance);
+                    closeWModal('withdrawModal');
+                    showToast('✅ Withdrawal successful!');
+                    prependTxRow('Withdrawal', -amount, notes||'Manual withdrawal', '➖');
+                    document.getElementById('withdrawAmount').value = '';
+                    document.getElementById('withdrawNotes').value  = '';
+                } else { showToast('❌ '+(data.message||'Insufficient balance.')); }
+            } catch { showToast('❌ Network error.'); }
+            finally { btn.disabled=false; btn.textContent='➖ Withdraw'; }
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') { closeWModal('topupModal'); closeWModal('withdrawModal'); }
+        });
+    </script>
+}

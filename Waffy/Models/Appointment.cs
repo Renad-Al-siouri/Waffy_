@@ -11,7 +11,7 @@
         public TimeSpan StartTime { get; set; }
         public TimeSpan? EndTime { get; set; }
         public string? ServiceName { get; set; }
-        public string Status { get; set; } = "Confirmed";
+        public string Status { get; set; } = "PendingPaymentVerification";
         public string? AppointmentType { get; set; }
         public string? UrgencyLevel { get; set; }
         public string? Reason { get; set; }
@@ -37,5 +37,19 @@
 
         public string? RefundStatus { get; set; }
         public string? DoctorNotes { get; set; }
+
+        public int? PaymentVerifiedByAdminId { get; set; }
+        public DateTime? PaymentVerifiedAt { get; set; }
+        public string? PaymentVerificationNote { get; set; }
+
+        public int? DepositHolderWalletId { get; set; }
+
+        public DateTime? RefundedAt { get; set; }
+        public int? RefundedByAdminId { get; set; }
+
+        public string? CancelledBy { get; set; }
+        public DateTime? CancelledAt { get; set; }
+
+        public string? RejectionReason { get; set; }
     }
 }

@@ -1599,16 +1599,7 @@ namespace Waffy.Controllers
                     if (wallet != null && reward.Value.HasValue)
                     {
                         await _walletRepo.AddBalanceAsync(wallet.IdWallet, reward.Value.Value);
-                        await _walletRepo.AddTransactionAsync(new WalletTransaction
-                        {
-                            IdWallet = wallet.IdWallet,
-                            TransactionCode = $"GIFT-{Guid.NewGuid().ToString()[..8].ToUpper()}",
-                            Type = "SurpriseGift",
-                            Amount = reward.Value.Value,
-                            PaymentMethod = "Waffy Gift",
-                            Status = "Completed",
-                            CreatedAt = DateTime.UtcNow
-                        });
+                        
                     }
                     title = "🎁 You received a Waffy gift!";
                     message = $"{reward.Value:F2} JOD has been added to your wallet. " +
@@ -2668,39 +2659,217 @@ namespace Waffy.Controllers
             return Json(images.Select(i => new { i.ImageUrl, i.SortOrder }));
         }
 
-        public async Task<IActionResult> Appointments_C()
+        public async Task<IActionResult> Appointments_C(string statusFilter = "All", int? clinicId = null)
         {
             if (!IsAdmin()) return NotAdmin();
+
             SetAdminViewBag();
 
-            var appointments = (await _apptRepo.GetAllAsync()).ToList();
-            var clinics = (await _clinicRepo.GetAllAsync())
-                               .Where(c => c.VerificationStatus == "Approved")
-                               .ToList();
+            var all = (await _apptRepo.GetAllAsync(
+                statusFilter == "All" ? null : statusFilter,
+                clinicId)).ToList();
+
+            var clinics = (await _clinicRepo.GetAllAsync()).ToList();
+
+            var adminWallet = await _walletRepo.GetSuperAdminWalletAsync();
+            var paymentSettings = await _walletRepo.GetPaymentSettingsAsync();
 
             var vm = new SuperAdminAppointmentsViewModel
             {
-                Appointments = appointments,
+                Appointments = all,
                 AvailableClinics = clinics,
-                TotalCount = appointments.Count,
-                PendingCount = appointments.Count(a => a.Status is
-                                        "PendingDoctorApproval" or "PendingClinicApproval" or
-                                        "PendingPayment" or "PendingPaymentVerification"),
-                ConfirmedCount = appointments.Count(a => a.Status == "Confirmed"),
-                CompletedCount = appointments.Count(a => a.Status == "Completed"),
-                CancelledCount = appointments.Count(a => a.Status == "Cancelled"),
-                NoShowCount = appointments.Count(a => a.Status == "NoShow"),
-                TotalDepositsCollected = appointments
-                    .Where(a => a.DepositPaid).Sum(a => a.DepositAmount),
-                TotalDepositsReturned = appointments
-                    .Where(a => a.DepositReturned).Sum(a => a.DepositAmount),
-                TotalDepositsRetained = appointments
+
+                TotalCount = all.Count,
+                PendingCount = all.Count(a =>
+                    a.Status == "PendingPaymentVerification" ||
+                    a.Status == "PendingClinicAssignment" ||
+                    a.Status == "PendingDoctorApproval"),
+
+                ConfirmedCount = all.Count(a => a.Status == "Confirmed"),
+                CompletedCount = all.Count(a => a.Status == "Completed"),
+                CancelledCount = all.Count(a => a.Status == "Cancelled"),
+                NoShowCount = all.Count(a => a.Status == "NoShow"),
+
+                TotalDepositsCollected = all
+                    .Where(a => a.DepositPaid)
+                    .Sum(a => a.DepositAmount),
+
+                TotalDepositsReturned = all
+                    .Where(a => a.DepositReturned)
+                    .Sum(a => a.DepositAmount),
+
+                TotalDepositsRetained = all
                     .Where(a => a.Status == "NoShow" && a.DepositPaid && !a.DepositReturned)
                     .Sum(a => a.DepositAmount)
             };
 
+            ViewBag.StatusFilter = statusFilter;
+            ViewBag.SelectedClinicId = clinicId;
+
+            ViewBag.SuperAdminWalletBalance = adminWallet?.Balance ?? 0;
+            ViewBag.SuperAdminCliqNumber = paymentSettings?.SuperAdminCliqNumber ?? "";
+            ViewBag.DepositAmount = paymentSettings?.AppointmentDepositAmount ?? 5.00m;
+
+            if (TempData["ApptSuccess"] != null) ViewBag.Success = TempData["ApptSuccess"];
+            if (TempData["ApptError"] != null) ViewBag.Error = TempData["ApptError"];
+
             return View(vm);
         }
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmAppointmentCliqPayment(int id, int clinicId)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            var adminId = HttpContext.Session.GetInt32("UserId") ?? 0;
+
+            var appt = await _apptRepo.GetByIdAsync(id);
+            if (appt == null)
+            {
+                TempData["ClinicError"] = "Appointment not found.";
+                return RedirectToAction("Details_C", new { id = clinicId, tab = "appointments" });
+            }
+
+            if (appt.DepositPaid)
+            {
+                TempData["ClinicError"] = "This deposit is already confirmed.";
+                return RedirectToAction("Details_C", new { id = clinicId, tab = "appointments" });
+            }
+
+            var payMethod = appt.DepositPayMethod?.Trim();
+
+            if (!string.Equals(payMethod, "CliQ", StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["ClinicError"] =
+                    $"This appointment payment method is '{appt.DepositPayMethod ?? "NULL"}', not CliQ.";
+
+                return RedirectToAction("Details_C", new { id = clinicId, tab = "appointments" });
+            }
+
+            if (appt.Status != "PendingPaymentVerification")
+            {
+                TempData["ClinicError"] = "This appointment is not waiting for payment verification.";
+                return RedirectToAction("Details_C", new { id = clinicId, tab = "appointments" });
+            }
+
+            if (string.IsNullOrWhiteSpace(appt.CliqReference))
+            {
+                TempData["ClinicError"] = "This appointment does not have a CliQ reference code.";
+                return RedirectToAction("Details_C", new { id = clinicId, tab = "appointments" });
+            }
+
+            var adminWallet = await _walletRepo.GetSuperAdminWalletAsync();
+            if (adminWallet == null)
+            {
+                TempData["ClinicError"] = "Super Admin wallet was not found.";
+                return RedirectToAction("Details_C", new { id = clinicId, tab = "appointments" });
+            }
+
+            // مهم:
+            // CliQ payment is external.
+            // Do NOT add balance to Super Admin wallet.
+            // Do NOT create a wallet transaction here.
+            // Just mark the appointment payment as verified.
+
+            await _apptRepo.MarkDepositPaidBySuperAdminAsync(
+     appointmentId: id,
+     payMethod: "CliQ",
+     adminId: adminId,
+     holderWalletId: adminWallet.IdWallet,
+     note: $"CliQ manually confirmed by Super Admin. Ref: {appt.CliqReference}");
+            var nextStatus = appt.IdDoctor > 0
+                ? "PendingDoctorApproval"
+                : "PendingClinicAssignment";
+
+            await _apptRepo.SetStatusAsync(id, nextStatus);
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = appt.IdUser,
+                Type = "AppointmentPaymentConfirmed",
+                Title = "✅ Booking Deposit Confirmed",
+                Message = nextStatus == "PendingDoctorApproval"
+                    ? "Your CliQ booking deposit has been confirmed by Waffy. Your appointment is now waiting for doctor approval."
+                    : "Your CliQ booking deposit has been confirmed by Waffy. The clinic will assign a doctor shortly.",
+                IsRead = false,
+                RelatedEntityType = "Appointment",
+                RelatedEntityId = id,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            TempData["ClinicSuccess"] = nextStatus == "PendingDoctorApproval"
+                ? "✅ CliQ payment confirmed. Appointment sent to the doctor for approval."
+                : "✅ CliQ payment confirmed. Appointment sent to the clinic for doctor assignment.";
+
+            return RedirectToAction("Details_C", new { id = clinicId, tab = "appointments" });
+        }
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateAppointmentCliqNumber(string cliqNumber)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            var adminId = HttpContext.Session.GetInt32("UserId") ?? 0;
+
+            if (string.IsNullOrWhiteSpace(cliqNumber))
+            {
+                TempData["ApptError"] = "⚠️ CliQ number cannot be empty.";
+                return RedirectToAction("Appointments_C");
+            }
+
+            await _walletRepo.UpdateSuperAdminCliqNumberAsync(
+                cliqNumber.Trim(),
+                adminId);
+
+            TempData["ApptSuccess"] = "✅ Super Admin CliQ number updated.";
+            return RedirectToAction("Appointments_C");
+        }
+
+        public async Task<IActionResult> Wallet()
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            SetAdminViewBag();
+
+            var wallet = await _walletRepo.GetSuperAdminWalletAsync();
+            var paymentSettings = await _walletRepo.GetPaymentSettingsAsync();
+            ViewBag.SuperAdminCliqNumber = paymentSettings?.SuperAdminCliqNumber ?? "NOT_SET";
+            if (wallet == null)
+            {
+                TempData["WalletError"] = "Super Admin wallet was not found.";
+                return RedirectToAction("Appointments_C");
+            }
+
+            var transactions = (await _walletRepo.GetTransactionsByWalletIdAsync(wallet.IdWallet)).ToList();
+
+            var totalCollected = transactions
+                .Where(t =>
+                    t.Type == "AppointmentDeposit" &&
+                    t.Amount > 0)
+                .Sum(t => t.Amount);
+
+            var totalReturned = transactions
+                .Where(t =>
+                    (t.Type != null && t.Type.Contains("Refund")) ||
+                    t.Amount < 0)
+                .Sum(t => Math.Abs(t.Amount));
+
+            var vm = new SuperAdminWalletViewModel
+            {
+                Wallet = wallet,
+                Transactions = transactions,
+                CurrentBalance = wallet.Balance,
+                TotalDepositsCollected = totalCollected,
+                TotalDepositsReturned = totalReturned,
+                TotalDepositsRetained = wallet.Balance,
+                TotalTransactions = transactions.Count
+            };
+
+            if (TempData["WalletSuccess"] != null) ViewBag.Success = TempData["WalletSuccess"];
+            if (TempData["WalletError"] != null) ViewBag.Error = TempData["WalletError"];
+
+            return View(vm);
+        }
+
+
         public IActionResult Analytics_A() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Map() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }
         public IActionResult Notifications() { if (!IsAdmin()) return NotAdmin(); SetAdminViewBag(); return View(); }

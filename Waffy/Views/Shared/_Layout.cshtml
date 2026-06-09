@@ -1,79 +1,644 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var userId = Context.Session.GetInt32("UserId");
+    var isLoggedIn = userId != null;
+    var ctrl = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    string Css(string c, string a) =>
+        ctrl.Equals(c, StringComparison.OrdinalIgnoreCase) &&
+        action.Equals(a, StringComparison.OrdinalIgnoreCase) ? "nav-link active" : "nav-link";
+    string CssC(string c) =>
+        ctrl.Equals(c, StringComparison.OrdinalIgnoreCase) ? "nav-link active" : "nav-link";
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Waffy</title>
-
-    @* CSS خاص بكل صفحة *@
-    @RenderSection("Styles", required: false)
+    <title>@ViewData["Title"]</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    @* CSS خاص بكل صفحة يُحقن هنا *@
+    @RenderSection("Styles", required: false)
+
+    <style>
+        /* ═══════════════════════════════════════════
+                   NAVBAR — مشترك لجميع الصفحات
+                   ═══════════════════════════════════════════ */
+        .topbar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(255,255,255,0.16);
+            backdrop-filter: blur(10px);
+        }
+
+        .header-shell {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            padding: 14px 22px;
+        }
+
+        .navbar {
+            width: 100%;
+            max-width: 1320px;
+            display: grid;
+            grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+            align-items: center;
+            gap: 18px;
+            min-height: 72px;
+            position: relative;
+        }
+
+        .desktop-nav {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .desktop-links {
+            flex-wrap: nowrap;
+        }
+
+        .left-nav {
+            justify-content: flex-start;
+        }
+
+        .right-nav {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .desktop-right-links {
+            justify-content: flex-end;
+            min-width: 0;
+        }
+
+        .logo-center {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-width: 110px;
+            grid-column: 2;
+            justify-self: center;
+        }
+
+        .main-logo {
+            width: 138px;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .nav-link {
+            padding: 10px 16px;
+            border-radius: 999px;
+            font-size: 0.92rem;
+            font-weight: 800;
+            color: #7b6c58;
+            transition: 0.22s ease;
+            text-transform: capitalize;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            text-decoration: none;
+            font-family: 'Nunito', sans-serif;
+        }
+
+            .nav-link:hover, .nav-link.active {
+                background: #97ad4d;
+                color: #fff;
+            }
+
+        .login-btn {
+            background: linear-gradient(180deg,#9ab451 0%,#7d953d 100%) !important;
+            color: #fff !important;
+            box-shadow: 0 10px 20px rgba(125,149,61,0.20);
+        }
+
+            .login-btn:hover {
+                transform: translateY(-1px);
+            }
+
+        .services-dropdown {
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .dropdown-toggle {
+            border: none;
+            background: transparent;
+        }
+
+        .dropdown-arrow {
+            font-size: 0.7rem;
+            margin-left: 7px;
+            transition: transform 0.25s ease;
+        }
+
+        .services-dropdown.open .dropdown-arrow,
+        .mobile-services-block.open .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            min-width: 220px;
+            background: rgba(255,253,249,0.98);
+            border: 1px solid rgba(151,173,77,0.22);
+            border-radius: 18px;
+            box-shadow: 0 18px 35px rgba(90,75,49,0.16);
+            padding: 10px;
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            z-index: 2000;
+        }
+
+        .services-dropdown.open .dropdown-menu {
+            display: flex;
+        }
+
+        .dropdown-link {
+            display: block;
+            padding: 10px 12px;
+            border-radius: 12px;
+            color: #564632;
+            font-weight: 800;
+            transition: 0.2s ease;
+            text-decoration: none;
+            font-family: 'Nunito', sans-serif;
+        }
+
+            .dropdown-link:hover {
+                background: rgba(151,173,77,0.12);
+                color: #59652a;
+            }
+
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .nav-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #fff;
+            border: 1px solid rgba(151,173,77,0.25);
+            color: #59652a;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 6px 14px rgba(89,101,42,0.10);
+            flex-shrink: 0;
+            text-decoration: none;
+        }
+
+            .nav-icon:hover {
+                background: #97ad4d;
+                color: #fff;
+            }
+
+        .profile-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid rgba(151,173,77,0.35);
+            background: #fff;
+            box-shadow: 0 8px 18px rgba(89,101,42,0.18);
+            cursor: pointer;
+            flex-shrink: 0;
+            display: block;
+        }
+
+            .profile-btn img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            }
+
+        .mobile-nav-wrap {
+            display: none;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .menu-btn {
+            display: none;
+            border: none;
+            background: #97ad4d;
+            color: #fff;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(89,101,42,0.18);
+            flex-shrink: 0;
+        }
+
+        .nav-links {
+            display: none;
+            position: absolute;
+            top: 60px;
+            right: 0;
+            width: min(270px, calc(100vw - 24px));
+            max-height: calc(100vh - 90px);
+            overflow: auto;
+            background: rgba(255,253,249,0.98);
+            border: 1px solid rgba(151,173,77,0.22);
+            border-radius: 18px;
+            box-shadow: 0 18px 35px rgba(90,75,49,0.16);
+            padding: 14px;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            z-index: 3000;
+        }
+
+            .nav-links.open {
+                display: flex;
+            }
+
+            .nav-links .nav-link {
+                width: 100%;
+                justify-content: center;
+                text-align: center;
+            }
+
+        .mobile-menu-logo {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-bottom: 8px;
+        }
+
+            .mobile-menu-logo img {
+                width: 74px;
+                height: auto;
+                object-fit: contain;
+            }
+
+        .mobile-services-block {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .mobile-services-toggle {
+            width: 100%;
+            border: 1px solid rgba(163,149,118,0.22);
+            background: #fff;
+            color: #59652a;
+            border-radius: 14px;
+            padding: 12px 14px;
+            font-weight: 800;
+            font-family: 'Nunito', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .mobile-services-menu {
+            display: none;
+            flex-direction: column;
+            gap: 6px;
+            padding: 6px 0 0;
+        }
+
+        .mobile-services-block.open .mobile-services-menu {
+            display: flex;
+        }
+
+        /* ═══ Responsive ═══ */
+        @@media (max-width: 1188px) {
+            .desktop-links {
+                display: none;
+            }
+
+            .left-nav {
+                display: none;
+            }
+
+            .nav-actions {
+                display: none;
+            }
+            /* ← يمنع ظهور الأيقونات وراء البرجر */
+            .mobile-nav-wrap {
+                display: flex;
+            }
+
+            .menu-btn {
+                display: inline-grid;
+                place-items: center;
+            }
+
+            .navbar {
+                grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+                gap: 12px;
+                min-height: 64px;
+            }
+
+            .main-logo {
+                width: 118px;
+            }
+
+            .nav-links {
+                top: 56px;
+            }
+        }
+
+        @@media (max-width: 760px) {
+            .header-shell {
+                padding: 10px 14px;
+                background: rgba(255,253,249,0.45);
+                backdrop-filter: blur(8px);
+            }
+
+            .navbar {
+                min-height: 60px;
+            }
+
+            .main-logo {
+                width: 106px;
+            }
+
+            .menu-btn {
+                width: 40px;
+                height: 40px;
+                font-size: 1rem;
+            }
+
+            .nav-links {
+                width: min(240px, calc(100vw - 18px));
+                top: 56px;
+            }
+        }
+
+        @@media (max-width: 640px) {
+            .header-shell {
+                padding: 8px 10px;
+                background: rgba(255,253,249,0.50);
+            }
+
+            .navbar {
+                gap: 8px;
+                min-height: 54px;
+            }
+
+            .main-logo {
+                width: 96px;
+            }
+
+            .menu-btn {
+                width: 38px;
+                height: 38px;
+                border-radius: 11px;
+            }
+
+            .nav-links {
+                width: min(220px, calc(100vw - 12px));
+                top: 50px;
+                padding: 12px;
+                border-radius: 16px;
+            }
+
+                .nav-links .nav-link, .mobile-services-toggle, .dropdown-link {
+                    font-size: 0.82rem;
+                }
+        }
+
+        @@media (max-width: 420px) {
+            .main-logo {
+                width: 88px;
+            }
+
+            .menu-btn {
+                width: 36px;
+                height: 36px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-    @* ── Navbar الموحد ── *@
-    @await Html.PartialAsync("_Navbar")
+    @* ══════════════════════════════════════════════════
+       NAVBAR
+       ══════════════════════════════════════════════════ *@
+    <header class="topbar">
+        <div class="header-shell">
+            <nav class="navbar">
 
-    @* ── محتوى كل صفحة يُحقن هنا ── *@
+                @if (isLoggedIn)
+                {
+                    @* نافبار بعد الدخول *@
+                    <div class="left-nav desktop-nav desktop-links">
+                        <a asp-controller="Home" asp-action="Home_After" class="@Css("Home", "Home_After")">Home</a>
+                        <a asp-controller="Clinic" asp-action="Clinics" class="@CssC("Clinic")">Clinics</a>
+                        <a asp-controller="Product" asp-action="Stores" class="@CssC("Product")">Stores</a>
+                        <a asp-controller="Pet" asp-action="Adapt" class="@Css("Pet", "Adapt")">Adoption</a>
+                        <a asp-controller="Pet" asp-action="Lost" class="@Css("Pet", "Lost")">Lost Pets</a>
+                    </div>
+
+                    <div class="logo-center">
+                        <img src="~/Images/logo.png" alt="Waffy" class="main-logo">
+                    </div>
+
+                    <div class="right-nav">
+                        <div class="desktop-nav desktop-links desktop-right-links">
+                            <div class="services-dropdown" id="servicesDropdown">
+                                <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
+                                    Services <span class="dropdown-arrow">▼</span>
+                                </button>
+                                <div class="dropdown-menu" id="servicesMenu">
+                                    <a asp-controller="Map" asp-action="Gps" class="dropdown-link">Map</a>
+                                    <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
+                                    <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
+                                    <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
+                                    <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
+                                    <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
+                                </div>
+                            </div>
+                            <a asp-controller="Home" asp-action="About" class="@Css("Home", "About")">About Us</a>
+                        </div>
+
+                        <div class="nav-actions">
+                            <a asp-controller="Payment" asp-action="Cart" class="nav-icon" aria-label="Cart"><i class="fa-solid fa-cart-shopping"></i></a>
+                            <a asp-controller="Home" asp-action="Notifications" class="nav-icon" aria-label="Notifications"><i class="fa-solid fa-bell"></i></a>
+                            <a asp-controller="Account" asp-action="Profile" class="profile-btn" aria-label="Profile"><img src="~/Images/user.jpg" alt="Profile"></a>
+                            <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
+                        </div>
+
+                        <div class="mobile-nav-wrap">
+                            <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+                            <div class="nav-links" id="navLinks">
+                                <div class="mobile-menu-logo"><img src="~/Images/logo.png" alt="Waffy"></div>
+                                <a asp-controller="Home" asp-action="Home_After" class="@Css("Home", "Home_After")">Home</a>
+                                <a asp-controller="Clinic" asp-action="Clinics" class="@CssC("Clinic")">Clinics</a>
+                                <a asp-controller="Product" asp-action="Stores" class="@CssC("Product")">Stores</a>
+                                <a asp-controller="Pet" asp-action="Adapt" class="@Css("Pet", "Adapt")">Adoption</a>
+                                <a asp-controller="Pet" asp-action="Lost" class="@Css("Pet", "Lost")">Lost Pets</a>
+                                <a asp-controller="Map" asp-action="Gps" class="@Css("Map", "Gps")">Map</a>
+                                <div class="mobile-services-block" id="mobileServicesBlock">
+                                    <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
+                                        <span>Services</span><span class="dropdown-arrow">▼</span>
+                                    </button>
+                                    <div class="mobile-services-menu" id="mobileServicesMenu">
+                                        <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
+                                        <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
+                                        <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
+                                        <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
+                                        <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
+                                    </div>
+                                </div>
+                                <a asp-controller="Home" asp-action="About" class="@Css("Home", "About")">About Us</a>
+                                <a asp-controller="Account" asp-action="Logout" class="nav-link login-btn">Log out</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    @* نافبار قبل الدخول *@
+                    <div class="left-nav desktop-nav">
+                        <a asp-controller="Home" asp-action="Home_Before" class="@Css("Home", "Home_Before")">Home</a>
+                        <a asp-controller="Clinic" asp-action="Clinics" class="@CssC("Clinic")">Clinics</a>
+                        <a asp-controller="Product" asp-action="Stores" class="@CssC("Product")">Stores</a>
+                        <a asp-controller="Pet" asp-action="Adapt" class="@Css("Pet", "Adapt")">Adoption</a>
+                    </div>
+
+                    <div class="logo-center">
+                        <img src="~/Images/logo.png" alt="Waffy" class="main-logo">
+                    </div>
+
+                    <div class="right-nav">
+                        <div class="desktop-nav">
+                            <a asp-controller="Pet" asp-action="Lost" class="@Css("Pet", "Lost")">Lost Pets</a>
+                            <a asp-controller="Map" asp-action="Gps" class="@Css("Map", "Gps")">Map</a>
+                            <div class="services-dropdown" id="servicesDropdown">
+                                <button class="nav-link dropdown-toggle" id="servicesToggle" type="button">
+                                    Services <span class="dropdown-arrow">▼</span>
+                                </button>
+                                <div class="dropdown-menu" id="servicesMenu">
+                                    <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
+                                    <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
+                                    <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
+                                    <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
+                                    <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
+                                </div>
+                            </div>
+                            <a asp-controller="Home" asp-action="About" class="@Css("Home", "About")">About Us</a>
+                            <a asp-controller="Account" asp-action="Login" class="nav-link login-btn">Login</a>
+                        </div>
+
+                        <div class="mobile-nav-wrap">
+                            <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
+                            <div class="nav-links" id="navLinks">
+                                <div class="mobile-menu-logo"><img src="~/Images/logo.png" alt="Waffy"></div>
+                                <a asp-controller="Home" asp-action="Home_Before" class="@Css("Home", "Home_Before")">Home</a>
+                                <a asp-controller="Clinic" asp-action="Clinics" class="@CssC("Clinic")">Clinics</a>
+                                <a asp-controller="Product" asp-action="Stores" class="@CssC("Product")">Stores</a>
+                                <a asp-controller="Pet" asp-action="Adapt" class="@Css("Pet", "Adapt")">Adoption</a>
+                                <a asp-controller="Pet" asp-action="Lost" class="@Css("Pet", "Lost")">Lost Pets</a>
+                                <a asp-controller="Map" asp-action="Gps" class="@Css("Map", "Gps")">Map</a>
+                                <div class="mobile-services-block" id="mobileServicesBlock">
+                                    <button class="mobile-services-toggle" id="mobileServicesToggle" type="button">
+                                        <span>Services</span><span class="dropdown-arrow">▼</span>
+                                    </button>
+                                    <div class="mobile-services-menu" id="mobileServicesMenu">
+                                        <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
+                                        <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
+                                        <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
+                                        <a asp-controller="Home" asp-action="Suport" class="dropdown-link">Technical Support</a>
+                                        <a asp-controller="Home" asp-action="Faq" class="dropdown-link">FAQ</a>
+                                    </div>
+                                </div>
+                                <a asp-controller="Home" asp-action="About" class="@Css("Home", "About")">About Us</a>
+                                <a asp-controller="Account" asp-action="Login" class="nav-link login-btn">Login</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+            </nav>
+        </div>
+    </header>
+
+    @* محتوى كل صفحة يُحقن هنا *@
     @RenderBody()
 
-    @* ── Footer الموحد ── *@
-    <div class="footer-wrap" id="contact">
-        <footer class="footer">
-            <div class="footer-grid">
-                <div class="footer-col footer-brand-col">
-                    <div class="footer-brand">
-                        <img src="~/Images/logo.png" alt="Footer Logo">
-                        <div class="footer-contact">
-                            <h4>Contact Info</h4>
-                            <p>+224 556 8939</p>
-                            <p>email@waffy.com</p>
-                            <p>Pet Street, Amman, Jordan</p>
-                        </div>
-                    </div>
-                </div>
+    @* JS النافبار — مرة واحدة لجميع الصفحات *@
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            var menuBtn              = document.getElementById("menuBtn");
+            var navLinks             = document.getElementById("navLinks");
+            var servicesToggle       = document.getElementById("servicesToggle");
+            var servicesDropdown     = document.getElementById("servicesDropdown");
+            var mobileServicesToggle = document.getElementById("mobileServicesToggle");
+            var mobileServicesBlock  = document.getElementById("mobileServicesBlock");
 
-                <div class="footer-col footer-links-col">
-                    <div class="footer-links-columns">
-                        <div>
-                            <h4>Quick Links</h4>
-                            <ul>
-                                <li><a asp-controller="Product" asp-action="Stores">Shop</a></li>
-                                <li><a asp-controller="Clinic" asp-action="Clinics">Clinics</a></li>
-                                <li><a asp-controller="Map" asp-action="Gps">Map</a></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4>Explore</h4>
-                            <ul>
-                                <li><a asp-controller="Pet" asp-action="Adapt">Adoption</a></li>
-                                <li><a asp-controller="Home" asp-action="About">About</a></li>
-                                <li><a asp-controller="Home" asp-action="Faq">FAQ</a></li>
-                                <li><a asp-controller="Home" asp-action="Suport">Support</a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+            if (menuBtn && navLinks)
+                menuBtn.addEventListener("click", function(e){ e.stopPropagation(); navLinks.classList.toggle("open"); });
 
-                <div class="footer-col footer-social-col">
-                    <div class="socials">
-                        <a href="#">f</a>
-                        <a href="#">t</a>
-                        <a href="#">i</a>
-                    </div>
-                    <div class="copy">Copyright © 2026 Waffy. All rights reserved.</div>
-                </div>
-            </div>
-        </footer>
-    </div>
+            if (servicesToggle && servicesDropdown)
+                servicesToggle.addEventListener("click", function(e){ e.stopPropagation(); servicesDropdown.classList.toggle("open"); });
 
-    @* JS مشترك *@
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+            if (mobileServicesToggle && mobileServicesBlock)
+                mobileServicesToggle.addEventListener("click", function(e){ e.stopPropagation(); mobileServicesBlock.classList.toggle("open"); });
 
-    @* JS خاص بكل صفحة *@
+            document.querySelectorAll(".nav-links .nav-link, .nav-links .dropdown-link").forEach(function(link){
+                link.addEventListener("click", function(){
+                    if (window.innerWidth <= 1188) {
+                        if (navLinks)            navLinks.classList.remove("open");
+                        if (mobileServicesBlock) mobileServicesBlock.classList.remove("open");
+                    }
+                });
+            });
+
+            document.addEventListener("click", function(e){
+                if (servicesDropdown && !servicesDropdown.contains(e.target))
+                    servicesDropdown.classList.remove("open");
+                if (navLinks && menuBtn &&
+                    !navLinks.contains(e.target) && !menuBtn.contains(e.target)){
+                    navLinks.classList.remove("open");
+                    if (mobileServicesBlock) mobileServicesBlock.classList.remove("open");
+                }
+            });
+
+            window.addEventListener("resize", function(){
+                if (window.innerWidth > 1188){
+                    if (navLinks)            navLinks.classList.remove("open");
+                    if (mobileServicesBlock) mobileServicesBlock.classList.remove("open");
+                }
+            });
+        });
+    </script>
+
+    @* JS خاص بكل صفحة يُحقن هنا *@
     @RenderSection("Scripts", required: false)
 
 </body>

@@ -69,30 +69,31 @@ namespace Waffy.Repository
         public async Task UpdateAsync(Store store)
         {
             const string sql = @"
-                UPDATE Store SET
-                    Name                = @Name,
-                    StoreType           = @StoreType,
-                    Description         = @Description,
-                    LogoUrl             = @LogoUrl,
-                    CoverImageUrl       = @CoverImageUrl,
-                    Email               = @Email,
-                    Phone               = @Phone,
-                    WhatsApp            = @WhatsApp,
-                    Country             = @Country,
-                    City                = @City,
-                    Area                = @Area,
-                    Address             = @Address,
-                    Latitude            = @Latitude,
-                    Longitude           = @Longitude,
-                    DeliveryAvailable   = @DeliveryAvailable,
-                    DeliveryAreas       = @DeliveryAreas,
-                    DeliveryFee         = @DeliveryFee,
-                    OpenTime            = @OpenTime,
-                    CloseTime           = @CloseTime,
-                    WorkingDays         = @WorkingDays,
-                    AcceptedPayments    = @AcceptedPayments,
-                    VerificationStatus  = @VerificationStatus
-                WHERE IdStore = @IdStore";
+        UPDATE Store SET
+            Name                = @Name,
+            StoreType           = @StoreType,
+            Description         = @Description,
+            LogoUrl             = @LogoUrl,
+            CoverImageUrl       = @CoverImageUrl,
+            Email               = @Email,
+            Phone               = @Phone,
+            WhatsApp            = @WhatsApp,
+            Country             = @Country,
+            City                = @City,
+            Area                = @Area,
+            Address             = @Address,
+            Latitude            = @Latitude,
+            Longitude           = @Longitude,
+            DeliveryAvailable   = @DeliveryAvailable,
+            DeliveryAreas       = @DeliveryAreas,
+            DeliveryFee         = @DeliveryFee,
+            OpenTime            = @OpenTime,
+            CloseTime           = @CloseTime,
+            WorkingDays         = @WorkingDays,
+            AcceptedPayments    = @AcceptedPayments,
+            VerificationStatus  = @VerificationStatus,
+            CliQNumber          = @CliQNumber
+        WHERE IdStore = @IdStore";
 
             using var connection = new SqlConnection(_connectionString);
             await connection.ExecuteAsync(sql, store);

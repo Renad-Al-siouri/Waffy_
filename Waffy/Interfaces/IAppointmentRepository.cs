@@ -58,5 +58,33 @@ namespace Waffy.Interfaces
             string? statusFilter = null,
             int? clinicId = null);
 
+        Task MarkDepositPaidBySuperAdminAsync(
+    int appointmentId,
+    string payMethod,
+    int? adminId,
+    int? holderWalletId,
+    string? note);
+
+        Task MarkDepositReturnedBySuperAdminAsync(
+            int appointmentId,
+            int? adminId);
+
+        Task CancelWithMetadataAsync(
+            int appointmentId,
+            string reason,
+            string cancelledBy);
+
+        Task RejectWithMetadataAsync(
+            int appointmentId,
+            string reason,
+            string rejectedBy);
+
+        Task<bool> IsAppointmentCancellableBefore24hAsync(int appointmentId);
+
+        Task<bool> IsDoctorValidForAppointmentAsync(
+            int appointmentId,
+            int doctorId);
+
+
     }
 }

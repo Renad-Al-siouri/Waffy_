@@ -26,8 +26,7 @@
                         <div class="left-nav desktop-nav">
                             <a asp-controller="Home" asp-action="Home_Before" class="nav-link active">Home</a>
                             <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
-                            <a asp-controller ="Product" asp-action="Stores" class="nav-link">
-                                Stores</a>
+                            <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                             <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                         </div>
 
@@ -46,12 +45,6 @@
                                 </button>
 
                                 <div class="dropdown-menu" id="servicesMenu">
-                                    <a asp-controller ="Clinic" asp-action="Clinics" class="dropdown-link">
-                                        Clinics</a>
-                                    <a asp-controller="Product" asp-action="Stores" class="dropdown-link">Stores</a>
-                                    <a asp-controller="Pet" asp-action="Adapt" class="dropdown-link">Adoption</a>
-                                    <a asp-controller="Pet" asp-action="Lost" class="dropdown-link">Lost Pets</a>
-                                    <a asp-controller="Map" asp-action="Gps" class="dropdown-link">Map</a>
                                     <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                     <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                     <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
@@ -74,8 +67,7 @@
 
                                 <a asp-controller="Home" asp-action="Home_Before" class="nav-link active">Home</a>
                                 <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
-                                <a asp-controller="Product" asp-action="Stores" class="nav-link">
-                                    Stores</a>
+                                <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
                                 <a asp-controller="Pet" asp-action="Adapt" class="nav-link">Adoption</a>
                                 <a asp-controller="Pet" asp-action="Lost" class="nav-link">Lost Pets</a>
                                 <a asp-controller="Map" asp-action="Gps" class="nav-link">Map</a>
@@ -87,12 +79,6 @@
                                     </button>
 
                                     <div class="mobile-services-menu" id="mobileServicesMenu">
-                                        <a asp-controller ="Clinic" asp-action="Clinics" class="dropdown-link">
-                                            Clinics</a>
-                                        <a asp-controller="Product" asp-action="Products" class="dropdown-link">Stores</a>
-                                        <a asp-controller="Pet" asp-action="Adapt" class="dropdown-link">Adoption</a>
-                                        <a asp-controller="Pet" asp-action="Lost" class="dropdown-link">Lost Pets</a>
-                                        <a asp-controller="Map" asp-action="Gps" class="dropdown-link">Map</a>
                                         <a asp-controller="Payment" asp-action="Donate" class="dropdown-link">Donations</a>
                                         <a asp-controller="Home" asp-action="Travel" class="dropdown-link">Law</a>
                                         <a asp-controller="Map" asp-action="Dangerous" class="dropdown-link">Dangerous Animal</a>
@@ -213,12 +199,12 @@
                             <div>
                                 <h3>Map</h3>
                                 <p>Open a live map to search clinics and pet stores nearby.</p>
-                                <a asp-controller ="Map" asp-action="Gps" class="mini-btn">Open map</a>
+                                <a asp-controller="Map" asp-action="Gps" class="mini-btn">Open map</a>
                             </div>
                         </article>
 
                         <article class="service-card">
-                            <img src="../Images/Animals/map.png" alt="Dangerous Animal">
+                            <img src="../Images/dang.png" alt="Dangerous Animal">
                             <div>
                                 <h3>Dangerous Animal</h3>
                                 <p>View helpful information related to dangerous animals.</p>
@@ -227,7 +213,7 @@
                         </article>
 
                         <article class="service-card">
-                            <img src="../Images/Animals/map.png" alt="Law">
+                            <img src="../Images/law.png" alt="Law">
                             <div>
                                 <h3>Law</h3>
                                 <p>Read the related pet and animal rules and regulations.</p>
@@ -311,7 +297,7 @@
                             <span>🐾</span>
                             <h2 class="section-title">Nearby Clinics</h2>
                         </div>
-                        
+
                     </div>
 
                     <div class="clinics-grid" id="homeClinicsGrid"></div>
@@ -331,7 +317,7 @@
                             <h3>Find a clinic or store</h3>
 
                             <div id="mapClinicList"></div>
-                            
+
                         </div>
                     </div>
                 </div>
@@ -630,17 +616,15 @@
             .fp-belt:hover {
                 animation-play-state: paused;
             }
+
         @@keyframes fpRoll {
-            from
+            from {
+                transform: translateX(0)
+            }
 
-        {
-            transform: translateX(0)
-        }
-
-        to {
-            transform: translateX(-50%)
-        }
-
+            to {
+                transform: translateX(-50%)
+            }
         }
 
         .fp-card {
@@ -1276,9 +1260,9 @@
         .animal-card {
             position: relative;
             overflow: hidden;
-            display: flex; /* ← أضف */
-            flex-direction: row; /* ← أضف */
-            height: 130px; /* ← أضف */
+            display: flex;
+            flex-direction: row;
+            height: 130px;
             background: #fff;
             border-radius: 16px;
             box-shadow: 0 4px 16px rgba(90,75,49,.08);
@@ -1294,8 +1278,8 @@
 
             .animal-card .adopt-img-wrap {
                 position: relative;
-                width: 150px; /* ← العرض الذي تريده */
-                height: 100%; /* ← يملأ طول الكارد */
+                width: 150px;
+                height: 100%;
                 flex-shrink: 0;
                 overflow: hidden;
                 background: linear-gradient(135deg, #e8f0d8, #cfe3b0);
@@ -1408,10 +1392,6 @@
             border-radius: 20px;
             z-index: 3;
         }
-
-       
-      
-          
 
         .animal-card > div:last-child {
             flex: 1;
@@ -1708,13 +1688,12 @@
                         let cur = 0;
                         const allImgs = imgSide.querySelectorAll('img');
                         const allDots = dotsWrap.querySelectorAll('.lp-idot');
-                              // إلى
-        const goTo = idx => {
-            allImgs[cur].classList.remove('active'); allDots[cur].classList.remove('on');
-            cur = ((idx % imgs.length) + imgs.length) % imgs.length;
-            allImgs[cur].classList.add('active'); allDots[cur].classList.add('on');
-            ctr.textContent = (cur + 1) + '/' + imgs.length;
-        };
+                        const goTo = idx => {
+                            allImgs[cur].classList.remove('active'); allDots[cur].classList.remove('on');
+                            cur = ((idx % imgs.length) + imgs.length) % imgs.length;
+                            allImgs[cur].classList.add('active'); allDots[cur].classList.add('on');
+                            ctr.textContent = (cur + 1) + '/' + imgs.length;
+                        };
                         prev.addEventListener('click', e => { e.stopPropagation(); goTo(cur - 1); });
                         next.addEventListener('click', e => { e.stopPropagation(); goTo(cur + 1); });
                         allDots.forEach((d, i) => d.addEventListener('click', e => { e.stopPropagation(); goTo(i); }));
@@ -1809,20 +1788,17 @@
                     });
 
                     if (multi) {
-                        // counter
                         const ctr = document.createElement('div');
                         ctr.className = 'acar-counter';
                         ctr.textContent = '1 / ' + imgs.length;
                         wrap.appendChild(ctr);
 
-                        // arrows
                         const prev = document.createElement('button');
                         prev.className = 'acar-arr prev'; prev.innerHTML = '‹'; prev.type = 'button';
                         const next = document.createElement('button');
                         next.className = 'acar-arr next'; next.innerHTML = '›'; next.type = 'button';
                         wrap.appendChild(prev); wrap.appendChild(next);
 
-                        // dots
                         const dotsWrap = document.createElement('div');
                         dotsWrap.className = 'acar-dots';
                         imgs.forEach((_, i) => {
@@ -1836,15 +1812,14 @@
                         const allImgs = wrap.querySelectorAll('img');
                         const allDots = dotsWrap.querySelectorAll('.acar-dot');
 
-               // إلى
-        const goTo = idx => {
-            allImgs[cur].classList.remove('acar-active');
-            allDots[cur].classList.remove('on');
-            cur = ((idx % imgs.length) + imgs.length) % imgs.length;
-            allImgs[cur].classList.add('acar-active');
-            allDots[cur].classList.add('on');
-            ctr.textContent = (cur + 1) + ' / ' + imgs.length;
-        };
+                        const goTo = idx => {
+                            allImgs[cur].classList.remove('acar-active');
+                            allDots[cur].classList.remove('on');
+                            cur = ((idx % imgs.length) + imgs.length) % imgs.length;
+                            allImgs[cur].classList.add('acar-active');
+                            allDots[cur].classList.add('on');
+                            ctr.textContent = (cur + 1) + ' / ' + imgs.length;
+                        };
                         prev.addEventListener('click', e => { e.stopPropagation(); goTo(cur - 1); });
                         next.addEventListener('click', e => { e.stopPropagation(); goTo(cur + 1); });
                         allDots.forEach((d, i) => d.addEventListener('click', e => { e.stopPropagation(); goTo(i); }));
@@ -1871,7 +1846,6 @@
                     </ul>`;
                 article.appendChild(info);
 
-                /* ── Click → adoption page ── */
                 article.style.cursor = 'pointer';
                 article.addEventListener('click', () => { window.location.href = '/Pet/Adapt'; });
 

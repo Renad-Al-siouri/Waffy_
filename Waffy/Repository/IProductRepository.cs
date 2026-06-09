@@ -16,5 +16,7 @@ namespace Waffy.Interfaces
 
         Task<IEnumerable<Product>> GetFilteredAsync(
     int storeId, string? search, int? categoryId, decimal? maxPrice);
+        Task RestoreStockAsync(int idProduct, int quantity);
     }
+
 }

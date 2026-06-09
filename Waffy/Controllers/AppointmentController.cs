@@ -123,6 +123,8 @@ namespace Waffy.Controllers
             // أضيفي هذا قبل return View(vm)
             var wallet = await _walletRepo.GetByUserIdAsync(userId);
             vm.WalletBalance = wallet?.Balance ?? 0;
+            var paymentSettings = await _walletRepo.GetPaymentSettingsAsync();
+            ViewBag.SuperAdminCliqNumber = paymentSettings?.SuperAdminCliqNumber ?? "Not set";
             return View(vm);
         }
 
@@ -231,81 +233,196 @@ namespace Waffy.Controllers
         // ══════════════════════════════════════════════════════════════
         // POST /Appointment/Book
         // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
+        // POST /Appointment/Book
+        // ══════════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Book(BookAppointmentViewModel vm)
         {
             var userId = GetUserId();
             if (userId == 0) return RedirectToAction("Login", "Account");
 
-            // ── 1. Status حسب اختيار الطبيب ──────────────────────────
-            // CliQ دائماً يبدأ بـ PendingPayment بغض النظر عن الطبيب
-            var status = vm.DepositPayMethod == "CliQ"
-                ? "PendingPayment"
-                : (vm.SelectedDoctorId > 0 && vm.SelectedDoctorId != -1)
-                    ? "PendingDoctorApproval"
-                    : "PendingClinicApproval";
+            // ── Basic validation ─────────────────────────────────────
+            if (vm.ClinicId <= 0 ||
+                string.IsNullOrWhiteSpace(vm.SelectedService) ||
+                string.IsNullOrWhiteSpace(vm.SelectedDate) ||
+                string.IsNullOrWhiteSpace(vm.SelectedTime) ||
+                string.IsNullOrWhiteSpace(vm.DepositPayMethod))
+            {
+                TempData["BookError"] = "⚠️ Please complete all booking steps.";
+                return RedirectToAction("Book", new { clinicId = vm.ClinicId });
+            }
 
-            // ── 2. بناء الـ Appointment ───────────────────────────────
+            if (!DateTime.TryParse(vm.SelectedDate, out var appointmentDate) ||
+                !TimeSpan.TryParse(vm.SelectedTime, out var startTime))
+            {
+                TempData["BookError"] = "⚠️ Invalid appointment date or time.";
+                return RedirectToAction("Book", new { clinicId = vm.ClinicId });
+            }
+
+            if (appointmentDate.Date < DateTime.Today)
+            {
+                TempData["BookError"] = "⚠️ You cannot book an appointment in the past.";
+                return RedirectToAction("Book", new { clinicId = vm.ClinicId });
+            }
+
+            var selectedDoctorId =
+                vm.SelectedDoctorId > 0 && vm.SelectedDoctorId != -1
+                    ? vm.SelectedDoctorId
+                    : (int?)null;
+
+            // ── If user selected a specific doctor, re-check slot on server ──
+            if (selectedDoctorId.HasValue)
+            {
+                var slotFree = await _apptRepo.IsSlotAvailableAsync(
+                    selectedDoctorId.Value,
+                    appointmentDate,
+                    startTime);
+
+                if (!slotFree)
+                {
+                    TempData["BookError"] = "⚠️ This time slot is no longer available. Please choose another time.";
+                    return RedirectToAction("Book", new { clinicId = vm.ClinicId, doctorId = selectedDoctorId.Value });
+                }
+
+               
+                // ملاحظة: هذا الفحص التفصيلي سيتم تفعيله أكثر عند تعيين الطبيب من العيادة.
+                // الآن نعتمد على GetAvailableSlots لأنه فحص وقت الطبيب قبل العرض.
+            }
+
+            const decimal depositAmount = 5.00m;
+
+            string? cliqReference = null;
+
+            if (vm.DepositPayMethod == "CliQ")
+            {
+                cliqReference = string.IsNullOrWhiteSpace(vm.CliqReference)
+                    ? GenerateCliqRef()
+                    : vm.CliqReference.Trim();
+            }
+
+            // ── Status حسب الدفع واختيار الطبيب ─────────────────────
+            // Wallet: الدفع يتم فوراً، فيتحرك الموعد مباشرة للعيادة/الطبيب
+            // CliQ: يبقى بانتظار تأكيد السوبر أدمن
+            var status = vm.DepositPayMethod == "CliQ"
+                ? "PendingPaymentVerification"
+                : selectedDoctorId.HasValue
+                    ? "PendingDoctorApproval"
+                    : "PendingClinicAssignment";
+
+            // ── Build Appointment ───────────────────────────────────
             var appt = new Appointment
             {
                 IdUser = userId,
                 IdClinic = vm.ClinicId,
-                IdDoctor = (vm.SelectedDoctorId > 0 && vm.SelectedDoctorId != -1)
-                           ? vm.SelectedDoctorId : (int?)null,
+                IdDoctor = selectedDoctorId,
                 IdPet = vm.SelectedPetId > 0 ? vm.SelectedPetId : null,
-                AppointmentDate = DateTime.Parse(vm.SelectedDate!),
-                StartTime = TimeSpan.Parse(vm.SelectedTime!),
+
+                AppointmentDate = appointmentDate.Date,
+                StartTime = startTime,
+
                 ServiceName = vm.SelectedService,
                 Status = status,
                 UrgencyLevel = vm.UrgencyLevel,
                 Reason = vm.Reason,
                 Notes = vm.Notes,
                 ShareMedicalRecord = vm.ShareMedicalRecord,
-                DepositAmount = 5.00m,
-                DepositPayMethod = vm.DepositPayMethod,   // ← مرة واحدة فقط
-                CliqReference = GenerateCliqRef(),
+
+                DepositAmount = depositAmount,
+                DepositPaid = false,
+                DepositReturned = false,
+                AttendanceConfirmed = false,
+                AssignedByClinic = false,
+
+                DepositPayMethod = vm.DepositPayMethod,
+                CliqReference = cliqReference,
+                DepositCliqSubmitted = vm.DepositPayMethod == "CliQ",
+
                 AppointmentType = null,
                 ConsultationFee = 0,
                 PaymentMethod = null,
                 PaymentStatus = null,
                 CreatedAt = DateTime.UtcNow
             };
+
             var apptId = await _apptRepo.BookAsync(appt);
 
-            // ── 3. الإيداع ────────────────────────────────────────────
+            // ── Wallet Payment: user wallet → Super Admin wallet ─────
             if (vm.DepositPayMethod == "Wallet")
             {
-                var wallet = await _walletRepo.GetByUserIdAsync(userId);
+                var userWallet = await _walletRepo.GetOrCreateByUserIdAsync(userId);
+                var superAdminWallet = await _walletRepo.GetSuperAdminWalletAsync();
 
-                if (wallet == null || wallet.Balance < 5)
+                if (userWallet == null || superAdminWallet == null)
                 {
-                    await _apptRepo.CancelAsync(apptId, "Insufficient wallet balance");
+                    await _apptRepo.CancelWithMetadataAsync(
+                        apptId,
+                        "Wallet setup error",
+                        "System");
+
+                    TempData["BookError"] = "⚠️ Wallet setup error. Please contact support.";
+                    return RedirectToAction("Book", new { clinicId = vm.ClinicId });
+                }
+
+                if (userWallet.Balance < depositAmount)
+                {
+                    await _apptRepo.CancelWithMetadataAsync(
+                        apptId,
+                        "Insufficient wallet balance",
+                        "System");
+
                     TempData["BookError"] = "⚠️ Insufficient wallet balance. Please top up or choose CliQ.";
                     return RedirectToAction("Book", new { clinicId = vm.ClinicId });
                 }
 
-                await _walletRepo.AddBalanceAsync(wallet.IdWallet, -5);
-                await _walletRepo.AddTransactionAsync(new WalletTransaction
+                var transferred = await _walletRepo.TransferAsync(
+                    fromWalletId: userWallet.IdWallet,
+                    toWalletId: superAdminWallet.IdWallet,
+                    amount: depositAmount,
+                    type: "AppointmentDeposit",
+                    paymentMethod: "Wallet",
+                    referenceId: apptId,
+                    referenceType: "Appointment",
+                    description: "Booking deposit transferred to Waffy Super Admin wallet");
+
+                if (!transferred)
                 {
-                    IdWallet = wallet.IdWallet,
-                    TransactionCode = $"DEP-{Guid.NewGuid().ToString()[..8].ToUpper()}",
-                    Type = "AppointmentDeposit",
-                    Amount = -5,
-                    PaymentMethod = "Wallet",
-                    Status = "Completed",
-                    CreatedAt = DateTime.UtcNow
-                });
-                await _apptRepo.MarkDepositPaidAsync(apptId, "Wallet");
-                // +5 للعيادة عند الدفع
-                await _clinicRepo.AddClinicBalanceAsync(vm.ClinicId, 5.00m);
+                    await _apptRepo.CancelWithMetadataAsync(
+                        apptId,
+                        "Wallet transfer failed",
+                        "System");
 
+                    TempData["BookError"] = "⚠️ Could not complete wallet payment.";
+                    return RedirectToAction("Book", new { clinicId = vm.ClinicId });
+                }
+
+                await _apptRepo.MarkDepositPaidBySuperAdminAsync(
+                    appointmentId: apptId,
+                    payMethod: "Wallet",
+                    adminId: null,
+                    holderWalletId: superAdminWallet.IdWallet,
+                    note: "Paid automatically from user wallet");
             }
-            // CliQ: DepositPaid يبقى false حتى يؤكد الادمن
 
-            // ── 4. إشعار ─────────────────────────────────────────────
-            var message = status == "PendingDoctorApproval"
-                ? "Your appointment request has been sent to the doctor for approval. 🐾"
-                : "Your appointment request has been received. The clinic will assign a doctor shortly. 🐾";
+            // ── Notification ────────────────────────────────────────
+            string message;
+
+            if (vm.DepositPayMethod == "CliQ")
+            {
+                message =
+                    $"Your booking request was submitted. Please pay {depositAmount:F2} JOD via CliQ using reference code {cliqReference}. " +
+                    "Waffy Super Admin will verify your payment.";
+            }
+            else if (selectedDoctorId.HasValue)
+            {
+                message =
+                    "Your booking deposit was paid successfully. Your appointment request has been sent to the doctor for approval. 🐾";
+            }
+            else
+            {
+                message =
+                    "Your booking deposit was paid successfully. The clinic will assign an available doctor shortly. 🐾";
+            }
 
             await _notifRepo.AddAsync(new Notification
             {
@@ -320,85 +437,91 @@ namespace Waffy.Controllers
             });
 
             TempData["BookSuccess"] = vm.DepositPayMethod == "CliQ"
-     ? "⏳ Booking submitted! Please complete your 5 JOD CliQ payment — see instructions below."
-     : "✅ Booking request submitted! You'll be notified once the appointment is confirmed. 🐾";
+                ? $"⏳ Booking submitted! Please complete your 5 JOD CliQ payment. Reference code: {cliqReference}"
+                : "✅ Booking request submitted! Your deposit was sent to Waffy and will be returned according to the policy.";
+
             return RedirectToAction("Appointments", "Profile");
         }
-
         // ══════════════════════════════════════════════════════════════
         // POST /Appointment/Cancel
+        // ══════════════════════════════════════════════════════════════
+        // ══════════════════════════════════════════════════════════════
+        // POST /Appointment/Cancel
+        // User cancels appointment
         // ══════════════════════════════════════════════════════════════
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> Cancel(int id, string? reason = null)
         {
             if (!IsLoggedIn()) return RedirectToAction("Login", "Account");
 
+            var userId = GetUserId();
             var appt = await _apptRepo.GetByIdAsync(id);
-            if (appt == null || appt.IdUser != GetUserId()) return Forbid();
 
-            // PendingPayment و PendingPaymentVerification: لا مال مدفوع → إلغاء حر
-            // Confirmed + CliQ: ممنوع الإلغاء المباشر
-            if (appt.Status == "Confirmed"
-                && appt.DepositPayMethod == "CliQ"
-                && appt.DepositPaid)
-            {
-                TempData["BookError"] =
-                    "⚠️ Your CliQ deposit was already paid. " +
-                    "To cancel, please contact the clinic directly for a refund.";
-                return RedirectToAction("Appointments");
-            }
+            if (appt == null || appt.IdUser != userId)
+                return Forbid();
 
-            var cancellable = new[]
-            {
-    "PendingPayment",             // CliQ لم يدفع بعد
-    "PendingPaymentVerification", // CliQ انتظر تأكيد
-    "PendingDoctorApproval",
-    "PendingClinicApproval",
-    "Confirmed"                   // Wallet فقط يصل هنا
-};
-            if (!cancellable.Contains(appt.Status))
+            // الحالات التي لا يمكن إلغاؤها
+            if (appt.Status is "Completed" or "Cancelled" or "NoShow" or "Rejected")
             {
                 TempData["BookError"] = "⚠️ This appointment cannot be cancelled.";
                 return RedirectToAction("Appointments", "Profile");
             }
 
-            await _apptRepo.CancelAsync(id, reason ?? "Cancelled by user");
+            // شرط 24 ساعة
+            var canCancel = await _apptRepo.IsAppointmentCancellableBefore24hAsync(id);
 
-            // ── إرجاع الإيداع ─────────────────────────────────────
-            // Wallet: DepositPaid=true فوراً عند الحجز
-            // CliQ مؤكد: DepositPaid=true بعد تأكيد الادمن
-            // CliQ غير مؤكد: DepositPaid=false → لا يوجد مبلغ مدفوع أصلاً
+            if (!canCancel)
+            {
+                TempData["BookError"] =
+                    "⚠️ You cannot cancel this appointment because less than 24 hours remain.";
+                return RedirectToAction("Appointments", "Profile");
+            }
+
+            // إلغاء الموعد
+            await _apptRepo.CancelWithMetadataAsync(
+                appointmentId: id,
+                reason: reason ?? "Cancelled by user",
+                cancelledBy: "User");
+
             var depositReturned = false;
 
+            // إذا الدفع مؤكد، نرجع الإيداع من محفظة السوبر أدمن
             if (appt.DepositPaid && !appt.DepositReturned)
             {
-                // تأكد من وجود المحفظة أو إنشاؤها
-                var wallet = await _walletRepo.GetByUserIdAsync(appt.IdUser);
-                if (wallet == null)
+                var refunded = await _walletRepo.RefundFromSuperAdminToUserAsync(
+                    userId: appt.IdUser,
+                    amount: appt.DepositAmount,
+                    appointmentId: appt.Id,
+                    adminId: null,
+                    description: "Deposit returned after user cancelled appointment before 24 hours");
+
+                if (!refunded)
                 {
-                    await _walletRepo.CreateWalletAsync(appt.IdUser);
-                    wallet = await _walletRepo.GetByUserIdAsync(appt.IdUser);
+                    TempData["BookError"] =
+                        "⚠️ Appointment cancelled, but refund failed because Super Admin wallet balance is insufficient. Please contact support.";
+                    return RedirectToAction("Appointments", "Profile");
                 }
 
-                if (wallet != null)
-                {
-                    await _walletRepo.AddBalanceAsync(wallet.IdWallet, appt.DepositAmount);
-                    await _walletRepo.AddTransactionAsync(new WalletTransaction
-                    {
-                        IdWallet = wallet.IdWallet,
-                        TransactionCode = $"REF-{Guid.NewGuid().ToString()[..8].ToUpper()}",
-                        Type = "DepositReturn",
-                        Amount = appt.DepositAmount,
-                        PaymentMethod = "Waffy Wallet",
-                        Status = "Completed",
-                        CreatedAt = DateTime.UtcNow
-                    });
-                    await _apptRepo.MarkDepositReturnedAsync(id);
-                    // -5 من محفظة العيادة لأن المبلغ رجع لليوزر
-                    await _clinicRepo.AddClinicBalanceAsync(appt.IdClinic, -appt.DepositAmount);
-                    depositReturned = true;
-                }
+                await _apptRepo.MarkDepositReturnedBySuperAdminAsync(
+                    appointmentId: id,
+                    adminId: null);
+
+                depositReturned = true;
             }
+
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = appt.IdUser,
+                Type = "AppointmentCancelled",
+                Title = "❌ Appointment Cancelled",
+                Message = depositReturned
+                    ? $"Your appointment was cancelled. Your {appt.DepositAmount:F2} JOD deposit has been returned to your wallet."
+                    : "Your appointment was cancelled.",
+                IsRead = false,
+                RelatedEntityType = "Appointment",
+                RelatedEntityId = id,
+                CreatedAt = DateTime.UtcNow
+            });
 
             TempData["BookSuccess"] = depositReturned
                 ? $"✅ Appointment cancelled. Your {appt.DepositAmount:F2} JOD deposit has been returned to your wallet."
@@ -456,5 +579,25 @@ namespace Waffy.Controllers
 
             return View(appt);
         }
+
+        private async Task<bool> TryReturnDepositAsync(AppointmentDto appt, int? adminId, string reason)
+        {
+            if (!appt.DepositPaid || appt.DepositReturned)
+                return true;
+
+            var refunded = await _walletRepo.RefundFromSuperAdminToUserAsync(
+                appt.IdUser,
+                appt.DepositAmount,
+                appt.Id,
+                adminId,
+                reason);
+
+            if (!refunded)
+                return false;
+
+            await _apptRepo.MarkDepositReturnedBySuperAdminAsync(appt.Id, adminId);
+            return true;
+        }
     }
+
 }

@@ -9,6 +9,12 @@ namespace Waffy.Repositories
     public class AppointmentRepository : IAppointmentRepository
     {
         private readonly string _conn;
+        private const string ActiveSlotStatusesSql = @"
+    'PendingPaymentVerification',
+    'PendingClinicAssignment',
+    'PendingDoctorApproval',
+    'Confirmed'
+";
         public AppointmentRepository(IConfiguration config)
         {
             _conn = config.GetConnectionString("WaffyConnection")
@@ -19,6 +25,7 @@ namespace Waffy.Repositories
         public async Task<int> BookAsync(Appointment appt)
         {
             using var conn = new SqlConnection(_conn);
+
             return await conn.ExecuteScalarAsync<int>(@"
         INSERT INTO Appointment
         (
@@ -29,8 +36,11 @@ namespace Waffy.Repositories
             Reason, Notes,
             ConsultationFee, PaymentMethod, PaymentStatus,
             CancellationReason, CreatedAt,
-            ShareMedicalRecord, DepositPayMethod,CliqReference
-
+            ShareMedicalRecord,
+            DepositAmount, DepositPaid, DepositReturned,
+            DepositPayMethod, CliqReference,
+            AttendanceConfirmed, AssignedByClinic,
+            DepositCliqSubmitted
         )
         OUTPUT INSERTED.Id
         VALUES
@@ -42,7 +52,11 @@ namespace Waffy.Repositories
             @Reason, @Notes,
             @ConsultationFee, @PaymentMethod, @PaymentStatus,
             @CancellationReason, @CreatedAt,
-            @ShareMedicalRecord, @DepositPayMethod,@CliqReference
+            @ShareMedicalRecord,
+            @DepositAmount, @DepositPaid, @DepositReturned,
+            @DepositPayMethod, @CliqReference,
+            @AttendanceConfirmed, @AssignedByClinic,
+            @DepositCliqSubmitted
         )",
                 appt);
         }
@@ -51,11 +65,13 @@ namespace Waffy.Repositories
         public async Task<IEnumerable<TimeSpan>> GetBookedSlotsAsync(int idDoctor, DateTime date)
         {
             using var conn = new SqlConnection(_conn);
-            return await conn.QueryAsync<TimeSpan>(@"
-                SELECT StartTime FROM Appointment
-                WHERE IdDoctor = @IdDoctor
-                  AND AppointmentDate = @Date
-                  AND Status NOT IN ('Cancelled')",
+
+            return await conn.QueryAsync<TimeSpan>($@"
+        SELECT StartTime
+        FROM Appointment
+        WHERE IdDoctor = @IdDoctor
+          AND AppointmentDate = @Date
+          AND Status IN ({ActiveSlotStatusesSql})",
                 new { IdDoctor = idDoctor, Date = date.Date });
         }
 
@@ -63,13 +79,16 @@ namespace Waffy.Repositories
         public async Task<bool> IsSlotAvailableAsync(int idDoctor, DateTime date, TimeSpan startTime)
         {
             using var conn = new SqlConnection(_conn);
-            var count = await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*) FROM Appointment
-                WHERE IdDoctor = @IdDoctor
-                  AND AppointmentDate = @Date
-                  AND StartTime = @StartTime
-                  AND Status NOT IN ('Cancelled')",
+
+            var count = await conn.ExecuteScalarAsync<int>($@"
+        SELECT COUNT(*)
+        FROM Appointment
+        WHERE IdDoctor = @IdDoctor
+          AND AppointmentDate = @Date
+          AND StartTime = @StartTime
+          AND Status IN ({ActiveSlotStatusesSql})",
                 new { IdDoctor = idDoctor, Date = date.Date, StartTime = startTime });
+
             return count == 0;
         }
 
@@ -77,28 +96,57 @@ namespace Waffy.Repositories
         public async Task<AppointmentDto?> GetByIdAsync(int id)
         {
             using var conn = new SqlConnection(_conn);
+
             return await conn.QueryFirstOrDefaultAsync<AppointmentDto>(@"
-                SELECT a.Id, a.AppointmentDate, a.StartTime, a.EndTime,
-                       a.ServiceName, a.Status, a.AppointmentType, a.UrgencyLevel,a.DoctorNotes,
-a.DepositAmount, a.DepositPaid, a.DepositReturned,
-a.AttendanceConfirmed, a.AssignedByClinic,
-a.Reason, a.Notes, a.CancellationReason, a.CreatedAt,
-                       a.IdDoctor, a.IdClinic, a.IdUser, a.IdPet,
-                       u.FullName  AS UserFullName,  u.Phone  AS UserPhone,
-                       p.Name      AS PetName,       p.Species AS PetSpecies,
-                       cl.Name     AS ClinicName,
-cl.CliqNumber       AS ClinicCliqNumber,
-a.DepositCliqSubmitted,
-                       ud.FullName AS DoctorName,
-                       d.Specialization AS DoctorSpecialization,
-                       d.AppointmentDuration
-                FROM Appointment a
-                INNER JOIN Users  u  ON a.IdUser    = u.UserId
-                LEFT  JOIN Pet    p  ON a.IdPet     = p.IdPet
-                INNER JOIN Clinic cl ON a.IdClinic  = cl.IdClinic
-                LEFT  JOIN Doctor d  ON a.IdDoctor  = d.IdDoctor
-LEFT  JOIN Users  ud ON d.IdUser    = ud.UserId
-                WHERE a.Id = @Id",
+        SELECT
+            a.Id,
+            a.AppointmentDate,
+            a.StartTime,
+            a.EndTime,
+            a.ServiceName,
+            a.Status,
+            a.AppointmentType,
+            a.UrgencyLevel,
+            a.DoctorNotes,
+
+            a.DepositAmount,
+            a.DepositPaid,
+            a.DepositReturned,
+            a.DepositPayMethod,
+            a.CliqReference,
+            a.DepositCliqSubmitted,
+            a.DepositHolderWalletId,
+            a.PaymentVerifiedByAdminId,
+            a.PaymentVerifiedAt,
+            a.PaymentVerificationNote,
+
+            a.AttendanceConfirmed,
+            a.AssignedByClinic,
+            a.Reason,
+            a.Notes,
+            a.CancellationReason,
+            a.CreatedAt,
+            a.IdDoctor,
+            a.IdClinic,
+            a.IdUser,
+            a.IdPet,
+
+            u.FullName  AS UserFullName,
+            u.Phone     AS UserPhone,
+            p.Name      AS PetName,
+            p.Species   AS PetSpecies,
+            cl.Name     AS ClinicName,
+            cl.CliqNumber AS ClinicCliqNumber,
+            ud.FullName AS DoctorName,
+            d.Specialization AS DoctorSpecialization,
+            d.AppointmentDuration
+        FROM Appointment a
+        INNER JOIN Users  u  ON a.IdUser   = u.UserId
+        INNER JOIN Clinic cl ON a.IdClinic = cl.IdClinic
+        LEFT  JOIN Pet    p  ON a.IdPet    = p.IdPet
+        LEFT  JOIN Doctor d  ON a.IdDoctor = d.IdDoctor
+        LEFT  JOIN Users  ud ON d.IdUser   = ud.UserId
+        WHERE a.Id = @Id",
                 new { Id = id });
         }
 
@@ -206,7 +254,7 @@ LEFT  JOIN Users  ud ON d.IdUser   = ud.UserId
                 LEFT  JOIN Pet   p ON a.IdPet  = p.IdPet
                 WHERE a.IdDoctor = @IdDoctor
                   AND a.AppointmentDate = CAST(GETDATE() AS DATE)
-                  AND a.Status != 'Cancelled'
+                AND a.Status IN ('PendingDoctorApproval', 'Confirmed', 'Completed', 'NoShow')
                 ORDER BY a.StartTime ASC",
                 new { IdDoctor = idDoctor });
         }
@@ -235,15 +283,17 @@ LEFT  JOIN Users  ud ON d.IdUser   = ud.UserId
         public async Task<int> CountByDoctorAndDateAsync(int idDoctor, DateTime date)
         {
             using var conn = new SqlConnection(_conn);
-            return await conn.ExecuteScalarAsync<int>(@"
-                SELECT COUNT(*) FROM Appointment
-                WHERE IdDoctor = @IdDoctor
-                  AND AppointmentDate = @Date
-                  AND Status NOT IN ('Cancelled')",
+
+            return await conn.ExecuteScalarAsync<int>($@"
+        SELECT COUNT(*)
+        FROM Appointment
+        WHERE IdDoctor = @IdDoctor
+          AND AppointmentDate = @Date
+          AND Status IN ({ActiveSlotStatusesSql})",
                 new { IdDoctor = idDoctor, Date = date.Date });
         }
 
-        
+
         public async Task<IEnumerable<AppointmentDto>> GetTomorrowConfirmedAsync()
         {
             const string sql = @"
@@ -300,15 +350,15 @@ LEFT  JOIN Users  ud ON d.IdUser   = ud.UserId
             using var conn = new SqlConnection(_conn);
             await conn.ExecuteAsync(sql, new { id = appointmentId, note });
         }
-
         public async Task ApproveAndAssignAsync(int appointmentId, int doctorId)
         {
             const string sql = @"
         UPDATE Appointment
-        SET Status           = 'Confirmed',
+        SET Status           = 'PendingDoctorApproval',
             IdDoctor         = @DoctorId,
             AssignedByClinic = 1
         WHERE Id = @Id";
+
             using var conn = new SqlConnection(_conn);
             await conn.ExecuteAsync(sql, new { Id = appointmentId, DoctorId = doctorId });
         }
@@ -352,7 +402,7 @@ LEFT  JOIN Users  ud ON d.IdUser   = ud.UserId
             await conn.ExecuteAsync(sql, new { Id = appointmentId });
         }
 
-      
+
         public async Task MarkCliqSubmittedAsync(int appointmentId)
         {
             const string sql =
@@ -364,15 +414,15 @@ LEFT  JOIN Users  ud ON d.IdUser   = ud.UserId
         public async Task<IEnumerable<TimeSpan>> GetClinicBookedSlotsAsync(int clinicId, DateTime date)
         {
             using var conn = new SqlConnection(_conn);
-            return await conn.QueryAsync<TimeSpan>(@"
+
+            return await conn.QueryAsync<TimeSpan>($@"
         SELECT DISTINCT StartTime
         FROM Appointment
-        WHERE IdClinic        = @ClinicId
+        WHERE IdClinic = @ClinicId
           AND AppointmentDate = @Date
-          AND Status NOT IN   ('Cancelled', 'NoShow')",
+          AND Status IN ({ActiveSlotStatusesSql})",
                 new { ClinicId = clinicId, Date = date.Date });
         }
-
         public async Task MarkCliqRefundPendingAsync(int appointmentId)
         {
             const string sql =
@@ -435,6 +485,133 @@ LEFT  JOIN Users  ud ON d.IdUser   = ud.UserId
                     ClinicId = clinicId
                 });
         }
+        public async Task MarkDepositPaidBySuperAdminAsync(
+    int appointmentId,
+    string payMethod,
+    int? adminId,
+    int? holderWalletId,
+    string? note)
+        {
+            const string sql = @"
+        UPDATE Appointment
+        SET DepositPaid = 1,
+            DepositPayMethod = @PayMethod,
+            PaymentVerifiedByAdminId = @AdminId,
+            PaymentVerifiedAt = SYSUTCDATETIME(),
+            PaymentVerificationNote = @Note,
+            DepositHolderWalletId = @HolderWalletId
+        WHERE Id = @Id";
 
+            using var conn = new SqlConnection(_conn);
+            await conn.ExecuteAsync(sql, new
+            {
+                Id = appointmentId,
+                PayMethod = payMethod,
+                AdminId = adminId,
+                HolderWalletId = holderWalletId,
+                Note = note
+            });
+        }
+
+        public async Task MarkDepositReturnedBySuperAdminAsync(
+            int appointmentId,
+            int? adminId)
+        {
+            const string sql = @"
+        UPDATE Appointment
+        SET DepositReturned = 1,
+            RefundedAt = SYSUTCDATETIME(),
+            RefundedByAdminId = @AdminId,
+            RefundStatus = 'Returned'
+        WHERE Id = @Id";
+
+            using var conn = new SqlConnection(_conn);
+            await conn.ExecuteAsync(sql, new { Id = appointmentId, AdminId = adminId });
+        }
+
+        public async Task CancelWithMetadataAsync(
+            int appointmentId,
+            string reason,
+            string cancelledBy)
+        {
+            const string sql = @"
+        UPDATE Appointment
+        SET Status = 'Cancelled',
+            CancellationReason = @Reason,
+            CancelledBy = @CancelledBy,
+            CancelledAt = SYSUTCDATETIME()
+        WHERE Id = @Id";
+
+            using var conn = new SqlConnection(_conn);
+            await conn.ExecuteAsync(sql, new
+            {
+                Id = appointmentId,
+                Reason = reason,
+                CancelledBy = cancelledBy
+            });
+        }
+
+        public async Task RejectWithMetadataAsync(
+            int appointmentId,
+            string reason,
+            string rejectedBy)
+        {
+            const string sql = @"
+        UPDATE Appointment
+        SET Status = 'Rejected',
+            RejectionReason = @Reason,
+            CancellationReason = @Reason,
+            CancelledBy = @RejectedBy,
+            CancelledAt = SYSUTCDATETIME()
+        WHERE Id = @Id";
+
+            using var conn = new SqlConnection(_conn);
+            await conn.ExecuteAsync(sql, new
+            {
+                Id = appointmentId,
+                Reason = reason,
+                RejectedBy = rejectedBy
+            });
+        }
+
+        public async Task<bool> IsAppointmentCancellableBefore24hAsync(int appointmentId)
+        {
+            const string sql = @"
+        SELECT CASE
+            WHEN DATEADD(HOUR, -24, DATEADD(SECOND, DATEDIFF(SECOND, 0, StartTime), CAST(AppointmentDate AS DATETIME2))) > SYSDATETIME()
+            THEN 1 ELSE 0
+        END
+        FROM Appointment
+        WHERE Id = @Id";
+
+            using var conn = new SqlConnection(_conn);
+            return await conn.ExecuteScalarAsync<bool>(sql, new { Id = appointmentId });
+        }
+
+        public async Task<bool> IsDoctorValidForAppointmentAsync(int appointmentId, int doctorId)
+        {
+            const string sql = @"
+        SELECT COUNT(*)
+        FROM Appointment a
+        INNER JOIN Doctor d ON d.IdDoctor = @DoctorId
+        WHERE a.Id = @AppointmentId
+          AND d.IdClinic = a.IdClinic
+          AND d.VerificationStatus = 'Approved'
+          AND ISNULL(d.IsAvailable, 0) = 1
+          AND d.StartTime IS NOT NULL
+          AND d.EndTime IS NOT NULL
+          AND a.StartTime >= d.StartTime
+          AND a.StartTime < d.EndTime";
+
+            using var conn = new SqlConnection(_conn);
+
+            var count = await conn.ExecuteScalarAsync<int>(sql, new
+            {
+                AppointmentId = appointmentId,
+                DoctorId = doctorId
+            });
+
+            return count > 0;
+        }
     }
 }

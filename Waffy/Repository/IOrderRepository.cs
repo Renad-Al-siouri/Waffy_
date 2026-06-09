@@ -18,6 +18,9 @@ namespace Waffy.Interfaces
         /// Sets Status = 'Shipped' and stores the assigned delivery-person details.
         /// </summary>
         Task UpdateDeliveryPersonAsync(int orderId, string name, string phone);
-       
+        Task UpdateCliQVerifiedAsync(int idOrder, bool verified);
+        Task<Order?> GetByCodeAsync(string orderCode);
+        // SQL: SELECT * FROM [Order] WHERE OrderCode = @OrderCode
+
     }
 }

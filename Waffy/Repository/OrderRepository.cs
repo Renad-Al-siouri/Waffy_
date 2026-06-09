@@ -29,12 +29,14 @@ namespace Waffy.Repository
         INSERT INTO [Order]
             (IdUser, IdStore, OrderCode, Status, PaymentMethod, PaymentStatus,
              RecipientName, RecipientPhone, DeliveryAddress, DeliveryFee,
-             Notes, CreatedAt, StoreOrderNumber)
+             Notes, CreatedAt, StoreOrderNumber,
+             CliQVerificationCode, CliQVerified)
         OUTPUT INSERTED.IdOrder
         VALUES
             (@IdUser, @IdStore, @OrderCode, @Status, @PaymentMethod, @PaymentStatus,
              @RecipientName, @RecipientPhone, @DeliveryAddress, @DeliveryFee,
-             @Notes, @CreatedAt, @StoreOrderNumber)",
+             @Notes, @CreatedAt, @StoreOrderNumber,
+             @CliQVerificationCode, @CliQVerified)",
                 order);
         }
 
@@ -159,6 +161,21 @@ namespace Waffy.Repository
                 GROUP  BY u.FullName, u.Email, u.Phone
                 ORDER  BY TotalSpent DESC",
                 new { StoreId = storeId });
+        }
+
+        public async Task UpdateCliQVerifiedAsync(int idOrder, bool verified)
+        {
+            using var conn = new SqlConnection(_conn);
+            await conn.ExecuteAsync(
+                "UPDATE [Order] SET CliQVerified=@v WHERE IdOrder=@id",
+                new { v = verified, id = idOrder });
+        }
+        public async Task<Order?> GetByCodeAsync(string orderCode)
+        {
+            using var conn = new SqlConnection(_conn);
+            return await conn.QueryFirstOrDefaultAsync<Order>(
+                "SELECT * FROM [Order] WHERE OrderCode = @OrderCode",
+                new { OrderCode = orderCode });
         }
     }
 }

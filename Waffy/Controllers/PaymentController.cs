@@ -2,6 +2,7 @@
 using Waffy.Interfaces;
 using Waffy.Models;
 using Waffy.Models.ViewModels;
+using static System.Formats.Asn1.AsnWriter;
 
 namespace Waffy.Controllers
 {
@@ -16,6 +17,7 @@ namespace Waffy.Controllers
         private readonly IStoreRepository _storeRepo;
         private readonly INotificationRepository _notifRepo;
         private readonly IUserRepository _userRepo;
+        private readonly IStoreWalletRepository _storeWalletRepo;
         public PaymentController(
      IWalletRepository walletRepo,
      IDonationRepository donationRepo,
@@ -25,6 +27,7 @@ namespace Waffy.Controllers
      IOrderRepository orderRepo,
      INotificationRepository notifRepo,
      IUserRepository userRepo,
+     IStoreWalletRepository storeWalletRepo,
              IStoreRepository storeRepo)   
         {
             _walletRepo = walletRepo;
@@ -36,6 +39,7 @@ namespace Waffy.Controllers
             _storeRepo = storeRepo;
             _notifRepo = notifRepo;
             _userRepo = userRepo;
+            _storeWalletRepo = storeWalletRepo;
         }
         [HttpGet]
         // Cart action — أضف جلب الديليفري في آخره قبل return View
@@ -190,21 +194,25 @@ namespace Waffy.Controllers
             if (TempData["CheckoutError"] is string err)
                 ViewBag.Error = err;
 
+            var wallet = await _walletRepo.GetByUserIdAsync(userId.Value);
+            ViewBag.WalletBalance = wallet?.Balance ?? 0m;
             return View(vm);
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SubmitOrder(
-    int idStore,
-    string recipientName,
-    string recipientPhone,
-    string deliveryAddress,
-    string? notes,
-    string paymentMethod)
+          int idStore,
+          string recipientName,
+          string recipientPhone,
+          string deliveryAddress,
+          string? notes,
+          string paymentMethod)
         {
+            // ── 1. التحقق من تسجيل الدخول ──────────────────────────
             var userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null) return RedirectToAction("Login", "Account");
 
+            // ── 2. التحقق من الحقول المطلوبة ───────────────────────
             if (string.IsNullOrWhiteSpace(recipientName) ||
                 string.IsNullOrWhiteSpace(recipientPhone) ||
                 string.IsNullOrWhiteSpace(deliveryAddress))
@@ -213,6 +221,7 @@ namespace Waffy.Controllers
                 return RedirectToAction("Check", new { storeId = idStore });
             }
 
+            // ── 3. جلب عناصر الكارت ────────────────────────────────
             var cart = await _cartRepo.GetOrCreateCartAsync(userId.Value);
             var allItems = (await _cartRepo.GetCartItemsAsync(cart.IdCart)).ToList();
             var storeItems = allItems.Where(i => i.IdStore == idStore).ToList();
@@ -220,7 +229,23 @@ namespace Waffy.Controllers
             if (!storeItems.Any())
                 return RedirectToAction("Cart");
 
-            // ✅ تحقق من الـ Stock قبل الحفظ
+            // ── 4. جلب المتجر وسعر التوصيل ─────────────────────────
+            var store = await _storeRepo.GetByIdAsync(idStore);
+            var deliveryFee = (store?.DeliveryAvailable == true) ? (store.DeliveryFee ?? 0m) : 0m;
+            var orderTotal = storeItems.Sum(i => i.EffectivePrice * i.Quantity) + deliveryFee;
+
+            // ── 5. التحقق من رصيد المحفظة (إذا Wallet) ─────────────
+            if (paymentMethod?.ToLower() == "wallet")
+            {
+                var wallet = await _walletRepo.GetByUserIdAsync(userId.Value);
+                if (wallet == null || wallet.Balance < orderTotal)
+                {
+                    TempData["CheckoutError"] = $"Insufficient wallet balance. Your balance: {wallet?.Balance ?? 0:F3} JD, Order total: {orderTotal:F3} JD.";
+                    return RedirectToAction("Check", new { storeId = idStore });
+                }
+            }
+
+            // ── 6. التحقق من الـ Stock ──────────────────────────────
             var outOfStock = new List<string>();
             foreach (var item in storeItems)
             {
@@ -234,15 +259,17 @@ namespace Waffy.Controllers
                 TempData["CheckoutError"] =
                     $"Sorry, these items are out of stock: {string.Join(", ", outOfStock)}. " +
                     "They have been removed from your cart.";
-                // احذفهم من الكارت
                 await _cartRepo.RemoveOutOfStockItemsAsync(cart.IdCart);
                 return RedirectToAction("Check", new { storeId = idStore });
             }
 
-            // ── إنشاء الطلب ──────────────────────────────────────────
+            // ── 7. توليد كود CliQ (إذا CliQ) ───────────────────────
+            string? cliqCode = null;
+            if (paymentMethod?.ToLower() == "cliq")
+                cliqCode = Guid.NewGuid().ToString("N")[..8].ToUpper();
+
+            // ── 8. إنشاء الطلب ─────────────────────────────────────
             var orderCode = $"WAF-{DateTime.UtcNow:yyyyMMdd}-{Guid.NewGuid().ToString()[..6].ToUpper()}";
-            var store = await _storeRepo.GetByIdAsync(idStore);
-            var deliveryFee = (store?.DeliveryAvailable == true) ? (store.DeliveryFee ?? 0m) : 0m;   // ← ديناميكي
 
             var orderId = await _orderRepo.CreateAsync(new Order
             {
@@ -250,17 +277,56 @@ namespace Waffy.Controllers
                 IdStore = idStore,
                 OrderCode = orderCode,
                 Status = "Pending",
-                PaymentMethod = paymentMethod,
-                PaymentStatus = "Pending",
                 RecipientName = recipientName.Trim(),
                 RecipientPhone = recipientPhone.Trim(),
                 DeliveryAddress = deliveryAddress.Trim(),
                 DeliveryFee = deliveryFee,
                 Notes = notes?.Trim(),
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                PaymentMethod = paymentMethod,
+                PaymentStatus = paymentMethod?.ToLower() switch
+                {
+                    "wallet" => "Paid",
+                    "cliq" => "PendingCliQ",
+                    _ => "Pending"
+                },
+                CliQVerificationCode = cliqCode,
+                CliQVerified = false,
             });
 
-            // ── إضافة العناصر وخصم الـ Stock ─────────────────────────
+            // ── 9. خصم من المحفظة (إذا Wallet) ─────────────────────
+            // ── 9. خصم من محفظة اليوزر + إضافة لمحفظة المتجر (إذا Wallet) ──
+            if (paymentMethod?.ToLower() == "wallet")
+            {
+                var wallet = await _walletRepo.GetByUserIdAsync(userId.Value);
+                await _walletRepo.DeductBalanceAsync(wallet!.IdWallet, orderTotal);
+                await _walletRepo.AddTransactionAsync(new WalletTransaction
+                {
+                    IdWallet = wallet.IdWallet,
+                    TransactionCode = orderCode,
+                    Type = "Purchase",
+                    Amount = -orderTotal,
+                    PaymentMethod = "Wallet",
+                    ReferenceId = orderId,
+                    Status = "Completed",
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                // ← إضافة للمتجر
+                var storeWlt = await _storeWalletRepo.GetOrCreateAsync(idStore);
+                await _storeWalletRepo.AddBalanceAsync(storeWlt.IdStoreWallet, orderTotal);
+                await _storeWalletRepo.AddTransactionAsync(new StoreWalletTransaction
+                {
+                    IdStoreWallet = storeWlt.IdStoreWallet,
+                    Type = "WalletOrderReceived",
+                    Amount = orderTotal,
+                    Notes = $"Payment received for order #{orderCode}",
+                    RelatedOrderId = orderId,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            // ── 10. إضافة عناصر الطلب وخصم المخزون ─────────────────
             foreach (var item in storeItems)
             {
                 await _orderRepo.AddItemAsync(new OrderItem
@@ -273,11 +339,9 @@ namespace Waffy.Controllers
                     SalePrice = item.SalePrice
                 });
 
-                // ✅ خصم الكمية من المنتج
-                // بعد هذا السطر:
                 await _productRepo.DeductStockAsync(item.IdProduct, item.Quantity);
 
-                // أضف:
+                // إشعار نفاد المخزون
                 var updatedProduct = await _productRepo.GetByIdAsync(item.IdProduct);
                 if (updatedProduct != null && store != null)
                 {
@@ -312,9 +376,10 @@ namespace Waffy.Controllers
                 }
             }
 
-            // ── تفريغ عناصر هذا المتجر من الكارت ────────────────────
+            // ── 11. تفريغ الكارت ────────────────────────────────────
             await _cartRepo.ClearCartByStoreAsync(cart.IdCart, idStore);
-            // إشعار لصاحب المتجر بطلب جديد
+
+            // ── 12. إشعار صاحب المتجر ───────────────────────────────
             if (store != null)
             {
                 await _notifRepo.AddAsync(new Notification
@@ -322,7 +387,7 @@ namespace Waffy.Controllers
                     IdUser = store.OwnerUserId,
                     Type = "NewOrder",
                     Title = "🛒 New Order Received!",
-                    Message = $"Order #{orderCode} from {recipientName} — {(storeItems.Sum(i => i.EffectivePrice * i.Quantity) + deliveryFee):F3} JD",
+                    Message = $"Order #{orderCode} from {recipientName} — {orderTotal:F3} JD via {paymentMethod}",
                     IsRead = false,
                     RelatedEntityType = "Order",
                     RelatedEntityId = orderId,
@@ -330,26 +395,29 @@ namespace Waffy.Controllers
                 });
             }
 
-
+            // ── 13. TempData للـ Success page ───────────────────────
             TempData["OrderCode"] = orderCode;
             TempData["StoreName"] = storeItems.First().StoreName;
-            TempData["OrderTotal"] =
-                (storeItems.Sum(i => i.EffectivePrice * i.Quantity) + deliveryFee).ToString("F3");
+            TempData["OrderTotal"] = orderTotal.ToString("F3");
+            TempData["CliQCode"] = cliqCode;
+            TempData["CliQNumber"] = store?.CliQNumber ?? "";
+            TempData["PaymentMethod"] = paymentMethod;
 
             return RedirectToAction("OrderSuccess");
         }
-
         [HttpGet]
         public IActionResult OrderSuccess()
         {
-            if (TempData["OrderCode"] is not string code)
-                return RedirectToAction("Cart");
-
+            if (TempData["OrderCode"] is not string code) return RedirectToAction("Cart");
             ViewBag.OrderCode = code;
             ViewBag.StoreName = TempData["StoreName"];
             ViewBag.OrderTotal = TempData["OrderTotal"];
+            ViewBag.CliQCode = TempData["CliQCode"] as string;
+            ViewBag.CliQNumber = TempData["CliQNumber"] as string;
+            ViewBag.PaymentMethod = TempData["PaymentMethod"] as string;
             return View();
         }
+
         // ════════════════════════════════════════════════════
         // DONATE — GET: جلب رصيد الـ Wallet الحقيقي
         // ════════════════════════════════════════════════════
@@ -488,6 +556,33 @@ namespace Waffy.Controllers
             return RedirectToAction("Donate");
         }
 
+        [HttpPost]
+        public async Task<IActionResult> NotifyCliQSent(string orderCode)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return Json(new { success = false });
 
+            var order = await _orderRepo.GetByCodeAsync(orderCode);
+            if (order == null || order.IdUser != userId.Value)
+                return Json(new { success = false, message = "Order not found." });
+
+            var store = await _storeRepo.GetByIdAsync(order.IdStore);
+            if (store != null)
+            {
+                await _notifRepo.AddAsync(new Notification
+                {
+                    IdUser = store.OwnerUserId,
+                    Type = "CliQSent",
+                    Title = "📱 Customer Sent CliQ Payment",
+                    Message = $"Customer claims they sent CliQ payment for order #{orderCode}. " +
+                              $"Check your CliQ app for code: {order.CliQVerificationCode}",
+                    IsRead = false,
+                    RelatedEntityType = "Order",
+                    RelatedEntityId = order.IdOrder,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+            return Json(new { success = true });
+        }
     }
 }

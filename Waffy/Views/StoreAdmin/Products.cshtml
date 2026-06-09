@@ -1048,16 +1048,58 @@
         // ════════════════════════════════════════════════════════════════
         // DELETE + TOGGLE VISIBILITY
         // ════════════════════════════════════════════════════════════════
-        async function doDeleteProduct(id){
-            const p=allProducts.find(x=>x.id===id);
-            if(!p||!confirm(`Delete "${p.name}"?`)) return;
-            const fd=new FormData(); fd.append('id',id);
-            try{
-                const res=await fetch('/StoreAdmin/DeleteProduct',{method:'POST',body:fd});
-                const d=await res.json();
-                if(d.success){allProducts=allProducts.filter(x=>x.id!==id);renderProducts();showToast('🗑 Deleted');}
-                else showToast('❌ '+(d.message||'Error'));
-            }catch(e){showToast('❌ Network error');}
+                      async function doDeleteProduct(id) {
+            const p = allProducts.find(x => x.id === id);
+            if (!p) return;
+
+            if (!await showDeleteConfirm(`Are you sure you want to delete "${p.name}"?\nThis cannot be undone.`)) return;
+
+            const fd = new FormData();
+            fd.append('id', id);
+            // ← أزلنا CSRF token لأن الـ action لا يحتاجه
+
+            try {
+                const res = await fetch('/StoreAdmin/DeleteProduct', { method: 'POST', body: fd });
+
+                // تحقق إذا الـ response فيه مشكلة redirect أو HTML بدل JSON
+                const contentType = res.headers.get('content-type') || '';
+                if (!contentType.includes('application/json')) {
+                    showToast('❌ Session expired. Please refresh the page.');
+                    return;
+                }
+
+                const d = await res.json();
+                if (d.success) {
+                    allProducts = allProducts.filter(x => x.id !== id);
+                    renderProducts();
+                    showToast('🗑 Product deleted successfully!');
+                } else {
+                    showToast('❌ ' + (d.message || 'Error'));
+                }
+            } catch(e) {
+                showToast('❌ Network error: ' + e.message);
+            }
+        }
+
+        function showDeleteConfirm(msg) {
+            return new Promise(resolve => {
+                // بناء modal تأكيد مخصص
+                const div = document.createElement('div');
+                div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+                div.innerHTML = `
+                    <div style="background:#fff;border-radius:16px;padding:28px;max-width:360px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+                        <div style="font-size:2.5rem;margin-bottom:12px">🗑️</div>
+                        <div style="font-weight:900;font-size:1rem;margin-bottom:8px;color:#1a1a1a">Delete Product</div>
+                        <div style="font-size:.85rem;color:#666;margin-bottom:24px;line-height:1.5">${msg}</div>
+                        <div style="display:flex;gap:10px;justify-content:center">
+                            <button id="delCancel" style="padding:10px 22px;border:2px solid #e0e0e0;background:#fff;border-radius:10px;font-weight:700;cursor:pointer;font-size:.85rem">Cancel</button>
+                            <button id="delConfirm" style="padding:10px 22px;background:#e74c3c;border:none;color:#fff;border-radius:10px;font-weight:800;cursor:pointer;font-size:.85rem">Yes, Delete</button>
+                        </div>
+                    </div>`;
+                document.body.appendChild(div);
+                div.querySelector('#delCancel').onclick  = () => { document.body.removeChild(div); resolve(false); };
+                div.querySelector('#delConfirm').onclick = () => { document.body.removeChild(div); resolve(true); };
+            });
         }
 
         async function doToggleVisibility(id,el){

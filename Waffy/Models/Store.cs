@@ -30,9 +30,10 @@
         public int? VerifiedByAdminId { get; set; }
         public decimal? Rating { get; set; }
         public DateTime CreatedAt { get; set; }
+        public string? CliQNumber { get; set; }
 
-       
-       
-       
+
+
+
     }
 }

@@ -25,6 +25,9 @@
         // Extended — from JOIN
         public string? StoreName { get; set; }
         public int StoreOrderNumber { get; set; }
+        public string? CliQVerificationCode { get; set; }
+        public bool CliQVerified { get; set; } = false;
+
 
     }
 }

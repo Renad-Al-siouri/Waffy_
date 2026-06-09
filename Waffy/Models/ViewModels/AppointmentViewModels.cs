@@ -47,8 +47,25 @@ namespace Waffy.Models.ViewModels
         public string? ClinicCliqNumber { get; set; }
         public bool AttendanceConfirmed { get; set; }
         public bool AssignedByClinic { get; set; }
+        public int? PaymentVerifiedByAdminId { get; set; }
+        public DateTime? PaymentVerifiedAt { get; set; }
+        public string? PaymentVerificationNote { get; set; }
+
+        public int? DepositHolderWalletId { get; set; }
+
+        public DateTime? RefundedAt { get; set; }
+        public int? RefundedByAdminId { get; set; }
+
+        public string? CancelledBy { get; set; }
+        public DateTime? CancelledAt { get; set; }
+
+        public string? RejectionReason { get; set; }
+
+        public bool CanCancelBefore24Hours =>
+            AppointmentDate.Date.Add(StartTime) > DateTime.Now.AddHours(24);
+
         // في AppointmentDto أضيفي بعد DepositPayMethod:
-        
+
         // Helpers
         public string StatusCss => Status.ToLower() switch
         {
@@ -97,6 +114,8 @@ namespace Waffy.Models.ViewModels
         // أضيفي بعد: public bool ShareMedicalRecord { get; set; }
         public decimal WalletBalance { get; set; }   // رصيد المحفظة
         public string DepositPayMethod { get; set; } = ""; // "Wallet" أو "CliQ"
+
+        public string? CliqReference { get; set; }
     }
 
     // ── Pet card for booking ───────────────────────────────────────────
@@ -214,7 +233,10 @@ namespace Waffy.Models.ViewModels
         // ── Computed ─────────────────────────────────────────
         public int UpcomingCount => Appointments.Count(a =>
      a.AppointmentDate >= DateTime.Today &&
-     a.Status is "Confirmed" or "PendingDoctorApproval" or "PendingClinicApproval");
+     a.Status is "Confirmed"
+    or "PendingDoctorApproval"
+    or "PendingClinicAssignment"
+    or "PendingPaymentVerification");
         public int CompletedCount => Appointments.Count(a => a.Status == "Completed");
         public int CancelledCount => Appointments.Count(a => a.Status == "Cancelled");
     }

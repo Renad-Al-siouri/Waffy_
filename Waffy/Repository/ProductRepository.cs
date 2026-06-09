@@ -17,9 +17,39 @@ namespace Waffy.Repository
 
         public async Task<IEnumerable<Product>> GetByStoreIdAsync(int idStore)
         {
-            var sql = "SELECT * FROM Product WHERE IdStore = @IdStore ORDER BY CreatedAt DESC";
+            // التعديل: جلب المنتجات التي لم تُحذف فقط (IsVisible = 1) لكي يختفي المنتج المحذوف فوراً من الصفحة
+            var sql = "SELECT * FROM Product WHERE IdStore = @IdStore AND IsVisible = 1 ORDER BY CreatedAt DESC";
             using var connection = new SqlConnection(_connectionString);
             return await connection.QueryAsync<Product>(sql, new { IdStore = idStore });
+        }
+
+        public async Task DeleteAsync(int id)
+        {
+            using var connection = new SqlConnection(_connectionString);
+
+            // 1. حذف المنتج من عربات التسوق للمستخدمين (مغلفة بـ try لتفادي أي خطأ إملائي في اسم العمود)
+            try
+            {
+                await connection.ExecuteAsync("DELETE FROM Cart WHERE IdProduct = @Id", new { Id = id });
+            }
+            catch { }
+
+            // 2. التحقق مما إذا كان المنتج مسجل في طلبات مؤكدة ومباعة مسبقاً
+            var checkOrderSql = "SELECT COUNT(1) FROM OrderItem WHERE IdProduct = @Id";
+            int orderCount = await connection.ExecuteScalarAsync<int>(checkOrderSql, new { Id = id });
+
+            if (orderCount > 0)
+            {
+                // إذا كان له مبيعات: نقوم بإخفائه لحماية الفواتير والتقارير المالية للمتجر
+                var hideSql = "UPDATE Product SET IsVisible = 0 WHERE Id = @Id";
+                await connection.ExecuteAsync(hideSql, new { Id = id });
+            }
+            else
+            {
+                // إذا لم يشتره أحد: نقوم بحذفه نهائياً من قاعدة البيانات لتوفير المساحة
+                var deleteSql = "DELETE FROM Product WHERE Id = @Id";
+                await connection.ExecuteAsync(deleteSql, new { Id = id });
+            }
         }
 
         public async Task<Product?> GetByIdAsync(int id)
@@ -61,12 +91,6 @@ namespace Waffy.Repository
             await connection.ExecuteAsync(sql, product);
         }
 
-        public async Task DeleteAsync(int id)
-        {
-            var sql = "DELETE FROM Product WHERE Id = @Id";
-            using var connection = new SqlConnection(_connectionString);
-            await connection.ExecuteAsync(sql, new { Id = id });
-        }
 
         public async Task UpdateVisibilityAsync(int id, bool isVisible)
         {
@@ -107,6 +131,13 @@ namespace Waffy.Repository
           AND  (@CatId    IS NULL OR IdCategory = @CatId)
           AND  (@MaxPrice IS NULL OR ISNULL(SalePrice, Price) <= @MaxPrice)",
                 new { StoreId = storeId, Search = search, CatId = categoryId, MaxPrice = maxPrice });
+        }
+        public async Task RestoreStockAsync(int productId, int quantity)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(
+                "UPDATE Product SET StockQuantity = StockQuantity + @Quantity WHERE Id = @ProductId",
+                new { ProductId = productId, Quantity = quantity });
         }
     }
 }

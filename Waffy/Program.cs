@@ -75,7 +75,7 @@ builder.Services.AddScoped<IClinicImageRepository, ClinicImageRepository>();
 builder.Services.AddScoped<IDoctorRepository, DoctorRepository>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-
+builder.Services.AddScoped<IStoreWalletRepository, StoreWalletRepository>();
 
 
 builder.Services.AddHostedService<Waffy.Services.AppointmentReminderService>();

@@ -19,6 +19,8 @@ namespace Waffy.Controllers
         private readonly IComplaintRepository _complaintRepo;
         private readonly IAdoptionRepository _adoptionRepo;
         private readonly INotificationRepository _notifRepo;
+        private readonly IWalletRepository _walletRepo;
+        private readonly IStoreWalletRepository _storeWalletRepo;
         public StoreAdminController(
             IStoreRepository storeRepo,
             IProductRepository productRepo,
@@ -30,6 +32,8 @@ namespace Waffy.Controllers
             IStoreImageRepository storeImageRepo,
             IComplaintRepository complaintRepo,
             IAdoptionRepository adoptionRepo,
+             IWalletRepository walletRepo,
+             IStoreWalletRepository storeWalletRepo,
             INotificationRepository notifRepo) 
         {
             _storeRepo = storeRepo;
@@ -42,7 +46,9 @@ namespace Waffy.Controllers
             _storeImageRepo = storeImageRepo;
             _complaintRepo = complaintRepo;
             _adoptionRepo = adoptionRepo;
+            _walletRepo = walletRepo;
             _notifRepo = notifRepo;
+            _storeWalletRepo = storeWalletRepo;
         }
 
         // ══ HELPERS ═══════════════════════════════════════════════
@@ -185,6 +191,9 @@ namespace Waffy.Controllers
                 status = (o.Status ?? "pending").ToLower(),
                 deliveryPersonName = o.DeliveryPersonName ?? "",
                 deliveryPersonPhone = o.DeliveryPersonPhone ?? "",
+                paymentMethod = o.PaymentMethod ?? "",
+                cliqCode = o.CliQVerificationCode ?? "",  // ← جديد
+                cliqVerified = o.CliQVerified,
                 items = itemDetails
             };
         }
@@ -452,21 +461,33 @@ namespace Waffy.Controllers
                 })
             });
         }
-
         [HttpPost]
         public async Task<IActionResult> DeleteProduct(int id)
         {
-            if (!IsStoreOwner()) return Json(new { success = false, message = "Not authorized." });
+            if (!IsStoreOwner()) return RedirectToAction("Products");
+
             var store = await GetCurrentStore();
-            if (store == null) return Json(new { success = false });
+            if (store == null) return RedirectToAction("Products");
 
             var product = await _productRepo.GetByIdAsync(id);
             if (product == null || product.IdStore != store.IdStore)
-                return Json(new { success = false, message = "Product not found." });
+                return RedirectToAction("Products");
 
-            await _productRepo.DeleteAsync(id);
-            return Json(new { success = true });
+            try
+            {
+                // استدعاء عملية الحذف الذكية من الـ Repository
+                await _productRepo.DeleteAsync(id);
+
+                // السر هنا: إعادة التوجيه لصفحة المنتجات لتحديث الجدول برمجياً وتلقائياً فوراً
+                return RedirectToAction("Products");
+            }
+            catch
+            {
+                // في حال حدوث أي خطأ، يتم إنعاش الصفحة أيضاً لمنع الكراش
+                return RedirectToAction("Products");
+            }
         }
+
 
         [HttpPost]
         public async Task<IActionResult> ToggleVisibility(int id)
@@ -565,6 +586,7 @@ namespace Waffy.Controllers
             return View();
         }
 
+
         [HttpPost]
         public async Task<IActionResult> UpdateOrderStatus(int idOrder, string status)
         {
@@ -586,24 +608,18 @@ namespace Waffy.Controllers
                 "cancelled" => "Cancelled",
                 _ => status
             };
+
             await _orderRepo.UpdateStatusAsync(idOrder, dbStatus);
 
-            // ── إشعار للمستخدم ──────────────────────────────────
+            // ── إشعار لليوزر ──────────────────────────────────────
             var (icon, title, message) = dbStatus switch
             {
-                "Confirmed" => ("✅", "Order Confirmed",
-                                 $"Your order #{order.OrderCode} has been confirmed and is being prepared."),
-                "Preparing" => ("👨‍🍳", "Order Being Prepared",
-                                 $"Your order #{order.OrderCode} is now being prepared."),
-                "Shipped" => ("🚚", "Order Shipped",
-                                 $"Your order #{order.OrderCode} is on its way!" +
-                                 (string.IsNullOrEmpty(order.DeliveryPersonName) ? "" : $" Delivery: {order.DeliveryPersonName}.")),
-                "Delivered" => ("📦", "Order Delivered",
-                                 $"Your order #{order.OrderCode} has been delivered. Enjoy!"),
-                "Cancelled" => ("❌", "Order Cancelled",
-                                 $"Your order #{order.OrderCode} has been cancelled by the store."),
-                _ => ("🔔", "Order Updated",
-                                 $"Your order #{order.OrderCode} status updated to {dbStatus}.")
+                "Confirmed" => ("✅", "Order Confirmed", $"Your order #{order.OrderCode} has been confirmed."),
+                "Preparing" => ("👨‍🍳", "Order Being Prepared", $"Your order #{order.OrderCode} is being prepared."),
+                "Shipped" => ("🚚", "Order Shipped", $"Your order #{order.OrderCode} is on its way!"),
+                "Delivered" => ("📦", "Order Delivered", $"Your order #{order.OrderCode} has been delivered!"),
+                "Cancelled" => ("❌", "Order Cancelled", $"Your order #{order.OrderCode} has been cancelled."),
+                _ => ("🔔", "Order Updated", $"Your order #{order.OrderCode} status: {dbStatus}.")
             };
 
             await _notifRepo.AddAsync(new Notification
@@ -618,11 +634,177 @@ namespace Waffy.Controllers
                 CreatedAt = DateTime.UtcNow
             });
 
+            // ══ DELIVERED ══════════════════════════════════════════
             if (dbStatus == "Delivered")
+            {
+                // CliQ: حرّر الضمان المحجوز وأرجعه لمحفظة المتجر
+                if ((order.PaymentMethod ?? "").ToLower() == "cliq" && order.CliQVerified)
+                {
+                    var items2 = (await _orderRepo.GetItemsByOrderIdAsync(idOrder)).ToList();
+                    var total2 = items2.Sum(i => i.Quantity * (i.SalePrice ?? i.UnitPrice)) + order.DeliveryFee;
+                    var sw = await _storeWalletRepo.GetOrCreateAsync(store.IdStore);
+
+                    await _storeWalletRepo.AddBalanceAsync(sw.IdStoreWallet, total2);
+                    await _storeWalletRepo.AddTransactionAsync(new StoreWalletTransaction
+                    {
+                        IdStoreWallet = sw.IdStoreWallet,
+                        Type = "CliQReleased",
+                        Amount = total2,
+                        Notes = $"Guarantee released — order #{order.OrderCode} delivered successfully",
+                        RelatedOrderId = idOrder,
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+                // Wallet: المال موجود بالفعل في محفظة المتجر منذ الطلب → لا شيء إضافي
+
                 await CheckAndNotifyLowStockAsync(store);
+            }
+
+            // ══ CANCELLED ══════════════════════════════════════════
+            if (dbStatus == "Cancelled")
+            {
+                var items = (await _orderRepo.GetItemsByOrderIdAsync(idOrder)).ToList();
+                var total = items.Sum(i => i.Quantity * (i.SalePrice ?? i.UnitPrice)) + order.DeliveryFee;
+
+                // ── إعادة المخزون ──────────────────────────────────
+                foreach (var item in items)
+                    await _productRepo.RestoreStockAsync(item.IdProduct, item.Quantity);
+
+                var payMethod = (order.PaymentMethod ?? "").ToLower();
+                bool shouldRefund = false;
+
+                // ── Wallet: المال في محفظة المتجر → خصم منها وأرجع لليوزر
+                if (payMethod == "wallet")
+                {
+                    var storeWallet = await _storeWalletRepo.GetOrCreateAsync(store.IdStore);
+
+                    if (storeWallet.Balance >= total)
+                    {
+                        await _storeWalletRepo.DeductBalanceAsync(storeWallet.IdStoreWallet, total);
+                        await _storeWalletRepo.AddTransactionAsync(new StoreWalletTransaction
+                        {
+                            IdStoreWallet = storeWallet.IdStoreWallet,
+                            Type = "Refund",
+                            Amount = -total,
+                            Notes = $"Refund for cancelled wallet order #{order.OrderCode}",
+                            RelatedOrderId = idOrder,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                        shouldRefund = true;
+                    }
+                    else
+                    {
+                        // حالة نادرة جداً — المتجر سحب المال قبل الإلغاء
+                        await _notifRepo.AddAsync(new Notification
+                        {
+                            IdUser = store.OwnerUserId,
+                            Type = "WalletInsufficient",
+                            Title = "⚠️ Insufficient Store Wallet",
+                            Message = $"Cannot auto-refund order #{order.OrderCode} ({total:F3} JD). " +
+                                               $"Store wallet balance: {storeWallet.Balance:F3} JD. Please refund customer manually.",
+                            IsRead = false,
+                            RelatedEntityType = "Order",
+                            RelatedEntityId = idOrder,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                        await _notifRepo.AddAsync(new Notification
+                        {
+                            IdUser = order.IdUser,
+                            Type = "RefundPending",
+                            Title = "⏳ Refund Pending",
+                            Message = $"Your order #{order.OrderCode} was cancelled. The store will contact you to process your refund manually.",
+                            IsRead = false,
+                            RelatedEntityType = "Order",
+                            RelatedEntityId = idOrder,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+                // ── CliQ مؤكد: الضمان محجوز في المتجر → خصم وأرجع لليوزر
+                else if (payMethod == "cliq" && order.CliQVerified)
+                {
+                    var storeWallet = await _storeWalletRepo.GetOrCreateAsync(store.IdStore);
+
+                    if (storeWallet.Balance >= total)
+                    {
+                        await _storeWalletRepo.DeductBalanceAsync(storeWallet.IdStoreWallet, total);
+                        await _storeWalletRepo.AddTransactionAsync(new StoreWalletTransaction
+                        {
+                            IdStoreWallet = storeWallet.IdStoreWallet,
+                            Type = "Refund",
+                            Amount = -total,
+                            Notes = $"CliQ guarantee refund for cancelled order #{order.OrderCode}",
+                            RelatedOrderId = idOrder,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                        shouldRefund = true;
+                    }
+                    else
+                    {
+                        await _notifRepo.AddAsync(new Notification
+                        {
+                            IdUser = store.OwnerUserId,
+                            Type = "WalletInsufficient",
+                            Title = "⚠️ Insufficient Store Wallet",
+                            Message = $"Cannot refund order #{order.OrderCode} ({total:F3} JD). " +
+                                               $"Store wallet: {storeWallet.Balance:F3} JD. Please top up and refund customer manually.",
+                            IsRead = false,
+                            RelatedEntityType = "Order",
+                            RelatedEntityId = idOrder,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                        await _notifRepo.AddAsync(new Notification
+                        {
+                            IdUser = order.IdUser,
+                            Type = "RefundPending",
+                            Title = "⏳ Refund Pending",
+                            Message = $"Your order #{order.OrderCode} was cancelled. The store will contact you to process your CliQ refund manually.",
+                            IsRead = false,
+                            RelatedEntityType = "Order",
+                            RelatedEntityId = idOrder,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+                // ── Cash: لا دفع مسبق → لا استرداد ────────────────
+                // else: cash → do nothing
+
+                // ── أضف المبلغ لمحفظة اليوزر إذا تم الاسترداد ────
+                if (shouldRefund && total > 0)
+                {
+                    var userWallet = await _walletRepo.GetByUserIdAsync(order.IdUser);
+                    if (userWallet != null)
+                    {
+                        await _walletRepo.AddBalanceAsync(userWallet.IdWallet, total);
+                        await _walletRepo.AddTransactionAsync(new WalletTransaction
+                        {
+                            IdWallet = userWallet.IdWallet,
+                            TransactionCode = $"REFUND-{order.OrderCode}",
+                            Type = "Refund",
+                            Amount = total,
+                            PaymentMethod = "Wallet",
+                            ReferenceId = idOrder,
+                            Status = "Completed",
+                            CreatedAt = DateTime.UtcNow
+                        });
+                        await _notifRepo.AddAsync(new Notification
+                        {
+                            IdUser = order.IdUser,
+                            Type = "OrderRefund",
+                            Title = "💚 Refund Processed",
+                            Message = $"Your order #{order.OrderCode} was cancelled. {total:F3} JD has been refunded to your Waffy wallet.",
+                            IsRead = false,
+                            RelatedEntityType = "Order",
+                            RelatedEntityId = idOrder,
+                            CreatedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+            }
 
             return Json(new { success = true });
         }
+
 
         /// <summary>
         /// Sets the delivery person details and marks the order as Shipped.
@@ -854,9 +1036,10 @@ namespace Waffy.Controllers
 
         [HttpPost, ValidateAntiForgeryToken]
         public async Task<IActionResult> SettingsContact(
-            string? email, string? phone, string? whatsApp,
-            string? city, string? area, string? address,
-            double? latitude, double? longitude)
+     string? email, string? phone, string? whatsApp,
+     string? city, string? area, string? address,
+     double? latitude, double? longitude,
+     string? cliqNumber)
         {
             if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
             var store = await GetCurrentStore();
@@ -870,8 +1053,10 @@ namespace Waffy.Controllers
             store.Address = address;
             store.Latitude = latitude;
             store.Longitude = longitude;
+            store.CliQNumber = string.IsNullOrWhiteSpace(cliqNumber) ? null : cliqNumber.Trim();
 
-            await _storeRepo.UpdateAsync(store);
+            await _storeRepo.UpdateAsync(store); // ← مرة واحدة فقط
+
             TempData["Success"] = "✅ Contact information saved.";
             return RedirectToAction("SettingsContact");
         }
@@ -1249,5 +1434,143 @@ namespace Waffy.Controllers
             await _adoptionRepo.UpdateAsync(post);
             return Json(new { success = true });
         }
+
+
+        [HttpPost]
+        public async Task<IActionResult> ConfirmCliQPayment(int idOrder)
+        {
+            if (!IsStoreOwner()) return Json(new { success = false });
+            var store = await GetCurrentStore();
+            if (store == null) return Json(new { success = false });
+
+            var order = await _orderRepo.GetByIdAsync(idOrder);
+            if (order == null || order.IdStore != store.IdStore)
+                return Json(new { success = false, message = "Order not found." });
+
+            var items = (await _orderRepo.GetItemsByOrderIdAsync(idOrder)).ToList();
+            var total = items.Sum(i => i.Quantity * (i.SalePrice ?? i.UnitPrice)) + order.DeliveryFee;
+
+            // ── تحقق من رصيد محفظة المتجر ──────────────────────────
+            var storeWallet = await _storeWalletRepo.GetOrCreateAsync(store.IdStore);
+            if (storeWallet.Balance < total)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = $"Your store wallet balance ({storeWallet.Balance:F3} JD) is insufficient to guarantee this refund ({total:F3} JD). " +
+                              $"Please top up your wallet by at least {(total - storeWallet.Balance):F3} JD before confirming."
+                });
+            }
+
+            // ── خصم من محفظة المتجر كـ "ضمان" ──────────────────────
+            await _storeWalletRepo.DeductBalanceAsync(storeWallet.IdStoreWallet, total);
+            await _storeWalletRepo.AddTransactionAsync(new StoreWalletTransaction
+            {
+                IdStoreWallet = storeWallet.IdStoreWallet,
+                Type = "CliQGuarantee",
+                Amount = -total,
+                Notes = $"Guarantee held for CliQ order #{order.OrderCode}",
+                RelatedOrderId = idOrder,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            // ── تأكيد الدفع وتغيير الستاتوس ────────────────────────
+            await _orderRepo.UpdateCliQVerifiedAsync(idOrder, true);
+            await _orderRepo.UpdateStatusAsync(idOrder, "Confirmed");
+
+            // ── إشعار لليوزر ────────────────────────────────────────
+            await _notifRepo.AddAsync(new Notification
+            {
+                IdUser = order.IdUser,
+                Type = "PaymentConfirmed",
+                Title = "✅ Payment Confirmed",
+                Message = $"Your CliQ payment for order #{order.OrderCode} has been confirmed. Your order is now being processed!",
+                IsRead = false,
+                RelatedEntityType = "Order",
+                RelatedEntityId = idOrder,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            return Json(new { success = true });
+        }
+        [HttpGet]
+        public async Task<IActionResult> SettingsWallet()
+        {
+            if (!IsStoreOwner()) return RedirectToAction("Login", "Account");
+            var store = await GetCurrentStore();
+            if (store == null) return RedirectToAction("Login", "Account");
+            await SetSidebarDataAsync(store);
+
+            ViewData["Title"] = "Store Wallet";
+            ViewData["ActiveNav"] = "Settings";
+            ViewData["ActiveSettings"] = "Wallet";
+            ViewData["BreadSection"] = "Settings";
+            ViewData["BreadPage"] = "Store Wallet";
+
+            var wallet = await _storeWalletRepo.GetOrCreateAsync(store.IdStore);
+            var txs = await _storeWalletRepo.GetTransactionsAsync(wallet.IdStoreWallet);
+
+            ViewBag.Balance = wallet.Balance;
+            ViewBag.Transactions = txs;
+
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> WalletTopUp(decimal amount, string? notes)
+        {
+            if (!IsStoreOwner()) return Json(new { success = false });
+            var store = await GetCurrentStore();
+            if (store == null) return Json(new { success = false });
+
+            if (amount <= 0)
+                return Json(new { success = false, message = "Invalid amount." });
+
+            var wallet = await _storeWalletRepo.GetOrCreateAsync(store.IdStore);
+
+            await _storeWalletRepo.AddBalanceAsync(wallet.IdStoreWallet, amount);
+            await _storeWalletRepo.AddTransactionAsync(new StoreWalletTransaction
+            {
+                IdStoreWallet = wallet.IdStoreWallet,
+                Type = "TopUp",
+                Amount = amount,
+                Notes = string.IsNullOrWhiteSpace(notes) ? "Manual top-up" : notes.Trim(),
+                CreatedAt = DateTime.UtcNow
+            });
+
+            var newBalance = wallet.Balance + amount;
+            return Json(new { success = true, newBalance });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> WalletWithdraw(decimal amount, string? notes)
+        {
+            if (!IsStoreOwner()) return Json(new { success = false });
+            var store = await GetCurrentStore();
+            if (store == null) return Json(new { success = false });
+
+            if (amount <= 0)
+                return Json(new { success = false, message = "Invalid amount." });
+
+            var wallet = await _storeWalletRepo.GetOrCreateAsync(store.IdStore);
+
+            if (wallet.Balance < amount)
+                return Json(new { success = false, message = $"Insufficient balance. Available: {wallet.Balance:F3} JD" });
+
+            await _storeWalletRepo.DeductBalanceAsync(wallet.IdStoreWallet, amount);
+            await _storeWalletRepo.AddTransactionAsync(new StoreWalletTransaction
+            {
+                IdStoreWallet = wallet.IdStoreWallet,
+                Type = "Withdrawal",
+                Amount = -amount,
+                Notes = string.IsNullOrWhiteSpace(notes) ? "Manual withdrawal" : notes.Trim(),
+                CreatedAt = DateTime.UtcNow
+            });
+
+            var newBalance = wallet.Balance - amount;
+            return Json(new { success = true, newBalance });
+        }
+
+
     }
 }

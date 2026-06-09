@@ -2,6 +2,9 @@
 @{
     Layout = null;
     ViewData["Title"] = "Checkout - Waffy";
+    var walletBalance = (decimal)(ViewBag.WalletBalance ?? 0m);
+    var orderTotal = Model.Total;
+    var walletOk = walletBalance >= orderTotal;
 }
 <!DOCTYPE html>
 <html lang="en">
@@ -9,9 +12,116 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Checkout - Waffy</title>
-    <link rel="stylesheet" href="~/css/check.css?v=2" />
+    <link rel="stylesheet" href="~/css/check.css?v=3" />
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <style>
+        /* ── Payment Options ── */
+        .payment-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border: 2px solid #e8f0d8;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: .2s;
+            margin-bottom: 10px;
+            font-weight: 700;
+            font-size: .9rem;
+            background: #fafafa;
+        }
+
+            .payment-option:hover {
+                border-color: #8ab56b;
+                background: #f4f9ee;
+            }
+
+            .payment-option input[type="radio"] {
+                accent-color: #6a9b3b;
+                width: 18px;
+                height: 18px;
+                flex-shrink: 0;
+            }
+
+            .payment-option.selected {
+                border-color: #6a9b3b;
+                background: #eef6e4;
+            }
+
+        /* ── Payment Info Boxes ── */
+        .pay-info-box {
+            display: none;
+            margin-top: 14px;
+            border-radius: 14px;
+            padding: 16px;
+            animation: fadeIn .25s ease;
+        }
+
+            .pay-info-box.show {
+                display: block;
+            }
+        @@keyframes fadeIn {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(-6px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        .pay-info-cliq {
+            background: #e8f5e9;
+            border: 1.5px solid #a5d6a7;
+        }
+
+        .pay-info-wallet {
+            background: #e8f0fb;
+            border: 1.5px solid #b39ddb;
+        }
+
+            .pay-info-wallet.insufficient {
+                background: #fdecea;
+                border-color: #f5c6c2;
+            }
+
+        /* ── Wallet Balance Display ── */
+        .wallet-balance-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+            border: 1px solid #d1c4e9;
+        }
+
+        .wallet-balance-amount {
+            font-size: 1.3rem;
+            font-weight: 900;
+            font-family: 'Fredoka', sans-serif;
+        }
+
+            .wallet-balance-amount.ok {
+                color: #4527a0;
+            }
+
+            .wallet-balance-amount.low {
+                color: #c62828;
+            }
+
+        .checkout-btn:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+    </style>
 </head>
 <body>
 
@@ -53,8 +163,7 @@
                                 <a asp-controller="Home" asp-action="About" class="nav-link">About Us</a>
                             </div>
                             <div class="nav-actions">
-                                <a asp-controller="Payment" asp-action="Cart"
-                                   class="nav-icon active-cart-icon" aria-label="Cart">
+                                <a asp-controller="Payment" asp-action="Cart" class="nav-icon active-cart-icon" aria-label="Cart">
                                     <i class="fa-solid fa-cart-shopping"></i>
                                     <span id="cartCount" class="cart-badge">@Model.Items.Sum(i => i.Quantity)</span>
                                 </a>
@@ -69,9 +178,7 @@
                             <div class="mobile-nav-wrap">
                                 <button class="menu-btn" id="menuBtn" type="button" aria-label="Open menu">☰</button>
                                 <div class="nav-links" id="navLinks">
-                                    <div class="mobile-menu-logo">
-                                        <img src="../Images/logo.png" alt="Waffy Logo">
-                                    </div>
+                                    <div class="mobile-menu-logo"><img src="../Images/logo.png" alt="Waffy Logo"></div>
                                     <a asp-controller="Home" asp-action="Home_After" class="nav-link">Home</a>
                                     <a asp-controller="Clinic" asp-action="Clinics" class="nav-link">Clinics</a>
                                     <a asp-controller="Product" asp-action="Stores" class="nav-link">Stores</a>
@@ -106,20 +213,16 @@
     <main class="container checkout-page">
         <section class="hero-section fade-up">
             <h1>Checkout</h1>
-            <p>
-                Complete your order details, choose your preferred payment method,
-                and confirm your pet care essentials securely.
-            </p>
+            <p>Complete your order details, choose your preferred payment method, and confirm your order securely.</p>
         </section>
 
         @* Error *@
-        @if (TempData["CheckoutError"] is string err || ViewBag.Error is string vErr)
+        @if (ViewBag.Error is string vErr)
         {
-            var msg = TempData["CheckoutError"] as string ?? ViewBag.Error as string;
             <div style="background:#fdecea;border:1px solid #f5c6c2;border-radius:14px;
-                        padding:12px 18px;margin-bottom:16px;color:#c0392b;font-weight:700;
-                        display:flex;align-items:center;gap:10px">
-                ⚠️ @msg
+                            padding:12px 18px;margin-bottom:16px;color:#c0392b;font-weight:700;
+                            display:flex;align-items:center;gap:10px">
+                ⚠️ @vErr
             </div>
         }
 
@@ -136,19 +239,13 @@
                     <div class="checkout-card fade-up">
                         <h2>Personal Information</h2>
                         <div class="input-grid one" style="margin-bottom:12px">
-                            <input type="text"
-                                   name="recipientName"
-                                   id="fullName"
-                                   value="@Model.RecipientName"
-                                   placeholder="Your Name"
+                            <input type="text" name="recipientName" id="fullName"
+                                   value="@Model.RecipientName" placeholder="Your Name"
                                    required maxlength="100" />
                         </div>
                         <div class="input-grid two">
-                            <input type="tel"
-                                   name="recipientPhone"
-                                   id="phone"
-                                   value="@Model.RecipientPhone"
-                                   placeholder="Phone Number"
+                            <input type="tel" name="recipientPhone" id="phone"
+                                   value="@Model.RecipientPhone" placeholder="Phone Number"
                                    required maxlength="20" />
                             <div></div>
                         </div>
@@ -158,11 +255,8 @@
                     <div class="checkout-card fade-up">
                         <h2>Shipping Address</h2>
                         <div class="input-grid one">
-                            <input type="text"
-                                   name="deliveryAddress"
-                                   id="address"
-                                   value="@Model.DeliveryAddress"
-                                   placeholder="Address"
+                            <input type="text" name="deliveryAddress" id="address"
+                                   value="@Model.DeliveryAddress" placeholder="Address"
                                    required maxlength="300" />
                         </div>
                     </div>
@@ -170,48 +264,133 @@
                     <!-- Order Notes -->
                     <div class="checkout-card note-card fade-up">
                         <h2>Order Notes</h2>
-                        <textarea name="notes"
-                                  id="orderNotes"
+                        <textarea name="notes" id="orderNotes"
                                   placeholder="Add a note if needed, or leave this empty...">@Model.Notes</textarea>
                     </div>
 
-                    <!-- Payment Methods -->
+                    <!-- ════ Payment Methods ════ -->
                     <div class="checkout-card fade-up">
                         <h2>Payment Methods</h2>
-                        <div class="payment-methods">
-                            <label class="payment-option">
-                                <input type="radio" name="paymentMethod" value="Cash" checked />
-                                <span>Cash On Delivery</span>
-                            </label>
-                            <label class="payment-option">
-                                <input type="radio" name="paymentMethod" value="Card" id="radioCard" />
-                                <span>Credit or Debit Card</span>
-                            </label>
-                        </div>
 
-                        <div id="cardFields" class="card-fields hidden">
-                            <input type="text" id="cardholderName" placeholder="Cardholder Name" />
-                            <input type="text" id="cardNumber" placeholder="Card Number" />
-                            <div class="input-grid two small-two">
-                                <input type="text" id="expDate" placeholder="EXP Date" />
-                                <input type="text" id="cvc" placeholder="CVC" />
+                        <!-- Cash -->
+                        <label class="payment-option selected" id="lbl-cash">
+                            <input type="radio" name="paymentMethod" value="Cash" checked
+                                   onchange="switchPayment('Cash')" />
+                            <div>
+                                <div style="font-weight:800">💵 Cash On Delivery</div>
+                                <div style="font-size:.78rem;color:#888;font-weight:500;margin-top:2px">Pay when you receive your order</div>
+                            </div>
+                        </label>
+
+                        <!-- CliQ -->
+                        <label class="payment-option" id="lbl-cliq">
+                            <input type="radio" name="paymentMethod" value="CliQ"
+                                   onchange="switchPayment('CliQ')" />
+                            <div>
+                                <div style="font-weight:800">📱 CliQ Transfer</div>
+                                <div style="font-size:.78rem;color:#888;font-weight:500;margin-top:2px">Transfer via CliQ — verification code required</div>
+                            </div>
+                        </label>
+
+                        <!-- Wallet -->
+                        <label class="payment-option" id="lbl-wallet">
+                            <input type="radio" name="paymentMethod" value="Wallet"
+                                   onchange="switchPayment('Wallet')" />
+                            <div style="flex:1">
+                                <div style="font-weight:800;display:flex;align-items:center;gap:8px">
+                                    👛 Waffy Wallet
+                                    <span style="background:#ede7f6;color:#512da8;font-size:.72rem;
+                                           font-weight:800;padding:2px 8px;border-radius:8px">
+                                        Balance: @walletBalance.ToString("F3") JD
+                                    </span>
+                                </div>
+                                <div style="font-size:.78rem;color:#888;font-weight:500;margin-top:2px">
+                                    Instant deduction — order confirmed immediately
+                                </div>
+                            </div>
+                        </label>
+
+                        <!-- ── CliQ Info Box ── -->
+                        <div class="pay-info-box pay-info-cliq" id="infoCliQ">
+                            <div style="font-weight:800;font-size:.88rem;color:#2e7d32;margin-bottom:10px">
+                                📱 How CliQ Payment Works
+                            </div>
+                            <div style="font-size:.82rem;color:#388e3c;line-height:1.8">
+                                1️⃣ &nbsp;Place your order — you'll get a <strong>unique verification code</strong>.<br>
+                                2️⃣ &nbsp;Open your CliQ app and send the exact order amount.<br>
+                                3️⃣ &nbsp;<strong>Write the code in the transfer message/note field.</strong><br>
+                                4️⃣ &nbsp;The store checks the code in their CliQ app to verify your payment.<br>
+                                <span style="color:#c62828;font-weight:800;margin-top:6px;display:block">
+                                    ⚠️ Without the code in the message, the store cannot verify your payment and your order will not be processed.
+                                </span>
                             </div>
                         </div>
-                    </div>
-                </div>
 
+                        <!-- ── Wallet Info Box ── -->
+                        <div class="pay-info-box pay-info-wallet @(!walletOk ? "insufficient" : "")" id="infoWallet">
+                            @if (walletOk)
+                            {
+                                <div style="font-weight:800;font-size:.88rem;color:#4527a0;margin-bottom:10px">
+                                    👛 Wallet Payment
+                                </div>
+                                <div class="wallet-balance-row">
+                                    <div>
+                                        <div style="font-size:.72rem;color:#888;font-weight:700">Your Balance</div>
+                                        <div class="wallet-balance-amount ok">@walletBalance.ToString("F3") JD</div>
+                                    </div>
+                                    <div style="text-align:right">
+                                        <div style="font-size:.72rem;color:#888;font-weight:700">Order Total</div>
+                                        <div style="font-size:1rem;font-weight:900;color:#333">@orderTotal.ToString("F3") JD</div>
+                                    </div>
+                                </div>
+                                <div style="background:#ede7f6;border-radius:10px;padding:10px 12px;
+                                         font-size:.8rem;color:#4527a0;font-weight:700">
+                                    ✅ Sufficient balance. <strong>@((walletBalance - orderTotal).ToString("F3")) JD</strong> will remain after this order.
+                                    Payment will be deducted instantly when you confirm.
+                                </div>
+                            }
+                            else
+                            {
+                                <div style="font-weight:800;font-size:.88rem;color:#c62828;margin-bottom:10px">
+                                    👛 Insufficient Wallet Balance
+                                </div>
+                                <div class="wallet-balance-row">
+                                    <div>
+                                        <div style="font-size:.72rem;color:#888;font-weight:700">Your Balance</div>
+                                        <div class="wallet-balance-amount low">@walletBalance.ToString("F3") JD</div>
+                                    </div>
+                                    <div style="text-align:right">
+                                        <div style="font-size:.72rem;color:#888;font-weight:700">Order Total</div>
+                                        <div style="font-size:1rem;font-weight:900;color:#c62828">@orderTotal.ToString("F3") JD</div>
+                                    </div>
+                                </div>
+                                <div style="background:#fdecea;border-radius:10px;padding:10px 12px;
+                                         font-size:.8rem;color:#c0392b;font-weight:700;margin-bottom:10px">
+                                    ❌ You need <strong>@((orderTotal - walletBalance).ToString("F3")) JD</strong> more to pay with wallet.
+                                    Please choose Cash or CliQ instead.
+                                </div>
+                                <a asp-controller="Account" asp-action="Wallet"
+                                   style="display:inline-block;background:#6a9b3b;color:#fff;
+                                              border-radius:10px;padding:8px 16px;font-size:.8rem;
+                                              font-weight:800;text-decoration:none">
+                                    💳 Top Up Wallet
+                                </a>
+                            }
+                        </div>
+
+                    </div><!-- /payment card -->
+                </div><!-- /checkout-left -->
                 <!-- ════ RIGHT — Summary ════ -->
                 <aside class="checkout-right fade-up">
                     <div class="summary-card">
                         <h2>Order Summary</h2>
 
-                        <!-- Store badge -->
                         <div style="background:#e8f0d8;border-radius:10px;padding:8px 12px;
                                 margin-bottom:14px;font-weight:800;font-size:.82rem;color:#3a5e1f">
                             🏪 @Model.StoreName
                         </div>
 
-                        <!-- Items — من DB مباشرة -->
+                        <!-- Items -->
                         <div id="checkoutItems" class="checkout-items">
                             @foreach (var item in Model.Items)
                             {
@@ -223,11 +402,7 @@
                                         }
                                         else
                                         {
-                                            <div style="width:100%;height:100%;display:flex;
-                                                            align-items:center;justify-content:center;
-                                                            font-size:2rem">
-                                                🐾
-                                            </div>
+                                            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2rem">🐾</div>
                                         }
                                     </div>
                                     <div class="checkout-item-info">
@@ -237,9 +412,7 @@
                                         {
                                             <p style="color:#e65100;font-weight:800">
                                                 @item.SalePrice?.ToString("F3") JD
-                                                <del style="color:#bbb;font-size:.75rem;font-weight:400">
-                                                    @item.UnitPrice.ToString("F3")
-                                                </del>
+                                                <del style="color:#bbb;font-size:.75rem;font-weight:400">@item.UnitPrice.ToString("F3")</del>
                                             </p>
                                         }
                                         else
@@ -247,9 +420,7 @@
                                             <p>@item.UnitPrice.ToString("F3") JD each</p>
                                         }
                                     </div>
-                                    <div class="checkout-item-price">
-                                        @item.LineTotal.ToString("F3") JD
-                                    </div>
+                                    <div class="checkout-item-price">@item.LineTotal.ToString("F3") JD</div>
                                 </div>
                             }
                         </div>
@@ -257,15 +428,15 @@
                         <!-- Totals -->
                         <div class="summary-line">
                             <span>Subtotal</span>
-                            <strong id="summarySubtotal">@Model.Subtotal.ToString("F3") JD</strong>
+                            <strong>@Model.Subtotal.ToString("F3") JD</strong>
                         </div>
                         <div class="summary-line">
                             <span>Shipping</span>
-                            <strong id="summaryShipping">@Model.DeliveryFee.ToString("F3") JD</strong>
+                            <strong>@Model.DeliveryFee.ToString("F3") JD</strong>
                         </div>
                         <div class="summary-line total-line">
                             <span>Total</span>
-                            <strong id="summaryTotal">@Model.Total.ToString("F3") JD</strong>
+                            <strong>@Model.Total.ToString("F3") JD</strong>
                         </div>
 
                         <button id="checkoutBtn" class="checkout-btn" type="submit">
@@ -273,8 +444,7 @@
                         </button>
 
                         <a asp-controller="Payment" asp-action="Cart"
-                           style="display:block;text-align:center;margin-top:10px;
-                              font-size:.8rem;color:#8ab56b;font-weight:700">
+                           style="display:block;text-align:center;margin-top:10px;font-size:.8rem;color:#8ab56b;font-weight:700">
                             ← Back to Cart
                         </a>
                     </div>
@@ -297,41 +467,59 @@
 
     <div id="toast" class="toast"></div>
 
-    <!-- Success Modal — نفس تصميمك الأصلي -->
-    <div id="successModal" class="success-modal hidden">
-        <div class="success-overlay"></div>
-        <div class="success-card">
-            <img src="~/Images/logo.png" alt="Waffy Logo" class="success-logo" />
-            <h3>Payment Completed Successfully!</h3>
-            <p>Thank you for your order. Your checkout has been confirmed successfully.</p>
-            <a asp-controller="Payment" asp-action="Cart" class="back-cart-btn" style="display:block;text-decoration:none;text-align:center">
-                Back to Cart
-            </a>
-        </div>
-    </div>
-
-    <!-- ════════ JS — الحد الأدنى فقط ════════ -->
     <script>
-        // Card fields toggle
-        document.querySelectorAll('input[name="paymentMethod"]').forEach(r => {
-            r.addEventListener('change', () => {
-                const cf = document.getElementById('cardFields');
-                if (r.value === 'Card' && r.checked) cf.classList.remove('hidden');
-                else if (r.checked) cf.classList.add('hidden');
-            });
-        });
+        // ── بيانات من السيرفر ──
+        const WALLET_BALANCE = @walletBalance.ToString("F6");
+        const ORDER_TOTAL    = @orderTotal.ToString("F6");
+        const WALLET_OK      = @(walletOk ? "true" : "false");
 
-        // Fade up
+        // ── تبديل طريقة الدفع ──
+        function switchPayment(method) {
+            // إزالة selected من كل الخيارات
+            ['cash','cliq','wallet'].forEach(m => {
+                document.getElementById('lbl-' + m)?.classList.remove('selected');
+            });
+            // إخفاء كل info boxes
+            ['infoCliQ','infoWallet'].forEach(id => {
+                document.getElementById(id)?.classList.remove('show');
+            });
+
+            // تفعيل الخيار المختار
+            document.getElementById('lbl-' + method.toLowerCase())?.classList.add('selected');
+
+            // إظهار الـ info box المناسب
+            if (method === 'CliQ')   document.getElementById('infoCliQ')?.classList.add('show');
+            if (method === 'Wallet') document.getElementById('infoWallet')?.classList.add('show');
+
+            // تعطيل زر Checkout إذا Wallet وغير كافي
+            const btn = document.getElementById('checkoutBtn');
+            if (method === 'Wallet' && !WALLET_OK) {
+                btn.disabled = true;
+                btn.textContent = '❌ Insufficient Balance';
+            } else {
+                btn.disabled = false;
+                btn.textContent = method === 'Wallet'
+                    ? `👛 Pay ${ORDER_TOTAL.toFixed(3)} JD from Wallet`
+                    : method === 'CliQ'
+                    ? '📱 Confirm & Get CliQ Code'
+                    : 'Confirm Checkout';
+            }
+        }
+
+        // ── Fade up ──
         document.addEventListener('DOMContentLoaded', () => {
             const obs = new IntersectionObserver(entries => {
-                entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('show'); obs.unobserve(e.target); } });
-            }, { threshold: 0.15 });
+                entries.forEach(e => {
+                    if (e.isIntersecting) { e.target.classList.add('show'); obs.unobserve(e.target); }
+                });
+            }, { threshold: 0.1 });
             document.querySelectorAll('.fade-up').forEach(el => obs.observe(el));
 
             // Services dropdown
             const sd = document.getElementById('servicesDropdown');
-            document.getElementById('servicesToggle')
-                ?.addEventListener('click', e => { e.stopPropagation(); sd?.classList.toggle('open'); });
+            document.getElementById('servicesToggle')?.addEventListener('click', e => {
+                e.stopPropagation(); sd?.classList.toggle('open');
+            });
             document.addEventListener('click', () => sd?.classList.remove('open'));
 
             // Mobile menu
@@ -343,11 +531,9 @@
             });
 
             // Mobile services
-            document.getElementById('mobileServicesToggle')
-                ?.addEventListener('click', () =>
-                    document.getElementById('mobileServicesBlock')?.classList.toggle('open'));
+            document.getElementById('mobileServicesToggle')?.addEventListener('click', () =>
+                document.getElementById('mobileServicesBlock')?.classList.toggle('open'));
         });
     </script>
-
 </body>
 </html>
