@@ -170,7 +170,8 @@ namespace Waffy.Controllers
             var freeNoRewardUsed = await _lostPetRepo.GetFreeNoRewardPostsCountAsync(userId.Value);
             var wallet = await _walletRepo.GetByUserIdAsync(userId.Value);
             var walletBalance = wallet?.Balance ?? 0;
-
+            var paySettings = await _walletRepo.GetPaymentSettingsAsync();
+            ViewBag.SuperAdminCliqNumber = paySettings?.SuperAdminCliqNumber ?? "—";
             ViewBag.NeedsPayment = freePostsUsed >= 2 || freeNoRewardUsed >= 1;
             ViewBag.CanPayFromWallet = walletBalance >= 5;
             ViewBag.WalletBalance = walletBalance;

@@ -462,7 +462,8 @@
                         <div class="adoption-grid" style="margin-top:1rem">
                             <div class="form-group">
                                 <label>Date Lost</label>
-                                <input type="date" name="dateLost" />
+                                <input type="date" name="dateLost" id="dateLost"
+                                       max="@DateTime.Today.ToString("yyyy-MM-dd")" />
                             </div>
 
 
@@ -633,7 +634,13 @@
                             <label>Contact Phone <span style="color:red">*</span></label>
                             <div class="phone-wrap">
                                 <span class="phone-code">+962</span>
-                                <input type="tel" name="contactPhone" placeholder="7X XXX XXXX" required />
+                                <input type="tel" name="contactPhone" id="lostPhone"
+                                       placeholder="7X XXX XXXX" required
+                                       oninput="validateJordanPhone(this, 'lostPhoneErr')"
+                                       maxlength="14" />
+                                <div id="lostPhoneErr" style="color:#e74c3c;font-size:.78rem;font-weight:700;display:none;margin-top:4px;">
+                                    ⚠ Enter a valid number: 077, 078, or 079 followed by 7 digits
+                                </div>
                             </div>
                         </div>
                         <label class="agree-check review-agree" style="margin-top:1.2rem;display:flex;gap:.5rem;align-items:center">
@@ -793,8 +800,26 @@
                                      font-size:.9rem;color:#1a3a8f;">+962</span>
                                         <input type="tel" id="cliqPhone"
                                                placeholder="7X XXX XXXX"
+                                               maxlength="14"
+                                               oninput="validateJordanPhone(this, 'cliqPhoneErr')"
                                                style="flex:1;padding:9px 12px;border:1.5px solid #c5d0e8;
-                                      border-radius:8px;font-size:.9rem;outline:none;" />
+              border-radius:8px;font-size:.9rem;outline:none;" />
+                                    </div>
+                                    <div id="cliqPhoneErr" style="color:#e74c3c;font-size:.78rem;font-weight:700;display:none;margin-top:4px;">
+                                        ⚠ Enter a valid number: 077, 078, or 079 followed by 7 digits
+                                    </div>
+                                </div>
+                             
+                                <div style="background:#e8f4fd;border:1px solid #b3d9f5;
+    border-radius:8px;padding:10px;margin-bottom:.8rem;
+    font-size:.82rem;color:#1a3a8f;">
+                                    📲 <strong>Send payment to Waffy CliQ:</strong>
+                                    <div style="font-family:monospace;font-size:1rem;font-weight:900;
+                margin-top:4px;color:#0d2b7a;letter-spacing:.5px;">
+                                        0780000001
+                                    </div>
+                                    <div style="font-size:.74rem;color:#555;margin-top:3px;">
+                                        Please include your report code in the transfer note.
                                     </div>
                                 </div>
                                 <div style="background:#fffde7;border:1px solid #ffe082;
@@ -1144,11 +1169,27 @@
     const needsPayment = @((bool)(ViewBag.NeedsPayment ?? false) ? "true" : "false");
 
     // ── goToPayOrSubmit ──────────────────────────────────────
-    function goToPayOrSubmit() {
-    if (!document.getElementById("agreeLostTerms")?.checked) {
-    alert("Please agree to the terms before submitting.");
-    return;
-    }
+        function goToPayOrSubmit() {
+         // ✅ تحقق من رقم الهاتف أولاً
+         var phoneInput = document.getElementById('lostPhone');
+         if (phoneInput) {
+             var val = phoneInput.value.trim().replace(/[\s\-]/g, '');
+             if (val.startsWith('+962')) val = '0' + val.slice(4);
+             else if (val.startsWith('962')) val = '0' + val.slice(3);
+             else if (/^7[789]/.test(val) && val.length === 9) val = '0' + val;
+
+             if (!/^07[789]\d{7}$/.test(val)) {
+                 document.getElementById('lostPhoneErr').style.display = 'block';
+                 phoneInput.style.borderColor = '#e74c3c';
+                 phoneInput.focus();
+                 return;
+             }
+         }
+
+         if (!document.getElementById("agreeLostTerms")?.checked) {
+             alert("Please agree to the terms before submitting.");
+             return;
+         }
     const currentReward = parseFloat(
     document.querySelector('input[name="rewardAmount"]:checked')?.value ?? '0'
     );
@@ -1263,13 +1304,20 @@
     // ── submitPayment ────────────────────────────────────────
     function submitPayment() {
     const method = document.getElementById("payChoiceInput").value;
+        if (method === "cliq") {
+            const phoneInput = document.getElementById("cliqPhone");
+            const phone = phoneInput?.value.trim() ?? '';
 
-    if (method === "cliq") {
-    const phone = document.getElementById("cliqPhone")?.value.trim();
-    if (!phone || phone.length < 9) {
-    alert("Please enter a valid CliQ phone number.");
-    return;
-    }
+            var cleaned = phone.replace(/[\s\-]/g, '');
+            if (cleaned.startsWith('+962')) cleaned = '0' + cleaned.slice(4);
+            else if (cleaned.startsWith('962')) cleaned = '0' + cleaned.slice(3);
+            else if (/^7[789]/.test(cleaned) && cleaned.length === 9) cleaned = '0' + cleaned;
+
+            if (!/^07[789]\d{7}$/.test(cleaned)) {
+                document.getElementById('cliqPhoneErr').style.display = 'block';
+                if (phoneInput) { phoneInput.style.borderColor = '#e74c3c'; phoneInput.focus(); }
+                return;
+            }
     let inp = document.getElementById("cliqPhoneHidden");
     if (!inp) {
     inp = document.createElement("input");
@@ -1308,6 +1356,24 @@
     sel.appendChild(opt);
     });
     }
+
+            function validateJordanPhone(input, errId) {
+            var val = input.value.trim().replace(/[\s\-]/g, '');
+            if (val.startsWith('+962')) val = '0' + val.slice(4);
+            else if (val.startsWith('962')) val = '0' + val.slice(3);
+            else if (/^7[789]/.test(val) && val.length === 9) val = '0' + val;
+
+            var valid = /^07[789]\d{7}$/.test(val);
+            var errEl = document.getElementById(errId);
+            if (!valid && input.value.length > 0) {
+                input.style.borderColor = '#e74c3c';
+                if (errEl) errEl.style.display = 'block';
+            } else {
+                input.style.borderColor = '';
+                if (errEl) errEl.style.display = 'none';
+            }
+            return valid;
+        }
     </script>
 </body>
 </html>

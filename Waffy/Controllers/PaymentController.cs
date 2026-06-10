@@ -437,7 +437,6 @@ namespace Waffy.Controllers
             }
 
             var animals = (await _donationAnimalRepo.GetActiveAsync()).ToList();
-
             ViewBag.WalletBalance = balance;
             ViewBag.Animals = animals;
             return View();
