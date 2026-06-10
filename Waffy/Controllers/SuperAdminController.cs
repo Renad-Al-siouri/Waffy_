@@ -38,6 +38,7 @@ namespace Waffy.Controllers
         private readonly IDoctorRepository _doctorAdminRepo;
         private readonly IAppointmentRepository _apptRepo;
         private readonly IReviewRepository _reviewRepo;
+        private readonly IDonationsWalletRepository _donWalletRepo;
         public SuperAdminController(
             IUserRepository userRepo,
             IStoreRepository storeRepo,
@@ -66,6 +67,7 @@ namespace Waffy.Controllers
             IDoctorRepository doctorAdminRepo,
             IPendingPaymentRepository paymentRepo,
             IReviewRepository reviewRepo,
+            IDonationsWalletRepository donWalletRepo,
             IAppointmentRepository apptRepo)  
         {
             _userRepo = userRepo;
@@ -96,6 +98,7 @@ namespace Waffy.Controllers
             _doctorAdminRepo = doctorAdminRepo;
             _apptRepo = apptRepo;
             _reviewRepo = reviewRepo;
+            _donWalletRepo = donWalletRepo;
         }
 
         // ── Guards ───────────────────────────────────────────────
@@ -875,8 +878,56 @@ namespace Waffy.Controllers
 
             if (TempData["DonationSuccess"] != null) ViewBag.Success = TempData["DonationSuccess"];
             if (TempData["DonationError"] != null) ViewBag.Error = TempData["DonationError"];
-
+            var donWallet = await _donWalletRepo.GetAsync();
+            var donTx = await _donWalletRepo.GetTransactionsAsync();
+            ViewBag.DonationsWallet = donWallet;
+            ViewBag.DonationsTransactions = donTx;
             return View();
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        public async Task<IActionResult> DistributeDonation(
+    int animalId, decimal amount, string? note)
+        {
+            if (!IsAdmin()) return NotAdmin();
+
+            if (amount <= 0)
+            {
+                TempData["DonationError"] = "⚠️ Amount must be greater than 0.";
+                return RedirectToAction("Donations");
+            }
+
+            var donWallet = await _donWalletRepo.GetAsync();
+            if (donWallet == null)
+            {
+                TempData["DonationError"] = "⚠️ Donations wallet not found.";
+                return RedirectToAction("Donations");
+            }
+
+            if (donWallet.Balance < amount)
+            {
+                TempData["DonationError"] =
+                    $"⚠️ Insufficient balance. Available: {donWallet.Balance:F2} JOD.";
+                return RedirectToAction("Donations");
+            }
+
+            var animal = await _donationAnimalRepo.GetByIdAsync(animalId);
+            if (animal == null)
+            {
+                TempData["DonationError"] = "⚠️ Animal not found.";
+                return RedirectToAction("Donations");
+            }
+
+            await _donWalletRepo.AddDistributionAsync(
+                donWallet.IdWallet,
+                amount,
+                animalId,
+                note ?? $"Distribution to {animal.Name}"
+            );
+
+            TempData["DonationSuccess"] =
+                $"✅ {amount:F2} JOD distributed to {animal.Name} successfully!";
+            return RedirectToAction("Donations");
         }
 
         // ════════════════════════════════════════════════════════
@@ -936,7 +987,39 @@ namespace Waffy.Controllers
         public async Task<IActionResult> UpdateDonationStatus(int donationId, string status)
         {
             if (!IsAdmin()) return NotAdmin();
+
+            var donation = await _donationRepo.GetByIdAsync(donationId);
+
             await _donationRepo.UpdateStatusAsync(donationId, status);
+
+            // ✅ عند التأكيد — وجّه المبلغ للمكان الصحيح
+            if (status == "Completed"
+                && donation != null
+                && donation.DonationType == "Money"
+                && donation.Amount > 0)
+            {
+                if (donation.TargetType == "Animal" && donation.TargetId.HasValue)
+                {
+                    // حيوان معين → أضيفي لـ CollectedAmount
+                    await _donationAnimalRepo.AddCollectedAmountAsync(
+                        donation.TargetId.Value, donation.Amount.Value);
+                }
+                else
+                {
+                    // General → أضيفي للـ DonationsWallet
+                    var donWallet = await _donWalletRepo.GetAsync();
+                    if (donWallet != null)
+                    {
+                        await _donWalletRepo.AddIncomingAsync(
+                            donWallet.IdWallet,
+                            donation.Amount.Value,
+                            donationId,
+                            $"CliQ donation confirmed — General"
+                        );
+                    }
+                }
+            }
+
             TempData["DonationSuccess"] = $"✅ Donation marked as {status}.";
             return RedirectToAction("Donations");
         }
@@ -2841,11 +2924,12 @@ namespace Waffy.Controllers
             var transactions = (await _walletRepo.GetTransactionsByWalletIdAsync(wallet.IdWallet)).ToList();
 
             var totalCollected = transactions
-                .Where(t =>
-                    t.Type == "AppointmentDeposit" &&
-                    t.Amount > 0)
-                .Sum(t => t.Amount);
+     .Where(t => t.Type == "AppointmentDeposit" && t.Amount > 0)
+     .Sum(t => t.Amount);
 
+            var totalLostPetFees = transactions
+                .Where(t => t.Type == "LostPetFee" && t.Amount > 0)
+                .Sum(t => t.Amount);
             var totalReturned = transactions
                 .Where(t =>
                     (t.Type != null && t.Type.Contains("Refund")) ||
@@ -2860,6 +2944,7 @@ namespace Waffy.Controllers
                 TotalDepositsCollected = totalCollected,
                 TotalDepositsReturned = totalReturned,
                 TotalDepositsRetained = wallet.Balance,
+                TotalLostPetFees = totalLostPetFees,
                 TotalTransactions = transactions.Count
             };
 

@@ -11,6 +11,6 @@
         public decimal? GoalAmount { get; set; }
         public string Status { get; set; } = "Active";
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        public decimal CollectedAmount { get; set; } = 0; // ← جديد — محسوب من Donation
+        public decimal CollectedAmount { get; set; } 
     }
 }

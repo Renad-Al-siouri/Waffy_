@@ -303,19 +303,21 @@
                                             <div style="display:flex;justify-content:space-between;
                                                                 font-size:.72rem;font-weight:800;
                                                                 color:rgba(255,255,255,.85);margin-bottom:5px;">
-                                                <span>@a.CollectedAmount.ToString("F0") JOD raised</span>
-                                                <span>@remaining.ToString("F0") JOD left</span>
+                                                <span id="raised-text-@a.Id">@a.CollectedAmount.ToString("F0") JOD raised</span>
+                                                <span id="left-text-@a.Id">@remaining.ToString("F0") JOD left</span>
                                             </div>
                                             <div style="height:7px;background:rgba(255,255,255,.25);
                                                                 border-radius:999px;overflow:hidden;">
-                                                <div style="height:100%;width:@pct%;
-                                                                    background:#c8f060;border-radius:999px;
-                                                                    transition:width .6s ease;">
+                                                <div id="prog-fill-@a.Id"
+                                                     data-collected="@a.CollectedAmount.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                     data-goal="@a.GoalAmount.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                     style="height:100%;width:@pct%;background:#c8f060;
+                        border-radius:999px;transition:width .6s ease;">
                                                 </div>
                                             </div>
                                             <div style="text-align:right;font-size:.68rem;
                                                                 color:rgba(255,255,255,.7);font-weight:800;margin-top:3px;">
-                                                @pct% of @a.GoalAmount.Value.ToString("F0") JOD goal
+                                                <span id="pct-text-@a.Id">@pct% of @a.GoalAmount.Value.ToString("F0") JOD goal</span>
                                             </div>
                                         </div>
                                     }
@@ -681,6 +683,7 @@
                     wrap.classList.add('hidden');
                     currentAmount = parseFloat(v);
                     updateWalletDisplay(currentAmount);
+                    updateProgressPreview();
                 }
             });
         });
@@ -688,6 +691,7 @@
         document.getElementById('customAmountInput')?.addEventListener('input', function() {
             currentAmount = parseFloat(this.value) || 0;
             updateWalletDisplay(currentAmount);
+            updateProgressPreview();
         });
 
         // ✅ Payment Method
@@ -718,6 +722,7 @@
                 } else {
                     document.getElementById('hTargetType').value = 'Animal';
                     document.getElementById('hTargetId').value   = animalId;
+                    updateProgressPreview();
                 }
             });
         });
@@ -823,7 +828,8 @@
             t._timer = setTimeout(function() { t.classList.remove('show'); }, duration);
         }
 
-        updateWalletDisplay(10);
+                updateWalletDisplay(10);
+        updateProgressPreview();
 
         // ════════ Navbar & Animations ════════
         document.addEventListener('DOMContentLoaded', function() {
@@ -859,6 +865,51 @@
             var mb = document.getElementById('mobileServicesBlock');
             if (mt && mb) mt.addEventListener('click', function() { mb.classList.toggle('open'); });
         });
+                        function updateProgressPreview() {
+            // reset كل البارات والنصوص لقيمتها الأصلية
+            document.querySelectorAll('[id^="prog-fill-"]').forEach(function(bar) {
+                var collected = parseFloat(bar.dataset.collected) || 0;
+                var goal      = parseFloat(bar.dataset.goal)      || 0;
+                if (goal > 0) {
+                    var pct = Math.min(100, Math.round(collected / goal * 100));
+                    bar.style.width = pct + '%';
+                    var id = bar.id.replace('prog-fill-', '');
+                    var raisedEl = document.getElementById('raised-text-' + id);
+                    var leftEl   = document.getElementById('left-text-'   + id);
+                    var pctEl    = document.getElementById('pct-text-'    + id);
+                    if (raisedEl) raisedEl.textContent = Math.round(collected) + ' JOD raised';
+                    if (leftEl)   leftEl.textContent   = Math.round(Math.max(0, goal - collected)) + ' JOD left';
+                    if (pctEl)    pctEl.textContent    = pct + '% of ' + Math.round(goal) + ' JOD goal';
+                }
+            });
+
+            // الحيوان المختار
+            var active = document.querySelector('.animal-card.active');
+            if (!active) return;
+            var animalId = active.dataset.animalCard;
+            if (!animalId) return;
+
+            var amt = currentAmount || 0;
+            if (amt <= 0) return;
+
+            var bar = document.getElementById('prog-fill-' + animalId);
+            if (!bar) return;
+
+            var collected = parseFloat(bar.dataset.collected) || 0;
+            var goal      = parseFloat(bar.dataset.goal)      || 0;
+            if (goal <= 0) return;
+
+            var newCollected = collected + amt;
+            var newPct = Math.min(100, Math.round((newCollected / goal) * 100));
+            bar.style.width = newPct + '%';
+
+            var raisedEl = document.getElementById('raised-text-' + animalId);
+            var leftEl   = document.getElementById('left-text-'   + animalId);
+            var pctEl    = document.getElementById('pct-text-'    + animalId);
+            if (raisedEl) raisedEl.textContent = Math.round(newCollected) + ' JOD raised';
+            if (leftEl)   leftEl.textContent   = Math.round(Math.max(0, goal - newCollected)) + ' JOD left';
+            if (pctEl)    pctEl.textContent    = newPct + '% of ' + Math.round(goal) + ' JOD goal';
+        }
     </script>
          
 </body>

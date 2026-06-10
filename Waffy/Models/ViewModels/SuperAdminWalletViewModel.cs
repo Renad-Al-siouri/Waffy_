@@ -17,5 +17,7 @@ namespace Waffy.Models.ViewModels
         public decimal TotalDepositsRetained { get; set; }
 
         public int TotalTransactions { get; set; }
+
+        public decimal TotalLostPetFees { get; set; }
     }
 }

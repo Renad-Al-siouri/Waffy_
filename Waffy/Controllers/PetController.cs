@@ -748,6 +748,21 @@ namespace Waffy.Controllers
                 });
                 paidByWallet = true;
                 walletBal -= requiredAmount;
+                var adminWallet = await _walletRepo.GetSuperAdminWalletAsync();
+                if (adminWallet != null)
+                {
+                    await _walletRepo.AddBalanceAsync(adminWallet.IdWallet, requiredAmount);
+                    await _walletRepo.AddTransactionAsync(new WalletTransaction
+                    {
+                        IdWallet = adminWallet.IdWallet,
+                        TransactionCode = $"FEE-{Guid.NewGuid().ToString()[..8].ToUpper()}",
+                        Type = "LostPetFee",
+                        Amount = requiredAmount,
+                        PaymentMethod = "UserWallet",
+                        Status = "Completed",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
             }
 
             // ── 4. حجز المكافأة ──────────────────────────────────────

@@ -491,7 +491,7 @@
         <div class="alert-bad">@ViewBag.Error</div>
     }
 
-    <section class="wallet-grid">
+    <section class="wallet-grid" style="grid-template-columns:repeat(5,minmax(0,1fr));">
         <div class="wallet-kpi">
             <div class="wallet-kpi-top">
                 <div class="ico">💳</div>
@@ -518,7 +518,14 @@
             <div class="val">@Model.TotalDepositsRetained.ToString("F2") JOD</div>
             <div class="lbl">Current Retained Balance</div>
         </div>
-
+        <div class="wallet-kpi">
+            <div class="wallet-kpi-top">
+                <div class="ico">🐾</div>
+                <div class="tag">IN</div>
+            </div>
+            <div class="val">@Model.TotalLostPetFees.ToString("F2") JOD</div>
+            <div class="lbl">Lost Pet Fees</div>
+        </div>
         <div class="wallet-kpi">
             <div class="wallet-kpi-top">
                 <div class="ico">🧾</div>

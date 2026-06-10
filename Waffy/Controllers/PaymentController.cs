@@ -18,6 +18,7 @@ namespace Waffy.Controllers
         private readonly INotificationRepository _notifRepo;
         private readonly IUserRepository _userRepo;
         private readonly IStoreWalletRepository _storeWalletRepo;
+        private readonly IDonationsWalletRepository _donWalletRepo;
         public PaymentController(
      IWalletRepository walletRepo,
      IDonationRepository donationRepo,
@@ -28,6 +29,7 @@ namespace Waffy.Controllers
      INotificationRepository notifRepo,
      IUserRepository userRepo,
      IStoreWalletRepository storeWalletRepo,
+     IDonationsWalletRepository donWalletRepo,
              IStoreRepository storeRepo)   
         {
             _walletRepo = walletRepo;
@@ -40,6 +42,7 @@ namespace Waffy.Controllers
             _notifRepo = notifRepo;
             _userRepo = userRepo;
             _storeWalletRepo = storeWalletRepo;
+            _donWalletRepo = donWalletRepo;
         }
         [HttpGet]
         // Cart action — أضف جلب الديليفري في آخره قبل return View
@@ -506,6 +509,26 @@ namespace Waffy.Controllers
                         Status = "Completed",
                         CreatedAt = DateTime.UtcNow
                     });
+                    if (targetType == "Animal" && targetId.HasValue)
+                    {
+                        // ✅ حيوان معين → يضاف مباشرة لـ CollectedAmount
+                        await _donationAnimalRepo.AddCollectedAmountAsync(
+                            targetId.Value, amount.Value);
+                    }
+                    else
+                    {
+                        // ✅ General → يضاف للـ DonationsWallet للتوزيع لاحقاً
+                        var donWallet = await _donWalletRepo.GetAsync();
+                        if (donWallet != null)
+                        {
+                            await _donWalletRepo.AddIncomingAsync(
+                                donWallet.IdWallet,
+                                amount.Value,
+                                donationId,
+                                $"General donation — Ref: {refCode}"
+                            );
+                        }
+                    }
 
                     TempData["DonateSuccess"] =
                         $"💚 Thank you! {amount:F2} JOD donated via Wallet. Reference: {refCode}";

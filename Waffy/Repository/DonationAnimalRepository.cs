@@ -17,15 +17,7 @@ namespace Waffy.Repository
 
         public async Task<IEnumerable<DonationAnimal>> GetAllAsync()
         {
-            const string sql = @"
-                SELECT da.*,
-                       ISNULL((SELECT SUM(d.Amount)
-                                FROM Donation d
-                                WHERE d.TargetId   = da.Id
-                                AND   d.TargetType = 'Animal'
-                                AND   d.Status     = 'Completed'), 0) AS CollectedAmount
-                FROM DonationAnimal da
-                ORDER BY da.CreatedAt DESC";
+            const string sql = "SELECT * FROM DonationAnimal ORDER BY CreatedAt DESC";
 
             using var conn = new SqlConnection(_connectionString);
             return await conn.QueryAsync<DonationAnimal>(sql);
@@ -33,16 +25,7 @@ namespace Waffy.Repository
 
         public async Task<IEnumerable<DonationAnimal>> GetActiveAsync()
         {
-            const string sql = @"
-                SELECT da.*,
-                       ISNULL((SELECT SUM(d.Amount)
-                                FROM Donation d
-                                WHERE d.TargetId   = da.Id
-                                AND   d.TargetType = 'Animal'
-                                AND   d.Status     = 'Completed'), 0) AS CollectedAmount
-                FROM DonationAnimal da
-                WHERE da.Status = 'Active'
-                ORDER BY da.CreatedAt DESC";
+            const string sql = "SELECT * FROM DonationAnimal WHERE Status = 'Active' ORDER BY CreatedAt DESC";
 
             using var conn = new SqlConnection(_connectionString);
             return await conn.QueryAsync<DonationAnimal>(sql);
@@ -91,5 +74,24 @@ namespace Waffy.Repository
             using var conn = new SqlConnection(_connectionString);
             await conn.ExecuteAsync(sql, new { Id = id });
         }
+        public async Task<DonationAnimal?> GetByIdAsync(int id)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryFirstOrDefaultAsync<DonationAnimal>(
+                "SELECT * FROM DonationAnimal WHERE Id = @Id",
+                new { Id = id });
+        }
+
+        public async Task AddCollectedAmountAsync(int animalId, decimal amount)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            await conn.ExecuteAsync(@"
+        UPDATE DonationAnimal
+        SET CollectedAmount = CollectedAmount + @Amount
+        WHERE Id = @AnimalId",
+                new { Amount = amount, AnimalId = animalId });
+        }
+
+
     }
 }

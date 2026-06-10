@@ -223,6 +223,9 @@
                 🐾 Donation Animals
                 <span class="tab-count">@activeAnimals active</span>
             </button>
+            <button class="tab-btn" type="button" onclick="switchTab(this,'wallet')">
+                💰 Donations Wallet
+            </button>
         </div>
 
         @* ══ TAB: Donations Log ══ *@
@@ -526,7 +529,12 @@
                                         @if (a.GoalAmount.HasValue)
                                         {
                                             <div class="prog-wrap">
-                                                <div class="prog-fill" style="width:@pct%"></div>
+                                                <div class="prog-fill"
+                                                     id="prog-fill-@a.Id"
+                                                     data-collected="@a.CollectedAmount.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                     data-goal="@(a.GoalAmount.HasValue? a.GoalAmount.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "0")"
+                                                     style="width:@pct%">
+                                                </div>
                                             </div>
                                             <div style="display:flex;justify-content:space-between;font-size:.72rem;font-weight:800;">
                                                 <span style="color:var(--brand-dark);">
@@ -600,7 +608,147 @@
                 </div>
             </div>
         </div>
+        @* ══ TAB: Donations Wallet ══ *@
+        <div id="pane-wallet" style="display:none;">
+            @{
+                var donWallet = ViewBag.DonationsWallet as Waffy.Models.DonationsWallet;
+                var donTx = ViewBag.DonationsTransactions
+                as List<Waffy.Models.DonationsWalletTransaction>
+                ?? new List<Waffy.Models.DonationsWalletTransaction>();
+            }
 
+            @* KPIs *@
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);
+                gap:14px;margin-bottom:16px;">
+                <div class="kpi-card c1">
+                    <div class="kpi-ico green">🏦</div>
+                    <div class="kpi-val">@(donWallet?.Balance.ToString("F2") ?? "0.00")</div>
+                    <div class="kpi-label">Current Balance (JOD)</div>
+                </div>
+                <div class="kpi-card c2">
+                    <div class="kpi-ico green">💰</div>
+                    <div class="kpi-val">@(donWallet?.TotalReceived.ToString("F2") ?? "0.00")</div>
+                    <div class="kpi-label">Total Received (JOD)</div>
+                </div>
+                <div class="kpi-card c3">
+                    <div class="kpi-ico yellow">🎁</div>
+                    <div class="kpi-val">@(donWallet?.TotalDistributed.ToString("F2") ?? "0.00")</div>
+                    <div class="kpi-label">Total Distributed (JOD)</div>
+                </div>
+            </div>
+
+            @* Distribute Form *@
+            <div class="table-card" style="margin-bottom:16px;">
+                <div class="table-head-bar">
+                    <div class="table-head-title">💸 Distribute to Animal</div>
+                </div>
+                <div style="padding:16px;">
+                    <form method="post"
+                          asp-controller="SuperAdmin"
+                          asp-action="DistributeDonation"
+                          style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+                        @Html.AntiForgeryToken()
+                        <div style="display:flex;flex-direction:column;gap:4px;flex:1;min-width:160px;">
+                            <label style="font-size:.76rem;font-weight:900;color:var(--brand-dark);">Animal</label>
+                            <select name="animalId" id="distributeAnimalSelect"
+                                    onchange="updateAdminProgress()"
+                                    style="height:42px;border:1.5px solid var(--border);
+                                   border-radius:10px;background:#fff;padding:0 10px;
+                                   font-size:.84rem;font-family:'Nunito',sans-serif;
+                                   font-weight:700;outline:none;">
+                                @foreach (var a in animals.Where(x => x.Status == "Active"))
+                                {
+                                    <option value="@a.Id">
+                                        @a.Name — Collected: @a.CollectedAmount.ToString("F2") JOD
+                                        @(a.GoalAmount.HasValue ? $" / Goal: {a.GoalAmount:F2} JOD" : "")
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:4px;min-width:130px;">
+                            <label style="font-size:.76rem;font-weight:900;color:var(--brand-dark);">Amount (JOD)</label>
+                            <input type="number" name="amount" id="distributeAmount"
+                                   oninput="updateAdminProgress()"
+                                   placeholder="0.00"
+                                   style="height:42px;border:1.5px solid var(--border);
+                                  border-radius:10px;background:#fff;padding:0 12px;
+                                  font-size:.84rem;font-family:'Nunito',sans-serif;
+                                  font-weight:700;outline:none;" required />
+                        </div>
+                        <div style="display:flex;flex-direction:column;gap:4px;flex:2;min-width:180px;">
+                            <label style="font-size:.76rem;font-weight:900;color:var(--brand-dark);">Note (optional)</label>
+                            <input type="text" name="note" placeholder="e.g. Food and medicine..."
+                                   style="height:42px;border:1.5px solid var(--border);
+                                  border-radius:10px;background:#fff;padding:0 12px;
+                                  font-size:.84rem;font-family:'Nunito',sans-serif;
+                                  font-weight:700;outline:none;" />
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-sm"
+                                style="height:42px;white-space:nowrap;"
+                                onclick="return confirm('Distribute this amount?')">
+                            💸 Distribute
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            @* Transactions Table *@
+            <div class="table-card">
+                <div class="table-head-bar">
+                    <div class="table-head-title">📋 Wallet Transactions</div>
+                    <span class="table-count">@donTx.Count transactions</span>
+                </div>
+                @if (!donTx.Any())
+                {
+                    <div style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">
+                        📭 No transactions yet.
+                    </div>
+                }
+                else
+                {
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>From / To</th>
+                                    <th>Note</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var tx in donTx)
+                                {
+                                    var isIn = tx.Type == "Incoming";
+                                    <tr>
+                                        <td>
+                                            <span class="badge @(isIn ? "badge-success" : "badge-warning")">
+                                                @(isIn ? "💰 Incoming" : "🎁 Distribution")
+                                            </span>
+                                        </td>
+                                        <td style="font-weight:900;
+                                                   color:@(isIn ? "var(--success)" : "#9b6000")">
+                                            @(isIn ? "+" : "-")@tx.Amount.ToString("F2") JOD
+                                        </td>
+                                        <td style="font-size:.82rem;">
+                                            @(isIn ? $"👤 {tx.DonorName ?? "Anonymous"}"
+                                                                                : $"🐾 {tx.AnimalName ?? "—"}")
+                                </td>
+                                <td style="font-size:.78rem;color:var(--text-muted);">
+                                    @(tx.Note ?? "—")
+                                </td>
+                                <td style="font-size:.78rem;color:var(--text-muted);">
+                                    @tx.CreatedAt.ToString("dd MMM yyyy")
+                                </td>
+                            </tr>
+                                                        }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        </div>
     </div>
 </main>
 
@@ -619,13 +767,14 @@
         setPageInfo('Donations', 'Super Admin Panel', 'Reports', 'Donations');
 
         // ══ Tab Switching ══
-        function switchTab(btn, tab) {
+             function switchTab(btn, tab) {
             document.querySelectorAll('.tabs-bar .tab-btn').forEach(function(b) {
                 b.classList.remove('active');
             });
             btn.classList.add('active');
             document.getElementById('pane-donations').style.display = tab === 'donations' ? 'block' : 'none';
             document.getElementById('pane-animals').style.display   = tab === 'animals'   ? 'block' : 'none';
+            document.getElementById('pane-wallet').style.display    = tab === 'wallet'    ? 'block' : 'none';
         }
 
         // ══ Add Animal Form Toggle ══
@@ -701,5 +850,29 @@
                 document.getElementById('addAnimalSection').style.display = 'none';
             }
         });
+
+                function updateAdminProgress() {
+            // reset كل البارات
+            document.querySelectorAll('[id^="prog-fill-"]').forEach(function(bar) {
+                var collected = parseFloat(bar.dataset.collected) || 0;
+                var goal      = parseFloat(bar.dataset.goal)      || 0;
+                if (goal > 0)
+                    bar.style.width = Math.min(100, Math.round(collected / goal * 100)) + '%';
+            });
+
+            var animalId = document.getElementById('distributeAnimalSelect')?.value;
+            var amt      = parseFloat(document.getElementById('distributeAmount')?.value) || 0;
+            if (!animalId || amt <= 0) return;
+
+            var bar = document.getElementById('prog-fill-' + animalId);
+            if (!bar) return;
+
+            var collected = parseFloat(bar.dataset.collected) || 0;
+            var goal      = parseFloat(bar.dataset.goal)      || 0;
+            if (goal <= 0) return;
+
+            var newPct = Math.min(100, Math.round(((collected + amt) / goal) * 100));
+            bar.style.width = newPct + '%';
+        }
     </script>
 }

@@ -96,6 +96,14 @@ namespace Waffy.Repository
             return await conn.QueryAsync<Donation>(sql);
         }
 
+
+        public async Task<Donation?> GetByIdAsync(int id)
+        {
+            using var conn = new SqlConnection(_connectionString);
+            return await conn.QueryFirstOrDefaultAsync<Donation>(
+                "SELECT * FROM Donation WHERE Id = @Id",
+                new { Id = id });
+        }
     }
 
 }

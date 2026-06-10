@@ -77,6 +77,8 @@ builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
 builder.Services.AddScoped<IStoreWalletRepository, StoreWalletRepository>();
 
+builder.Services.AddScoped<IDonationsWalletRepository, DonationsWalletRepository>();
+
 
 builder.Services.AddHostedService<Waffy.Services.AppointmentReminderService>();
 builder.Services.AddDistributedMemoryCache();
