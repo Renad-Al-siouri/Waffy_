@@ -175,6 +175,45 @@ namespace Waffy.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Professional_Information(
+     string Specialization,
+     string? SecondarySpec,
+     int? ExperienceYears,
+     string? Languages,
+     string? Qualification,
+     string? Certifications)
+        {
+            var auth = RequireDoctorAuth();
+            if (auth != null) return auth;
+
+            var userId = GetUserId();
+
+            // ── Debug: تأكدي من القيمة ──
+            if (userId == 0)
+            {
+                TempData["SaveError"] = "Session expired. Please log in again.";
+                return RedirectToAction("Professional_Information");
+            }
+
+            await _doctorRepo.UpdateProfessionalInfoAsync(
+                 GetDoctorId(),
+                new Doctor
+                {
+                    Specialization = Specialization,
+                    SecondarySpec = SecondarySpec,
+                    ExperienceYears = ExperienceYears,
+                    Languages = Languages,
+                    Qualification = Qualification,
+                    Certifications = Certifications
+                });
+
+           
+            TempData["SaveSuccess"] = $"DEBUG: userId = {GetUserId()}, doctorId = {GetDoctorId()}";
+            return RedirectToAction("Professional_Information");
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UploadCertification(IFormFile certFile)
         {
             var auth = RequireDoctorAuth();
@@ -785,26 +824,7 @@ namespace Waffy.Controllers
         }
 
         // ── 3. حفظ ملاحظات الطبيب على الموعد ────────────────────────────
-       [HttpPost]
-[IgnoreAntiforgeryToken]
-public async Task<IActionResult> SaveDoctorNotes(
-            int appointmentId,
-            string? diagnosis,
-            string? treatment,
-            string? prescription)
-        {
-            var auth = RequireDoctorAuth();
-            if (auth != null) return Unauthorized();
 
-            var note = new System.Text.StringBuilder();
-            if (!string.IsNullOrEmpty(diagnosis)) note.AppendLine($"🩺 Diagnosis: {diagnosis}");
-            if (!string.IsNullOrEmpty(treatment)) note.AppendLine($"💊 Treatment: {treatment}");
-            if (!string.IsNullOrEmpty(prescription)) note.AppendLine($"📋 Prescription: {prescription}");
-
-            await _apptRepo.UpdateMedicalNoteAsync(appointmentId, note.ToString().Trim());
-
-            return Json(new { success = true });
-        }
 
         // ══════════════════════════════════════════════════════════════════════
         // ملف: DoctorAdminController.cs  → أضيفي في نهاية الـ class

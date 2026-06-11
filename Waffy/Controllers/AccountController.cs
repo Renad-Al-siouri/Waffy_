@@ -785,6 +785,46 @@ namespace Waffy.Controllers
                 })
             );
         }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(5_242_880)]
+        public async Task<IActionResult> UploadProfileImage(IFormFile? profileImage)
+        {
+            var userId = HttpContext.Session.GetInt32("UserId");
+            if (userId == null) return RedirectToAction("Login");
+
+            if (profileImage == null || profileImage.Length == 0)
+            {
+                TempData["ProfileError"] = "Please select an image.";
+                return RedirectToAction("Profile");
+            }
+
+            var ext = Path.GetExtension(profileImage.FileName).ToLowerInvariant();
+            if (!new[] { ".jpg", ".jpeg", ".png", ".webp" }.Contains(ext))
+            {
+                TempData["ProfileError"] = "Only JPG, PNG, WEBP images are allowed.";
+                return RedirectToAction("Profile");
+            }
+
+            try
+            {
+                var user = await _userRepository.GetByIdAsync(userId.Value);
+                if (user == null) return RedirectToAction("Login");
+
+                var url = await SaveFileAsync(profileImage, "profile");
+                user.ProfileImage = url;
+                await _userRepository.UpdateAsync(user);
+
+                TempData["ProfileSuccess"] = "Profile photo updated! ✅";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[UploadProfileImage] ❌ {ex.Message}");
+                TempData["ProfileError"] = "Failed to update photo.";
+            }
+
+            return RedirectToAction("Profile");
+        }
 
         // ══════════════════════════════════════════════════════════
         // FORGOT PASSWORD / OTP / RESET
@@ -795,6 +835,7 @@ namespace Waffy.Controllers
             var userId = HttpContext.Session.GetInt32("UserId");
             return Json(new { loggedIn = userId != null });
         }
+
 
         [HttpGet] public IActionResult ForgotPass() => View();
         [HttpGet] public IActionResult OTP() => View();

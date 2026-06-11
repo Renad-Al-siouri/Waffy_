@@ -4,6 +4,8 @@ namespace Waffy.Models.ViewModels
     public class UserDetailViewModel
     {
         public UserAdminDto User { get; set; } = null!;
+       
+       
 
         // ── Lists — تُملأ من الـ repos ──────────────────
         public List<Pet> Pets { get; set; } = new();
@@ -21,6 +23,7 @@ namespace Waffy.Models.ViewModels
         // ── Counts — Mini Stats ──────────────────────────
         public int PetsCount { get; set; }
         public int AppointmentsCount { get; set; }
+        public List<AppointmentDto> Appointments { get; set; } = new();
         public int OrdersCount { get; set; }
         public int LostReportsCount { get; set; }
         public int AdoptionCount { get; set; }

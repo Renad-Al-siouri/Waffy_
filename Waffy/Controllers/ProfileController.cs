@@ -124,13 +124,16 @@ namespace Waffy.Controllers
         // =========================
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequestSizeLimit(5_242_880)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 5_242_880)]
         public async Task<IActionResult> Edit_Profile(
-            string fullName,
-            string email,
-            string? dateOfBirth,
-            string? gender,
-            string? bio,
-            IFormFile? avatarFile)
+     string fullName,
+     string email,
+     string? dateOfBirth,
+     string? gender,
+     string? bio,
+     bool removeAvatar = false)
+        // ✅ حذفنا IFormFile — نقرأ الصورة من Request مباشرة
         {
             var userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null) return RedirectToAction("Login", "Account");
@@ -138,36 +141,69 @@ namespace Waffy.Controllers
             var user = await _userRepository.GetByIdAsync(userId.Value);
             if (user == null) return RedirectToAction("Login", "Account");
 
-            // التحقق من الإيميل إذا تغيّر
+            // التحقق من الإيميل
             if (user.Email != email)
             {
                 var existing = await _userRepository.GetByEmailAsync(email);
                 if (existing != null)
                 {
                     TempData["ProfileError"] = "This email is already in use.";
-                    return View(user);
+                    return RedirectToAction("Edit_Profile");
                 }
             }
 
-            // رفع الصورة إذا وُجدت
-            if (avatarFile != null && avatarFile.Length > 0)
+            // ✅ حذف الصورة
+            if (removeAvatar)
             {
-                var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
-                Directory.CreateDirectory(folder);
-                var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(avatarFile.FileName)}";
-                using var stream = new FileStream(Path.Combine(folder, fileName), FileMode.Create);
-                await avatarFile.CopyToAsync(stream);
-                user.ProfileImage = $"/uploads/avatars/{fileName}";
+                user.ProfileImage = null;
+            }
+            else
+            {
+                // ✅ قراءة الصورة مباشرة من Request.Form.Files
+                var avatarFile = Request.Form.Files.GetFile("avatarFile");
+                Console.WriteLine($"[Edit_Profile] avatarFile: {avatarFile?.FileName ?? "null"}, size: {avatarFile?.Length ?? 0}");
+
+                if (avatarFile != null && avatarFile.Length > 0)
+                {
+                    var ext = Path.GetExtension(avatarFile.FileName).ToLowerInvariant();
+                    if (!new[] { ".jpg", ".jpeg", ".png", ".webp" }.Contains(ext))
+                    {
+                        TempData["ProfileError"] = "Only JPG, PNG, WEBP images are allowed.";
+                        return RedirectToAction("Edit_Profile");
+                    }
+
+                    try
+                    {
+                        var folder = Path.Combine(
+                            Directory.GetCurrentDirectory(), "wwwroot", "uploads", "avatars");
+                        Directory.CreateDirectory(folder);
+                        var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(avatarFile.FileName)}";
+
+                        await using var stream =
+                            new FileStream(Path.Combine(folder, fileName), FileMode.Create);
+                        await avatarFile.CopyToAsync(stream);
+
+                        user.ProfileImage = $"/uploads/avatars/{fileName}";
+                        Console.WriteLine($"[Edit_Profile] ✅ Saved: {user.ProfileImage}");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"[Edit_Profile] ❌ {ex.Message}");
+                        TempData["ProfileError"] = "Failed to upload photo.";
+                        return RedirectToAction("Edit_Profile");
+                    }
+                }
             }
 
             user.FullName = fullName;
             user.Email = email;
             user.Gender = gender;
             user.Bio = bio;
+            user.BirthDate = DateTime.TryParse(dateOfBirth, out var bd) ? bd : user.BirthDate;
 
             await _userRepository.UpdateAsync(user);
 
-            TempData["ProfileSuccess"] = "Profile updated successfully!";
+            TempData["ProfileSuccess"] = "Profile updated successfully! ✅";
             return RedirectToAction("Edit_Profile");
         }
 

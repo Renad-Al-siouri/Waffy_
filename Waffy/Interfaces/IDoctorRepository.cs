@@ -28,7 +28,7 @@ namespace Waffy.Interfaces
         Task<DoctorFullDto?> GetFullInfoByDoctorIdAsync(int idDoctor);
         Task UpdateDocumentStatusAsync(int docId, string status);
 
-
+      
 
     }
 }

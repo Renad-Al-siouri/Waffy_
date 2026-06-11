@@ -253,14 +253,39 @@
 
             <section class="profile-card">
                 <div class="profile-top">
-                    <div class="avatar-wrap">
-                        <div class="avatar">
-                            @if (!string.IsNullOrEmpty(Model.User.ProfileImage))
-                            { <img src="@Model.User.ProfileImage" alt="Profile" /> }
-                            else
-                            { <span>👤</span> }
-                        </div>
-                    </div>
+                 <div class="avatar-wrap">
+    <div class="avatar">
+        @if (!string.IsNullOrEmpty(Model.User.ProfileImage))
+        { <img src="@Model.User.ProfileImage" alt="Profile" /> }
+        else
+        { <span>👤</span> }
+    </div>
+
+    @* رسائل النجاح والخطأ *@
+    @if (TempData["ProfileSuccess"] != null)
+    { <div style="color:#2d7a2d;font-size:.72rem;font-weight:800;text-align:center;margin-top:.3rem">@TempData["ProfileSuccess"]</div> }
+    @if (TempData["ProfileError"] != null)
+    { <div style="color:#c0392b;font-size:.72rem;font-weight:800;text-align:center;margin-top:.3rem">@TempData["ProfileError"]</div> }
+
+    @* ✅ Form رفع الصورة — عند الاختيار يُرسل تلقائياً *@
+    <form method="post"
+          asp-controller="Account"
+          asp-action="UploadProfileImage"
+          enctype="multipart/form-data"
+          style="text-align:center;margin-top:.5rem">
+        @Html.AntiForgeryToken()
+        <label style="cursor:pointer;background:#5a8f38;color:#fff;
+                      padding:5px 16px;border-radius:999px;
+                      font-size:.72rem;font-weight:800;
+                      font-family:'Nunito',sans-serif;display:inline-block">
+            📷 Change Photo
+            <input type="file" name="profileImage"
+                   accept="image/jpeg,image/png,image/webp"
+                   style="display:none"
+                   onchange="this.form.submit()" />
+        </label>
+    </form>
+</div>
                     <div class="profile-info">
                         <h1>@Model.User.FullName</h1>
                         <div class="meta-line"><span>♀ @Model.User.Gender</span></div>

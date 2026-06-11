@@ -194,7 +194,7 @@
                         </div>
                     </div>
                 </div>
-
+                <input type="hidden" name="removeAvatar" id="removeAvatarInput" value="false" />
                 <div style="display:flex;justify-content:flex-end;margin-top:1rem;">
                     <button type="submit" class="btn btn-primary">
                         <i class="fa-solid fa-floppy-disk"></i> Save Changes
@@ -297,9 +297,12 @@
 
         function syncName()  { document.getElementById("sidebarName").textContent  = document.getElementById("f-name").value; }
         function syncEmail() { document.getElementById("sidebarEmail").textContent = document.getElementById("f-email").value; }
-        function resetAvatar() {
+             function resetAvatar() {
             document.getElementById("bigAvatar").innerHTML = "<span>&#128100;</span>";
-            document.getElementById("sidebarAvatar").innerHTML = "<span>&#128100;</span>";
+            const sb = document.getElementById("sidebarAvatar");
+            if (sb) sb.innerHTML = "<span>&#128100;</span>";
+            document.getElementById("removeAvatarInput").value = "true";
+            document.getElementById("avatarFile").value = "";
             showToast("Photo removed");
         }
     </script>

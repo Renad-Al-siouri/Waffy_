@@ -235,6 +235,7 @@ namespace Waffy.Controllers
             var postIds = adoptionPosts.Select(p => p.IdPost);
             var flagCounts = await _flagRepo.GetFlagCountsForPostsAsync(postIds);
             var totalFlags = flagCounts.Values.Sum();
+            var appointments = (await _apptRepo.GetByUserIdAsync(id)).ToList();
             var complaints = (await _complaintRepo.GetByUserIdAsync(id)).ToList();
             var messageHistory = (await _notifRepo.GetByUserIdAsync(id))
     .Where(n => n.RelatedEntityType == "AdminMessage"
@@ -276,6 +277,8 @@ namespace Waffy.Controllers
                 Complaints = complaints,
                 ComplaintsCount = complaints.Count,
                 MessageHistory = messageHistory,
+                Appointments = appointments,
+                AppointmentsCount = appointments.Count,
                 ReturnPage = returnPage
             };
 

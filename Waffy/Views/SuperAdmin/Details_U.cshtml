@@ -594,8 +594,8 @@
         <!-- Mini Stats -->
         <div class="mini-stats">
             <div class="mini-stat"><div class="mini-val">@Model.PetsCount</div><div class="mini-label">🐾 Pets</div></div>
-            <div class="mini-stat"><div class="mini-val">—</div><div class="mini-label">📅 Appointments</div></div>
-            <div class="mini-stat"><div class="mini-val">@Model.OrdersCount</div><div class="mini-label">🛍️ Orders</div></div>
+            <div class="mini-stat"><div class="mini-val">@Model.AppointmentsCount</div><div class="mini-label">📅 Appointments</div></div>
+<div class="mini-stat"><div class="mini-val">@Model.OrdersCount</div><div class="mini-label">🛍️ Orders</div></div>
             <div class="mini-stat"><div class="mini-val">@Model.LostReportsCount</div><div class="mini-label">🔍 Lost Reports</div></div>
             <div class="mini-stat"><div class="mini-val">@Model.CouponsCount</div><div class="mini-label">🎟️ Rewards</div></div>
             <div class="mini-stat"><div class="mini-val">@Model.AdoptionCount</div><div class="mini-label">🏠 Adoptions</div></div>
@@ -612,7 +612,7 @@
             <button class="tab-btn" onclick="showTab('appointments',this)">📅 Appointments</button>
             <button class="tab-btn" onclick="showTab('timeline',this)">⏱️ Timeline</button>
             <button class="tab-btn" onclick="showTab('complaints',this)">🚨 Complaints</button>
-            <button class="tab-btn" onclick="showTab('fraud',this)">🕵️ Fraud</button>
+            
             <button class="tab-btn" onclick="showTab('contact',this)">✉️ Contact</button>
         </div>
 
@@ -1000,13 +1000,74 @@
             </div>
         </div>
 
-        <!-- TAB: APPOINTMENTS -->
-        <div class="tab-pane" id="tab-appointments">
-            <div class="inner-card">
-                <div class="inner-card-head"><div class="inner-card-title">Appointments</div><span class="badge badge-muted">Coming soon</span></div>
-                <div class="inner-card-body" style="text-align:center;padding:32px;color:var(--text-muted);font-weight:700;">🔧 Will be connected when Appointment repository is built.</div>
-            </div>
+      <!-- TAB: APPOINTMENTS -->
+<div class="tab-pane" id="tab-appointments">
+    <div class="inner-card">
+        <div class="inner-card-head">
+            <div class="inner-card-title">📅 Appointments (@Model.AppointmentsCount)</div>
         </div>
+        @if (!Model.Appointments.Any())
+        {
+            <div style="text-align:center;padding:32px;
+                        color:var(--text-muted);font-weight:700;">
+                📅 No appointments booked yet.
+            </div>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date & Time</th>
+                            <th>Clinic</th>
+                            <th>Doctor</th>
+                            <th>Service</th>
+                            <th>Pet</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in Model.Appointments.OrderByDescending(x => x.AppointmentDate))
+                        {
+                            <tr>
+                                <td>
+                                    <div class="user-name">
+                                        @a.AppointmentDate.ToString("dd MMM yyyy")
+                                    </div>
+                                    <div class="user-sub">
+                                        @a.TimeDisplay
+                                    </div>
+                                </td>
+                                <td style="font-size:.82rem;">@(a.ClinicName ?? "—")</td>
+                                <td style="font-size:.82rem;">
+                                    <div class="user-name">@(a.DoctorName ?? "—")</div>
+                                    @if (!string.IsNullOrEmpty(a.DoctorSpecialization))
+                                    {
+                                        <div class="user-sub">@a.DoctorSpecialization</div>
+                                    }
+                                </td>
+                                <td style="font-size:.82rem;">@(a.ServiceName ?? "—")</td>
+                                <td style="font-size:.82rem;">@(a.PetName ?? "—")</td>
+                                <td>
+                                    <span class="badge @(a.Status?.ToLower() switch {
+                                        "confirmed"  => "badge-success",
+                                        "completed"  => "badge-info",
+                                        "cancelled"  => "badge-danger",
+                                        "noshow"     => "badge-warning",
+                                        _            => "badge-muted"
+                                    })">
+                                        @a.StatusEmoji @a.Status
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
 
         <!-- TAB: TIMELINE -->
         <div class="tab-pane" id="tab-timeline">
@@ -1116,119 +1177,6 @@
             </div>
         </div>
 
-        <!-- TAB: FRAUD -->
-        <div class="tab-pane" id="tab-fraud">
-            @{
-                var totalLost = Model.LostReports.Count;
-                var totalFound = Model.LostReports.Count(r => r.Status == "Found");
-                var foundRate = totalLost > 0 ? (double)totalFound / totalLost * 100 : 0;
-                var foundRisk = foundRate > 80 && totalLost >= 3;
-                var last7Days = Model.LostReports.Count(r => r.CreatedAt >= DateTime.Now.AddDays(-7));
-                var last30Days = Model.LostReports.Count(r => r.CreatedAt >= DateTime.Now.AddDays(-30));
-                var velocityRisk = last7Days >= 3;
-                var rewardRisk = Model.CouponsCount > 2 && Model.OrdersCount == 0 && Model.AdoptionCount == 0;
-                var flagRisk = Model.TotalFlagsCount >= 3;
-                var ageDays = u.CreatedAt.HasValue ? (DateTime.Now - u.CreatedAt.Value).TotalDays : 365;
-                var ageFactor = 1.0 / Math.Log(ageDays + 2);
-                var ageMonths = (int)(ageDays / 30);
-                var ageRisk = ageDays < 30 && Model.LostReportsCount > 1;
-                var rawScore = 0;
-                if (foundRisk) rawScore += 30;
-                if (velocityRisk) rawScore += 25;
-                if (rewardRisk) rawScore += 25;
-                if (flagRisk) rawScore += 20;
-                if (u.WarningCount >= 2) rawScore += 15;
-                if (ageRisk) rawScore += 10;
-                var finalScore = (int)(rawScore * ageFactor);
-                finalScore = Math.Min(finalScore, 100);
-                var riskLevel = finalScore >= 61 ? ("🔴 High Risk", "var(--danger)", "var(--danger-soft)")
-                : finalScore >= 31 ? ("🟡 Medium Risk", "#9b6000", "var(--warning-soft)")
-                : ("🟢 Low Risk", "var(--success)", "var(--success-soft)");
-            }
-            <div class="inner-card" style="margin-bottom:14px;">
-                <div class="inner-card-head">
-                    <div class="inner-card-title">🕵️ Fraud Detection</div>
-                    <span class="badge" style="background:@riskLevel.Item3;color:@riskLevel.Item2;border:1px solid @riskLevel.Item2;">@riskLevel.Item1</span>
-                </div>
-                <div class="inner-card-body">
-                    <div style="margin-bottom:20px;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-                            <span style="font-weight:900;color:var(--brand-dark);font-size:.88rem;">Fraud Score</span>
-                            <span style="font-family:'Fredoka',sans-serif;font-size:1.6rem;font-weight:700;color:@riskLevel.Item2;">@finalScore / 100</span>
-                        </div>
-                        <div style="height:12px;background:var(--surface-2);border-radius:99px;overflow:hidden;border:1px solid var(--border);">
-                            <div style="height:100%;width:@(finalScore)%;background:@riskLevel.Item2;border-radius:99px;transition:.4s ease;"></div>
-                        </div>
-                        <div style="font-size:.74rem;color:var(--text-muted);font-weight:700;margin-top:6px;">* Score is weighted by account age</div>
-                    </div>
-                    <div class="grid-2">
-                        <div style="background:@(foundRisk ? "var(--danger-soft)" : "var(--success-soft)");border:1px solid @(foundRisk ? "rgba(217,83,79,.2)" : "rgba(47,158,95,.2)");border-radius:14px;padding:14px;">
-                            <div style="font-weight:900;font-size:.84rem;color:@(foundRisk ? "var(--danger)" : "var(--success)");">@(foundRisk ? "⚠️" : "✅") Found/Lost Rate</div>
-                            <div style="font-family:'Fredoka',sans-serif;font-size:1.5rem;font-weight:700;margin:6px 0;color:var(--brand-dark);">@(totalLost > 0 ? $"{foundRate:F0}%" : "—")</div>
-                            <div style="font-size:.75rem;color:var(--text-muted);font-weight:700;">
-                                @totalFound found · @totalLost total
-                                @if (foundRisk)
-                                {
-                                    <div style="color:var(--danger);margin-top:4px;">⚠️ High recovery rate is suspicious</div>
-                                }
-                            </div>
-                        </div>
-                        <div style="background:@(velocityRisk ? "var(--danger-soft)" : "var(--success-soft)");border:1px solid @(velocityRisk ? "rgba(217,83,79,.2)" : "rgba(47,158,95,.2)");border-radius:14px;padding:14px;">
-                            <div style="font-weight:900;font-size:.84rem;color:@(velocityRisk ? "var(--danger)" : "var(--success)");">@(velocityRisk ? "⚠️" : "✅") Report Velocity</div>
-                            <div style="font-family:'Fredoka',sans-serif;font-size:1.5rem;font-weight:700;margin:6px 0;color:var(--brand-dark);">@last7Days / 7d</div>
-                            <div style="font-size:.75rem;color:var(--text-muted);font-weight:700;">
-                                @last30Days reports in last 30 days
-                                @if (velocityRisk)
-                                {
-                                    <div style="color:var(--danger);margin-top:4px;">⚠️ Too many reports in short time</div>
-                                }
-                            </div>
-                        </div>
-                        <div style="background:@(rewardRisk ? "var(--danger-soft)" : "var(--success-soft)");border:1px solid @(rewardRisk ? "rgba(217,83,79,.2)" : "rgba(47,158,95,.2)");border-radius:14px;padding:14px;">
-                            <div style="font-weight:900;font-size:.84rem;color:@(rewardRisk ? "var(--danger)" : "var(--success)");">@(rewardRisk ? "⚠️" : "✅") Rewards vs Activity</div>
-                            <div style="font-family:'Fredoka',sans-serif;font-size:1.5rem;font-weight:700;margin:6px 0;color:var(--brand-dark);">@Model.CouponsCount 🎁</div>
-                            <div style="font-size:.75rem;color:var(--text-muted);font-weight:700;">
-                                Orders: @Model.OrdersCount · Adoption: @Model.AdoptionCount
-                                @if (rewardRisk)
-                                {
-                                    <div style="color:var(--danger);margin-top:4px;">⚠️ Rewards with no real activity</div>
-                                }
-                            </div>
-                        </div>
-                        <div style="background:@(flagRisk ? "var(--danger-soft)" : "var(--success-soft)");border:1px solid @(flagRisk ? "rgba(217,83,79,.2)" : "rgba(47,158,95,.2)");border-radius:14px;padding:14px;">
-                            <div style="font-weight:900;font-size:.84rem;color:@(flagRisk ? "var(--danger)" : "var(--success)");">@(flagRisk ? "⚠️" : "✅") Adoption Flags</div>
-                            <div style="font-family:'Fredoka',sans-serif;font-size:1.5rem;font-weight:700;margin:6px 0;color:var(--brand-dark);">@Model.TotalFlagsCount 🚩</div>
-                            <div style="font-size:.75rem;color:var(--text-muted);font-weight:700;">
-                                Warnings: @u.WarningCount · Age: @(ageMonths < 1 ? $"{(int)ageDays}d" : $"{ageMonths}mo")
-                                @if (flagRisk)
-                                {
-                                    <div style="color:var(--danger);margin-top:4px;">⚠️ Too many flagged posts</div>
-                                }
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="inner-card">
-                <div class="inner-card-head"><div class="inner-card-title">🔧 Admin Controls</div></div>
-                <div class="inner-card-body">
-                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-                        <form method="post" asp-controller="SuperAdmin" asp-action="SuspendUser" onsubmit="return confirm('Suspend this user?')">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="userId" value="@u.UserId" />
-                            <input type="hidden" name="returnSearch" value="@fSearch" />
-                            <input type="hidden" name="returnStatus" value="@fStatus" />
-                            <input type="hidden" name="returnRole" value="@fRole" />
-                            <input type="hidden" name="returnPage" value="@fPage" />
-                            <input type="hidden" name="from" value="details" />
-                            <button type="submit" class="btn btn-danger btn-sm">🔒 Suspend Account</button>
-                        </form>
-                        <button class="btn btn-warning btn-sm" onclick="openM('warnModal')">⚠️ Send Warning</button>
-                    </div>
-                    <div style="margin-top:12px;font-size:.76rem;color:var(--text-muted);font-weight:700;">💡 Coming soon: Pattern Correlation · Network Analysis</div>
-                </div>
-            </div>
-        </div>
 
         <!-- TAB: CONTACT -->
         <div class="tab-pane" id="tab-contact">

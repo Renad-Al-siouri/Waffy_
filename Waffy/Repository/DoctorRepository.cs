@@ -223,16 +223,16 @@ namespace Waffy.Repositories
             Qualification   = @Qualification,
             Certifications  = @Certifications,
             Languages       = @Languages
-        WHERE IdUser = @IdUser",
+        WHERE IdDoctor = @IdDoctor",   
                 new
                 {
-                    data.Specialization,
-                    data.SecondarySpec,
-                    data.ExperienceYears,
-                    data.Qualification,
-                    data.Certifications,
-                    data.Languages,
-                    IdUser = userId
+                    Specialization = data.Specialization,
+                    SecondarySpec = data.SecondarySpec,
+                    ExperienceYears = data.ExperienceYears,
+                    Qualification = data.Qualification,
+                    Certifications = data.Certifications,
+                    Languages = data.Languages,
+                    IdDoctor = userId 
                 });
         }
 
@@ -317,7 +317,6 @@ namespace Waffy.Repositories
                 "UPDATE DoctorDocument SET Status = @Status WHERE Id = @Id",
                 new { Status = status, Id = docId });
         }
-
 
 
 
