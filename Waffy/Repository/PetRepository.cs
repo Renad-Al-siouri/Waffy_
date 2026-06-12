@@ -85,10 +85,18 @@ namespace Waffy.Repository
 
         public async Task DeleteAsync(int petId)
         {
-            // PetImage يُحذف تلقائياً بسبب ON DELETE CASCADE في الجدول
-            const string sql = "DELETE FROM Pet WHERE IdPet = @IdPet";
             using var conn = new SqlConnection(_connectionString);
-            await conn.ExecuteAsync(sql, new { IdPet = petId });
+            await conn.OpenAsync();
+
+            // ✅ فك الارتباط مع Appointment (IdPet nullable)
+            await conn.ExecuteAsync(
+                "UPDATE Appointment SET IdPet = NULL WHERE IdPet = @IdPet",
+                new { IdPet = petId });
+
+            // ✅ PetImage + AdoptionPost يُحذفان تلقائياً بـ CASCADE
+            await conn.ExecuteAsync(
+                "DELETE FROM Pet WHERE IdPet = @IdPet",
+                new { IdPet = petId });
         }
 
         public async Task UpdateImageAsync(int petId, string imageUrl)
@@ -123,11 +131,6 @@ namespace Waffy.Repository
             return await conn.QueryAsync<PetImage>(sql, new { IdPet = petId });
         }
 
-        /// <summary>
-        /// إضافة صورة جديدة للحيوان.
-        /// — لو أول صورة تُعيَّن Main تلقائياً.
-        /// — Pet.ImageUrl يُحدَّث لو أصبحت Main.
-        /// </summary>
         public async Task<int> AddPetImageAsync(int petId, string imageUrl, bool isMain = false)
         {
             using var conn = new SqlConnection(_connectionString);
@@ -174,9 +177,6 @@ namespace Waffy.Repository
             return newId;
         }
 
-        /// <summary>
-        /// حذف صورة واحدة ثم إعادة مزامنة Pet.ImageUrl
-        /// </summary>
         public async Task DeletePetImageAsync(int imageId)
         {
             using var conn = new SqlConnection(_connectionString);
@@ -197,9 +197,7 @@ namespace Waffy.Repository
             await SyncMainImageInternalAsync(conn, image.IdPet);
         }
 
-        /// <summary>
-        /// تعيين صورة محددة كـ Main وتحديث Pet.ImageUrl
-        /// </summary>
+     
         public async Task SetMainImageAsync(int petId, int imageId)
         {
             using var conn = new SqlConnection(_connectionString);
@@ -228,11 +226,7 @@ namespace Waffy.Repository
                 new { Url = imageUrl, IdPet = petId });
         }
 
-        /// <summary>
-        /// مزامنة Pet.ImageUrl مع الصورة الرئيسية في PetImage.
-        /// يُستدعى من خارج الـ Repository عند الحاجة.
-        /// لو لا توجد صور → Pet.ImageUrl = NULL
-        /// </summary>
+      
         public async Task SyncMainImageAsync(int petId)
         {
             using var conn = new SqlConnection(_connectionString);
@@ -240,20 +234,6 @@ namespace Waffy.Repository
             await SyncMainImageInternalAsync(conn, petId);
         }
 
-        // ════════════════════════════════════════════════════
-        // PRIVATE HELPER — يعمل على connection مفتوحة مسبقاً
-        // ════════════════════════════════════════════════════
-
-        /// <summary>
-        /// الخوارزمية الصحيحة التي تضمن التطابق الكامل:
-        ///
-        ///  1. اجلب الصورة الأفضل بـ Id و ImageUrl معاً في نفس الـ Query
-        ///  2. أزل IsMain عن الجميع
-        ///  3. عيّن IsMain=1 على نفس الصورة بالـ Id الذي جلبناه في الخطوة 1
-        ///  4. حدّث Pet.ImageUrl بالـ ImageUrl الذي جلبناه في الخطوة 1
-        ///
-        ///  هكذا Id و ImageUrl مصدرهما نفس الـ Row ولا يوجد تضارب.
-        /// </summary>
         private static async Task SyncMainImageInternalAsync(SqlConnection conn, int petId)
         {
             // الخطوة 1: اجلب الصورة الأفضل — أولوية لـ IsMain=1 ثم أقل SortOrder
