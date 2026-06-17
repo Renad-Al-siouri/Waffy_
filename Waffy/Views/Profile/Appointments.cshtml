@@ -21,10 +21,9 @@
     var now = DateTime.Now;
 
     var pending = Model.Appointments
-        .Where(a => a.Status is "PendingDoctorApproval"
-                              or "PendingClinicApproval"
-                              or "PendingPayment"
-                              or "PendingPaymentVerification")
+     .Where(a => a.Status is "PendingDoctorApproval"
+                           or "PendingClinicAssignment"
+                           or "PendingPaymentVerification")
         .OrderBy(a => a.AppointmentDate).ToList();
 
     var upcoming = Model.Appointments
