@@ -81,8 +81,46 @@ namespace Waffy.Repositories
         public async Task DeleteAsync(int idClinic)
         {
             using var connection = new SqlConnection(_ConnectionString);
-            var sql = "DELETE FROM Clinic WHERE IdClinic = @IdClinic";
-            await connection.ExecuteAsync(sql, new { IdClinic = idClinic });
+
+            // ① جداول تعتمد على Appointment أولاً
+            await connection.ExecuteAsync(
+                "DELETE FROM MedicalRecord WHERE IdClinic = @IdClinic",
+                new { IdClinic = idClinic });
+
+            await connection.ExecuteAsync(
+                "DELETE FROM Appointment WHERE IdClinic = @IdClinic",
+                new { IdClinic = idClinic });
+
+            // ② جداول العيادة المباشرة
+            await connection.ExecuteAsync(
+                "DELETE FROM ClinicDocument WHERE IdClinic = @IdClinic",
+                new { IdClinic = idClinic });
+
+            await connection.ExecuteAsync(
+                "DELETE FROM ClinicImage WHERE IdClinic = @IdClinic",
+                new { IdClinic = idClinic });
+
+            await connection.ExecuteAsync(
+                "DELETE FROM ClinicSchedule WHERE IdClinic = @IdClinic",
+                new { IdClinic = idClinic });
+
+            await connection.ExecuteAsync(
+                "DELETE FROM ClinicService WHERE IdClinic = @IdClinic",
+                new { IdClinic = idClinic });
+
+            await connection.ExecuteAsync(
+                "DELETE FROM ClinicWarning WHERE TargetId = @IdClinic",
+                new { IdClinic = idClinic });
+
+            // ③ الأطباء — نفصلهم عن العيادة بدل حذفهم
+            await connection.ExecuteAsync(
+                "UPDATE Doctor SET IdClinic = NULL, VerificationStatus = 'Removed' WHERE IdClinic = @IdClinic",
+                new { IdClinic = idClinic });
+
+            // ④ أخيراً — حذف العيادة
+            await connection.ExecuteAsync(
+                "DELETE FROM Clinic WHERE IdClinic = @IdClinic",
+                new { IdClinic = idClinic });
         }
 
         // ✅ جلب كل العيادات
